@@ -8,7 +8,7 @@ var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.AUTO, ''
 });
 
 function preload() {
-    game.load.image('earth', 'assets/black-marble2.jpg');
+    game.load.image('earth', 'assets/green-hex.jpg');
     game.load.spritesheet('dude', 'assets/bird.png', 64, 64);
     //game.load.spritesheet('dudeL', 'assets/birdL.png', 64, 64);
     game.load.spritesheet('enemy', 'assets/bird.png', 64, 64);
