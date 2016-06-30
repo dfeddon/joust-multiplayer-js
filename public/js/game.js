@@ -1,6 +1,6 @@
 /* global Phaser RemotePlayer io */
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.AUTO, '', {
     preload: preload,
     create: create,
     update: update,
@@ -8,14 +8,15 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
 });
 
 function preload() {
-    game.load.image('earth', 'assets/light_sand.png');
-    game.load.spritesheet('dude', 'assets/dude.png', 64, 64);
-    game.load.spritesheet('enemy', 'assets/dude.png', 64, 64);
+    game.load.image('earth', 'assets/black-marble.jpg');
+    game.load.spritesheet('dude', 'assets/bird.png', 64, 64);
+    //game.load.spritesheet('dudeL', 'assets/birdL.png', 64, 64);
+    game.load.spritesheet('enemy', 'assets/bird.png', 64, 64);
 }
 
 var socket; // Socket connection
 
-var land;
+var sky;
 
 var player;
 
@@ -24,20 +25,25 @@ var enemies;
 var currentSpeed = 0;
 var cursors;
 
+var playerDirection = 0;
+
 function create() {
+    console.log('create');
     socket = io.connect();
 
     // Resize our game world to be a 2000 x 2000 square
     game.world.setBounds(-500, -500, 1000, 1000);
 
     // Our tiled scrolling background
-    land = game.add.tileSprite(0, 0, 800, 600, 'earth');
-    land.fixedToCamera = true;
+    sky = game.add.tileSprite(-500, -500, 1000, 1000, 'earth');
+    //sky.fixedToCamera = true;
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
     var startY = Math.round(Math.random() * (1000) - 500);
+    startX = 0;startY = 0;
     player = game.add.sprite(startX, startY, 'dude');
+    player.d = 0;
     player.anchor.setTo(0.5, 0.5);
     player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true);
     player.animations.add('stop', [3], 20, true);
@@ -48,22 +54,81 @@ function create() {
     // This will force it to decelerate and limit its speed
     // player.body.drag.setTo(200, 200)
     game.physics.enable(player, Phaser.Physics.ARCADE);
-    player.body.maxVelocity.setTo(400, 400);
+    //player.body.maxVelocity.setTo(400, 400);
     player.body.collideWorldBounds = true;
+
+    // gravity
+    //player.body.gravity.y = 1000;
+    //  This sets the image bounce energy for the horizontal  and vertical vectors (as an x,y point). "1" is 100% energy return
+    /*player.body.bounce.set(0.8);
+    player.body.velocity.setTo(200, 200);
+    player.body.gravity.set(0, 180);*/
+    player.body.bounce.y = 0.3;
+    player.body.gravity.y = 200;
 
     // Create some baddies to waste :)
     enemies = [];
 
-    player.bringToTop();
+    //player.bringToTop();
 
     game.camera.follow(player);
     game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
     game.camera.focusOnXY(0, 0);
+    //  Set the world (global) gravity
+    game.physics.arcade.gravity.y = 100;
 
-    cursors = game.input.keyboard.createCursorKeys();
+    //cursors = game.input.keyboard.createCursorKeys();
+
+    //player.body.velocity.setTo(200, 200);
+    var space_key = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    space_key.onDown.add(playerFlap, this);
+
+    var move_left = this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+    move_left.onDown.add(playerLeft, this);
+
+    var move_right = this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+    move_right.onDown.add(playerRight, this);
 
     // Start listening for events
     setEventHandlers();
+}
+function playerFlap(e)
+{
+    console.log("flap!");
+    //player.body.gravity.y = -300;
+    player.body.velocity.y = -200;
+
+    if (playerDirection === 1)
+        player.body.velocity.x = -85;
+    else player.body.velocity.x = 85;
+    //player.body.velocity.x = 50;
+}
+function playerRight(e)
+{
+    console.log('RIGHT');
+    if (playerDirection === 1)
+    {
+        player.anchor.setTo(0.5, 0.5);
+        player.scale.x *= -1;
+    }
+    playerDirection = 0;
+    player.d = 0;
+    //player.loadTexture('birdL', 0);
+    //player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true);
+    //player.body.velocity.x = 50;
+}
+function playerLeft(e)
+{
+    console.log('LEFT');
+    if (playerDirection === 0)
+    {
+        player.anchor.setTo(0.5, 0.5);
+        player.scale.x *= -1;
+    }
+    playerDirection = 1;
+    player.d = 1;
+    //player.loadTexture('bird', 64);
+    //player.body.velocity.x = -50;
 }
 
 var setEventHandlers = function() {
@@ -96,7 +161,8 @@ function onSocketConnected() {
     // Send local player data to the game server
     socket.emit('new player', {
         x: player.x,
-        y: player.y
+        y: player.y,
+        d: player.d
     });
 }
 
@@ -107,7 +173,7 @@ function onSocketDisconnect() {
 
 // New player
 function onNewPlayer(data) {
-    console.log('New player connected:', data.id);
+    console.log('New player connected:', data.id, data);
 
     // Avoid possible duplicate players
     var duplicate = playerById(data.id);
@@ -117,7 +183,7 @@ function onNewPlayer(data) {
     }
 
     // Add new player to the remote players array
-    enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y));
+    enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.d));
 }
 
 // Move player
@@ -133,6 +199,7 @@ function onMovePlayer(data) {
     // Update player position
     movePlayer.player.x = data.x;
     movePlayer.player.y = data.y;
+    movePlayer.player.d = data.d;
 }
 
 // Remove player
@@ -152,6 +219,7 @@ function onRemovePlayer(data) {
 }
 
 function update() {
+    //*
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) {
             enemies[i].update();
@@ -159,7 +227,7 @@ function update() {
         }
     }
 
-    if (cursors.left.isDown) {
+    /*if (cursors.left.isDown) {
         player.angle -= 4;
     } else if (cursors.right.isDown) {
         player.angle += 4;
@@ -172,9 +240,9 @@ function update() {
         if (currentSpeed > 0) {
             currentSpeed -= 4;
         }
-    }
+    }*/
 
-    game.physics.arcade.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity);
+    //game.physics.arcade.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity);
 
     if (currentSpeed > 0) {
         player.animations.play('move');
@@ -182,21 +250,23 @@ function update() {
         player.animations.play('stop');
     }
 
-    land.tilePosition.x = -game.camera.x;
-    land.tilePosition.y = -game.camera.y;
+    //sky.tilePosition.x =  -game.camera.x;
+    //sky.tilePosition.y = -game.camera.y;
 
-    if (game.input.activePointer.isDown) {
-        if (game.physics.arcade.distanceToPointer(player) >= 10) {
-            currentSpeed = 300;
-
-            player.rotation = game.physics.arcade.angleToPointer(player);
-        }
-    }
+    // if (game.input.activePointer.isDown) {
+    //     if (game.physics.arcade.distanceToPointer(player) >= 10) {
+    //         currentSpeed = 300;
+    //
+    //         player.rotation = game.physics.arcade.angleToPointer(player);
+    //     }
+    // }
 
     socket.emit('move player', {
         x: player.x,
-        y: player.y
+        y: player.y,
+        d: player.d
     });
+    //*/
 }
 
 function render() {
