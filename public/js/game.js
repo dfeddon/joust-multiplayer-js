@@ -32,10 +32,10 @@ function create() {
     socket = io.connect();
 
     // Resize our game world to be a 2000 x 2000 square
-    game.world.setBounds(-500, -500, 1000, 1000);
+    game.world.setBounds(-5000, -5000, 10000, 10000);
 
     // Our tiled scrolling background
-    sky = game.add.tileSprite(-500, -500, 1000, 1000, 'earth');
+    sky = game.add.tileSprite(-5000, -5000, 10000, 10000, 'earth');
     //sky.fixedToCamera = true;
 
     // The base of our player
