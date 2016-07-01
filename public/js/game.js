@@ -1,6 +1,6 @@
 /* global Phaser RemotePlayer io */
-
-var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.AUTO, '', {
+// TODO: Change Phaser.CANVAS to Phaser.AUTO for production
+var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.CANVAS, 'flapjoustio', {
     preload: preload,
     create: create,
     update: update,
@@ -8,7 +8,8 @@ var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.AUTO, ''
 });
 
 function preload() {
-    game.load.image('earth', 'assets/green-hex.jpg');
+    game.load.image('earth', 'assets/sky-tile.png');
+    game.load.image('platform', 'assets/platform-1.png');
     game.load.spritesheet('dude', 'assets/bird.png', 64, 64);
     //game.load.spritesheet('dudeL', 'assets/birdL.png', 64, 64);
     game.load.spritesheet('enemy', 'assets/bird.png', 64, 64);
@@ -17,6 +18,7 @@ function preload() {
 var socket; // Socket connection
 
 var sky;
+var platforms;
 
 var player;
 
@@ -27,20 +29,89 @@ var cursors;
 
 var playerDirection = 0;
 
+var rect, circle, point;
+
 function create() {
     console.log('create');
     socket = io.connect();
 
+    game.stage.backgroundColor = "#000";
+    // Stretch to fill
+    game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+
+    // Keep original size
+    // game.scale.fullScreenScaleMode = Phaser.ScaleManager.NO_SCALE;
+
+    // Maintain aspect ratio
+    // game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+
+    // UI
+    // rect = new Phaser.Rectangle( 100, 100, 100, 100 );
+    // game.physics.enable(rect, Phaser.Physics.ARCADE);
+    // rect.immovable = true;
+    //var rectUI = new Phaser.Rectangle( 100, 100, 100, 100 );
+    // circle = new Phaser.Circle( 280, 150, 100 ) ;
+    // point = new Phaser.Point( 100, 280 ) ;
+    //var bg = game.add.sprite(50, 50, rectUI);
+    //rectUI.fixedToCamera = true;
+    // var font = game.make.bitmapData(320, 150);
+    // var mask = game.make.bitmapData(320, 150);
+    // mask.fill(50, 50, 50);
+    // font.draw('font');
+    // font.update();
+    // game.add.sprite(0, 0, font);
+    // game.add.sprite(0, 150, mask);
+    // var text = "- phaser -\n with a sprinkle of \n pixi dust.";
+    // var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
+    //
+    // var t = game.add.text(game.world.centerX-300, 0, text, style);
+
     // Resize our game world to be a 2000 x 2000 square
-    game.world.setBounds(-5000, -5000, 10000, 10000);
+    game.world.setBounds(-1000, -1000, 2000, 2000);
+
+    // set render type to canvas (webgl is sllllooooww)
+    //game.renderType = Phaser.CANVAS;
 
     // Our tiled scrolling background
-    sky = game.add.tileSprite(-5000, -5000, 10000, 10000, 'earth');
+    sky = game.add.tileSprite(-1000, -1000, 2000, 2000, 'earth');
     //sky.fixedToCamera = true;
+
+    // create platforms group
+    platforms = game.add.group();
+
+    // create platforms in group
+    var coordinates = [
+        {x:-300, y:-800},
+        {x:-500, y:-400},
+        {x:-50, y:200},
+        {x:500, y:400},
+        {x:-400, y:400},
+        {x:750, y:900},
+    ];
+    for (var i = 0; i < coordinates.length - 1; i++)
+    {
+        //platforms.create(game.world.randomX, game.world.randomY, 'platform');
+        console.log(i, coordinates[i].x, coordinates[i].y);
+        platforms.create(coordinates[i].x, coordinates[i].y, 'platform');
+    }
+    // set properties
+    game.physics.enable(platforms, Phaser.Physics.ARCADE);
+    platforms.children.forEach(function(platform)
+    {
+        platform.body.allowGravity = false;
+        platform.body.immovable = true;
+        platform.body.moves = false;
+    });
+    // platform = game.add.sprite(0, 0, 'platform');
+    // game.physics.enable(platforms, Phaser.Physics.ARCADE);
+    // platforms.body.allowGravity = false;
+    // platforms.body.immovable = true;
+    // platforms.body.moves = false;
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
     var startY = Math.round(Math.random() * (1000) - 500);
+    // fixed start coords
     startX = 0;startY = 0;
     player = game.add.sprite(startX, startY, 'dude');
     player.d = 0;
@@ -72,8 +143,8 @@ function create() {
     //player.bringToTop();
 
     game.camera.follow(player);
-    game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
-    game.camera.focusOnXY(0, 0);
+    //game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
+    //game.camera.focusOnXY(0, 0);
     //  Set the world (global) gravity
     game.physics.arcade.gravity.y = 100;
 
@@ -227,6 +298,9 @@ function update() {
         }
     }
 
+    // platform collision
+    game.physics.arcade.collide(player, platforms, collisionCallback, processCallback, this);
+
     /*if (cursors.left.isDown) {
         player.angle -= 4;
     } else if (cursors.right.isDown) {
@@ -244,11 +318,11 @@ function update() {
 
     //game.physics.arcade.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity);
 
-    if (currentSpeed > 0) {
-        player.animations.play('move');
-    } else {
-        player.animations.play('stop');
-    }
+    // if (currentSpeed > 0) {
+    //     player.animations.play('move');
+    // } else {
+    //     player.animations.play('stop');
+    // }
 
     //sky.tilePosition.x =  -game.camera.x;
     //sky.tilePosition.y = -game.camera.y;
@@ -268,9 +342,37 @@ function update() {
     });
     //*/
 }
+function collisionCallback (objPlayer, objPlatform) {
+    //console.log(objPlayer.y, objPlatform.y);
+    var pvx = objPlayer.body.velocity.x;
 
+    if (objPlayer.y < objPlatform.y && pvx !== 0)
+    {
+        console.log("stop player", pvx);
+        //player.linearDamping = 20;
+        if (pvx > 0)
+        {
+            objPlayer.body.velocity.x -= 5;
+            if (pvx < 0) objPlayer.body.velocity.x = 0;
+        }
+        else
+        {
+            objPlayer.body.velocity.x += 5;
+            if (pvx > 0) objPlayer.body.velocity.x = 0;
+        }
+    }
+}
+function processCallback(objPlayer, objPlatform) {
+    //console.log("collision!", objPlayer.body.velocity.x);
+    return true;
+}
 function render() {
+    game.debug.cameraInfo(game.camera, 32, 32);
+    game.debug.spriteCoords(player, 32, 500);
 
+    // game.debug.geom(rect,'#0fffff');
+    // game.debug.geom(circle, '#000');
+    // game.debug.geom(point, '#e81b1b');
 }
 
 // Find player by ID

@@ -43,10 +43,13 @@ RemotePlayer.prototype.update = function () {
     this.player.scale.x *= -1;
   }
 
-
   this.lastPosition.x = this.player.x;
   this.lastPosition.y = this.player.y;
   this.lastPosition.d = this.player.d;
+
+  // platform collision
+  game.physics.arcade.collide(player, platforms, collisionCallback, processCallback, this);
+
 };
 
 window.RemotePlayer = RemotePlayer;
