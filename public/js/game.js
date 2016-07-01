@@ -45,34 +45,10 @@ function create() {
     // Maintain aspect ratio
     // game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 
-    // UI
-    // rect = new Phaser.Rectangle( 100, 100, 100, 100 );
-    // game.physics.enable(rect, Phaser.Physics.ARCADE);
-    // rect.immovable = true;
-    //var rectUI = new Phaser.Rectangle( 100, 100, 100, 100 );
-    // circle = new Phaser.Circle( 280, 150, 100 ) ;
-    // point = new Phaser.Point( 100, 280 ) ;
-    //var bg = game.add.sprite(50, 50, rectUI);
-    //rectUI.fixedToCamera = true;
-    // var font = game.make.bitmapData(320, 150);
-    // var mask = game.make.bitmapData(320, 150);
-    // mask.fill(50, 50, 50);
-    // font.draw('font');
-    // font.update();
-    // game.add.sprite(0, 0, font);
-    // game.add.sprite(0, 150, mask);
-    // var text = "- phaser -\n with a sprinkle of \n pixi dust.";
-    // var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
-    //
-    // var t = game.add.text(game.world.centerX-300, 0, text, style);
-
     // Resize our game world to be a 2000 x 2000 square
     game.world.setBounds(-1000, -1000, 2000, 2000);
 
-    // set render type to canvas (webgl is sllllooooww)
-    //game.renderType = Phaser.CANVAS;
-
-    // Our tiled scrolling background
+      // Our tiled scrolling background
     sky = game.add.tileSprite(-1000, -1000, 2000, 2000, 'earth');
     //sky.fixedToCamera = true;
 
@@ -91,10 +67,9 @@ function create() {
     for (var i = 0; i < coordinates.length - 1; i++)
     {
         //platforms.create(game.world.randomX, game.world.randomY, 'platform');
-        console.log(i, coordinates[i].x, coordinates[i].y);
         platforms.create(coordinates[i].x, coordinates[i].y, 'platform');
     }
-    // set properties
+    // set platform properties
     game.physics.enable(platforms, Phaser.Physics.ARCADE);
     platforms.children.forEach(function(platform)
     {
@@ -102,11 +77,6 @@ function create() {
         platform.body.immovable = true;
         platform.body.moves = false;
     });
-    // platform = game.add.sprite(0, 0, 'platform');
-    // game.physics.enable(platforms, Phaser.Physics.ARCADE);
-    // platforms.body.allowGravity = false;
-    // platforms.body.immovable = true;
-    // platforms.body.moves = false;
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
@@ -114,8 +84,9 @@ function create() {
     // fixed start coords
     startX = 0;startY = 0;
     player = game.add.sprite(startX, startY, 'dude');
-    player.d = 0;
+    player.d = 0; // default to facing right
     player.anchor.setTo(0.5, 0.5);
+    // animations
     player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true);
     player.animations.add('stop', [3], 20, true);
 
@@ -123,19 +94,17 @@ function create() {
     //player.gravity.y = 1000;
 
     // This will force it to decelerate and limit its speed
-    // player.body.drag.setTo(200, 200)
+    //player.body.drag.setTo(200, 200)
     game.physics.enable(player, Phaser.Physics.ARCADE);
     //player.body.maxVelocity.setTo(400, 400);
     player.body.collideWorldBounds = true;
 
-    // gravity
-    //player.body.gravity.y = 1000;
-    //  This sets the image bounce energy for the horizontal  and vertical vectors (as an x,y point). "1" is 100% energy return
-    /*player.body.bounce.set(0.8);
-    player.body.velocity.setTo(200, 200);
-    player.body.gravity.set(0, 180);*/
+    // gravity & bounce
     player.body.bounce.y = 0.3;
     player.body.gravity.y = 200;
+
+    //  Set the world (global) gravity
+    game.physics.arcade.gravity.y = 100;
 
     // Create some baddies to waste :)
     enemies = [];
@@ -145,8 +114,6 @@ function create() {
     game.camera.follow(player);
     //game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
     //game.camera.focusOnXY(0, 0);
-    //  Set the world (global) gravity
-    game.physics.arcade.gravity.y = 100;
 
     //cursors = game.input.keyboard.createCursorKeys();
 
@@ -268,8 +235,8 @@ function onMovePlayer(data) {
     }
 
     // Update player position
-    movePlayer.player.x = data.x;
-    movePlayer.player.y = data.y;
+    movePlayer.player.x = Math.round(data.x * 100) / 100;
+    movePlayer.player.y = Math.round(data.y * 100) / 100;
     movePlayer.player.d = data.d;
 }
 
@@ -290,7 +257,8 @@ function onRemovePlayer(data) {
 }
 
 function update() {
-    //*
+
+    // enemy collision
     for (var i = 0; i < enemies.length; i++) {
         if (enemies[i].alive) {
             enemies[i].update();
@@ -301,46 +269,12 @@ function update() {
     // platform collision
     game.physics.arcade.collide(player, platforms, collisionCallback, processCallback, this);
 
-    /*if (cursors.left.isDown) {
-        player.angle -= 4;
-    } else if (cursors.right.isDown) {
-        player.angle += 4;
-    }
-
-    if (cursors.up.isDown) {
-        // The speed we'll travel at
-        currentSpeed = 300;
-    } else {
-        if (currentSpeed > 0) {
-            currentSpeed -= 4;
-        }
-    }*/
-
-    //game.physics.arcade.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity);
-
-    // if (currentSpeed > 0) {
-    //     player.animations.play('move');
-    // } else {
-    //     player.animations.play('stop');
-    // }
-
-    //sky.tilePosition.x =  -game.camera.x;
-    //sky.tilePosition.y = -game.camera.y;
-
-    // if (game.input.activePointer.isDown) {
-    //     if (game.physics.arcade.distanceToPointer(player) >= 10) {
-    //         currentSpeed = 300;
-    //
-    //         player.rotation = game.physics.arcade.angleToPointer(player);
-    //     }
-    // }
-
+    // move player data to socket
     socket.emit('move player', {
         x: player.x,
         y: player.y,
         d: player.d
     });
-    //*/
 }
 function collisionCallback (objPlayer, objPlatform) {
     //console.log(objPlayer.y, objPlatform.y);
