@@ -29,7 +29,7 @@ var RemotePlayer = function (index, game, player, startX, startY, startD) {
 };
 
 RemotePlayer.prototype.update = function () {
-  console.log(':', this.player.d, this.lastPosition.d);
+  console.log('remote:', this.player.d, this.lastPosition.d);
   if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y) {
     this.player.play('move');
     //this.player.rotation = Math.PI + game.physics.arcade.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y);
@@ -48,7 +48,7 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.d = this.player.d;
 
   // platform collision
-  game.physics.arcade.collide(player, platforms, collisionCallback, processCallback, this);
+  game.physics.arcade.collide(player, platforms, null, platformDrag, this);
 
 };
 

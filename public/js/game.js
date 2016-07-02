@@ -10,6 +10,7 @@ var game = new Phaser.Game(window.outerWidth, window.outerWidth, Phaser.CANVAS, 
 function preload() {
     game.load.image('earth', 'assets/sky-tile.png');
     game.load.image('platform', 'assets/platform-1.png');
+    game.load.image('platform-ice', 'assets/platform-ice.png');
     game.load.spritesheet('dude', 'assets/bird.png', 64, 64);
     //game.load.spritesheet('dudeL', 'assets/birdL.png', 64, 64);
     game.load.spritesheet('enemy', 'assets/bird.png', 64, 64);
@@ -37,7 +38,7 @@ function create() {
 
     game.stage.backgroundColor = "#000";
     // Stretch to fill
-    game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+    //game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
 
     // Keep original size
     // game.scale.fullScreenScaleMode = Phaser.ScaleManager.NO_SCALE;
@@ -48,7 +49,7 @@ function create() {
     // Resize our game world to be a 2000 x 2000 square
     game.world.setBounds(-1000, -1000, 2000, 2000);
 
-      // Our tiled scrolling background
+    // Our tiled scrolling background
     sky = game.add.tileSprite(-1000, -1000, 2000, 2000, 'earth');
     //sky.fixedToCamera = true;
 
@@ -56,33 +57,85 @@ function create() {
     platforms = game.add.group();
 
     // create platforms in group
-    var coordinates = [
-        {x:-300, y:-800},
-        {x:-500, y:-400},
-        {x:-50, y:200},
-        {x:500, y:400},
-        {x:-400, y:400},
-        {x:750, y:900},
-    ];
-    for (var i = 0; i < coordinates.length - 1; i++)
-    {
+    // 0 = normal
+    // 1 = icy
+    // 2 = moving
+    var platformData = [{
+        x: -300,
+        y: -800,
+        type: 0
+    }, {
+        x: -500,
+        y: -400,
+        type: 0
+    }, {
+        x: -100,
+        y: 200,
+        type: 2
+    }, {
+        x: 500,
+        y: 400,
+        type: 1
+    }, {
+        x: -400,
+        y: 400,
+        type: 0
+    }, {
+        x: 750,
+        y: 900,
+        type: 0
+    }, ];
+    for (var i = 0; i < platformData.length; i++) {
+        var image;
+
+        switch (platformData[i].type) {
+            case 0:
+            case 2:
+                image = 'platform';
+                break;
+            case 1:
+                image = 'platform-ice';
+                break;
+        }
         //platforms.create(game.world.randomX, game.world.randomY, 'platform');
-        platforms.create(coordinates[i].x, coordinates[i].y, 'platform');
+        platforms.create(platformData[i].x, platformData[i].y, image);
     }
     // set platform properties
     game.physics.enable(platforms, Phaser.Physics.ARCADE);
-    platforms.children.forEach(function(platform)
-    {
-        platform.body.allowGravity = false;
-        platform.body.immovable = true;
-        platform.body.moves = false;
+    var count = 0;
+    platforms.children.forEach(function(platform) {
+        platform.type = platformData[count].type;
+
+        switch (platform.type) {
+            case 0: // normal
+                platform.body.allowGravity = false;
+                platform.body.immovable = true;
+                platform.body.moves = false;
+                break;
+            case 1: // icy
+                platform.body.allowGravity = false;
+                platform.body.immovable = true;
+                platform.body.moves = false;
+                break;
+
+            case 2: // moving
+                platform.body.allowGravity = false;
+                platform.body.immovable = true;
+                platform.body.moves = true;
+                platform.body.velocity.x = 50;
+                break;
+            default:
+        }
+
+        count++;
     });
 
     // The base of our player
     var startX = Math.round(Math.random() * (1000) - 500);
     var startY = Math.round(Math.random() * (1000) - 500);
     // fixed start coords
-    startX = 0;startY = 0;
+    startX = 0;
+    startY = 0;
     player = game.add.sprite(startX, startY, 'dude');
     player.d = 0; // default to facing right
     player.anchor.setTo(0.5, 0.5);
@@ -111,7 +164,7 @@ function create() {
 
     //player.bringToTop();
 
-    game.camera.follow(player);
+    game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON);
     //game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300);
     //game.camera.focusOnXY(0, 0);
 
@@ -130,8 +183,8 @@ function create() {
     // Start listening for events
     setEventHandlers();
 }
-function playerFlap(e)
-{
+
+function playerFlap(e) {
     console.log("flap!");
     //player.body.gravity.y = -300;
     player.body.velocity.y = -200;
@@ -141,11 +194,10 @@ function playerFlap(e)
     else player.body.velocity.x = 85;
     //player.body.velocity.x = 50;
 }
-function playerRight(e)
-{
+
+function playerRight(e) {
     console.log('RIGHT');
-    if (playerDirection === 1)
-    {
+    if (playerDirection === 1) {
         player.anchor.setTo(0.5, 0.5);
         player.scale.x *= -1;
     }
@@ -155,11 +207,10 @@ function playerRight(e)
     //player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true);
     //player.body.velocity.x = 50;
 }
-function playerLeft(e)
-{
+
+function playerLeft(e) {
     console.log('LEFT');
-    if (playerDirection === 0)
-    {
+    if (playerDirection === 0) {
         player.anchor.setTo(0.5, 0.5);
         player.scale.x *= -1;
     }
@@ -235,8 +286,8 @@ function onMovePlayer(data) {
     }
 
     // Update player position
-    movePlayer.player.x = Math.round(data.x * 100) / 100;
-    movePlayer.player.y = Math.round(data.y * 100) / 100;
+    movePlayer.player.x = data.x;
+    movePlayer.player.y = data.y;
     movePlayer.player.d = data.d;
 }
 
@@ -257,50 +308,80 @@ function onRemovePlayer(data) {
 }
 
 function update() {
+    // round values
+    player.x = Math.round(player.x * 100) / 100;
+    player.y = Math.round(player.y * 100) / 100;
+
+    //////////////////////////////
+    // collisions
+    //////////////////////////////
 
     // enemy collision
     for (var i = 0; i < enemies.length; i++) {
-        if (enemies[i].alive) {
+        //if (enemies[i].alive) {
             enemies[i].update();
-            game.physics.arcade.collide(player, enemies[i].player);
-        }
+            game.physics.arcade.collide(player, enemies[i].player, playerCollision, null, this);
+        //}
     }
 
     // platform collision
-    game.physics.arcade.collide(player, platforms, collisionCallback, processCallback, this);
+    game.physics.arcade.collide(player, platforms, platformDrag, null, this);
 
-    // move player data to socket
-    socket.emit('move player', {
-        x: player.x,
-        y: player.y,
-        d: player.d
-    });
+    //////////////////////////////
+    // player move state (check after collisions)
+    //////////////////////////////
+    var standing = player.body.velocity.x === 0 && (player.body.blocked.down || player.body.touching.down);
+    //console.log("s:",standing);
+
+    //////////////////////////////
+    // if moving, move player data to socket
+    //////////////////////////////
+    //console.log('player:', player.x, player.y);
+    //if (standing === true) {
+        socket.emit('move player', {
+            x: player.x,
+            y: player.y,
+            d: player.d
+        });
+    //}
 }
-function collisionCallback (objPlayer, objPlatform) {
-    //console.log(objPlayer.y, objPlatform.y);
-    var pvx = objPlayer.body.velocity.x;
 
-    if (objPlayer.y < objPlatform.y && pvx !== 0)
-    {
-        console.log("stop player", pvx);
-        //player.linearDamping = 20;
-        if (pvx > 0)
-        {
-            objPlayer.body.velocity.x -= 5;
+function playerCollision(objPlayer, objEnemy)
+{
+    console.log('HIT********');
+}
+function platformDrag(objPlayer, objPlatform) {
+    //console.log(objPlatform.type);
+    // objPlatform.type (0 = normal, 1 = ice)
+    var pvx = objPlayer.body.velocity.x;
+    var dragValue;
+
+    switch (objPlatform.type) {
+        case 0:
+            dragValue = 5; // normal
+            break;
+        case 1:
+            dragValue = 0.5; // slippery ice
+            break;
+        case 2:
+            dragValue = 5; // normal (moving platform)
+            break;
+    }
+
+    if (objPlayer.y < objPlatform.y && pvx !== 0) {
+        if (pvx > 0) {
+            objPlayer.body.velocity.x -= dragValue;
             if (pvx < 0) objPlayer.body.velocity.x = 0;
-        }
-        else
-        {
-            objPlayer.body.velocity.x += 5;
+        } else {
+            objPlayer.body.velocity.x += dragValue;
             if (pvx > 0) objPlayer.body.velocity.x = 0;
         }
     }
 }
-function processCallback(objPlayer, objPlatform) {
-    //console.log("collision!", objPlayer.body.velocity.x);
-    return true;
-}
+
 function render() {
+    game.renderer.renderSession.roundPixels = true;
+
     game.debug.cameraInfo(game.camera, 32, 32);
     game.debug.spriteCoords(player, 32, 500);
 
