@@ -12,6 +12,7 @@
 		 	<!-- Load socket.io client side contents. -->
 		<script src="/socket.io/socket.io.js"></script>
 		<!-- <script src="matter.js" type="text/javascript"></script> -->
+		<!-- <script data-main="class.player" src="node_modules/requirejs/require.js"></script> -->
 
 
 	 		<!-- Load the GUI rendering library code. -->
@@ -29,6 +30,12 @@
 	</head>
 
 	<body>
+		<div id="assets" style="display:none;width:0;height:0">
+			<img id="p2r" src="assets/fly2-r.png" width="50" height="50">
+			<img id="p2l" src="assets/fly2-l.png" width="50" height="50">
+			<img id="p1r" src="assets/fly1-r.png" width="50" height="50">
+			<img id="p1l" src="assets/fly1-l.png" width="50" height="50">
+		</div>
 		<canvas id="viewport">
 		</canvas>
 	</body>

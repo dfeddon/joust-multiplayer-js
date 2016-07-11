@@ -75,7 +75,7 @@ var game_core = function(game_instance){
             other : new game_player(this,this.instance.player_client)
         };
 
-       this.players.self.pos = {x:20,y:20};
+       this.players.self.pos = {x:20,y:20,d:0};
 
     } else {
 
@@ -104,9 +104,9 @@ var game_core = function(game_instance){
         this.ghosts.server_pos_self.state = 'server_pos';
         this.ghosts.server_pos_other.state = 'server_pos';
 
-        this.ghosts.server_pos_self.pos = { x:20, y:20 };
-        this.ghosts.pos_other.pos = { x:500, y:200 };
-        this.ghosts.server_pos_other.pos = { x:500, y:200 };
+        this.ghosts.server_pos_self.pos = { x:20, y:20, d:0 };
+        this.ghosts.pos_other.pos = { x:500, y:200, d:0 };
+        this.ghosts.server_pos_other.pos = { x:500, y:200, d:0 };
     }
 
     //The speed at which the clients move.
@@ -181,7 +181,7 @@ if( 'undefined' != typeof global ) {
 // (4.22208334636).fixed(n) will return fixed point value to n places, default n = 3
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 //copies a 2d vector like object from one to another
-game_core.prototype.pos = function(a) { return {x:a.x,y:a.y}; };
+game_core.prototype.pos = function(a) { return {x:a.x,y:a.y,d:a.d}; };
 //Add a 2d vector with another one and return the resulting vector
 game_core.prototype.v_add = function(a,b) { return { x:(a.x+b.x).fixed(), y:(a.y+b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
@@ -196,12 +196,179 @@ game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.ma
 game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t) }; };
 
 /*
-    The player class
 
-        A simple class to maintain state of a player on screen,
-        as well as to draw that state when required.
-*/
+// Collision Decorator Pattern Abstraction
 
+// These methods describe the attributes necessary for
+// the resulting collision calculations
+
+    var Collision = {
+
+        // Elastic collisions refer to the simple cast where
+        // two entities collide and a transfer of energy is
+        // performed to calculate the resulting speed
+        // We will follow Box2D's example of using
+        // restitution to represent "bounciness"
+
+        elastic: function(restitution) {
+            this.restitution = restitution || 0.2;
+        },
+
+        displace: function() {
+            // While not supported in this engine
+    	       // the displacement collisions could include
+            // friction to slow down entities as they slide
+            // across the colliding entity
+        }
+    };
+    // The physics entity will take on a shape, collision
+    // and type based on its parameters. These entities are
+    // built as functional objects so that they can be
+    // instantiated by using the 'new' keyword.
+
+    var PhysicsEntity = function(collisionName, type) {
+
+        // Setup the defaults if no parameters are given
+        // Type represents the collision detector's handling
+        this.type = type || PhysicsEntity.DYNAMIC;
+
+        // Collision represents the type of collision
+        // another object will receive upon colliding
+        this.collision = collisionName || PhysicsEntity.ELASTIC;
+
+        // Take in a width and height
+        this.width  = 20;
+        this.height = 20;
+
+        // Store a half size for quicker calculations
+        this.halfWidth = this.width * 0.5;
+        this.halfHeight = this.height * 0.5;
+
+        var collision = Collision[this.collision];
+        collision.call(this);
+
+        // Setup the positional data in 2D
+
+        // Position
+        this.x = 0;
+        this.y = 0;
+
+        // Velocity
+        this.vx = 0;
+        this.vy = 0;
+
+        // Acceleration
+        this.ax = 0;
+        this.ay = 0;
+
+        // Update the bounds of the object to recalculate
+        // the half sizes and any other pieces
+        this.updateBounds();
+    };
+
+    // Physics entity calculations
+    PhysicsEntity.prototype = {
+
+        // Update bounds includes the rect's
+        // boundary updates
+        updateBounds: function() {
+            this.halfWidth = this.width * 0.5;
+            this.halfHeight = this.height * 0.5;
+        },
+
+        // Getters for the mid point of the rect
+        getMidX: function() {
+            return this.halfWidth + this.x;
+        },
+
+        getMidY: function() {
+            return this.halfHeight + this.y;
+        },
+
+        // Getters for the top, left, right, and bottom
+        // of the rectangle
+        getTop: function() {
+            return this.y;
+        },
+        getLeft: function() {
+            return this.x;
+        },
+        getRight: function() {
+            return this.x + this.width;
+        },
+        getBottom: function() {
+            return this.y + this.height;
+        }
+    };
+
+    // Constants
+
+    // Engine Constants
+
+    // These constants represent the 3 different types of
+    // entities acting in this engine
+    // These types are derived from Box2D's engine that
+    // model the behaviors of its own entities/bodies
+
+    // Kinematic entities are not affected by gravity, and
+    // will not allow the solver to solve these elements
+    // These entities will be our platforms in the stage
+    PhysicsEntity.KINEMATIC = 'kinematic';
+
+    // Dynamic entities will be completely changing and are
+    // affected by all aspects of the physics system
+    PhysicsEntity.DYNAMIC   = 'dynamic';
+
+    // Solver Constants
+
+    // These constants represent the different methods our
+    // solver will take to resolve collisions
+
+    // The displace resolution will only move an entity
+    // outside of the space of the other and zero the
+    // velocity in that direction
+    PhysicsEntity.DISPLACE = 'displace';
+
+    // The elastic resolution will displace and also bounce
+    // the colliding entity off by reducing the velocity by
+    // its restituion coefficient
+    PhysicsEntity.ELASTIC = 'elastic';
+
+    // Rect collision tests the edges of each rect to
+    // test whether the objects are overlapping the other
+    var CollisionDetector = function(){};
+    CollisionDetector.prototype.collideRect =
+        function(collider, collidee) {
+
+        // Store the collider and collidee edges
+        var l1 = collider.getLeft();
+        var t1 = collider.getTop();
+        var r1 = collider.getRight();
+        var b1 = collider.getBottom();
+
+        var l2 = collidee.getLeft();
+        var t2 = collidee.getTop();
+        var r2 = collidee.getRight();
+        var b2 = collidee.getBottom();
+
+        // If the any of the edges are beyond any of the
+        // others, then we know that the box cannot be
+        // colliding
+        if (b1 < t2 || t1 > b2 || r1 < l2 || l1 > r2) {
+            return false;
+        }
+
+        // If the algorithm made it here, it had to collide
+        return true;
+    };
+    //*/
+
+    /*
+        The player class
+
+            A simple class to maintain state of a player on screen,
+            as well as to draw that state when required.
+    */
     var game_player = function( game_instance, player_instance ) {
 
         //Store the instance, if any
@@ -209,19 +376,20 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.game = game_instance;
 
         //Set up initial values for our state information
-        this.pos = { x:0, y:0 };
+        this.pos = { x:0, y:0, d:0 };
         //this.size = { x:16, y:16, hx:8, hy:8 };
         this.size = { x: 32, y:32, hx:16, hy:16 };
-        this.dir = 0; // 0 = right, 1 = left
-        this.v = {x:0,y:0}; // velocity
+        this.dir = 0; // 0 = right, 1 = left (derek added)
+        this.v = {x:0,y:0}; // velocity (derek added)
+        this.flap = false; // flapped bool (derek added)
         this.state = 'not-connected';
         this.color = 'rgba(255,255,255,0.1)';
         this.info_color = 'rgba(255,255,255,0.1)';
         this.id = '';
 
         //These are used in moving us around later
-        this.old_state = {pos:{x:0,y:0}};
-        this.cur_state = {pos:{x:0,y:0}};
+        this.old_state = {pos:{x:0,y:0,d:0}};
+        this.cur_state = {pos:{x:0,y:0,d:0}};
         this.state_time = new Date().getTime();
 
             //Our local history of inputs
@@ -239,9 +407,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             //the server already knows who they are. If the server starts a game
             //with only a host, the other player is set up in the 'else' below
         if(player_instance) {
-            this.pos = { x:20, y:20 };
+            this.pos = { x:20, y:20, d:0 };
         } else {
-            this.pos = { x:500, y:200 };
+            this.pos = { x:500, y:200, d:1 };
         }
 
     }; //game_player.constructor
@@ -249,17 +417,32 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     game_player.prototype.draw = function(){
 
             //Set the color for this player
-        game.ctx.fillStyle = this.color;
-
-            //Draw a rectangle for us
-        game.ctx.fillRect(this.pos.x - this.size.hx, this.pos.y - this.size.hy, this.size.x, this.size.y);
-
-            //Draw a status update
-        game.ctx.fillStyle = this.info_color;
-        game.ctx.fillText(this.state, this.pos.x+10, this.pos.y + 4);
+        // game.ctx.fillStyle = this.color;
+        //
+        //     //Draw a rectangle for us
+        // game.ctx.fillRect(this.pos.x - this.size.hx, this.pos.y - this.size.hy, this.size.x, this.size.y);
+        //
+        //     //Draw a status update
+        // game.ctx.fillStyle = this.info_color;
+        // game.ctx.fillText(this.state, this.pos.x+10, this.pos.y + 4);
+        //console.log('flap', this.flap);
+        var img;
+        if (this.flap === true)
+        {
+            //console.log("FLAP!");
+            this.flap=false;
+            if (this.dir === 1) img = document.getElementById("p1l");
+            else img = document.getElementById("p1r");
+        }
+        else
+        {
+            if (this.dir === 1) img = document.getElementById("p2l");
+            else img = document.getElementById("p2r");
+        }
+        game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
 
     }; //game_player.draw
-
+//*/
 /*
 
  Common functions
@@ -359,20 +542,24 @@ game_core.prototype.process_input = function( player ) {
                 // }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
+                    player.flap = true;
                     this.playerspeed = 150;
-                    player.v.y = -1.5;
-                    y_dir -= 1.5;
+                    player.v.y = -1;
+                    y_dir -= 1;
                     if (player.dir === 0)
                     {
-                        x_dir += 1;
-                        player.v.x = 6;
+                        x_dir += 0;
+                        if (player.v.x < 0 ) player.v.x = 6;
+                        else player.v.x +=6;
                     }
                     if (player.dir === 1)
                     {
-                        x_dir -= 1;
-                        player.v.x = -6;
+                        x_dir -= 0;
+                        if (player.v.x > 0) player.v.x = -6;
+                        else player.v.x -=6;
                     }
                 }
+                //if (key !== 'u') player.flap = false;
                 // if(key == 'x') {
                 //     y_dir -= 10;
                 // }
@@ -412,35 +599,45 @@ game_core.prototype.update_physics = function() {
     if (this.playerspeed > 120)
         this.playerspeed -= 1;
 
+    ////////////////////////////////////////////////////////
+    // iterate players
+    ////////////////////////////////////////////////////////
     for (var i in this.players)
     {
+        ////////////////////////////////////////////////////////
+        // horizontal velocity
+        ////////////////////////////////////////////////////////
         if (this.players[i].v.x > 0)
         {
-            this.players[i].v.x-=0.025;
+            this.players[i].v.x=(this.players[i].v.x-0.025).fixed(3);
             //console.log(this.players[i].v.x);
             if (this.players[i].v.x < 0) this.players[i].v.x = 0;
-            this.players[i].pos.x += 0.5;// this.players[i].v.x;
+            this.players[i].pos.x += (0.5 * 2);// this.players[i].v.x;
         }
         else if (this.players[i].v.x < 0)
         {
-            this.players[i].v.x+=0.025;
+            this.players[i].v.x=(this.players[i].v.x+0.025).fixed(3);
             if (this.players[i].v.x > 0) this.players[i].v.x = 0;
-            this.players[i].pos.x -= 0.5;// this.players[i].v.x;
+            this.players[i].pos.x -= (0.5 * 2);// this.players[i].v.x;
         }
+        ////////////////////////////////////////////////////////
+        // vertical velocity
+        ////////////////////////////////////////////////////////
         if (this.players[i].v.y < 0)
         {
-            console.log('v.y', this.players[i].v.y);
-            this.players[i].v.y += 0.025;
-            this.players[i].pos.y += 0.05 + this.players[i].v.y;//this.players[i].v.y;
+            //console.log('v.y', this.players[i].v.y.fixed(3), this.players[i].v.x);
+            this.players[i].v.y = (this.players[i].v.y + 0.025).fixed(3);
+            this.players[i].pos.y = (this.players[i].pos.y + 0.05 + this.players[i].v.y).fixed(3);//this.players[i].v.y;
         }
 
-
-        //console.log(this.players[i]);
+        ////////////////////////////////////////////////////////
+        // if player not on floor, apply gravity
+        ////////////////////////////////////////////////////////
         if (this.players[i].pos.y !== this.players[i].pos_limits.y_max)
         {
             this.players[i].pos.y+=this.world.gravity;
         }
-        else
+        else // touching ground (TODO:add drag)
         {
             this.players[i].v.y = 0;
             //console.log('floor!');
@@ -449,6 +646,8 @@ game_core.prototype.update_physics = function() {
         //if (this.players.other.pos.y !== this.players.other.pos_limits.y_max)
             //this.players.other.pos.y+=this.world.gravity;
     }
+    //console.log('v', this.players[i].v);
+    //console.log('pos', this.players[i].pos);
     //if (this.players.self.pos.)
     //console.log(this.players.self.pos.y, this.players.self.pos_limits.y_max);// + this.players.self.size.hx, this.world.height);
     //if (this.players.self.pos.y + this.players.self.size.hx !== this.world.height)
@@ -782,6 +981,8 @@ game_core.prototype.client_process_net_updates = function() {
 }; //game_core.client_process_net_updates
 
 game_core.prototype.client_onserverupdate_recieved = function(data){
+    if (data.hp.d === 0)
+    console.log('data', data);
 
             //Lets clarify the information we have locally. One of the players is 'hosting' and
             //the other is a joined in client, so we name these host and client for making sure
@@ -1056,8 +1257,8 @@ game_core.prototype.client_reset_positions = function() {
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
 
     //Host always spawns at the top left.
-    player_host.pos = { x:20,y:20 };
-    player_client.pos = { x:500, y:200 };
+    player_host.pos = { x:20,y:20,d:0 };
+    player_client.pos = { x:500, y:200, d:0 };
 
     //Make sure the local player physics is updated
     this.players.self.old_state.pos = this.pos(this.players.self.pos);
