@@ -38,7 +38,7 @@ setInterval(function(){
 }, 4);
 
 game_server.onMessage = function(client,message) {
-
+    //console.log('onMessage', client, message);
     if(this.fake_latency && message.split('.')[0].substr(0,1) == 'i') {
 
             //store all input message
@@ -57,7 +57,7 @@ game_server.onMessage = function(client,message) {
 };
 
 game_server._onMessage = function(client,message) {
-
+    console.log('_onMessage', message);
         //Cut the message up into sub components
     var message_parts = message.split('.');
         //The first is always the type of message

@@ -16,6 +16,7 @@
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
 
+var glog = true; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
@@ -52,7 +53,7 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 /* The game_core class */
 
 var game_core = function(game_instance){
-
+    console.log('game_core');
     //Store the instance, if any
     this.instance = game_instance;
     //Store a flag if we are the server
@@ -75,7 +76,7 @@ var game_core = function(game_instance){
             other : new game_player(this,this.instance.player_client)
         };
 
-       this.players.self.pos = {x:20,y:20,d:0};
+       this.players.self.pos = {x:20,y:20};
 
     } else {
 
@@ -104,9 +105,9 @@ var game_core = function(game_instance){
         this.ghosts.server_pos_self.state = 'server_pos';
         this.ghosts.server_pos_other.state = 'server_pos';
 
-        this.ghosts.server_pos_self.pos = { x:20, y:20, d:0 };
-        this.ghosts.pos_other.pos = { x:500, y:200, d:0 };
-        this.ghosts.server_pos_other.pos = { x:500, y:200, d:0 };
+        this.ghosts.server_pos_self.pos = { x:20, y:20 };
+        this.ghosts.pos_other.pos = { x:500, y:200 };
+        this.ghosts.server_pos_other.pos = { x:500, y:200 };
     }
 
     //The speed at which the clients move.
@@ -181,7 +182,7 @@ if( 'undefined' != typeof global ) {
 // (4.22208334636).fixed(n) will return fixed point value to n places, default n = 3
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 //copies a 2d vector like object from one to another
-game_core.prototype.pos = function(a) { return {x:a.x,y:a.y,d:a.d}; };
+game_core.prototype.pos = function(a) { return {x:a.x,y:a.y}; };
 //Add a 2d vector with another one and return the resulting vector
 game_core.prototype.v_add = function(a,b) { return { x:(a.x+b.x).fixed(), y:(a.y+b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
@@ -376,7 +377,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.game = game_instance;
 
         //Set up initial values for our state information
-        this.pos = { x:0, y:0, d:0 };
+        this.pos = { x:0, y:0 };
         //this.size = { x:16, y:16, hx:8, hy:8 };
         this.size = { x: 32, y:32, hx:16, hy:16 };
         this.dir = 0; // 0 = right, 1 = left (derek added)
@@ -388,8 +389,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.id = '';
 
         //These are used in moving us around later
-        this.old_state = {pos:{x:0,y:0,d:0}};
-        this.cur_state = {pos:{x:0,y:0,d:0}};
+        this.old_state = {pos:{x:0,y:0}};
+        this.cur_state = {pos:{x:0,y:0}};
         this.state_time = new Date().getTime();
 
             //Our local history of inputs
@@ -407,9 +408,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             //the server already knows who they are. If the server starts a game
             //with only a host, the other player is set up in the 'else' below
         if(player_instance) {
-            this.pos = { x:20, y:20, d:0 };
+            this.pos = { x:20, y:20 };
         } else {
-            this.pos = { x:500, y:200, d:1 };
+            this.pos = { x:500, y:200 };
         }
 
     }; //game_player.constructor
@@ -453,7 +454,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
 */
 
-    //Main update loop
+//Main update loop
 game_core.prototype.update = function(t) {
 
         //Work out the delta time
@@ -694,7 +695,7 @@ game_core.prototype.server_update_physics = function() {
 //Makes sure things run smoothly and notifies clients of changes
 //on the server side
 game_core.prototype.server_update = function(){
-
+    //if (glog) console.log('server_update');
     //Update the state of our local clock to match the timer
     this.server_time = this.local_time;
 
@@ -706,7 +707,7 @@ game_core.prototype.server_update = function(){
         cis : this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
         t   : this.server_time                      // our current local time on the server
     };
-
+    //if (glog) console.log('server_update:this.laststate', this.laststate);
     //Send the snapshot to the 'host' player
     if(this.players.self.instance) {
         this.players.self.instance.emit( 'onserverupdate', this.laststate );
@@ -721,7 +722,7 @@ game_core.prototype.server_update = function(){
 
 
 game_core.prototype.handle_server_input = function(client, input, input_time, input_seq) {
-
+    if (glog) console.log('handle_server_input');
     //Fetch which client this refers to out of the two
     var player_client =
         (client.userid == this.players.self.instance.userid) ?
@@ -743,7 +744,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 */
 
 game_core.prototype.client_handle_input = function(){
-
+    if (glog) console.log('client_handle_input');
     //if(this.lit > this.local_time) return;
     //this.lit = this.local_time+0.5; //one second delay
 
@@ -822,27 +823,26 @@ game_core.prototype.client_handle_input = function(){
 }; //game_core.client_handle_input
 
 game_core.prototype.client_process_net_prediction_correction = function() {
-
-        //No updates...
+    if (glog) console.log('client_process_net_prediction_correction');
+    //No updates...
     if(!this.server_updates.length) return;
 
-        //The most recent server update
+    //The most recent server update
     var latest_server_data = this.server_updates[this.server_updates.length-1];
 
-        //Our latest server position
+    //Our latest server position
     var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
 
-        //Update the debug server position block
+    //Update the debug server position block
     this.ghosts.server_pos_self.pos = this.pos(my_server_pos);
 
-            //here we handle our local input prediction ,
-            //by correcting it with the server and reconciling its differences
-
+        //here we handle our local input prediction ,
+        //by correcting it with the server and reconciling its differences
         var my_last_input_on_server = this.players.self.host ? latest_server_data.his : latest_server_data.cis;
         if(my_last_input_on_server) {
-                //The last input sequence index in my local input list
+            //The last input sequence index in my local input list
             var lastinputseq_index = -1;
-                //Find this input in the list, and store the index
+            //Find this input in the list, and store the index
             for(var i = 0; i < this.players.self.inputs.length; ++i) {
                 if(this.players.self.inputs[i].seq == my_last_input_on_server) {
                     lastinputseq_index = i;
@@ -850,20 +850,20 @@ game_core.prototype.client_process_net_prediction_correction = function() {
                 }
             }
 
-                //Now we can crop the list of any updates we have already processed
+            //Now we can crop the list of any updates we have already processed
             if(lastinputseq_index != -1) {
-                //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
-                //and that we can predict from this known position instead
+            //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
+            //and that we can predict from this known position instead
 
-                    //remove the rest of the inputs we have confirmed on the server
+                //remove the rest of the inputs we have confirmed on the server
                 var number_to_clear = Math.abs(lastinputseq_index - (-1));
                 this.players.self.inputs.splice(0, number_to_clear);
-                    //The player is now located at the new server position, authoritive server
+                //The player is now located at the new server position, authoritive server
                 this.players.self.cur_state.pos = this.pos(my_server_pos);
                 this.players.self.last_input_seq = lastinputseq_index;
-                    //Now we reapply all the inputs that we have locally that
-                    //the server hasn't yet confirmed. This will 'keep' our position the same,
-                    //but also confirm the server position at the same time.
+                //Now we reapply all the inputs that we have locally that
+                //the server hasn't yet confirmed. This will 'keep' our position the same,
+                //but also confirm the server position at the same time.
                 this.client_update_physics();
                 this.client_update_local_position();
 
@@ -873,7 +873,7 @@ game_core.prototype.client_process_net_prediction_correction = function() {
 }; //game_core.client_process_net_prediction_correction
 
 game_core.prototype.client_process_net_updates = function() {
-
+    if (glog) console.log('client_process_net_updates');
         //No updates...
     if(!this.server_updates.length) return;
 
@@ -981,8 +981,9 @@ game_core.prototype.client_process_net_updates = function() {
 }; //game_core.client_process_net_updates
 
 game_core.prototype.client_onserverupdate_recieved = function(data){
-    if (data.hp.d === 0)
-    console.log('data', data);
+    if (glog) console.log('client_onserverupdate_recieved');
+    //if (data.hp.d === 0)
+    //console.log('data', data);
 
             //Lets clarify the information we have locally. One of the players is 'hosting' and
             //the other is a joined in client, so we name these host and client for making sure
@@ -1043,6 +1044,7 @@ game_core.prototype.client_onserverupdate_recieved = function(data){
 game_core.prototype.client_update_local_position = function(){
 
  if(this.client_predict) {
+     if (glog) console.log('client_update_local_position');
 
             //Work out the time we have since we updated the state
         var t = (this.local_time - this.players.self.state_time) / this._pdt;
@@ -1063,7 +1065,7 @@ game_core.prototype.client_update_local_position = function(){
 }; //game_core.prototype.client_update_local_position
 
 game_core.prototype.client_update_physics = function() {
-
+    if (glog) console.log('client_update_physics');
         //Fetch the new direction from the input buffer,
         //and apply it to the state so we can smooth it in the visual state
 
@@ -1079,7 +1081,7 @@ game_core.prototype.client_update_physics = function() {
 }; //game_core.client_update_physics
 
 game_core.prototype.client_update = function() {
-
+    if (glog) console.log('client_update');
         //Clear the screen area
     this.ctx.clearRect(0,0,720,480);
 
@@ -1143,7 +1145,6 @@ game_core.prototype.create_physics_simulation = function() {
 
 
 game_core.prototype.client_create_ping_timer = function() {
-
         //Set a ping timer to 1 second, to maintain the ping/latency between
         //client and server and calculated roughly how our connection is doing
 
@@ -1257,8 +1258,8 @@ game_core.prototype.client_reset_positions = function() {
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
 
     //Host always spawns at the top left.
-    player_host.pos = { x:20,y:20,d:0 };
-    player_client.pos = { x:500, y:200, d:0 };
+    player_host.pos = { x:20,y:20 };
+    player_client.pos = { x:500, y:200 };
 
     //Make sure the local player physics is updated
     this.players.self.old_state.pos = this.pos(this.players.self.pos);
@@ -1274,6 +1275,7 @@ game_core.prototype.client_reset_positions = function() {
 }; //game_core.client_reset_positions
 
 game_core.prototype.client_onreadygame = function(data) {
+    if (glog) console.log('client_onreadygame');
 
     var server_time = parseFloat(data.replace('-','.'));
 
@@ -1299,6 +1301,7 @@ game_core.prototype.client_onreadygame = function(data) {
 }; //client_onreadygame
 
 game_core.prototype.client_onjoingame = function(data) {
+    if (glog) console.log('client_onjoingame');
 
     //We are not the host
     this.players.self.host = false;
@@ -1312,6 +1315,7 @@ game_core.prototype.client_onjoingame = function(data) {
 }; //client_onjoingame
 
 game_core.prototype.client_onhostgame = function(data) {
+    if (glog) console.log('client_onhostgame');
 
     //The server sends the time when asking us to host, but it should be a new game.
     //so the value will be really small anyway (15 or 16ms)
@@ -1333,6 +1337,7 @@ game_core.prototype.client_onhostgame = function(data) {
 }; //client_onhostgame
 
 game_core.prototype.client_onconnected = function(data) {
+    if (glog) console.log('client_onconnected');
 
     //The server responded that we are now in a game,
     //this lets us store the information about ourselves and set the colors
@@ -1358,6 +1363,7 @@ game_core.prototype.client_onping = function(data) {
 }; //client_onping
 
 game_core.prototype.client_onnetmessage = function(data) {
+    if (glog) console.log('client_onnetmessage');
 
     var commands = data.split('.');
     var command = commands[0];
@@ -1395,6 +1401,7 @@ game_core.prototype.client_onnetmessage = function(data) {
 }; //client_onnetmessage
 
 game_core.prototype.client_ondisconnect = function(data) {
+    if (glog) console.log('client_ondisconnect');
 
     //When we disconnect, we don't know if the other player is
     //connected or not, and since we aren't, everything goes to offline
@@ -1409,6 +1416,7 @@ game_core.prototype.client_ondisconnect = function(data) {
 }; //client_ondisconnect
 
 game_core.prototype.client_connect_to_server = function() {
+    if (glog) console.log('client_connect_to_server');
 
     //Store a local reference to our connection to the server
     this.socket = io.connect();
@@ -1453,6 +1461,7 @@ game_core.prototype.client_refresh_fps = function() {
 
 
 game_core.prototype.client_draw_info = function() {
+    if (glog) console.log('client_draw_info');
 
     //We don't want this to be too distracting
     this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
