@@ -481,7 +481,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
 
         //console.log('camxy', camX, camY);
-        console.log('pos', this.pos.x, this.pos.y);
+        //console.log('pos', this.pos.x, this.pos.y);
         //console.log("vp", this.game.viewport.width, this.game.viewport.height);
         //console.log()
     }; //game_player.draw
