@@ -57,7 +57,7 @@ game_server.onMessage = function(client,message) {
 };
 
 game_server._onMessage = function(client,message) {
-    console.log('_onMessage', message);
+    //console.log('_onMessage', message);
         //Cut the message up into sub components
     var message_parts = message.split('.');
         //The first is always the type of message

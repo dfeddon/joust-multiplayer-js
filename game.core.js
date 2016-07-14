@@ -16,8 +16,10 @@
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
 
-var glog = true; // global console logging
+var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
+var worldWidth = 1200;//2000;//420;
+var worldHeight = 1200;//2000;//720;
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
 ( function () {
@@ -61,8 +63,8 @@ var game_core = function(game_instance){
 
     //Used in collision etc.
     this.world = {
-        width : 720,
-        height : 480
+        width : worldWidth,//720,
+        height : worldHeight//480
     };
 
     this.world.gravity = 1;
@@ -371,7 +373,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             as well as to draw that state when required.
     */
     var game_player = function( game_instance, player_instance ) {
-
+        //console.log('game_player', game_instance, player_instance);
         //Store the instance, if any
         this.instance = player_instance;
         this.game = game_instance;
@@ -416,8 +418,39 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     }; //game_player.constructor
 
     game_player.prototype.draw = function(){
+        //*
+        game.ctx.save();
+        game.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
+        //game.ctx.clearRect(0, 0, this.game.viewport.width, this.game.viewport.height);//clear the viewport AFTER the matrix is reset
 
-            //Set the color for this player
+        //Clamp the camera position to the world bounds while centering the camera around the player
+        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -this.game.world.width/2, this.game.world.width - this.game.viewport.width);
+        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -this.game.world.height/2, this.game.world.height - this.game.viewport.height);
+        game.ctx.translate( camX, camY );
+
+        // Display fps
+        //game.ctx.fillStyle = "#ffffff";
+        //game.ctx.font = "12px Verdana";
+        game.ctx.fillText("TL", 0, 0);
+        game.ctx.fillText("ML", 0, this.game.world.height/2);
+        game.ctx.fillText("BL", 0, this.game.world.height);
+        game.ctx.fillText("TM", this.game.world.width/2, 0);
+        game.ctx.fillText("MM", this.game.world.width/2, this.game.world.height/2);
+        game.ctx.fillText("BM", this.game.world.width/2, this.game.world.height);
+        game.ctx.fillText("TR", this.game.world.width, 0);
+        game.ctx.fillText("MR", this.game.world.width, this.game.world.height/2);
+        game.ctx.fillText("BR", this.game.world.width, this.game.world.height);
+
+        // draw a dot at the new origin
+    	// game.ctx.beginPath();
+    	// game.ctx.arc(0,0,5,0,Math.PI*2);
+    	// game.ctx.closePath();
+    	// game.ctx.fill();
+    	// game.ctx.textAlign='center';
+    	// game.ctx.fillText('[ 0, 0 ]',0,10);
+
+        //*/
+        //Set the color for this player
         // game.ctx.fillStyle = this.color;
         //
         //     //Draw a rectangle for us
@@ -440,9 +473,25 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             if (this.dir === 1) img = document.getElementById("p2l");
             else img = document.getElementById("p2r");
         }
+        //game.ctx.beginPath();
         game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
 
+        //game.ctx.translate(camX,camY);
+        game.ctx.restore();
+
+
+        //console.log('camxy', camX, camY);
+        console.log('pos', this.pos.x, this.pos.y);
+        //console.log("vp", this.game.viewport.width, this.game.viewport.height);
+        //console.log()
     }; //game_player.draw
+
+    function clamp(value, min, max){
+    //console.log(value, min, max);
+    if(value < min) return min;
+    else if(value > max) return max;
+    return value;
+}
 //*/
 /*
 
@@ -1082,8 +1131,9 @@ game_core.prototype.client_update_physics = function() {
 
 game_core.prototype.client_update = function() {
     if (glog) console.log('client_update');
-        //Clear the screen area
-    this.ctx.clearRect(0,0,720,480);
+    //console.log(this.viewport);
+        //Clear the screen area (just client's viewport, not world)
+    this.ctx.clearRect(0,0,this.viewport.width, this.viewport.height);//worldWidth,worldHeight);
 
         //draw help/information if required
     this.client_draw_info();
