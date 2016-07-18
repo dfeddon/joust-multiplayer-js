@@ -13,7 +13,8 @@ var game = {};
 	//drawing canvases, and initiate a game instance.
 window.onload = function(){
 
-		//Create our game client instance.
+	//Create our game client instance.
+
 	game = new game_core();
 
 	//Fetch the viewport

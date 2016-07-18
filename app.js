@@ -33,6 +33,8 @@ server.listen(gameport);
 //Log something so we know that it succeeded.
 console.log('\t :: Express :: Listening on port ' + gameport );
 
+// set underscore as local app var
+//app.locals._ = _;
 //By default, we forward the / path to index.html automatically.
 app.get( '/', function( req, res ){
     console.log('trying to load %s', __dirname + '/index.html');
@@ -87,20 +89,21 @@ game_server = require('./game.server.js');
 //as well as give that client a unique ID to use so we can
 //maintain the list if players.
 sio.sockets.on('connection', function (client) {
-
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
     client.userid = UUID();
+    client.isMe = false;
+    console.log('## connection:client', client.userid);
 
-        //tell the player they connected, giving them their id
+    //tell the player they connected, giving them their id
     client.emit('onconnected', { id: client.userid } );
 
-        //now we can find them a game to play with someone.
-        //if no game exists with someone waiting, they create one and wait.
+    //now we can find them a game to play with someone.
+    //if no game exists with someone waiting, they create one and wait.
     game_server.findGame(client);
 
-        //Useful to know when someone connects
+    //Useful to know when someone connects
     console.log('\t socket.io:: player ' + client.userid + ' connected');
 
 
@@ -118,14 +121,15 @@ sio.sockets.on('connection', function (client) {
     client.on('disconnect', function () {
 
         //Useful to know when soomeone disconnects
-        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game_id);
+        console.log('\t socket.io:: client disconnected ' + client.userid + ' from game id ' + client.game_id);
 
         //If the client was in a game, set by game_server.findGame,
         //we can tell the game server to update that game state.
         if(client.game && client.game.id) {
 
             //player leaving a game should destroy that game
-            game_server.endGame(client.game.id, client.userid);
+            //game_server.endGame(client.game.id, client.userid);
+            game_server.clientDisconnected(client.game.id, client.userid);
 
         } //client.game_id
 
