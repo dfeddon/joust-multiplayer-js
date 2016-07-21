@@ -11,9 +11,9 @@ var game = {};
 
 	//When loading, we store references to our
 	//drawing canvases, and initiate a game instance.
-window.onload = function(){
-
-		//Create our game client instance.
+window.onload = function()
+{
+	//Create our game client instance.
 	game = new game_core();
 
 	//Fetch the viewport
