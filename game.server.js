@@ -303,6 +303,7 @@ game_server.startGame = function(game)
     {
         nonhosts[k].send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     }
+    if (host)
     host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
 
     //set this flag, so that the update loop can run it.
@@ -350,8 +351,8 @@ game_server.findGame = function(client)
                     {
                         // use cp, as host's hp and his props are already defined
                         game_instance.gamecore.allplayers[i].instance = client;
-                        game_instance.gamecore.allplayers[i].mp = 'cp'+game_instance.gamecore.allplayers.length;
-                        game_instance.gamecore.allplayers[i].mis = 'cis'+game_instance.gamecore.allplayers.length;
+                        game_instance.gamecore.allplayers[i].mp = 'cp'+game_instance.gamecore.allplayers.length-1;
+                        game_instance.gamecore.allplayers[i].mis = 'cis'+game_instance.gamecore.allplayers.length-1;
                     }
                 }
                 //game_instance.gamecore.players.other.instance = client;

@@ -97,7 +97,7 @@ var game_core = function(game_instance){
             else nonhosts.push(this.instance.player_clients[i]); // get nonhosts
         }
 
-        // TODO: remove this later
+        // TODOs: remove this later
         //*
         console.log('##-@@ [host]', host.userid);
         if (nonhosts[0])
@@ -105,7 +105,7 @@ var game_core = function(game_instance){
         this.players =
         {
             self : new game_player(this, host),
-            other : new game_player(this, (nonhosts[0]) ? nonhosts[0] : null) // TODO: other could be multiple
+            other : new game_player(this, (nonhosts[0]) ? nonhosts[0] : null) // TODOs: other could be multiple
         };
         //*/
 
@@ -116,7 +116,7 @@ var game_core = function(game_instance){
         for (var j = 0; j < nonhosts.length; j++)
         {
             this.allplayers.push(nonhosts[j]);
-            // TODO: remove this later (will break when more than 2 others)
+            // TODOs: remove this later (will break when more than 2 others)
             this.players.other = new game_player(this, nonhosts[j]);
         }
         //*/
@@ -509,6 +509,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         // Display fps
         //game.ctx.fillStyle = "#ffffff";
         //game.ctx.font = "12px Verdana";
+        //game.ctx.fillText("You " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
         game.ctx.fillText("TL", 0, 0);
         game.ctx.fillText("ML", 0, this.game.world.height/2);
         game.ctx.fillText("BL", 0, this.game.world.height);
@@ -518,6 +519,14 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         game.ctx.fillText("TR", this.game.world.width, 0);
         game.ctx.fillText("MR", this.game.world.width, this.game.world.height/2);
         game.ctx.fillText("BR", this.game.world.width, this.game.world.height);
+
+        for(var i=0; i < this.game.allplayers.length; i++)
+        {
+            //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
+            if (this.game.players.self.pos != this.game.allplayers[i].pos)// != this.mp)
+                game.ctx.fillText("Player X", this.game.allplayers[i].pos.x, this.game.allplayers[i].pos.y - 20);
+            else game.ctx.fillText("You " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
+        }
 
         // draw a dot at the new origin
     	// game.ctx.beginPath();
@@ -1714,7 +1723,8 @@ game_core.prototype.client_onnetmessage = function(data) {
 }; //client_onnetmessage
 
 game_core.prototype.client_ondisconnect = function(data) {
-    if (glog) console.log('client_ondisconnect');
+    //if (glog)
+    console.log('client_ondisconnect', data);
 
     //When we disconnect, we don't know if the other player is
     //connected or not, and since we aren't, everything goes to offline
