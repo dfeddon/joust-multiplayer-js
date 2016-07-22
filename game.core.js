@@ -120,6 +120,9 @@ var game_core = function(game_instance){
             this.players.other = new game_player(this, nonhosts[j]);
         }
         //*/
+        //this.players.other.mp = "cp";
+        //this.players.other.mis = "cis";
+
         this.allplayers.push(this.players.self);
         this.allplayers.push(this.players.other);
         //console.log('^^',this.allplayers[1].instance.clientid);//host);
@@ -134,12 +137,16 @@ var game_core = function(game_instance){
             other : new game_player(this)
         };
 
+        /*this.players.other.mp = 'cp';
+        this.players.other.mis = 'cis';
+        this.players.self.mp = 'hp';
+        this.players.self.mis = 'his';*/
         // add player(s) to store
         this.allplayers.push(this.players.self);
         this.allplayers.push(this.players.other);
 
         //Debugging ghosts, to help visualise things
-        this.ghosts =
+        /*this.ghosts =
         {
             //Our ghost position on the server
             server_pos_self : new game_player(this, null, true),
@@ -161,7 +168,7 @@ var game_core = function(game_instance){
 
         this.ghosts.server_pos_self.pos = { x:20, y:20 };
         this.ghosts.pos_other.pos = { x:500, y:200 };
-        this.ghosts.server_pos_other.pos = { x:500, y:200 };
+        this.ghosts.server_pos_other.pos = { x:500, y:200 };*/
     }
 
     //The speed at which the clients move.
@@ -1156,24 +1163,50 @@ game_core.prototype.client_process_net_updates = function()
         var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
 
         //These are the exact server positions from this tick, but only for the ghost
-        var other_server_pos = this.players.self.host ? latest_server_data.cp : latest_server_data.hp;
-        //var other_server_pos = latest_server_data[this.players.self.mp];
+        // var other_server_pos = this.players.self.host ? latest_server_data.cp : latest_server_data.hp;
+
+        //var other_server_pos2 = [];
+        //var other_target_pos2 = [];
+        //var other_past_pos2 = [];
+        //*
+        var ghostStub;
+        //console.log('len', this.allplayers.length, this.players.self.mp);
+        for (var j = 0; j < this.allplayers.length; j++)
+        {
+            if (this.allplayers[j] != this.players.self)
+            {
+                //console.log('**', j, this.allplayers[j].mp);
+                // other_server_pos2=latest_server_data[this.allplayers[j].mp];
+                // other_target_pos2=latest_server_data[this.allplayers[j].mp];
+                // other_past_pos2=latest_server_data[this.allplayers[j].mp];
+
+                ghostStub = this.v_lerp(
+                    previous[this.allplayers[j].mp],//other_past_pos2,
+                    target[this.allplayers[j].mp],//other_target_pos2,
+                    time_point
+                );
+                //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
+                this.allplayers[j].pos = this.v_lerp(this.allplayers[j].pos, ghostStub, this._pdt * this.client_smooth);
+            }
+        }
+        // console.log(other_server_pos2);
+        //*/
 
         //The other players positions in this timeline, behind us and in front of us
-        var other_target_pos = this.players.self.host ? target.cp : target.hp;
-        var other_past_pos = this.players.self.host ? previous.cp : previous.hp;
+        /*var other_target_pos = this.players.self.host ? target.cp : target.hp;
+        var other_past_pos = this.players.self.host ? previous.cp : previous.hp;*/
 
         //update the dest block, this is a simple lerp
         //to the target from the previous point in the server_updates buffer
         // TODO: Stub - other_server_pos is undefined
         //console.log("^^",other_server_pos);
-        if (other_server_pos)
+        // if (other_server_pos)
         //if (other_past_pos)
-        {
+        // {
             //console.log('a', other_past_pos);
             //console.log('b', other_target_pos);
             //console.log('c', time_point);
-            var ghostStub = this.v_lerp(other_past_pos, other_target_pos, time_point);
+            // var ghostStub = this.v_lerp(other_past_pos, other_target_pos, time_point);
             //this.ghosts.server_pos_other.pos = this.pos(other_server_pos);
             //this.ghosts.pos_other.pos = this.v_lerp(other_past_pos, other_target_pos, time_point);
 
@@ -1182,7 +1215,7 @@ game_core.prototype.client_process_net_updates = function()
                 //this.players.other.pos = this.v_lerp( this.players.other.pos, this.ghosts.pos_other.pos, this._pdt*this.client_smooth);
                 // TODO: remove check below
                 //if (other_server_pos)
-                this.players.other.pos = this.v_lerp( this.players.other.pos, ghostStub, this._pdt*this.client_smooth);
+                // this.players.other.pos = this.v_lerp( this.players.other.pos, ghostStub, this._pdt*this.client_smooth);
             /*}
             else
             {
@@ -1192,7 +1225,8 @@ game_core.prototype.client_process_net_updates = function()
 
             //Now, if not predicting client movement , we will maintain the local player position
             //using the same method, smoothing the players information from the past.
-            if(!this.client_predict && !this.naive_approach)
+
+            /*if(!this.client_predict && !this.naive_approach)
             {
                 //These are the exact server positions from this tick, but only for the ghost
                 var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
@@ -1214,8 +1248,8 @@ game_core.prototype.client_process_net_updates = function()
                 {
                     this.players.self.pos = this.pos( local_target );
                 }
-            }
-        } // if other_server_pos
+            }*/
+        //} // if other_server_pos
 
     } //if target && previous
 
@@ -1576,6 +1610,9 @@ game_core.prototype.client_onjoingame = function(data) {
     // set mp val
     this.players.self.mp = 'cp' + this.allplayers.length;
     this.players.self.mis = 'cis' + this.allplayers.length;
+    // TODO: Remove below
+    this.players.other.mp = 'hp';
+    this.players.other.mis = 'his';
 
     //Make sure the positions match servers and other clients
     this.client_reset_positions();
@@ -1602,6 +1639,9 @@ game_core.prototype.client_onhostgame = function(data) {
 
     this.players.self.mp = "hp";
     this.players.self.mis = "his";
+    // TODO: Remove below
+    this.players.other.mp = 'cp';
+    this.players.other.mis = 'cis';
 
     //Make sure we start in the correct place as the host.
     this.client_reset_positions();
