@@ -890,7 +890,7 @@ game_core.prototype.server_update = function()
     }
     //*/
     this.laststate.t = this.server_time;
-    //console.log(this.laststate);
+    // console.log(this.laststate);
 
     for (var j = 0; j < this.allplayers.length; j++)
     {
@@ -1182,13 +1182,13 @@ game_core.prototype.client_process_net_updates = function()
         //console.log('len', this.allplayers.length, this.players.self.mp);
         for (var j = 0; j < this.allplayers.length; j++)
         {
-            if (this.allplayers[j] != this.players.self)
+            if (this.allplayers[j] != this.players.self)// && previous[this.allplayers[j].mp])
             {
                 //console.log('**', j, this.allplayers[j].mp);
                 // other_server_pos2=latest_server_data[this.allplayers[j].mp];
                 // other_target_pos2=latest_server_data[this.allplayers[j].mp];
                 // other_past_pos2=latest_server_data[this.allplayers[j].mp];
-
+                // console.log('*', previous[this.allplayers[j].mp]);
                 ghostStub = this.v_lerp(
                     previous[this.allplayers[j].mp],//other_past_pos2,
                     target[this.allplayers[j].mp],//other_target_pos2,
@@ -1391,10 +1391,10 @@ game_core.prototype.client_update = function() {
     //the server updates, smoothing out the positions from the past.
     //Note that if we don't have prediction enabled - this will also
     //update the actual local client position on screen as well.
-    if( !this.naive_approach )
-    {
+    //if( !this.naive_approach )
+    //{
         this.client_process_net_updates();
-    }
+    //}
 
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
@@ -1557,14 +1557,27 @@ game_core.prototype.client_create_debug_gui = function() {
 
 }; //game_core.client_create_debug_gui
 
-game_core.prototype.client_reset_positions = function() {
+game_core.prototype.client_reset_positions = function()
+{
+    console.log('## client_reset_positions');
 
-    var player_host = this.players.self.host ?  this.players.self : this.players.other;
+    console.log('Am I Host?', this.players.self.host, this.allplayers.length);
+    for (var i = 0; i < this.allplayers.length; i++)
+    {
+        console.log('pos:', this.allplayers[i].pos, this.allplayers[i].instance);
+        // this.allplayers[i].pos = this.allplayers[i].pos;
+
+        // this.allplayers[i].old_state.pos = this.pos(allplayers[i].pos);
+        // this.allplayers[i].pos = this.pos(allplayers[i].pos);
+        // this.allplayers[i].cur_state.pos = this.pos(allplayers[i].pos);
+    }
+
+    /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
 
     //Host always spawns at the top left.
     player_host.pos = { x:20,y:20 };
-    player_client.pos = { x:500, y:200 };
+    player_client.pos = { x:500, y:200 };*/
 
     //Make sure the local player physics is updated
     this.players.self.old_state.pos = this.pos(this.players.self.pos);
