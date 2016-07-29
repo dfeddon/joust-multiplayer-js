@@ -89,6 +89,7 @@ game_server = require('./game.server.js');
 //maintain the list if players.
 sio.sockets.on('connection', function (client)
 {
+    console.log('hi');
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
@@ -129,3 +130,6 @@ sio.sockets.on('connection', function (client)
 
     }); //client.on disconnect
 }); //sio.sockets.on connection
+
+// auto-create host game
+game_server.createGame(UUID(), true);

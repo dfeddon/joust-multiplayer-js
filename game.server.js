@@ -112,7 +112,7 @@ game_server._onMessage = function(client,message)
 
 game_server.onInput = function(client, parts)
 {
-    this.log('@@ onInput', client.userid);
+    //this.log('@@ onInput', client.userid);
     //The input commands come in like u-l,
     //so we split them up into separate commands,
     //and then update the players
@@ -278,19 +278,30 @@ game_server.startGame = function(game)
     for (var i = 0; i < game.player_clients.length; i++)
     {
         if (game.player_clients[i].hosting)
+        {
             host = game.player_clients[i];
-        else nonhosts.push(game.player_clients[i]);
+
+            //game_instance.gamecore.allplayers
+            //host.mp = "hp";
+            //host.mis = "his";
+        }
+        else
+        {
+            nonhosts.push(game.player_clients[i]);
+        }
     }
-    //this.log('host', host);
-    //this.log('others', nonhosts);
+    //this.log('host', host);//.userid);
+    this.log('others', nonhosts.length);
     // player client(s) must join game hosted by HOST
     /*game.player_client.send('s.j.' + game.player_host.userid);
     game.player_client.game = game;*/
     if (host)
     {
+        //host.send('s.j.', host.userid);
         for (var j = 0; j < nonhosts.length; j++)
         {
-            nonhosts[j].send('s.j.' + host.userid);
+            this.log('@@', nonhosts[j].userid, nonhosts[j].mp);
+            nonhosts[j].send('s.j.' + nonhosts[j].mp);//.userid);
             nonhosts[j].game = game;
         }
     }
@@ -301,10 +312,14 @@ game_server.startGame = function(game)
     // game.player_host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     for (var k = 0; k < nonhosts.length; k++)
     {
+        this.log("readyup!");
         nonhosts[k].send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     }
     if (host)
-    host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
+    {
+        this.log('readup host!');
+        host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
+    }
 
     //set this flag, so that the update loop can run it.
     game.active = true;
@@ -342,17 +357,62 @@ game_server.findGame = function(client)
                 game_instance.player_clients.push(client);
                 //game_instance.player_client = client; // <- remove this later
 
+                // add player to client AND/OR server
+                //game_instance.gamecore.allplayers.push(game_instance.gamecore.newPlayer(client, false));
+
                 // add client to player instance
                 this.log("@@ assigning client to MY (other, client-based) player instance!");
-                for (var i = 0; i < game_instance.gamecore.allplayers.length; i++)
+
+                // assign player_clients to allplayers (client var is new player)
+                var client_added = false;
+                var host_added = false;
+                for (var j = 0; j < game_instance.player_clients.length; j++)
                 {
-                    // find null instance
-                    if (!game_instance.gamecore.allplayers[i].instance)
+                    console.log('^', game_instance.player_clients[j].userid, game_instance.player_clients[j].hosting);
+                //}
+                    for (var i = 0; i < game_instance.gamecore.allplayers.length; i++)
                     {
-                        // use cp, as host's hp and his props are already defined
-                        game_instance.gamecore.allplayers[i].instance = client;
-                        game_instance.gamecore.allplayers[i].mp = 'cp'+game_instance.gamecore.allplayers.length-1;
-                        game_instance.gamecore.allplayers[i].mis = 'cis'+game_instance.gamecore.allplayers.length-1;
+                        console.log('mp =', game_instance.gamecore.allplayers[i].mp);
+                        // find null instance
+                        //console.log('derek', game_instance.gamecore.allplayers[i].instance);
+                        if (!game_instance.gamecore.allplayers[i].instance)
+                        {
+                            console.log('testing', game_instance.gamecore.allplayers[i].mp);
+                            if (client_added === false)
+                            {
+                                // use cp, as host's hp and his props are already defined
+                                console.log('*** found client', game_instance.gamecore.allplayers[i].mp, client.userid);//game_instance.gamecore.allplayers[i].id);
+                                game_instance.gamecore.allplayers[i].instance = client;
+                                game_instance.gamecore.allplayers[i].id = client.userid;
+                                game_instance.gamecore.allplayers[i].isLocal = true;
+                                client.mp = game_instance.gamecore.allplayers[i].mp;
+                                //client.me = true;
+                                client_added = true;
+                                //break;
+                            }
+                            //break;
+                            //game_instance.gamecore.allplayers[i].mp = 'cp'+game_instance.gamecore.allplayers.length-1;
+                            //game_instance.gamecore.allplayers[i].mis = 'cis'+game_instance.gamecore.allplayers.length-1;
+                        }
+                        else
+                        {
+                            console.log('has instance!');
+                            //game_instance.gamecore.allplayers[i].instance = game_instance.player_clients[j];
+                            //game_instance.gamecore.allplayers[i].id = game_instance.player_clients[j].userid;
+                            //console.log('mp =', game_instance.gamecore.allplayers[i].mp);
+                            if (game_instance.player_clients[j].hosting === true && game_instance.gamecore.allplayers[i].mp == 'hp')
+                            {
+                                console.log('*** found host!');//, game_instance.gamecore.allplayers[i].instance);
+                                game_instance.gamecore.allplayers[i].host = true;
+                                //client.mp = game_instance.gamecore.allplayers[i].mp;
+                                host_added = true;
+                                //break;
+                                //game_instance.gamecore.allplayers[i].mp = 'hp';
+                                //game_instance.gamecore.allplayers[i].mis = 'his';
+                                game_instance.gamecore.allplayers[i].instance = game_instance.player_clients[j];
+                                host_added = true;
+                            }
+                        }
                     }
                 }
                 //game_instance.gamecore.players.other.instance = client;
