@@ -70,7 +70,7 @@ var game_core = function(game_instance)
 
     this.world.gravity = 1;
 
-    this.world.totalplayers = 5;
+    this.world.totalplayers = 10;
 
     this.allplayers = []; // client/server players store
 
@@ -134,7 +134,7 @@ var game_core = function(game_instance)
             this.allplayers.push(o);
         }
         var hp = new game_player(this, this.instance.player_host, true);
-        hp.pos = {x:20,y:20};
+        hp.pos = {x:0,y:-50};
         this.allplayers.push(hp);
         this.players = {};
         this.players.self = hp;
@@ -501,6 +501,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.dir = 0; // 0 = right, 1 = left (derek added)
         this.v = {x:0,y:0}; // velocity (derek added)
         this.flap = false; // flapped bool (derek added)
+        this.active = false;
         this.state = 'not-connected';
         this.color = 'rgba(255,255,255,0.1)';
         this.info_color = 'rgba(255,255,255,0.1)';
@@ -541,19 +542,22 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //with only a host, the other player is set up in the 'else' below
         if(isHost) // if host?
         {
-            this.pos = { x:20, y:20 };
+            this.pos = { x:0, y:-50 };
         }
         else
         {
-            this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
+            //this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
+            this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:this.game.world.height-25 };
         }
 
     }; //game_player.constructor
 
     game_player.prototype.draw = function()
     {
-        //console.log('## draw');
-        //*
+        console.log('## draw');
+
+        //if (this.active === false) return;
+
         game.ctx.save();
         game.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
         //game.ctx.clearRect(0, 0, this.game.viewport.width, this.game.viewport.height);//clear the viewport AFTER the matrix is reset
@@ -1469,7 +1473,7 @@ game_core.prototype.client_update = function() {
 
     for (var i = 0; i < this.allplayers.length; i++)
     {
-        if (this.allplayers[i] != this.players.self)
+        if (this.allplayers[i] != this.players.self)// && this.allplayers[i].active===true)
             this.allplayers[i].draw();
     }
 
@@ -1635,9 +1639,9 @@ game_core.prototype.client_reset_positions = function()
         //console.log('pos:', this.allplayers[i].pos, this.allplayers[i].instance);
         // this.allplayers[i].pos = this.allplayers[i].pos;
 
-        // this.allplayers[i].old_state.pos = this.pos(allplayers[i].pos);
-        // this.allplayers[i].pos = this.pos(allplayers[i].pos);
-        // this.allplayers[i].cur_state.pos = this.pos(allplayers[i].pos);
+        this.allplayers[i].old_state.pos = this.pos(allplayers[i].pos);
+        this.allplayers[i].pos = this.pos(allplayers[i].pos);
+        this.allplayers[i].cur_state.pos = this.pos(allplayers[i].pos);
     }
 
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
@@ -1712,6 +1716,7 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.md = this.allplayers[i].md;
             //this.players.self.mis = this.allplayers[i].mis;
             //if (data.me)
+            this.allplayers[i].active = true;
             this.players.self = this.allplayers[i];
         }
         else if (this.allplayers[i].mp == 'hp')
