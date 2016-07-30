@@ -64,7 +64,7 @@ game_server.onMessage = function(client,message)
 
 game_server._onMessage = function(client,message)
 {
-    //this.log('@@ _onMessage', message);
+    //this.log('@@ _onMessage', message, client);
 
     //Cut the message up into sub components
     var message_parts = message.split('.');
@@ -135,7 +135,11 @@ game_server.createGame = function(client)
     this.log('@@ createGame by HOST id', client.userid);
     //Create a new game instance
     client.hosting = true; // TODO: forced 'hosting' prop -- is this valid?
-    var clients = [client]; // include host client
+    var clients = [];
+    //if (!ghostHost)
+    clients.push(client);
+    //var clients = [client]; // include host client
+
     var thegame =
     {
         id : UUID(),                 //generate a new id for the game
@@ -155,6 +159,15 @@ game_server.createGame = function(client)
     //game code like collisions and such.
     thegame.gamecore = new game_core( thegame );
     //Start updating the game loop on the server
+    //thegame.gamecore.update( new Date().getTime() );
+
+    // if (ghostHost)
+    // {
+    //     client.game = thegame;
+    //     client.hosting = true;
+    //     return thegame;
+    // }
+    // else
     thegame.gamecore.update( new Date().getTime() );
 
     //tell the player that they are now the host
@@ -312,7 +325,8 @@ game_server.startGame = function(game)
     // game.player_host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     for (var k = 0; k < nonhosts.length; k++)
     {
-        this.log("readyup!");
+        this.log("readyup!", nonhosts[k]);
+        //if (nonhosts[k] != "host")
         nonhosts[k].send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     }
     if (host)

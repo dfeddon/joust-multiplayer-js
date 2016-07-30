@@ -949,12 +949,12 @@ game_core.prototype.server_update = function()
     //*/
     this.laststate.t = this.server_time;
     // console.log(this.laststate);
-
+    //console.log('len', this.allplayers.length);
     for (var j = 0; j < this.allplayers.length; j++)
     {
-        if (this.allplayers[j].instance)
+        if (this.allplayers[j].instance)// && this.allplayers[j].instance != "host")
         {
-            //console.log('inst', this.allplayers[j].instance.userid);
+            //console.log('inst', this.allplayers[j].instance);//.userid);
             this.allplayers[j].instance.emit('onserverupdate', this.laststate);
         }
     }
@@ -1662,7 +1662,7 @@ game_core.prototype.client_reset_positions = function()
 
 game_core.prototype.client_onreadygame = function(data) {
     //if (glog)
-    console.log('## client_onreadygame', data);
+    console.log('## client_onreadygame');//, data);
 
     var server_time = parseFloat(data.replace('-','.'));
 
@@ -1714,10 +1714,11 @@ game_core.prototype.client_onjoingame = function(data)
             //if (data.me)
             this.players.self = this.allplayers[i];
         }
-        /*else if (this.allplayers[i].mp == 'hp')
+        else if (this.allplayers[i].mp == 'hp')
         {
-
-        }*/
+            console.log('remove host', i, this.allplayers[i].host);
+            this.allplayers.splice(i, 1);
+        }
         // else if (this.allplayers[i].instance.hosting)
     }
 
@@ -1760,10 +1761,10 @@ game_core.prototype.client_onhostgame = function(data) {
         //if (this.allplayers[i].instance) console.log(this.allplayers[i].instance.userid);
         if (this.allplayers[i].mp == 'hp')// == data)
         {
-            console.log('## found host player');
-            //this.players.self.md = this.allplayers[i].md;
-            //this.players.self.mis = this.allplayers[i].mis;
+            console.log('## found host player', i);
             this.players.self = this.allplayers[i];
+            //this.allplayers.splice(i, 1);
+
         }
     }
 

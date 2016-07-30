@@ -12,6 +12,7 @@ var
     gameport        = process.env.PORT || 4004,
 
     io              = require('socket.io'),
+    clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
 
@@ -89,7 +90,7 @@ game_server = require('./game.server.js');
 //maintain the list if players.
 sio.sockets.on('connection', function (client)
 {
-    console.log('hi');
+    //console.log('hello', client);
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
@@ -132,4 +133,5 @@ sio.sockets.on('connection', function (client)
 }); //sio.sockets.on connection
 
 // auto-create host game
-game_server.createGame(UUID(), true);
+var host = clientIo.connect(UUID());
+game_server.createGame(host);
