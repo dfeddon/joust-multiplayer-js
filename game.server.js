@@ -193,7 +193,7 @@ game_server.endGame = function(gameid, userid)
     if(thegame)
     {
         //stop the game updates immediate
-        thegame.gamecore.stop_update();
+        //thegame.gamecore.stop_update();
 
         //if the game has two players, the one is leaving
         if(thegame.player_count > 1)
@@ -201,41 +201,54 @@ game_server.endGame = function(gameid, userid)
             // get host client and all non-hosting clients
             var host;
             var nonhosts = [];
+            var game_instance = this.games[gameid];
             for (var i = 0; i < thegame.player_clients.length; i++)
             {
-                if (thegame.player_clients[i].hosting)
-                    host = thegame.player_clients[i];
-                else nonhosts.push(thegame.player_clients[i]);
+                // if (thegame.player_clients[i].hosting)
+                //     host = thegame.player_clients[i];
+                // else nonhosts.push(thegame.player_clients[i]);
+                if (thegame.player_clients.userid == userid)
+                {
+                    // remove client socket
+                    thegame.player_clients.splice(i, 1);
+                }
+            }
+            for (var j = 0; j < game_instance.gamecore.allplayers.length; j++)
+            {
+                if (game_instance.gamecore.allplayers[j].id == userid)
+                {
+                    game_instance.gamecore.allplayers[j].instance = null;//.splice(j, 1);
+                }
             }
 
             // if host, send the players the msg the game is ending
-            if (userid == host.userid)
-            {
-                //the host left, oh snap. Lets try join another game
-                for (var j = 0; j < nonhosts.length; j++)
-                {
-                    if(nonhosts[j])
-                    {
-                        //tell them the game is over
-                        nonhosts[j].send('s.e');
-                        //now look for/create a new game.
-                        this.findGame(nonhosts[j]);
-                    }
-                }
-            }
-            else // not host
-            {
-                //the other player left, we were hosting
-                if (host)
-                {
-                    //tell the client the game is ended
-                    host.send('s.e');
-                    //i am no longer hosting, this game is going down
-                    host.hosting = false;
-                    //now look for/create a new game.
-                    this.findGame(host);
-                }
-            }
+            // if (userid == host.userid)
+            // {
+            //     //the host left, oh snap. Lets try join another game
+            //     for (var j = 0; j < nonhosts.length; j++)
+            //     {
+            //         if(nonhosts[j])
+            //         {
+            //             //tell them the game is over
+            //             nonhosts[j].send('s.e');
+            //             //now look for/create a new game.
+            //             this.findGame(nonhosts[j]);
+            //         }
+            //     }
+            // }
+            // else // not host
+            // {
+            //     //the other player left, we were hosting
+            //     if (host)
+            //     {
+            //         //tell the client the game is ended
+            //         host.send('s.e');
+            //         //i am no longer hosting, this game is going down
+            //         host.hosting = false;
+            //         //now look for/create a new game.
+            //         this.findGame(host);
+            //     }
+            // }
 
             // if host, send the players the message the game is ending
             /*if(userid == thegame.player_host.userid)
@@ -265,10 +278,10 @@ game_server.endGame = function(gameid, userid)
             }*/
         }
 
-        delete this.games[gameid];
-        this.game_count--;
-
-        this.log('@@ game removed. there are now ' + this.game_count + ' games' );
+        // delete this.games[gameid];
+        // this.game_count--;
+        //
+        // this.log('@@ game removed. there are now ' + this.game_count + ' games' );
     }
     else
     {

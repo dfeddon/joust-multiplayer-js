@@ -554,7 +554,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
     game_player.prototype.draw = function()
     {
-        console.log('## draw');
+        //console.log('## draw');
 
         //if (this.active === false) return;
 
