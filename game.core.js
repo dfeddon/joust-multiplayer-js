@@ -497,7 +497,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //Set up initial values for our state information
         this.pos = { x:0, y:0 };
         //this.size = { x:16, y:16, hx:8, hy:8 };
-        this.size = { x: 32, y:32, hx:16, hy:16 };
+        this.size = { x: 32, y:32, hx:32, hy:32 };
         this.dir = 0; // 0 = right, 1 = left (derek added)
         this.v = {x:0,y:0}; // velocity (derek added)
         this.flap = false; // flapped bool (derek added)
@@ -571,15 +571,52 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //game.ctx.fillStyle = "#ffffff";
         //game.ctx.font = "12px Verdana";
         //game.ctx.fillText("You " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
-        game.ctx.fillText("TL", 0, 0);
-        game.ctx.fillText("ML", 0, this.game.world.height/2);
-        game.ctx.fillText("BL", 0, this.game.world.height);
-        game.ctx.fillText("TM", this.game.world.width/2, 0);
-        game.ctx.fillText("MM", this.game.world.width/2, this.game.world.height/2);
-        game.ctx.fillText("BM", this.game.world.width/2, this.game.world.height);
-        game.ctx.fillText("TR", this.game.world.width, 0);
-        game.ctx.fillText("MR", this.game.world.width, this.game.world.height/2);
-        game.ctx.fillText("BR", this.game.world.width, this.game.world.height);
+        // game.ctx.fillText("TL", 0, 0);
+        // game.ctx.fillText("ML", 0, this.game.world.height/2);
+        // game.ctx.fillText("BL", 0, this.game.world.height);
+        // game.ctx.fillText("TM", this.game.world.width/2, 0);
+        //game.ctx.fillText("MM", this.game.world.width/2, this.game.world.height/2);
+        // game.ctx.fillText("BM", this.game.world.width/2, this.game.world.height);
+        // game.ctx.fillText("TR", this.game.world.width, 0);
+        // game.ctx.fillText("MR", this.game.world.width, this.game.world.height/2);
+        // game.ctx.fillText("BR", this.game.world.width, this.game.world.height);
+
+        // center circle
+        game.ctx.beginPath();
+    	game.ctx.arc(this.game.world.width/2,this.game.world.height/2,50,0*Math.PI,2*Math.PI);
+        game.ctx.fillStyle = "red";
+    	game.ctx.closePath();
+    	game.ctx.fill();
+
+        // draw borders
+        // bottom
+        game.ctx.beginPath();
+        game.ctx.moveTo(0, this.game.world.height);
+        game.ctx.lineTo(this.game.world.width, this.game.world.height);
+        //game.ctx.lineWidth = 10;
+        game.ctx.strokeStyle = 'yellow';
+        game.ctx.stroke();
+        // top
+        game.ctx.beginPath();
+        game.ctx.moveTo(0, 0);
+        game.ctx.lineTo(this.game.world.width, 0);
+        //game.ctx.lineWidth = 10;
+        game.ctx.strokeStyle = 'yellow';
+        game.ctx.stroke();
+        // left
+        game.ctx.beginPath();
+        game.ctx.moveTo(0, this.game.world.height);
+        game.ctx.lineTo(0, 0);
+        //game.ctx.lineWidth = 10;
+        game.ctx.strokeStyle = 'yellow';
+        game.ctx.stroke();
+        // right
+        game.ctx.beginPath();
+        game.ctx.moveTo(this.game.world.width, this.game.world.height);
+        game.ctx.lineTo(this.game.world.width, 0);
+        //game.ctx.lineWidth = 10;
+        game.ctx.strokeStyle = 'yellow';
+        game.ctx.stroke();
 
         for(var i=0; i < this.game.allplayers.length; i++)
         {
