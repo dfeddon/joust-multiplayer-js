@@ -26,6 +26,7 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 
     var lastTime = 0;
     var vendors = [ 'ms', 'moz', 'webkit', 'o' ];
+    //var canvas = document.getElementById('viewport');
 
     for ( var x = 0; x < vendors.length && !window.requestAnimationFrame; ++ x ) {
         window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
@@ -44,6 +45,16 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
     if ( !window.cancelAnimationFrame ) {
         window.cancelAnimationFrame = function ( id ) { clearTimeout( id ); };
     }
+
+    /* derek add */
+    // window.addEventListener('resize', resizeCanvas, false);
+    // function resizeCanvas()
+    // {
+    //     console.log('resizeCanvas');
+    //     viewport.width = window.innerWidth;
+    //     viewport.height = window.innerHeight;
+    // }
+    // resizeCanvas();
 
 }() );
 
@@ -70,9 +81,15 @@ var game_core = function(game_instance)
 
     this.world.gravity = 1;
 
-    this.world.totalplayers = 5;
+    this.world.totalplayers = 15;
 
     this.allplayers = []; // client/server players store
+
+    this.platforms = [];
+    this.platforms.push({x:this.world.width/2,y:this.world.height-200,w:300,h:40});
+    this.platforms.push({x:this.world.width/4,y:300,w:200,h:40});
+    this.platforms.push({x:this.world.width -100,y:500,w:100,h:40});
+    this.platforms.push({x:0,y:800,w:200,h:40});
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -81,50 +98,6 @@ var game_core = function(game_instance)
     {
         console.log("##-@@ adding server player and assigning client instance...");
 
-        /*
-        this.players = {
-            self : new game_player(this,this.instance.player_host,true)//,
-            //other : new game_player(this,this.instance.player_client)
-        };
-        //*/
-
-        // get host client and all non-hosting clients
-        /*
-        var host;
-        var nonhosts = [];
-        //console.log(this.instance.player_clients.length);//, this.instance);
-        for (var i = 0; i < this.instance.player_clients.length; i++)
-        {
-            if (this.instance.player_clients[i].hosting) // get host
-                host = this.instance.player_clients[i];
-            else nonhosts.push(this.instance.player_clients[i]); // get nonhosts
-        }
-
-        // TODOs: remove this later
-        //*
-        console.log('##-@@ [host]', host.userid);
-        if (nonhosts[0])
-            console.log('##-@@ [other]', nonhosts[0].userid);
-        this.players =
-        {
-            self : new game_player(this, host),
-            other : new game_player(this, (nonhosts[0]) ? nonhosts[0] : null) // TODOs: other could be multiple
-        };
-        //*/
-
-        //this.players.self.pos = {x:20,y:20};
-
-
-        /*
-        for (var j = 0; j < nonhosts.length; j++)
-        {
-            this.allplayers.push(nonhosts[j]);
-            // TODOs: remove this later (will break when more than 2 others)
-            this.players.other = new game_player(this, nonhosts[j]);
-        }
-        //*/
-        //this.players.other.mp = "cp";
-        //this.players.other.mis = "cis";
         var o;
         for (var i = 1; i < this.world.totalplayers; i++)
         {
@@ -150,11 +123,12 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
-        console.log("## adding client players...", this.allplayers.length);
+        console.log("## adding client players...", this.world.totalplayers);
+
+        //this.canvas = document.getElementById('viewport');
+        //console.log('vp', this.canvas);
+
         this.players = {};
-        //this.players.self = new game_player(this)//,
-            //other : new game_player(this)
-        //};
         var p;
         for (var j = 1; j < this.world.totalplayers; j++)
         {
@@ -497,9 +471,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //Set up initial values for our state information
         this.pos = { x:0, y:0 };
         //this.size = { x:16, y:16, hx:8, hy:8 };
-        this.size = { x: 32, y:32, hx:32, hy:32 };
+        this.size = { x:32, y:32, hx:32, hy:32 };
         this.dir = 0; // 0 = right, 1 = left (derek added)
-        this.v = {x:0,y:0}; // velocity (derek added)
+        this.v = { x:0, y:0 }; // velocity (derek added)
         this.flap = false; // flapped bool (derek added)
         this.active = false;
         this.state = 'not-connected';
@@ -563,8 +537,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //game.ctx.clearRect(0, 0, this.game.viewport.width, this.game.viewport.height);//clear the viewport AFTER the matrix is reset
 
         //Clamp the camera position to the world bounds while centering the camera around the player
-        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -this.game.world.width/2, this.game.world.width - this.game.viewport.width);
-        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -this.game.world.height/2, this.game.world.height - this.game.viewport.height);
+        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -this.game.world.width, this.game.world.width);
+        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -this.game.world.height, this.game.world.height);
+        //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
         game.ctx.translate( camX, camY );
 
         // Display fps
@@ -618,6 +593,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         game.ctx.strokeStyle = 'yellow';
         game.ctx.stroke();
 
+        // player nametags (temp)
         for(var i=0; i < this.game.allplayers.length; i++)
         {
             //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
@@ -626,33 +602,39 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             else game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
         }
 
-        // draw hitbox on player
-        console.log(this.game.show_help);
+        // draw hitbox on players (if debugging)
         if(String(window.location).indexOf('debug') != -1)
         {
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+            game.ctx.beginPath();
+            game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
+            game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
+            game.ctx.strokeStyle = 'red';
+            game.ctx.stroke();
 
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+            game.ctx.beginPath();
+            game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
+            game.ctx.lineTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
+            game.ctx.strokeStyle = 'red';
+            game.ctx.stroke();
 
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+            game.ctx.beginPath();
+            game.ctx.moveTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
+            game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
+            game.ctx.strokeStyle = 'red';
+            game.ctx.stroke();
 
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+            game.ctx.beginPath();
+            game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
+            game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
+            game.ctx.strokeStyle = 'red';
+            game.ctx.stroke();
+        }
+
+        // platforms
+        for (var j = 0; j < game.platforms.length; j++)
+        {
+            game.ctx.fillStyle = 'brown';
+            game.ctx.fillRect(game.platforms[j].x, game.platforms[j].y, game.platforms[j].w, game.platforms[j].h);
         }
 
 
@@ -675,6 +657,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         // game.ctx.fillStyle = this.info_color;
         // game.ctx.fillText(this.state, this.pos.x+10, this.pos.y + 4);
         //console.log('flap', this.flap);
+
+        // player bitamps
         var img;
         if (this.flap === true)
         {
@@ -702,12 +686,15 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //console.log()
     }; //game_player.draw
 
-    function clamp(value, min, max){
-    //console.log(value, min, max);
-    if(value < min) return min;
-    else if(value > max) return max;
-    return value;
-}
+    function clamp(value, min, max)
+    {
+        //return Math.max(min, Math.min(value, max));
+        //console.log(value, min, max);
+        if(value < min) return min;
+        else if(value > max) return max;
+
+        return value;
+    }
 //*/
 /*
 
@@ -782,54 +769,71 @@ game_core.prototype.check_collision = function( player )
         if (this.allplayers[i].mp != player.mp)
         {
             //console.log( (player.pos.x + (player.size.hx / 2)), (this.allplayers[i].pos.x + (this.allplayers[i].size.hx / 2)) );
-            if (
-                //player.pos.x
-                player.pos.x + (player.size.hx/4)
-                <
-                //(this.allplayers[i].pos.x + this.allplayers[i].size.hx)
-                this.allplayers[i].pos.x + (this.allplayers[i].size.hx - this.allplayers[i].size.hx/4)
-                &&
-                //player.pos.x + player.size.hx
-                player.pos.x + (player.size.hx - player.size.hx/4)
-                >
-                //this.allplayers[i].pos.x
-                this.allplayers[i].pos.x + (this.allplayers[i].size.hx/4)
-                &&
-                //player.pos.y
-                player.pos.y + (player.size.hy/4)
-                <
-                //(this.allplayers[i].pos.y + this.allplayers[i].size.hy)
-                this.allplayers[i].pos.y + (this.allplayers[i].size.hy - this.allplayers[i].size.hy/4)
-                &&
-                //(player.pos.y + player.size.hy)
-                player.pos.y + (player.size.hy - player.size.hy/4)
-                >
-                //this.allplayers[i].pos.y
-                this.allplayers[i].pos.y + (this.allplayers[i].size.hy/4)
+            if ( player.pos.x + (player.size.hx/4) < this.allplayers[i].pos.x + (this.allplayers[i].size.hx - this.allplayers[i].size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > this.allplayers[i].pos.x + (this.allplayers[i].size.hx/4) && player.pos.y + (player.size.hy/4) < this.allplayers[i].pos.y + (this.allplayers[i].size.hy - this.allplayers[i].size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > this.allplayers[i].pos.y + (this.allplayers[i].size.hy/4)
             )
             {
                 //console.log("HIT", player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
                 if (player.pos.y === this.allplayers[i].pos.y)
-                    console.log("TIE!", player.mp, this.allplayers[i].mp);
+                {
+                    //console.log("TIE!", player.mp, this.allplayers[i].mp);
+                }
                 else
                 {
                     if (player.pos.y < this.allplayers[i].pos.y)
                     {
-                        console.log(player.mp, 'WINS!', this.allplayers[i].mp);
+                        //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
                     }
                     else
                     {
-                        console.log(this.allplayers[i].mp, 'WINS!');
+                        //console.log(this.allplayers[i].mp, 'WINS!');
                         player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
                     }
                 }
+
+                break;
             }
             //if (player.pos.x >= this.allplayers[i].pos.x + this.allplayers[i].width && player.y == this.allplayers[i].pos.y)
                 //console.log('HIT', player.mp, this.allplayers[i].mp);
         }
         //if (this.players.self.pos === this.allplayers[i].pos.x) console.log('!!!!!!!!!!!!!!!!!!!');
 
+    }
+
+    // platform collisions
+    // game.ctx.moveTo(this.game.world.width / 2, this.game.world.height - 200);
+    // game.ctx.lineTo(this.game.world.width / 2 + 300, this.game.world.height - 200);
+    // game.ctx.lineWidth = 10;
+    for (var j = 0; j < this.platforms.length; j++)
+    {
+        //console.log('platform', this.platforms[j]);
+        if (
+            player.pos.x < (this.platforms[j].x + this.platforms[j].w) &&
+            (player.pos.x + player.size.hx) > this.platforms[j].x &&
+            player.pos.y < (this.platforms[j].y + this.platforms[j].h) &&
+            (player.pos.y + player.size.hy) > this.platforms[j].y
+        )
+        {
+            //console.log('hit platform!');
+            if (player.pos.y > (this.platforms[j].y))// + this.platforms[j].h))//this.world.height - 200)
+            {
+                //console.log('from bottom');
+                player.pos.y += 5;
+            }
+            else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
+            {
+                player.pos.y = this.platforms[j].y - player.size.hy;// -= 1;// this.world.height-200;
+                // decelerate
+                if (player.v.x > 0)
+                {
+                    console.log('slowing', player.v.x);
+                    player.v.x -= 1;
+                }
+                else player.v.x = 0;
+            }
+
+            break;
+        }
     }
 
 }; //game_core.check_collision
@@ -1632,7 +1636,7 @@ game_core.prototype.create_timer = function(){
         this._dte = new Date().getTime();
         this.local_time += this._dt/1000.0;
     }.bind(this), 4);
-}
+};
 
 game_core.prototype.create_physics_simulation = function() {
 
@@ -1817,11 +1821,19 @@ game_core.prototype.client_onreadygame = function(data) {
 
 }; //client_onreadygame
 
+game_core.prototype.resizeCanvas = function()
+{
+    console.log('resize', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
+    this.viewport.width = window.innerWidth;
+    this.viewport.height = window.innerHeight;
+};
+
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
     console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
     console.log('len', this.allplayers.length);
+    console.log('vp', this.viewport);
 
     //We are not the host
     this.players.self.host = false;
@@ -1858,6 +1870,7 @@ game_core.prototype.client_onjoingame = function(data)
     // this.players.other.mp = 'hp';
     // this.players.other.mis = 'his';
 
+    this.resizeCanvas();
     //Make sure the positions match servers and other clients
     this.client_reset_positions();
 
