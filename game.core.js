@@ -18,8 +18,8 @@
 
 var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
-var worldWidth = 1200;//2000;//420;
-var worldHeight = 1200;//2000;//720;
+var worldWidth = 2000;//420;
+var worldHeight = 2000;//720;
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
 ( function () {
