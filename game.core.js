@@ -79,7 +79,7 @@ var game_core = function(game_instance)
         height : worldHeight//480
     };
 
-    this.world.gravity = 1;
+    this.world.gravity = 1.5;
 
     this.world.totalplayers = 15;
 
@@ -537,10 +537,16 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //game.ctx.clearRect(0, 0, this.game.viewport.width, this.game.viewport.height);//clear the viewport AFTER the matrix is reset
 
         //Clamp the camera position to the world bounds while centering the camera around the player
-        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -this.game.world.width, this.game.world.width);
-        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -this.game.world.height, this.game.world.height);
+        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -(this.game.world.width - this.game.viewport.width) - 50, 50);//this.game.world.width);
+        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -(this.game.world.height - this.game.viewport.height) - 50, 50);//this.game.world.height);
         //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
         game.ctx.translate( camX, camY );
+
+        // tiled bg
+        // var bg = document.getElementById("bg");
+        // var ptrn = game.ctx.createPattern(bg, 'repeat');
+        // game.ctx.fillStyle = ptrn;
+        // game.ctx.fillRect(0, 0, game.world.width, game.world.height);
 
         // Display fps
         //game.ctx.fillStyle = "#ffffff";
@@ -597,9 +603,16 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         for(var i=0; i < this.game.allplayers.length; i++)
         {
             //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
-            if (this.game.players.self.pos != this.game.allplayers[i].pos)// != this.mp)
+            if (this.game.players.self.mp != this.game.allplayers[i].mp)// != this.mp)
+            {
+                game.ctx.fillStyle = 'red';
                 game.ctx.fillText(this.game.allplayers[i].mp, this.game.allplayers[i].pos.x, this.game.allplayers[i].pos.y - 20);
-            else game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
+            }
+            else
+            {
+                game.ctx.fillStyle = 'white';
+                game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
+            }
         }
 
         // draw hitbox on players (if debugging)
@@ -633,10 +646,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         // platforms
         for (var j = 0; j < game.platforms.length; j++)
         {
-            game.ctx.fillStyle = 'brown';
+            game.ctx.fillStyle = 'green';
             game.ctx.fillRect(game.platforms[j].x, game.platforms[j].y, game.platforms[j].w, game.platforms[j].h);
         }
-
 
         // draw a dot at the new origin
     	// game.ctx.beginPath();
@@ -689,7 +701,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     function clamp(value, min, max)
     {
         //return Math.max(min, Math.min(value, max));
-        //console.log(value, min, max);
+        //console.log(value);//, min, max);
         if(value < min) return min;
         else if(value > max) return max;
 
