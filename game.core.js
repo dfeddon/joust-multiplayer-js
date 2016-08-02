@@ -18,8 +18,8 @@
 
 var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
-var worldWidth = 2000;//420;
-var worldHeight = 2000;//720;
+var worldWidth = 1200;//420;
+var worldHeight = 1200;//720;
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
 ( function () {
@@ -231,6 +231,7 @@ var game_core = function(game_instance)
         if(String(window.location).indexOf('debug') != -1) {
             this.client_create_debug_gui();
         }
+
 
     } else { //if !server
 
@@ -526,79 +527,67 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
     }; //game_player.constructor
 
-    game_player.prototype.draw = function()
+    game_core.prototype.prerenderer = function()
     {
-        //console.log('## draw');
-
-        //if (this.active === false) return;
-
-        game.ctx.save();
-        game.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
-        //game.ctx.clearRect(0, 0, this.game.viewport.width, this.game.viewport.height);//clear the viewport AFTER the matrix is reset
-
-        //Clamp the camera position to the world bounds while centering the camera around the player
-        var camX = clamp(-this.game.players.self.pos.x + this.game.viewport.width/2, -(this.game.world.width - this.game.viewport.width) - 50, 50);//this.game.world.width);
-        var camY = clamp(-this.game.players.self.pos.y + this.game.viewport.height/2, -(this.game.world.height - this.game.viewport.height) - 50, 50);//this.game.world.height);
-        //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
-        game.ctx.translate( camX, camY );
-
-        // tiled bg
-        // var bg = document.getElementById("bg");
-        // var ptrn = game.ctx.createPattern(bg, 'repeat');
-        // game.ctx.fillStyle = ptrn;
-        // game.ctx.fillRect(0, 0, game.world.width, game.world.height);
-
-        // Display fps
-        //game.ctx.fillStyle = "#ffffff";
-        //game.ctx.font = "12px Verdana";
-        //game.ctx.fillText("You " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
-        // game.ctx.fillText("TL", 0, 0);
-        // game.ctx.fillText("ML", 0, this.game.world.height/2);
-        // game.ctx.fillText("BL", 0, this.game.world.height);
-        // game.ctx.fillText("TM", this.game.world.width/2, 0);
-        //game.ctx.fillText("MM", this.game.world.width/2, this.game.world.height/2);
-        // game.ctx.fillText("BM", this.game.world.width/2, this.game.world.height);
-        // game.ctx.fillText("TR", this.game.world.width, 0);
-        // game.ctx.fillText("MR", this.game.world.width, this.game.world.height/2);
-        // game.ctx.fillText("BR", this.game.world.width, this.game.world.height);
-
+        console.log('## preprenderer');
+        var v = document.getElementById("viewport");
+        var canvas2 = document.createElement('canvas');
+        canvas2.width = this.world.width;//v.width;
+        canvas2.height = this.world.height;//v.height;
+        var context2 = canvas2.getContext('2d');
+        console.log(v.width, v.height);
         // center circle
-        game.ctx.beginPath();
-    	game.ctx.arc(this.game.world.width/2,this.game.world.height/2,50,0*Math.PI,2*Math.PI);
-        game.ctx.fillStyle = "red";
-    	game.ctx.closePath();
-    	game.ctx.fill();
+        context2.beginPath();
+    	context2.arc(this.world.width/2,this.world.height/2,50,0*Math.PI,2*Math.PI);
+        context2.fillStyle = "red";
+        //context2.shadowBlur = 10;
+        //context2.shadowColor = 'red';
+    	context2.closePath();
+    	context2.fill();
 
         // draw borders
         // bottom
-        game.ctx.beginPath();
-        game.ctx.moveTo(0, this.game.world.height);
-        game.ctx.lineTo(this.game.world.width, this.game.world.height);
+        context2.beginPath();
+        context2.moveTo(0, this.world.height);
+        context2.lineTo(this.world.width, this.world.height);
         //game.ctx.lineWidth = 10;
-        game.ctx.strokeStyle = 'yellow';
-        game.ctx.stroke();
+        context2.strokeStyle = 'yellow';
+        context2.stroke();
         // top
-        game.ctx.beginPath();
-        game.ctx.moveTo(0, 0);
-        game.ctx.lineTo(this.game.world.width, 0);
+        context2.beginPath();
+        context2.moveTo(0, 0);
+        context2.lineTo(this.world.width, 0);
         //game.ctx.lineWidth = 10;
-        game.ctx.strokeStyle = 'yellow';
-        game.ctx.stroke();
+        context2.strokeStyle = 'yellow';
+        context2.stroke();
         // left
-        game.ctx.beginPath();
-        game.ctx.moveTo(0, this.game.world.height);
-        game.ctx.lineTo(0, 0);
+        context2.beginPath();
+        context2.moveTo(0, this.world.height);
+        context2.lineTo(0, 0);
         //game.ctx.lineWidth = 10;
-        game.ctx.strokeStyle = 'yellow';
-        game.ctx.stroke();
+        context2.strokeStyle = 'yellow';
+        context2.stroke();
         // right
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.game.world.width, this.game.world.height);
-        game.ctx.lineTo(this.game.world.width, 0);
+        context2.beginPath();
+        context2.moveTo(this.world.width, this.world.height);
+        context2.lineTo(this.world.width, 0);
         //game.ctx.lineWidth = 10;
-        game.ctx.strokeStyle = 'yellow';
-        game.ctx.stroke();
+        context2.strokeStyle = 'yellow';
+        context2.stroke();
 
+        // platforms
+        for (var j = 0; j < this.platforms.length; j++)
+        {
+            context2.fillStyle = 'green';
+            context2.fillRect(this.platforms[j].x, this.platforms[j].y, this.platforms[j].w, this.platforms[j].h);
+        }
+
+        //context2.restore();
+        this.canvas2 = canvas2;
+    };
+
+    game_player.prototype.draw = function()
+    {
         // player nametags (temp)
         for(var i=0; i < this.game.allplayers.length; i++)
         {
@@ -643,33 +632,6 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             game.ctx.stroke();
         }
 
-        // platforms
-        for (var j = 0; j < game.platforms.length; j++)
-        {
-            game.ctx.fillStyle = 'green';
-            game.ctx.fillRect(game.platforms[j].x, game.platforms[j].y, game.platforms[j].w, game.platforms[j].h);
-        }
-
-        // draw a dot at the new origin
-    	// game.ctx.beginPath();
-    	// game.ctx.arc(0,0,5,0,Math.PI*2);
-    	// game.ctx.closePath();
-    	// game.ctx.fill();
-    	// game.ctx.textAlign='center';
-    	// game.ctx.fillText('[ 0, 0 ]',0,10);
-
-        //*/
-        //Set the color for this player
-        // game.ctx.fillStyle = this.color;
-        //
-        //     //Draw a rectangle for us
-        // game.ctx.fillRect(this.pos.x - this.size.hx, this.pos.y - this.size.hy, this.size.x, this.size.y);
-        //
-        //     //Draw a status update
-        // game.ctx.fillStyle = this.info_color;
-        // game.ctx.fillText(this.state, this.pos.x+10, this.pos.y + 4);
-        //console.log('flap', this.flap);
-
         // player bitamps
         var img;
         if (this.flap === true)
@@ -689,23 +651,18 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
 
         //game.ctx.translate(camX,camY);
-        game.ctx.restore();
+        //game.ctx.restore();
 
-
-        //console.log('camxy', camX, camY);
-        //console.log('pos', this.pos.x, this.pos.y);
-        //console.log("vp", this.game.viewport.width, this.game.viewport.height);
-        //console.log()
     }; //game_player.draw
 
     function clamp(value, min, max)
     {
-        //return Math.max(min, Math.min(value, max));
+        return Math.max(min, Math.min(value, max));
         //console.log(value);//, min, max);
-        if(value < min) return min;
+        /*if(value < min) return min;
         else if(value > max) return max;
 
-        return value;
+        return value;*/
     }
 //*/
 /*
@@ -1591,10 +1548,20 @@ game_core.prototype.client_update = function() {
     console.log('## client_update');
     //console.log(this.viewport);
     //Clear the screen area (just client's viewport, not world)
-    this.ctx.clearRect(0,0,this.viewport.width, this.viewport.height);//worldWidth,worldHeight);
+    //console.log(this.viewport);//.x,this.viewport.y);
+    var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
+    var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
+    this.ctx.clearRect(-camX,-camY,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
 
     //draw help/information if required
     this.client_draw_info();
+
+    // draw prerenders
+    //var preprend = this.canvas2
+    if (this.canvas2)
+    this.ctx.drawImage(this.canvas2, 0,0);
+    else console.log('no canvas');
+    //this.ctx.
 
     //Capture inputs from the player
     this.client_handle_input();
@@ -1623,6 +1590,18 @@ game_core.prototype.client_update = function() {
 
     //And then we finally draw
     this.players.self.draw();
+
+    //this.ctx.save();
+    this.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
+    //this.ctx.clearRect(0, 0, this.this.viewport.width, this.this.viewport.height);//clear the viewport AFTER the matrix is reset
+
+    //Clamp the camera position to the world bounds while centering the camera around the player
+    //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
+    //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
+    //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
+    this.ctx.translate( camX, camY );
+    //console.log(camX,camY);
+    //this.ctx.restore();
 
     //and these
     /*if(this.show_dest_pos && !this.naive_approach)
@@ -1846,6 +1825,10 @@ game_core.prototype.client_onjoingame = function(data)
     console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
     console.log('len', this.allplayers.length);
     console.log('vp', this.viewport);
+
+    // create prerenders
+    this.prerenderer();
+
 
     //We are not the host
     this.players.self.host = false;
