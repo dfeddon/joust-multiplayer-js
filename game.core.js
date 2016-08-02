@@ -546,32 +546,24 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     	context2.fill();
 
         // draw borders
-        // bottom
         context2.beginPath();
+        // bottom
         context2.moveTo(0, this.world.height);
         context2.lineTo(this.world.width, this.world.height);
-        //game.ctx.lineWidth = 10;
         context2.strokeStyle = 'yellow';
-        context2.stroke();
         // top
-        context2.beginPath();
         context2.moveTo(0, 0);
         context2.lineTo(this.world.width, 0);
-        //game.ctx.lineWidth = 10;
-        context2.strokeStyle = 'yellow';
-        context2.stroke();
         // left
-        context2.beginPath();
         context2.moveTo(0, this.world.height);
         context2.lineTo(0, 0);
-        //game.ctx.lineWidth = 10;
-        context2.strokeStyle = 'yellow';
-        context2.stroke();
         // right
-        context2.beginPath();
         context2.moveTo(this.world.width, this.world.height);
         context2.lineTo(this.world.width, 0);
-        //game.ctx.lineWidth = 10;
+
+        // styles
+        context2.closePath();
+        context2.lineWidth = 10;
         context2.strokeStyle = 'yellow';
         context2.stroke();
 
@@ -1543,12 +1535,12 @@ game_core.prototype.client_update_physics = function() {
 
 }; //game_core.client_update_physics
 
-game_core.prototype.client_update = function() {
+game_core.prototype.client_update = function()
+{
     if (glog)
     console.log('## client_update');
     //console.log(this.viewport);
     //Clear the screen area (just client's viewport, not world)
-    //console.log(this.viewport);//.x,this.viewport.y);
     var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
     var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
     this.ctx.clearRect(-camX,-camY,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
