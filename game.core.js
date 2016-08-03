@@ -83,6 +83,11 @@ var game_core = function(game_instance)
 
     this.world.totalplayers = 15;
 
+    this.world.maxOrbs = 100;
+    this.orbs = [];
+
+    this.cam = {};
+
     this.allplayers = []; // client/server players store
 
     this.platforms = [];
@@ -530,13 +535,78 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     game_core.prototype.prerenderer = function()
     {
         console.log('## preprenderer');
-        var v = document.getElementById("viewport");
-        var canvas2 = document.createElement('canvas');
-        canvas2.width = this.world.width;//v.width;
-        canvas2.height = this.world.height;//v.height;
-        var context2 = canvas2.getContext('2d');
-        console.log(v.width, v.height);
+        var context2, max;
+        if (!this.canvas2)
+        {
+            console.log('creating canvas2');
+            var v = document.getElementById("viewport");
+            var canvas2 = document.createElement('canvas');
+            canvas2.id = "canvas2";
+            canvas2.width = this.world.width;//v.width;
+            canvas2.height = this.world.height;//v.height;
+            context2 = canvas2.getContext('2d');
+            max = this.world.maxOrbs;
+        }
+        else
+        {
+            max = this.orbs.length;
+            context2 = this.canvas2.getContext('2d');
+            // clear it
+            context2.clearRect(0,0, this.world.width, this.world.height);
+        }
+        //console.log(context2);
+
+        /////////////////////////////////////////
+        // Orbs
+        /////////////////////////////////////////
+        var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
+        var c, gradient, x, y, size;
+
+        // so we do not apply styles to all contexts!
+        context2.save();
+        context2.translate(x,y);
+
+        for (var k = 0; k < max; k++)
+        {
+            size = Math.floor(Math.random() * 4) + 2;
+            c = colors[Math.floor(Math.random() * colors.length)];
+            x = Math.floor(Math.random() * this.world.width) + 1;
+            y = Math.floor(Math.random() * this.world.height) + 1
+
+            // create new orb if undefined
+            if (this.orbs[k]==undefined)
+            {
+                console.log('new', k, this.orbs.length);
+                var neworb = {x:x, y:y, c:c, w:size, h:size, r:false};
+                this.orbs.push( neworb );
+            }
+            // reset r if not null
+            else if (this.orbs[k].r === true)
+            {
+                console.log('removed!, adding...');
+            }
+
+            context2.beginPath();
+
+            gradient = context2.createRadialGradient(this.orbs[k].x, this.orbs[k].y, 0, this.orbs[k].x, this.orbs[k].y, this.orbs[k].w);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(1, this.orbs[k].c);
+            context2.fillStyle = gradient;//c;
+            context2.arc(this.orbs[k].x, this.orbs[k].y, this.orbs[k].w, 0 * Math.PI, 2 * Math.PI);
+            context2.shadowBlur = 10;
+            context2.shadowColor = 'white';
+            //context2.shadowOffsetX = 0;
+            //context2.shadowOffsetY = 0;
+        	context2.fill();
+
+            context2.closePath();
+        }
+        // so we do not apply styles to all contexts!
+        context2.restore();
+
+        /////////////////////////////////////////
         // center circle
+        /////////////////////////////////////////
         context2.beginPath();
     	context2.arc(this.world.width/2,this.world.height/2,50,0*Math.PI,2*Math.PI);
         context2.fillStyle = "red";
@@ -545,7 +615,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     	context2.closePath();
     	context2.fill();
 
+        /////////////////////////////////////////
         // draw borders
+        /////////////////////////////////////////
         context2.beginPath();
         // bottom
         context2.moveTo(0, this.world.height);
@@ -560,14 +632,15 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         // right
         context2.moveTo(this.world.width, this.world.height);
         context2.lineTo(this.world.width, 0);
-
         // styles
         context2.closePath();
         context2.lineWidth = 10;
         context2.strokeStyle = 'yellow';
         context2.stroke();
 
+        /////////////////////////////////////////
         // platforms
+        /////////////////////////////////////////
         for (var j = 0; j < this.platforms.length; j++)
         {
             context2.fillStyle = 'green';
@@ -575,6 +648,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         }
 
         //context2.restore();
+        if (!this.canvas2)
         this.canvas2 = canvas2;
     };
 
@@ -642,6 +716,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         if(String(window.location).indexOf('debug') == -1)
             game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
 
+        // player x y
+        game.ctx.fillText(this.game.players.self.pos.x + "/" + this.game.players.self.pos.y, this.game.players.self.pos.x, this.game.players.self.pos.y - 40);
         //game.ctx.translate(camX,camY);
         //game.ctx.restore();
 
@@ -733,10 +809,21 @@ game_core.prototype.check_collision = function( player )
             if ( player.pos.x + (player.size.hx/4) < this.allplayers[i].pos.x + (this.allplayers[i].size.hx - this.allplayers[i].size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > this.allplayers[i].pos.x + (this.allplayers[i].size.hx/4) && player.pos.y + (player.size.hy/4) < this.allplayers[i].pos.y + (this.allplayers[i].size.hy - this.allplayers[i].size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > this.allplayers[i].pos.y + (this.allplayers[i].size.hy/4)
             )
             {
-                //console.log("HIT", player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
-                if (player.pos.y === this.allplayers[i].pos.y)
+                var dif = player.pos.y - this.allplayers[i].pos.y;
+                console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
+                if (dif >= -5 && dif <= 5)//player.pos.y === this.allplayers[i].pos.y)
                 {
                     //console.log("TIE!", player.mp, this.allplayers[i].mp);
+                    if (player.pos.x < this.allplayers[i].pos.x)
+                    {
+                        player.pos.x -= 50;
+                        this.allplayers[i].pos.x += 50;
+                    }
+                    else
+                    {
+                        player.pos.x += 50;
+                        this.allplayers[i].pos.x -= 50;
+                    }
                 }
                 else
                 {
@@ -794,6 +881,54 @@ game_core.prototype.check_collision = function( player )
             }
 
             break;
+        }
+    }
+
+    // orbs
+    for (var k = 0; k < this.orbs.length; k++)
+    {
+        /*if (this.orbs[k].r===true)// == undefined)
+        {
+            console.log('skip undefined');
+            continue;
+        }*/
+        //console.log('platform', this.platforms[j]);
+        if (
+            player.pos.x < (this.orbs[k].x + this.orbs[k].w) &&
+            (player.pos.x + player.size.hx) > this.orbs[k].x &&
+            player.pos.y < (this.orbs[k].y + this.orbs[k].h) &&
+            (player.pos.y + player.size.hy) > this.orbs[k].y
+        )
+        {
+            console.log('orb hit!', this.orbs[k]);
+            // remove it
+            //this.orbs.splice(k, 1);
+            this.orbs[k].x = -100;this.orbs[k].y=-100;
+            this.orbs[k].r = true;// = undefined;
+            // update prerender
+            this.prerenderer();
+            break;
+            /*
+            if (!this.orbs[k].x) return;
+            // var v = document.getElementById("viewport");
+            // var canvas2 = document.getElementById('canvas2');
+            var context2 = this.canvas2.getContext('2d');
+
+            //context2.save();
+            //context2.globalCompositeOperation = "destination-out";
+            context2.beginPath();
+            context2.fillStyle = 'red';
+            context2.arc(
+                this.orbs[k].x,// + this.viewport.x,//this.cam.x,
+                this.orbs[k].y,// + this.world.height/2 + this.cam.y,
+                this.orbs[k].w+10, 0 * Math.PI, 2 * Math.PI);
+            context2.fill();
+
+            //context2.clearRect(this.orbs[k].x, this.orbs[k].y, this.orbs[k].w, this.orbs[k].h);
+            context2.fillRect(1, 1, 5, 5);
+            console.log('cam', this.cam);
+            //context2.restore();
+            */
         }
     }
 
@@ -1543,6 +1678,9 @@ game_core.prototype.client_update = function()
     //Clear the screen area (just client's viewport, not world)
     var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
     var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
+    this.cam.x = camX;
+    this.cam.y = camY;
+    // +100 accounts for -50 padding offset
     this.ctx.clearRect(-camX,-camY,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
 
     //draw help/information if required
