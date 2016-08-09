@@ -44,19 +44,24 @@ app.get( '/', function( req, res )
 
 //This handler will listen for requests on /*, any file from the root of our server.
 //See expressjs documentation for more info on routing.
-
 app.get( '/*' , function( req, res, next )
 {
     //This is the current file they have requested
     var file = req.params[0];
 
     //For debugging, we can track what files are requested.
-    if(verbose) console.log('\t :: Express :: file requested : ' + file);
+    //if(verbose)
+    console.log('\t :: Express :: file requested : ' + file);
 
     //Send the requesting client the file.
     res.sendfile( __dirname + '/' + file );
 }); //app.get *
 
+app.post( '/api/orbs' , function( req, res, next )
+{
+    console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
+    return res.send('hi', game_server.games.length);//[0]);
+});
 
 /* Socket.IO server set up. */
 
@@ -90,11 +95,11 @@ game_server = require('./game.server.js');
 //maintain the list if players.
 sio.sockets.on('connection', function (client)
 {
-    //console.log('hello', client);
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
     client.userid = UUID();
+    console.log('@@ new client connected', client.userid);//, client);
 
     //tell the player they connected, giving them their id
     client.emit('onconnected', { id: client.userid } );
@@ -119,7 +124,7 @@ sio.sockets.on('connection', function (client)
     client.on('disconnect', function ()
     {
         //Useful to know when soomeone disconnects
-        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game_id);
+        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game.id);
 
         //If the client was in a game, set by game_server.findGame,
         //we can tell the game server to update that game state.
@@ -132,6 +137,13 @@ sio.sockets.on('connection', function (client)
     }); //client.on disconnect
 }); //sio.sockets.on connection
 
+// clientIo.on('connection', function (client)
+// {
+//     console.log('client io connected...');
+// });
 // auto-create host game
 var host = clientIo.connect(UUID());
+host.userid = UUID();
+host.hosting = true;
+//console.log('host', host);
 game_server.createGame(host);

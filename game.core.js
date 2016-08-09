@@ -81,12 +81,15 @@ var game_core = function(game_instance)
 
     this.world.gravity = 1.5;
 
-    this.world.totalplayers = 15;
+    this.world.totalplayers = 10;//4;
 
-    this.world.maxOrbs = 100;
+    this.world.maxOrbs = 150;
     this.orbs = [];
 
     this.cam = {};
+
+    this.mp = null;
+    this.gameid = null;
 
     this.allplayers = []; // client/server players store
 
@@ -101,6 +104,7 @@ var game_core = function(game_instance)
     console.log('##-@@ is server?', this.server);
     if(this.server) // only for server, not clients (browsers)
     {
+        var UUID = require('node-uuid');
         console.log("##-@@ adding server player and assigning client instance...");
 
         var o;
@@ -112,18 +116,40 @@ var game_core = function(game_instance)
             this.allplayers.push(o);
         }
         var hp = new game_player(this, this.instance.player_host, true);
-        hp.pos = {x:0,y:-50};
+        //hp.pos = {x:-100,y:-100};
         this.allplayers.push(hp);
         this.players = {};
         this.players.self = hp;
+        this.players.hostGame = hp.game;
 
         // add player (host)
         //this.allplayers.push(this.players.self);
         console.log('len', this.allplayers.length);
-        for (var x in this.allplayers)
-            console.log(this.allplayers[x].mp);
+        for (var j in this.allplayers)
+            console.log(this.allplayers[j].mp);
         //this.allplayers.push(this.players.other);
         //console.log('^^',this.allplayers[1].instance.clientid);//host);
+
+        console.log('##-@@ creating orbs on server', this.orbs.length);
+        var size,c,ox,oy,id;
+        var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
+        for (var k = 0; k < this.world.maxOrbs; k++)
+        {
+            size = Math.floor(Math.random() * 4) + 2;
+            c = colors[Math.floor(Math.random() * colors.length)];
+            ox = Math.floor(Math.random() * this.world.width) + 1;
+            oy = Math.floor(Math.random() * this.world.height) + 1;
+            id = UUID();
+
+            // create new orb if undefined
+            if (this.orbs[k]===undefined)
+            {
+                // console.log('new', k, this.orbs.length);
+                var neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+                this.orbs.push( neworb );
+            }
+        }
+        console.log("##-@@ orbs built", this.orbs.length);
 
     }
     else // clients (browsers)
@@ -135,10 +161,10 @@ var game_core = function(game_instance)
 
         this.players = {};
         var p;
-        for (var j = 1; j < this.world.totalplayers; j++)
+        for (var l = 1; l < this.world.totalplayers; l++)
         {
             p = new game_player(this);
-            console.log(j, p.mp);
+            console.log(l, p.mp);
             //p.pos = {x:100, y:100};
             this.allplayers.push(p);//,null,false));
         }
@@ -146,49 +172,19 @@ var game_core = function(game_instance)
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
+        //chost.pos.x = -1000;
+        //chost.pos.y = -1000;
         this.allplayers.push(chost);
 
         this.players.self = chost;//new game_player(this);
 
-        //this.allplayers.push(this.players.self);
-        /*this.players.other.mp = 'cp';
-        this.players.other.mis = 'cis';
-        this.players.self.mp = 'hp';
-        this.players.self.mis = 'his';*/
-        // add player(s) to store
-
-        //this.allplayers.push(this.players.self);
-        console.log('len2', this.allplayers.length);
         console.log('len', this.allplayers.length);
+
         for (var y in this.allplayers)
             console.log(this.allplayers[y].mp);
-        //this.allplayers.push(this.players.other);
-
-        //Debugging ghosts, to help visualise things
-        /*this.ghosts =
-        {
-            //Our ghost position on the server
-            server_pos_self : new game_player(this, null, true),
-            //The other players server position as we receive it
-            server_pos_other : new game_player(this, null, true),
-            //The other players ghost destination position (the lerp)
-            pos_other : new game_player(this)
-        };
-
-        this.ghosts.pos_other.state = 'dest_pos';
-
-        this.ghosts.pos_other.info_color = 'rgba(255,255,255,0.1)';
-
-        this.ghosts.server_pos_self.info_color = 'rgba(255,255,255,0.2)';
-        this.ghosts.server_pos_other.info_color = 'rgba(255,255,255,0.2)';
-
-        this.ghosts.server_pos_self.state = 'server_pos';
-        this.ghosts.server_pos_other.state = 'server_pos';
-
-        this.ghosts.server_pos_self.pos = { x:20, y:20 };
-        this.ghosts.pos_other.pos = { x:500, y:200 };
-        this.ghosts.server_pos_other.pos = { x:500, y:200 };*/
     }
+
+    //if (this.players.self.mp == 'hp') return;
 
     //The speed at which the clients move.
     this.playerspeed = 120;
@@ -248,9 +244,32 @@ var game_core = function(game_instance)
 }; //game_core.constructor
 
 //server side we set the 'game_core' class to a global type, so that it can use it anywhere.
-if( 'undefined' != typeof global ) {
+if( 'undefined' != typeof global )
+{
     module.exports = global.game_core = game_core;
 }
+
+game_core.prototype.getOrbs = function()
+{return;
+    console.log('## getOrbs', this.players.self.instance);//.instance.game);
+    xmlhttp = new XMLHttpRequest();
+    var url = "http://localhost:4004/api/orbs/";
+    xmlhttp.open("POST", url, true);
+    xmlhttp.setRequestHeader("Content-type", "application/json");
+    xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
+    xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
+
+    xmlhttp.send('');//{gameId:this.players.self.});
+
+    xmlhttp.onreadystatechange = function ()
+    { //Call a function when the state changes.
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
+        {
+            //alert(xmlhttp.responseText);
+            console.log('data', xmlhttp.responseText);
+        }
+    };
+};
 
 /*
     Helper functions for the game code
@@ -485,14 +504,14 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.state = 'not-connected';
         //this.color = 'rgba(255,255,255,0.1)';
         this.info_color = 'rgba(255,255,255,0.1)';
-        this.id = '';
+        //this.id = '';
 
         this.isLocal = false;
 
         // assign pos and input seq properties
         if (isHost && player_instance)// && player_instance.host)
         {
-            console.log('WE GOT SERVERS HOST!');
+            console.log('WE GOT SERVER HOST!');
             this.mp = 'hp';
             this.mis = 'his';
         }
@@ -501,15 +520,10 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             this.mis = 'cis' + (this.game.allplayers.length + 1);
         }
 
-        //These are used in moving us around later
-        this.old_state = {pos:{x:0,y:0}};
-        this.cur_state = {pos:{x:0,y:0}};
-        this.state_time = new Date().getTime();
-
-            //Our local history of inputs
+        //Our local history of inputs
         this.inputs = [];
 
-            //The world bounds we are confined to
+        //The world bounds we are confined to
         this.pos_limits = {
             x_min: this.size.hx,
             x_max: this.game.world.width - this.size.hx,
@@ -522,36 +536,43 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //with only a host, the other player is set up in the 'else' below
         if(isHost) // if host?
         {
-            this.pos = { x:0, y:-50 };
+            console.log('## host positioning');
+            this.pos = { x:-500, y:-500 };
         }
         else
         {
             //this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
-            this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:this.game.world.height-25 };
+            this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:this.game.world.height-this.size.hy };
         }
+
+        //These are used in moving us around later
+        this.old_state = {pos:this.pos};
+        this.cur_state = {pos:this.pos};
+        this.state_time = new Date().getTime();
+
 
     }; //game_player.constructor
 
     game_core.prototype.prerenderer = function()
     {
-        console.log('## preprenderer');
-        var context2, max;
+        console.log('## preprenderer', this.orbs.length);
+        var context2, max, canvas2;
         if (!this.canvas2)
         {
             console.log('creating canvas2');
-            var v = document.getElementById("viewport");
-            var canvas2 = document.createElement('canvas');
+            //var v = document.getElementById("viewport");
+            canvas2 = document.createElement('canvas');
             canvas2.id = "canvas2";
             canvas2.width = this.world.width;//v.width;
             canvas2.height = this.world.height;//v.height;
             context2 = canvas2.getContext('2d');
-            max = this.world.maxOrbs;
+            //max = this.world.maxOrbs;
         }
         else
         {
-            max = this.orbs.length;
+            //max = this.orbs.length;
             context2 = this.canvas2.getContext('2d');
-            // clear it
+            // clear existing canvas
             context2.clearRect(0,0, this.world.width, this.world.height);
         }
         //console.log(context2);
@@ -566,33 +587,45 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         context2.save();
         context2.translate(x,y);
 
-        for (var k = 0; k < max; k++)
+        //for (var k = 0; k < max; k++)
+        var orbs = this.orbs;
+        console.log('orbz',orbs.length,this.server);//, this.orbs);
+        for (var k = 0; k < this.orbs.length; k++)
         {
             size = Math.floor(Math.random() * 4) + 2;
             c = colors[Math.floor(Math.random() * colors.length)];
             x = Math.floor(Math.random() * this.world.width) + 1;
-            y = Math.floor(Math.random() * this.world.height) + 1
+            y = Math.floor(Math.random() * this.world.height) + 1;
 
             // create new orb if undefined
-            if (this.orbs[k]==undefined)
+            /*if (orbs[k]===undefined)
             {
-                console.log('new', k, this.orbs.length);
+                // console.log('new', k, orbs.length);
                 var neworb = {x:x, y:y, c:c, w:size, h:size, r:false};
-                this.orbs.push( neworb );
-            }
+                orbs.push( neworb );
+            }*/
             // reset r if not null
-            else if (this.orbs[k].r === true)
+            /*if (orbs[k].r === true)
             {
                 console.log('removed!, adding...');
-            }
+                orbs[k].x = -100;
+                orbs[k].y = -100;
+                continue;
+            }*/
 
             context2.beginPath();
 
             gradient = context2.createRadialGradient(this.orbs[k].x, this.orbs[k].y, 0, this.orbs[k].x, this.orbs[k].y, this.orbs[k].w);
             gradient.addColorStop(0, 'white');
-            gradient.addColorStop(1, this.orbs[k].c);
+            gradient.addColorStop(1, orbs[k].c);
             context2.fillStyle = gradient;//c;
-            context2.arc(this.orbs[k].x, this.orbs[k].y, this.orbs[k].w, 0 * Math.PI, 2 * Math.PI);
+            context2.arc(
+                orbs[k].x,
+                orbs[k].y,
+                orbs[k].w,
+                0 * Math.PI,
+                2 * Math.PI
+            );
             context2.shadowBlur = 10;
             context2.shadowColor = 'white';
             //context2.shadowOffsetX = 0;
@@ -607,13 +640,13 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         /////////////////////////////////////////
         // center circle
         /////////////////////////////////////////
-        context2.beginPath();
+        /*context2.beginPath();
     	context2.arc(this.world.width/2,this.world.height/2,50,0*Math.PI,2*Math.PI);
         context2.fillStyle = "red";
         //context2.shadowBlur = 10;
         //context2.shadowColor = 'red';
     	context2.closePath();
-    	context2.fill();
+    	context2.fill();*/
 
         /////////////////////////////////////////
         // draw borders
@@ -717,7 +750,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
 
         // player x y
-        game.ctx.fillText(this.game.players.self.pos.x + "/" + this.game.players.self.pos.y, this.game.players.self.pos.x, this.game.players.self.pos.y - 40);
+        // game.ctx.fillText(this.game.players.self.pos.x + "/" + this.game.players.self.pos.y, this.game.players.self.pos.x, this.game.players.self.pos.y - 40);
         //game.ctx.translate(camX,camY);
         //game.ctx.restore();
 
@@ -772,7 +805,9 @@ game_core.prototype.update = function(t)
 */
 game_core.prototype.check_collision = function( player )
 {
-    //console.log('##+@@check_collision');
+    //console.log('##+@@check_collision', player.mp);
+    if (player.mp === 'hp') return;
+
     //Left wall. TODO:stop accel
     if(player.pos.x <= player.pos_limits.x_min) {
         player.pos.x = player.pos_limits.x_min;
@@ -810,7 +845,7 @@ game_core.prototype.check_collision = function( player )
             )
             {
                 var dif = player.pos.y - this.allplayers[i].pos.y;
-                console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
+                //console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
                 if (dif >= -5 && dif <= 5)//player.pos.y === this.allplayers[i].pos.y)
                 {
                     //console.log("TIE!", player.mp, this.allplayers[i].mp);
@@ -849,9 +884,6 @@ game_core.prototype.check_collision = function( player )
     }
 
     // platform collisions
-    // game.ctx.moveTo(this.game.world.width / 2, this.game.world.height - 200);
-    // game.ctx.lineTo(this.game.world.width / 2 + 300, this.game.world.height - 200);
-    // game.ctx.lineWidth = 10;
     for (var j = 0; j < this.platforms.length; j++)
     {
         //console.log('platform', this.platforms[j]);
@@ -883,10 +915,13 @@ game_core.prototype.check_collision = function( player )
             break;
         }
     }
+    //if (player.mp == "cp2")
+    //console.log(player.mp, this.orbs.length);
 
     // orbs
     for (var k = 0; k < this.orbs.length; k++)
     {
+        //console.log(player.mp);
         /*if (this.orbs[k].r===true)// == undefined)
         {
             console.log('skip undefined');
@@ -900,39 +935,51 @@ game_core.prototype.check_collision = function( player )
             (player.pos.y + player.size.hy) > this.orbs[k].y
         )
         {
-            console.log('orb hit!', this.orbs[k]);
+            console.log('orb hit!', this.orbs[k].id, this.server);
+            var rid = this.orbs[k].id;
+            console.log('by player', player.mp, this.players.self.mp);
+            console.log('ids', player.id, this.players.self.id);
+
             // remove it
-            //this.orbs.splice(k, 1);
-            this.orbs[k].x = -100;this.orbs[k].y=-100;
-            this.orbs[k].r = true;// = undefined;
-            // update prerender
-            this.prerenderer();
+            this.orbs.splice(k, 1);
+
+            console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
+            for (var l = 0; l < this.allplayers.length; l++)
+            {
+                if (this.allplayers[l].instance)
+                {
+                    console.log('remote orb removal index', rid, this.players.self.mp);
+                    this.allplayers[l].instance.send('o.r.' + rid);//, k );
+                }
+            }
+
+            // get out
             break;
-            /*
-            if (!this.orbs[k].x) return;
-            // var v = document.getElementById("viewport");
-            // var canvas2 = document.getElementById('canvas2');
-            var context2 = this.canvas2.getContext('2d');
-
-            //context2.save();
-            //context2.globalCompositeOperation = "destination-out";
-            context2.beginPath();
-            context2.fillStyle = 'red';
-            context2.arc(
-                this.orbs[k].x,// + this.viewport.x,//this.cam.x,
-                this.orbs[k].y,// + this.world.height/2 + this.cam.y,
-                this.orbs[k].w+10, 0 * Math.PI, 2 * Math.PI);
-            context2.fill();
-
-            //context2.clearRect(this.orbs[k].x, this.orbs[k].y, this.orbs[k].w, this.orbs[k].h);
-            context2.fillRect(1, 1, 5, 5);
-            console.log('cam', this.cam);
-            //context2.restore();
-            */
         }
     }
 
 }; //game_core.check_collision
+
+game_core.prototype.client_on_orbremoval = function(id)
+{
+    console.log('## orbRemoval', id);//, this.orbs[index]);
+    //this.orbs.splice(index, 1);
+    for (var i = 0; i < this.orbs.length; i++)
+    {
+        if (this.orbs[i].id == id)
+        {
+            this.orbs[i].x = -100;
+            this.orbs[i].y = -100;
+            this.orbs[i].r = true;
+            console.log('removed orb', this.orbs[i].id);
+            this.orbs.splice(i, 1);
+            break;
+        }
+    }
+    //this.orbs[index]
+    //this.orbs.splice(index, 1);
+    this.prerenderer();
+};
 
 
 game_core.prototype.process_input = function( player )
@@ -1690,7 +1737,7 @@ game_core.prototype.client_update = function()
     //var preprend = this.canvas2
     if (this.canvas2)
     this.ctx.drawImage(this.canvas2, 0,0);
-    else console.log('no canvas');
+    //else console.log('no canvas');
     //this.ctx.
 
     //Capture inputs from the player
@@ -1883,6 +1930,7 @@ game_core.prototype.client_reset_positions = function()
     console.log('## client_reset_positions');
 
     console.log('Am I Host?', this.players.self.host, this.allplayers.length);
+    //if (this.players.self.host === true) this.players.self.pos.y = -1000;
     for (var i = 0; i < this.allplayers.length; i++)
     {
         //console.log('pos:', this.allplayers[i].pos, this.allplayers[i].instance);
@@ -1937,14 +1985,16 @@ game_core.prototype.client_onreadygame = function(data) {
 
     this.players.self.state = 'YOU ' + this.players.self.state;
 
+    //console.log(this.players.self.game.orbs);
+
     //Make sure colors are synced up
-     this.socket.send('c.' + this.players.self.color);
+     //this.socket.send('c.' + this.players.self.color);
 
 }; //client_onreadygame
 
 game_core.prototype.resizeCanvas = function()
 {
-    console.log('resize', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
+    console.log('resizeCanvas', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
     this.viewport.width = window.innerWidth;
     this.viewport.height = window.innerHeight;
 };
@@ -1952,13 +2002,22 @@ game_core.prototype.resizeCanvas = function()
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
-    console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
+    console.log('## client_onjoingame');//, data);// (player joined is not host: self.host=false)');
+
+    //console.log('derek', this.gameid);
+
+    var alldata = data.split("|");
+
+    this.mp = alldata[0];
+    this.gameid = alldata[1];
+    console.log('1',alldata[0]);
+    console.log('2',alldata[1]);
+    this.orbs = JSON.parse(alldata[2]);
+
+    console.log('3',alldata[2]);
+
     console.log('len', this.allplayers.length);
     console.log('vp', this.viewport);
-
-    // create prerenders
-    this.prerenderer();
-
 
     //We are not the host
     this.players.self.host = false;
@@ -1968,26 +2027,32 @@ game_core.prototype.client_onjoingame = function(data)
 
     for (var i = 0; i < this.allplayers.length; i++)
     {
-        //console.log("##", this.allplayers[i]);//.mp.instance);
+        console.log("----->", this.allplayers[i].mp, this.allplayers[i].id);//.instance);
+        console.log( (this.allplayers[i].instance) ? this.allplayers[i].instance.userid : 'no instance');
         //, this.allplayers[i].instance.userid);//, data);
         //if (this.allplayers[i].mp == data.mp && data.me)//.instance && this.allplayers[i].instance.userid == data)
-        if (this.allplayers[i].mp == data)//'cp1')
+        if (this.allplayers[i].mp == alldata[0])//'cp1')
         {
-            console.log('## found player', data);
+            console.log('## found player', alldata[0]);
+            //console.log(this.allplayers[i].instance.userid);
+            //console.log(this.allplayers[i].instance.hosting);
             //this.players.self.md = this.allplayers[i].md;
             //this.players.self.mis = this.allplayers[i].mis;
             //if (data.me)
             this.allplayers[i].active = true;
             this.players.self = this.allplayers[i];
+            console.log(this.players.self);
         }
         else if (this.allplayers[i].mp == 'hp')
         {
+            //this.players.host = this.allplayers[i];
             console.log('remove host', i, this.allplayers[i].host);
             this.allplayers.splice(i, 1);
         }
         // else if (this.allplayers[i].instance.hosting)
     }
 
+    // console.log('local player mp =', this.players.self.mp);
     // set mp val
     // this.players.self.mp = 'cp' + this.allplayers.length;
     // this.players.self.mis = 'cis' + this.allplayers.length;
@@ -1995,10 +2060,18 @@ game_core.prototype.client_onjoingame = function(data)
     // this.players.other.mp = 'hp';
     // this.players.other.mis = 'his';
 
+    // get orbs
+    //this.socket.send('p.' + 'derekisnew' );
+    //this.socket.send('c.' + 'derekcolor');
+    //console.log('instance', this.socket);//this.players.self.gameid);
+    this.getOrbs();
+
+    // create prerenders
+    this.prerenderer();
+
     this.resizeCanvas();
     //Make sure the positions match servers and other clients
     this.client_reset_positions();
-
 }; //client_onjoingame
 
 game_core.prototype.client_onhostgame = function(data) {
@@ -2047,7 +2120,7 @@ game_core.prototype.client_onhostgame = function(data) {
 game_core.prototype.client_onconnected = function(data) {
     //if (glog)
     console.log('## client_onconnected (self.id=' + data.id + ")");
-    console.log(data);
+    //console.log('data', data);
 
     // for (var i = 0; i < this.allplayers.length; i++)
     // {
@@ -2067,7 +2140,7 @@ game_core.prototype.client_onconnected = function(data) {
     //this lets us store the information about ourselves and set the colors
     //to show we are now ready to be playing.
     this.players.self.id = data.id;
-    this.players.self.info_color = '#cc0000';
+    //this.players.self.info_color = '#cc0000';
     this.players.self.state = 'connected';
     this.players.self.online = true;
 
@@ -2087,18 +2160,20 @@ game_core.prototype.client_onping = function(data) {
 }; //client_onping
 
 game_core.prototype.client_onnetmessage = function(data) {
-    if (glog) console.log('client_onnetmessage');
+    //if (glog)
+    console.log('client_onnetmessage', data);
 
     var commands = data.split('.');
     var command = commands[0];
     var subcommand = commands[1] || null;
     var commanddata = commands[2] || null;
 
-    switch(command) {
+    switch(command)
+    {
         case 's': //server message
 
-            switch(subcommand) {
-
+            switch(subcommand)
+            {
                 case 'h' : //host a game requested
                     this.client_onhostgame(commanddata); break;
 
@@ -2115,12 +2190,28 @@ game_core.prototype.client_onnetmessage = function(data) {
                     this.client_onping(commanddata); break;
 
                 case 'c' : //other player changed colors
+                    //console.log('got color', commanddata);
                     this.client_on_otherclientcolorchange(commanddata); break;
+            }
 
-            } //subcommand
+            break;
 
-        break; //'s'
-    } //command
+            case 'o':
+
+                switch(subcommand)
+                {
+                    // remove orb
+                    case 'r' : this.client_on_orbremoval(commanddata); break;
+                    // get orbs
+                    case 'g' : this.client_on_getorbs(commanddata); break;
+                }
+
+            break;
+
+        } //command
+
+        //break; //'s'
+    //} //command
 
 }; //client_onnetmessage
 
@@ -2165,6 +2256,10 @@ game_core.prototype.client_connect_to_server = function()
     this.socket.on('error', this.client_ondisconnect.bind(this));
     //On message from the server, we parse the commands and send it to the handlers
     this.socket.on('message', this.client_onnetmessage.bind(this));
+
+    // orb removal
+    //this.socket.on('orbremoval', this.client_on_orbremoval.bind(this));
+    //this.socket.on('orbget', this.client_on_getorbs);
 
 }; //game_core.client_connect_to_server
 
