@@ -294,7 +294,7 @@ game_core.prototype.stop_update = function() {  window.cancelAnimationFrame( thi
 //Simple linear interpolation
 game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.max(0, Math.min(1, _t))).fixed(); return (p + _t * (n - p)).fixed(); };
 //Simple linear interpolation between 2 vectors
-game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t) }; };
+game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
 
 /*
 
@@ -688,6 +688,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     game_player.prototype.draw = function()
     {
         // player nametags (temp)
+        //console.log(this.pos);
         for(var i=0; i < this.game.allplayers.length; i++)
         {
             //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
@@ -733,10 +734,12 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
         // player bitamps
         var img;
+        //if (this.pos.d == 1)
+        //console.log(this.pos);
         if (this.flap === true)
         {
-            //console.log("FLAP!");
-            this.flap=false;
+            // reset flap on client
+            this.flap = false;
             if (this.dir === 1) img = document.getElementById("p1l");
             else img = document.getElementById("p1r");
         }
@@ -866,11 +869,13 @@ game_core.prototype.check_collision = function( player )
                     {
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
+                        //this.allplayers[i].old_state = this.allplayers[i].pos;
                     }
                     else
                     {
                         //console.log(this.allplayers[i].mp, 'WINS!');
                         player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
+                        //player.old_state = player.pos;
                     }
                 }
 
@@ -1004,10 +1009,12 @@ game_core.prototype.process_input = function( player )
                 if(key == 'l') {
                     //x_dir -= 1;
                     player.dir = 1;
+                    //player.pos.d = 1;
                 }
                 if(key == 'r') {
                     //x_dir += 1;
                     player.dir = 0;
+                    //player.pos.d = 0;
                 }
                 // if(key == 'd') {
                 //     y_dir += 1;
@@ -1015,7 +1022,7 @@ game_core.prototype.process_input = function( player )
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
                     player.flap = true;
-                    this.playerspeed = 150;
+                    this.playerspeed = 200;//150;
                     player.v.y = -1;
                     y_dir -= 1;
                     if (player.dir === 0)
@@ -1031,6 +1038,7 @@ game_core.prototype.process_input = function( player )
                         else player.v.x -=6;
                     }
                 }
+                else player.flap = false;
                 //if (key !== 'u') player.flap = false;
                 // if(key == 'x') {
                 //     y_dir -= 10;
@@ -1207,12 +1215,22 @@ game_core.prototype.server_update = function()
             this.laststate.cp = this.allplayers[i].pos;
             this.laststate.cis = this.allplayers[i].last_input_seq;
         }*/
-        if (this.allplayers[i].mp)
-        {
+        //if (this.allplayers[i].mp)
+        //{
             //console.log(this.allplayers[i].mp);
-            this.laststate[this.allplayers[i].mp] = this.allplayers[i].pos;
+            //this.laststate[this.allplayers[i].mp] = this.allplayers[i].pos;
+            this.laststate[this.allplayers[i].mp] =
+            {
+                x:this.allplayers[i].pos.x,
+                y:this.allplayers[i].pos.y,
+                d:this.allplayers[i].dir,
+                f:this.allplayers[i].flap
+            };
             this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
-        }
+
+            // reset flap on server instance
+            if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
+        //}
     }
     //console.log(this.laststate);
     /*
@@ -1223,7 +1241,7 @@ game_core.prototype.server_update = function()
     }
     //*/
     this.laststate.t = this.server_time;
-    // console.log(this.laststate);
+    //console.log(this.laststate);
     //console.log('len', this.allplayers.length);
     for (var j = 0; j < this.allplayers.length; j++)
     {
@@ -1274,7 +1292,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     {
         for (var i = 0; i < this.allplayers.length; i++)
         {
-            if (this.allplayers[i].instance.userid == client.userid)
+            if (this.allplayers[i].instance && this.allplayers[i].instance.userid == client.userid)
             {
                 //player_client = this.allplayers[i];
                 //Store the input on the player instance for processing in the physics loop
@@ -1490,7 +1508,9 @@ game_core.prototype.client_process_net_updates = function()
     //We can interpolate between then based on 'how far in between' we are.
     //This is simple percentage maths, value/target = [0,1] range of numbers.
     //lerp requires the 0,1 value to lerp to? thats the one.
-
+     //console.log(target);
+      //if (target.cp2.f == 1)
+      //console.log(target.cp2);
      if(target && previous)
      {
 
@@ -1533,8 +1553,14 @@ game_core.prototype.client_process_net_updates = function()
                     target[this.allplayers[j].mp],//other_target_pos2,
                     time_point
                 );
+                //console.log(previous[this.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 this.allplayers[j].pos = this.v_lerp(this.allplayers[j].pos, ghostStub, this._pdt * this.client_smooth);
+
+                // get direction
+                //if (target[this.allplayers[j].mp])//.d == 1)
+                this.allplayers[j].dir = target[this.allplayers[j].mp].d;
+                this.allplayers[j].flap = target[this.allplayers[j].mp].f;
                 //console.log(this.allplayers[j].pos);
             }
         }
@@ -1607,7 +1633,7 @@ game_core.prototype.client_process_net_updates = function()
 game_core.prototype.client_onserverupdate_recieved = function(data)
 {
     if (glog)
-    console.log('## client_onserverupdate_recieved');
+    console.log('## client_onserverupdate_recieved', data);
     //console.log(data);
     //if (data.hp.d === 0)
     //console.log('data', data);
@@ -1691,6 +1717,7 @@ game_core.prototype.client_update_local_position = function()
 
             //Make sure the visual position matches the states we have stored
         //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
+        //console.log(current_state.d);
         this.players.self.pos = current_state;
 
             //We handle collision on client if predicting.
@@ -1931,15 +1958,15 @@ game_core.prototype.client_reset_positions = function()
 
     console.log('Am I Host?', this.players.self.host, this.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
-    for (var i = 0; i < this.allplayers.length; i++)
+    /*for (var i = 0; i < this.allplayers.length; i++)
     {
         //console.log('pos:', this.allplayers[i].pos, this.allplayers[i].instance);
         // this.allplayers[i].pos = this.allplayers[i].pos;
 
-        this.allplayers[i].old_state.pos = this.pos(allplayers[i].pos);
-        this.allplayers[i].pos = this.pos(allplayers[i].pos);
-        this.allplayers[i].cur_state.pos = this.pos(allplayers[i].pos);
-    }
+        this.allplayers[i].old_state.pos = this.pos(this.allplayers[i].pos);
+        this.allplayers[i].pos = this.pos(this.allplayers[i].pos);
+        this.allplayers[i].cur_state.pos = this.pos(this.allplayers[i].pos);
+    }*/
 
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
