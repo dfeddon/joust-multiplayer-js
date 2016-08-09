@@ -1,3 +1,4 @@
+
 /*  Copyright 2012-2016 Sven "underscorediscovery" Bergström
 
     written by : http://underscorediscovery.ca
@@ -500,6 +501,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.dir = 0; // 0 = right, 1 = left (derek added)
         this.v = { x:0, y:0 }; // velocity (derek added)
         this.flap = false; // flapped bool (derek added)
+        this.landed = 0; // 0=flying, 1=stationary, 2=walking
+        this.visible = true;
         this.active = false;
         this.state = 'not-connected';
         //this.color = 'rgba(255,255,255,0.1)';
@@ -526,9 +529,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //The world bounds we are confined to
         this.pos_limits = {
             x_min: this.size.hx,
-            x_max: this.game.world.width - this.size.hx,
-            y_min: this.size.hy,
-            y_max: this.game.world.height - this.size.hy
+            x_max: this.game.world.width - this.size.hx - 10,
+            y_min: this.size.hy5,
+            y_max: this.game.world.height - this.size.hy - 8
         };
 
         //The 'host' of a game gets created with a player instance since
@@ -692,12 +695,12 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         for(var i=0; i < this.game.allplayers.length; i++)
         {
             //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
-            if (this.game.players.self.mp != this.game.allplayers[i].mp)// != this.mp)
+            if (this.game.players.self.mp != this.game.allplayers[i].mp && this.game.allplayers[i].visible)// != this.mp)
             {
                 game.ctx.fillStyle = 'red';
                 game.ctx.fillText(this.game.allplayers[i].mp, this.game.allplayers[i].pos.x, this.game.allplayers[i].pos.y - 20);
             }
-            else
+            else if (this.game.players.self.visible)
             {
                 game.ctx.fillStyle = 'white';
                 game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
@@ -733,24 +736,49 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         }
 
         // player bitamps
-        var img;
+        var img, imgW, imgH;
         //if (this.pos.d == 1)
-        //console.log(this.pos);
+        //if (this.landed > 0) console.log(this.landed, this.mp);
         if (this.flap === true)
         {
             // reset flap on client
             this.flap = false;
             if (this.dir === 1) img = document.getElementById("p1l");
             else img = document.getElementById("p1r");
+
+            imgW = 40;
+            imgH = 40;
+        }
+        else if (this.landed === 1) // standing
+        {
+            //console.log('standing', this.landed, this.mp);
+            if (this.dir === 1)
+                img = document.getElementById("p1stand-l");
+            else img = document.getElementById("p1stand-r");
+
+            imgW = 33;
+            imgH = 44;
+        }
+        else if (this.landed === 2) // walking/skidding
+        {
+            if (this.dir === 1)
+                img = document.getElementById("p1skid-l");
+            else img = document.getElementById("p1skid-r");
+
+            imgW = 33;
+            imgH = 44;
         }
         else
         {
             if (this.dir === 1) img = document.getElementById("p2l");
             else img = document.getElementById("p2r");
+
+            imgW = 40;
+            imgH = 40;
         }
         //game.ctx.beginPath();
-        if(String(window.location).indexOf('debug') == -1)
-            game.ctx.drawImage(img, this.pos.x, this.pos.y, 40, 40);
+        if(String(window.location).indexOf('debug') == -1 && this.visible===true)
+            game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
         // player x y
         // game.ctx.fillText(this.game.players.self.pos.x + "/" + this.game.players.self.pos.y, this.game.players.self.pos.x, this.game.players.self.pos.y - 40);
@@ -814,11 +842,15 @@ game_core.prototype.check_collision = function( player )
     //Left wall. TODO:stop accel
     if(player.pos.x <= player.pos_limits.x_min) {
         player.pos.x = player.pos_limits.x_min;
+        //player.v.x = 0;
+        player.landed = 1;
     }
 
     //Right wall TODO: stop accel
     if(player.pos.x >= player.pos_limits.x_max ) {
         player.pos.x = player.pos_limits.x_max;
+        //player.v.x = 0;
+        player.landed = 1;
     }
 
     //Roof wall. TODO: stop accel
@@ -826,10 +858,31 @@ game_core.prototype.check_collision = function( player )
         player.pos.y = player.pos_limits.y_min;
     }
 
-    //Floor wall TODO: stop gravity
-    if(player.pos.y >= player.pos_limits.y_max ) {
-        player.pos.y = player.pos_limits.y_max;
+    //Floor wall TODO: stop gravity ( + 15 accounts for birds legs )
+    if(player.pos.y + 15 >= player.pos_limits.y_max )
+    {
+        //console.log('hit bottom');
+        player.pos.y = player.pos_limits.y_max - 15;
+        // decelerate
+        if (player.v.x > 0)
+        {
+            //console.log('-->slowing', player.v.x);
+
+            // slow horizontal velocity
+            player.v.x -= 10;
+            // set landing flag (moving)
+            player.landed = 2;
+        }
+        else
+        {
+            // stuck landing (no velocity)
+            player.v.x = 0;
+            // set landing flag (stationary)
+            player.landed = 1;
+        }
+        //console.log(player.landed);
     }
+    else player.landed = 0;
 
     //Fixed point helps be more deterministic
     //player.pos.x = player.pos.x.fixed(4);
@@ -865,18 +918,54 @@ game_core.prototype.check_collision = function( player )
                 }
                 else
                 {
+                    var splatteree, waspos;
                     if (player.pos.y < this.allplayers[i].pos.y)
                     {
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
-                        this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
+                        waspos = this.allplayers[i].pos;
+                        this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
+                        this.allplayers[i].visible = false;
+                        splatteree = this.allplayers[i];
                         //this.allplayers[i].old_state = this.allplayers[i].pos;
                     }
                     else
                     {
                         //console.log(this.allplayers[i].mp, 'WINS!');
-                        player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:0};
+                        waspos = player.pos;
+                        player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
+                        player.visible = false;
+                        splatteree = player;
                         //player.old_state = player.pos;
                     }
+
+                    // splatter
+                    //if (this.server){
+                    //var UUID = require('node-uuid');
+                    console.log('splatter!');
+
+                    // get diffs
+                    // var spreadX = 100;
+                    // var spreadY = 100;
+                    // if (this.world.height - waspos.y > spreadX)
+                    //     spreadX = 100 -
+                    var size, c, ox, oy, id, neworb;
+                    var colors = ['white'];
+                    for (var x = 0; x < 50; x++)
+                    {
+                        size = Math.floor(Math.random() * 8) + 4;
+                        c = colors[Math.floor(Math.random() * colors.length)];
+                        ox = waspos.x + Math.floor(Math.random() * 100) + 1;
+                        ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+                        oy = waspos.y + Math.floor(Math.random() * 20) + 1;
+                        oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+                        id = Math.floor(Math.random() * 5000) + 1;
+
+                        neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+                        this.orbs.push( neworb );
+                    }//}
+                    console.log('total orbs', this.orbs.length);//, this.orbs);
+                    if (!this.server)
+                    this.prerenderer();
                 }
 
                 break;
@@ -892,11 +981,12 @@ game_core.prototype.check_collision = function( player )
     for (var j = 0; j < this.platforms.length; j++)
     {
         //console.log('platform', this.platforms[j]);
+        // Note: hy + 10 below accounts for birds unseen legs.
         if (
             player.pos.x < (this.platforms[j].x + this.platforms[j].w) &&
             (player.pos.x + player.size.hx) > this.platforms[j].x &&
             player.pos.y < (this.platforms[j].y + this.platforms[j].h) &&
-            (player.pos.y + player.size.hy) > this.platforms[j].y
+            (player.pos.y + player.size.hy + 10) > this.platforms[j].y
         )
         {
             //console.log('hit platform!');
@@ -907,18 +997,29 @@ game_core.prototype.check_collision = function( player )
             }
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
-                player.pos.y = this.platforms[j].y - player.size.hy;// -= 1;// this.world.height-200;
+                player.pos.y = this.platforms[j].y - player.size.hy - 10;// -= 1;// this.world.height-200;
                 // decelerate
                 if (player.v.x > 0)
                 {
-                    console.log('slowing', player.v.x);
+                    //console.log('slowing', player.v.x);
+
+                    // slow horizontal velocity
                     player.v.x -= 1;
+                    // set landing flag (moving)
+                    player.landed = 2;
                 }
-                else player.v.x = 0;
+                else
+                {
+                    // stuck landing (no velocity)
+                    player.v.x = 0;
+                    // set landing flag (stationary)
+                    player.landed = 1;
+                }
             }
 
             break;
         }
+        //else if (player.landed > 0) player.landed = 0; // if player slides off platform, fly!
     }
     //if (player.mp == "cp2")
     //console.log(player.mp, this.orbs.length);
@@ -1006,11 +1107,15 @@ game_core.prototype.process_input = function( player )
             for(var i = 0; i < c; ++i) {
                 var key = input[i];
                 //console.log('key', key);
+                // if player.landed > 0
+                // bird walks to the left
                 if(key == 'l') {
                     //x_dir -= 1;
                     player.dir = 1;
                     //player.pos.d = 1;
                 }
+                // if player.landed > 0
+                // bird walks to the right
                 if(key == 'r') {
                     //x_dir += 1;
                     player.dir = 0;
@@ -1022,6 +1127,7 @@ game_core.prototype.process_input = function( player )
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
                     player.flap = true;
+                    player.landed = 0;
                     this.playerspeed = 200;//150;
                     player.v.y = -1;
                     y_dir -= 1;
@@ -1224,7 +1330,8 @@ game_core.prototype.server_update = function()
                 x:this.allplayers[i].pos.x,
                 y:this.allplayers[i].pos.y,
                 d:this.allplayers[i].dir,
-                f:this.allplayers[i].flap
+                f:this.allplayers[i].flap,
+                l:this.allplayers[i].landed
             };
             this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
 
@@ -1561,6 +1668,7 @@ game_core.prototype.client_process_net_updates = function()
                 //if (target[this.allplayers[j].mp])//.d == 1)
                 this.allplayers[j].dir = target[this.allplayers[j].mp].d;
                 this.allplayers[j].flap = target[this.allplayers[j].mp].f;
+                this.allplayers[j].landed = target[this.allplayers[j].mp].l;
                 //console.log(this.allplayers[j].pos);
             }
         }
