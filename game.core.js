@@ -19,8 +19,8 @@
 
 var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
-var worldWidth = 1200;//420;
-var worldHeight = 1200;//720;
+var worldWidth = 1280;//420;
+var worldHeight = 1280;//720;
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
 ( function () {
@@ -86,6 +86,8 @@ var game_core = function(game_instance)
 
     this.world.maxOrbs = 150;
     this.orbs = [];
+
+    this.tilemap;
 
     this.cam = {};
 
@@ -155,6 +157,10 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
+        /*this.prerendCanvas = document.getElementById('prerend');
+        this.prerendCanvas.width = this.world.width;
+        this.prerendCanvas.height = this.world.height;*/
+
         console.log("## adding client players...", this.world.totalplayers);
 
         //this.canvas = document.getElementById('viewport');
@@ -250,12 +256,15 @@ if( 'undefined' != typeof global )
     module.exports = global.game_core = game_core;
 }
 
-game_core.prototype.getOrbs = function()
-{return;
-    console.log('## getOrbs', this.players.self.instance);//.instance.game);
+game_core.prototype.api = function()
+{
+    var self = this;
+
+    console.log('## api call', this.players.self.instance);//.instance.game);
     xmlhttp = new XMLHttpRequest();
-    var url = "http://localhost:4004/api/orbs/";
-    xmlhttp.open("POST", url, true);
+    //var url = "http://localhost:4004/api/orbs/";
+    var url = "http://localhost:4004/assets/tilemaps/joust-alpha-1.tmx";
+    xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
     xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
@@ -267,7 +276,11 @@ game_core.prototype.getOrbs = function()
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
         {
             //alert(xmlhttp.responseText);
-            console.log('data', xmlhttp.responseText);
+            //console.log('data', xmlhttp.responseText);
+            //return xmlhttp.responseText;
+            self.tilemap = xmlhttp.responseText;
+            self.tilemapper();
+            self.prerenderer();
         }
     };
 };
@@ -531,7 +544,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             x_min: this.size.hx,
             x_max: this.game.world.width - this.size.hx - 10,
             y_min: this.size.hy5,
-            y_max: this.game.world.height - this.size.hy - 8
+            y_max: this.game.world.height - this.size.hy - 10
         };
 
         //The 'host' of a game gets created with a player instance since
@@ -556,10 +569,135 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
     }; //game_player.constructor
 
+    game_core.prototype.tilemapper = function()
+    {
+        var canvas3 = document.createElement('canvas');
+        canvas3.id = "canvas3";
+        canvas3.width = this.world.width;//v.width;
+        canvas3.height = this.world.height;//v.height;
+        context3 = canvas3.getContext('2d');
+        /////////////////////////////////////////
+        // Tilemap
+        /////////////////////////////////////////
+        if (this.tilemap)// && this.tmCanvas == undefined)
+        {
+            var _this = this;
+            // parse xml
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
+            //console.log('xml', xmlDoc);
+
+            // map
+            var mapNode = xmlDoc.getElementsByTagName('map');
+            var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
+            renderOrder = mapNode[0].getAttribute('renderorder');
+            width = mapNode[0].getAttribute('width');
+            height = mapNode[0].getAttribute('height');
+            tileWidth = mapNode[0].getAttribute('tilewidth');
+            tileHeight = mapNode[0].getAttribute('tileheight');
+            nextObjectId = mapNode[0].getAttribute('nextobjectid');
+            //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
+
+            // tileset
+            var tilesetNode = xmlDoc.getElementsByTagName('tileset');
+            //console.log('tileset', tilesetNode.length);
+            tileCount = tilesetNode[0].getAttribute('tilecount');
+            columns = tilesetNode[0].getAttribute('columns');
+            name = tilesetNode[0].getAttribute('name');
+            //console.log(tileCount, columns, name);
+
+            // data
+            var data, encoding;
+            var dataNode = xmlDoc.getElementsByTagName('data');
+            encoding = dataNode[0].getAttribute('encoding');
+            data = dataNode[0].innerHTML;
+            //console.log(dataNode[0]);
+            //console.log(data);
+
+            // build 2d array of row data
+            var base = [];
+            var rows = data.split("\n");
+            rows.shift(); // first item is newline
+            rows.pop(); // last item is newline
+            //console.log(rows);
+            for (var i = 0; i < rows.length; i++)
+            {
+                rows[i] = rows[i].split(",");
+                if (i !== rows.length - 1)
+                    rows[i].pop(); // last item of each row is newline (except last line)
+                base.push(rows[i]);
+            }
+            //console.log(base);
+
+            // build bitmap from tilelist image
+            var source, trans, imageWidth, imageHeight;
+            var imageNode = xmlDoc.getElementsByTagName('image');
+            source = imageNode[0].getAttribute('source');
+            trans = imageNode[0].getAttribute('trans');
+            imageWidth = imageNode[0].getAttribute('width');
+            imageHeight = imageNode[0].getAttribute('height');
+            //console.log(source, trans, imageWidth, imageHeight);
+
+            var image = new Image();
+            image.onload = function(e)
+            {
+                // image loaded
+                var sheet = e.target;
+                //context2.drawImage(e.target, 0, 0);
+
+                // first, create canvas the exact size of the tilemap
+                var tilemap = document.createElement('canvas');
+                self.tmCanvas = tilemap
+                tilemap.id = "tilemap";
+                tilemap.width = width * tileWidth;
+                tilemap.height = height * tileHeight;//v.height;
+                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+                tmContext = tilemap.getContext('2d');
+
+                // add tilemap to tile canvas context
+                tmContext.drawImage(e.target, 0, 0);
+
+                // now, let's add tiles
+                var tile, t;
+                var count = 0;
+                var rowMax = (imageWidth / tileWidth);
+                var colMax = (imageHeight / tileHeight);
+                //console.log(rowMax, colMax);
+                for (var j = 0; j < base.length; j++)
+                {
+                    for (var k = 0; k < base[j].length; k++)
+                    {
+                        t = parseInt(base[j][k] - 1);
+                        if (t > 0) // ignore 0 tiles
+                        {
+                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                            tile = tmContext.getImageData
+                            (
+                                ((t % colMax)) * tileWidth,// tileHeight, // x
+                                (Math.floor(t / rowMax)) * tileHeight, // y
+                                tileWidth, // w
+                                tileHeight // h
+                            );
+                            context3.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
+                        }
+                        count++;
+                    }
+                }
+                _this.canvas3 = canvas3
+            }; // end tilemap image loaded
+            image.src = source.replace("..", "/assets");
+            //console.log(image.src);
+
+        }
+    }
+
     game_core.prototype.prerenderer = function()
     {
         console.log('## preprenderer', this.orbs.length);
+        var self = this;
         var context2, max, canvas2;
+        //*
         if (!this.canvas2)
         {
             console.log('creating canvas2');
@@ -578,7 +716,126 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             // clear existing canvas
             context2.clearRect(0,0, this.world.width, this.world.height);
         }
+        //*/
         //console.log(context2);
+        //var prerendCanvas = document.getElementById('prerend');
+        //prerendCanvas.width = this.world.width;//v.width;
+        //prerendCanvas.height = this.world.height;//v.height;
+        /*context2 = this.prerendCanvas.getContext('2d');
+        context2.clearRect(0,0, this.world.width, this.world.height);*/
+
+        /////////////////////////////////////////
+        // Tilemap
+        /////////////////////////////////////////
+        if (this.tilemap7)// && this.tmCanvas == undefined)
+        {
+            // parse xml
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
+            //console.log('xml', xmlDoc);
+
+            // map
+            var mapNode = xmlDoc.getElementsByTagName('map');
+            var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
+            renderOrder = mapNode[0].getAttribute('renderorder');
+            width = mapNode[0].getAttribute('width');
+            height = mapNode[0].getAttribute('height');
+            tileWidth = mapNode[0].getAttribute('tilewidth');
+            tileHeight = mapNode[0].getAttribute('tileheight');
+            nextObjectId = mapNode[0].getAttribute('nextobjectid');
+            //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
+
+            // tileset
+            var tilesetNode = xmlDoc.getElementsByTagName('tileset');
+            //console.log('tileset', tilesetNode.length);
+            tileCount = tilesetNode[0].getAttribute('tilecount');
+            columns = tilesetNode[0].getAttribute('columns');
+            name = tilesetNode[0].getAttribute('name');
+            //console.log(tileCount, columns, name);
+
+            // data
+            var data, encoding;
+            var dataNode = xmlDoc.getElementsByTagName('data');
+            encoding = dataNode[0].getAttribute('encoding');
+            data = dataNode[0].innerHTML;
+            //console.log(dataNode[0]);
+            //console.log(data);
+
+            // build 2d array of row data
+            var base = [];
+            var rows = data.split("\n");
+            rows.shift(); // first item is newline
+            rows.pop(); // last item is newline
+            //console.log(rows);
+            for (var i = 0; i < rows.length; i++)
+            {
+                rows[i] = rows[i].split(",");
+                if (i !== rows.length - 1)
+                    rows[i].pop(); // last item of each row is newline (except last line)
+                base.push(rows[i]);
+            }
+            //console.log(base);
+
+            // build bitmap from tilelist image
+            var source, trans, imageWidth, imageHeight;
+            var imageNode = xmlDoc.getElementsByTagName('image');
+            source = imageNode[0].getAttribute('source');
+            trans = imageNode[0].getAttribute('trans');
+            imageWidth = imageNode[0].getAttribute('width');
+            imageHeight = imageNode[0].getAttribute('height');
+            //console.log(source, trans, imageWidth, imageHeight);
+
+            var image = new Image();
+            image.onload = function(e)
+            {
+                // image loaded
+                var sheet = e.target;
+                //context2.drawImage(e.target, 0, 0);
+
+                // first, create canvas the exact size of the tilemap
+                var tilemap = document.createElement('canvas');
+                self.tmCanvas = tilemap
+                tilemap.id = "tilemap";
+                tilemap.width = width * tileWidth;
+                tilemap.height = height * tileHeight;//v.height;
+                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+                tmContext = tilemap.getContext('2d');
+
+                // add tilemap to tile canvas context
+                tmContext.drawImage(e.target, 0, 0);
+
+                // now, let's add tiles
+                var tile, t;
+                var count = 0;
+                var rowMax = (imageWidth / tileWidth);
+                var colMax = (imageHeight / tileHeight);
+                //console.log(rowMax, colMax);
+                for (var j = 0; j < base.length; j++)
+                {
+                    for (var k = 0; k < base[j].length; k++)
+                    {
+                        t = parseInt(base[j][k] - 1);
+                        if (t > 0) // ignore 0 tiles
+                        {
+                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                            tile = tmContext.getImageData
+                            (
+                                ((t % colMax)) * tileWidth,// tileHeight, // x
+                                (Math.floor(t / rowMax)) * tileHeight, // y
+                                tileWidth, // w
+                                tileHeight // h
+                            );
+                            context2.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
+                        }
+                        count++;
+                    }
+                }
+            }; // end tilemap image loaded
+            image.src = source.replace("..", "/assets");
+            //console.log(image.src);
+
+        }
 
         /////////////////////////////////////////
         // Orbs
@@ -592,7 +849,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
         //for (var k = 0; k < max; k++)
         var orbs = this.orbs;
-        console.log('orbz',orbs.length,this.server);//, this.orbs);
+        console.log('orbz',orbs.length);//, this.orbs);
         for (var k = 0; k < this.orbs.length; k++)
         {
             size = Math.floor(Math.random() * 4) + 2;
@@ -684,8 +941,10 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         }
 
         //context2.restore();
+        //*
         if (!this.canvas2)
         this.canvas2 = canvas2;
+        //*/
     };
 
     game_player.prototype.draw = function()
@@ -791,10 +1050,13 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     {
         return Math.max(min, Math.min(value, max));
         //console.log(value);//, min, max);
-        /*if(value < min) return min;
+        /*
+        //console.log(value, min, max);
+        if(value < min) return min;
         else if(value > max) return max;
 
-        return value;*/
+        return value;
+        //*/
     }
 //*/
 /*
@@ -842,14 +1104,14 @@ game_core.prototype.check_collision = function( player )
     //Left wall. TODO:stop accel
     if(player.pos.x <= player.pos_limits.x_min) {
         player.pos.x = player.pos_limits.x_min;
-        //player.v.x = 0;
+        player.v.x = 0;
         player.landed = 1;
     }
 
     //Right wall TODO: stop accel
     if(player.pos.x >= player.pos_limits.x_max ) {
         player.pos.x = player.pos_limits.x_max;
-        //player.v.x = 0;
+        player.v.x = 0;
         player.landed = 1;
     }
 
@@ -997,7 +1259,7 @@ game_core.prototype.check_collision = function( player )
             }
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
-                player.pos.y = this.platforms[j].y - player.size.hy - 10;// -= 1;// this.world.height-200;
+                player.pos.y = this.platforms[j].y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
                 // decelerate
                 if (player.v.x > 0)
                 {
@@ -1860,18 +2122,24 @@ game_core.prototype.client_update = function()
     //Clear the screen area (just client's viewport, not world)
     var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
     var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
-    this.cam.x = camX;
-    this.cam.y = camY;
-    // +100 accounts for -50 padding offset
-    this.ctx.clearRect(-camX,-camY,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
+    this.cam.x = parseInt(camX);
+    this.cam.y = parseInt(camY);
+    // +100 accounts for -50 padding offset along the edge of world
+    //console.log(this.players.self.pos.x, (this.viewport.width/2));
+    this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
 
     //draw help/information if required
     this.client_draw_info();
 
     // draw prerenders
     //var preprend = this.canvas2
-    if (this.canvas2)
-    this.ctx.drawImage(this.canvas2, 0,0);
+    //*
+    if (this.canvas2) // prerenderer
+        this.ctx.drawImage(this.canvas2, 0,0);
+    if (this.canvas3) // tilemap
+        this.ctx.drawImage(this.canvas3, 0, 0);
+    //*/
+    //this.ctx.drawImage(this.prerendCanvas, 0, 0);
     //else console.log('no canvas');
     //this.ctx.
 
@@ -2199,7 +2467,7 @@ game_core.prototype.client_onjoingame = function(data)
     //this.socket.send('p.' + 'derekisnew' );
     //this.socket.send('c.' + 'derekcolor');
     //console.log('instance', this.socket);//this.players.self.gameid);
-    this.getOrbs();
+    this.api();
 
     // create prerenders
     this.prerenderer();

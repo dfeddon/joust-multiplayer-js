@@ -11,7 +11,7 @@ html , body {
 	/*background-repeat: repeat;*/
 }
 
-canvas {
+#viewport {
 	/*opacity: 0.5;*/
 	/*border:solid 1px #333;*/
 	/*height : 100%;/*480px;*/
@@ -27,5 +27,19 @@ canvas {
 	display: block;
 	/*left: 0; top: 0;*/
 	/*width:100%;height:100%; margin:0px;*/
-	/*z-index:1;*/
+	z-index: 3;
+}
+#prerend
+{
+	left: 0; top: 0;
+	position: absolute;
+	display: block;
+	z-index: 2;
+}
+#tilemap
+{
+	left: 0; top: 0;
+	position: absolute;
+	display: block;
+	z-index: 1;
 }
