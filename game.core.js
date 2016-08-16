@@ -98,10 +98,10 @@ var game_core = function(game_instance)
     this.allplayers = []; // client/server players store
 
     this.platforms = [];
-    this.platforms.push({x:this.world.width/2,y:this.world.height-400,w:512,h:64});
+    /*this.platforms.push({x:this.world.width/2,y:this.world.height-400,w:512,h:64});
     this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
     this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
-    this.platforms.push({x:0,y:800,w:256,h:64});
+    this.platforms.push({x:0,y:800,w:256,h:64});*/
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -143,6 +143,7 @@ var game_core = function(game_instance)
         {
             size = Math.floor(Math.random() * 4) + 2;
             c = colors[Math.floor(Math.random() * colors.length)];
+            // TODO: Avoid barriers
             ox = Math.floor(Math.random() * this.world.width) + 1;
             oy = Math.floor(Math.random() * this.world.height) + 1;
             id = UUID();
@@ -597,7 +598,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         else
         {*/
             //this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
-            this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:this.game.world.height-this.size.hy };
+            this.pos = { x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:128};//this.game.world.height-this.size.hy };
         //}
 
         //These are used in moving us around later
@@ -784,7 +785,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             //console.log(image.src);
 
         }
-    }
+    };
 
     game_core.prototype.prerenderer = function()
     {
@@ -948,6 +949,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         {
             size = Math.floor(Math.random() * 4) + 2;
             c = colors[Math.floor(Math.random() * colors.length)];
+            // TODO: Avoid foreground tiles
             x = Math.floor(Math.random() * this.world.width) + 1;
             y = Math.floor(Math.random() * this.world.height) + 1;
 
@@ -1274,9 +1276,12 @@ game_core.prototype.check_collision = function( player )
             if ( player.pos.x + (player.size.hx/4) < this.allplayers[i].pos.x + (this.allplayers[i].size.hx - this.allplayers[i].size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > this.allplayers[i].pos.x + (this.allplayers[i].size.hx/4) && player.pos.y + (player.size.hy/4) < this.allplayers[i].pos.y + (this.allplayers[i].size.hy - this.allplayers[i].size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > this.allplayers[i].pos.y + (this.allplayers[i].size.hy/4)
             )
             {
+                // TODO: if vulnerable (stunned) then vuln user is victim
+
+                // otherwise, positioning counts
                 var dif = player.pos.y - this.allplayers[i].pos.y;
                 //console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
-                if (dif >= -5 && dif <= 5)//player.pos.y === this.allplayers[i].pos.y)
+                if (dif >= -5 && dif <= 5 && player.stunned === false && this.allplayers[i].stunned === false)//player.pos.y === this.allplayers[i].pos.y)
                 {
                     //console.log("TIE!", player.mp, this.allplayers[i].mp);
                     if (player.pos.x < this.allplayers[i].pos.x)
@@ -1298,24 +1303,24 @@ game_core.prototype.check_collision = function( player )
                         // slow horizontal velocity
                         player.v.x = 0;//-= 1;
                         // set landing flag (moving)
-                        player.landed = 2;
+                        player.landed = 2; // TODO: only if on platform
                     }
                     else
                     {
                         // stuck landing (no velocity)
                         player.v.x = 0;
                         // set landing flag (stationary)
-                        player.landed = 1;
+                        player.landed = 1; // TODO: only if on platform
                     }
                 }
-                else
+                else // we have a victim
                 {
                     var splatteree, waspos;
-                    if (player.pos.y < this.allplayers[i].pos.y)
+                    if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].stunned === true)
                     {
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         waspos = this.allplayers[i].pos;
-                        this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
+                        this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
                         //this.allplayers[i].visible = false;
                         splatteree = this.allplayers[i];
                         //this.allplayers[i].old_state = this.allplayers[i].pos;
@@ -1324,7 +1329,7 @@ game_core.prototype.check_collision = function( player )
                     {
                         //console.log(this.allplayers[i].mp, 'WINS!');
                         waspos = player.pos;
-                        player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
+                        player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
                         //player.visible = false;
                         splatteree = player;
                         //player.old_state = player.pos;
@@ -1346,6 +1351,7 @@ game_core.prototype.check_collision = function( player )
                     {
                         size = Math.floor(Math.random() * 8) + 4;
                         c = colors[Math.floor(Math.random() * colors.length)];
+                        // TODO: Avoid barriers
                         ox = waspos.x + Math.floor(Math.random() * 100) + 1;
                         ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
                         oy = waspos.y + Math.floor(Math.random() * 20) + 1;
@@ -1370,6 +1376,7 @@ game_core.prototype.check_collision = function( player )
     }
 
     // platform collisions
+    /*
     for (var j = 0; j < this.platforms.length; j++)
     {
         //console.log('platform', this.platforms[j]);
@@ -1414,6 +1421,7 @@ game_core.prototype.check_collision = function( player )
         }
         //else if (player.landed > 0) player.landed = 0; // if player slides off platform, fly!
     }
+    //*/
     //if (player.mp == "cp2")
     //console.log(player.mp, this.orbs.length);
 
@@ -1462,38 +1470,82 @@ game_core.prototype.check_collision = function( player )
     var b = 10; // bounce
     var h = player.hitGrid();
     //console.log(c);
-    //console.log('::', h);
+    // console.log('::', h);
     if (h !== undefined)
     {
-        if (h.nw.t === 1)
+        if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
+        {
+            player.pos.x += 15; // bounce
+            player.v.x = 0; // stop accel
+        }
+        else if (h.ne.t > 0 && h.se.t > 0)
+        {
+            player.pos.x -= 15; //bounce
+            player.v.x = 0; // stop accel
+        }
+        else if (h.nw.t > 0) // collide from below
         {
             //console.log('stop nw', player.mp);
             //player.pos.x += b;
             player.pos.y += b;
             if (player.stunned===false)
-            player.isStunned();
+                player.isStunned();
         }
-        if (h.ne.t === 1)
+        else if (h.ne.t > 0) // collide from below
         {
             //console.log('stop ne', player.mp);
             //player.pos.x -= b;
             player.pos.y += b;
             if (player.stunned===false)
-            player.isStunned();
+                player.isStunned();
         }
-        if (h.sw.t === 1)
+        else if (h.sw.t > 0) // landing
         {
             //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
             //player.pos.x += b;
             //player.pos.y -= b;
             player.pos.y = (h.sw.y * 64) - 64;
+            // decelerate
+            if (player.v.x > 0)
+            {
+                //console.log('slowing', player.v.x);
+
+                // slow horizontal velocity
+                player.v.x -= 1;
+                // set landing flag (moving)
+                player.landed = 2;
+            }
+            else
+            {
+                // stuck landing (no velocity)
+                player.v.x = 0;
+                // set landing flag (stationary)
+                player.landed = 1;
+            }
         }
-        if (h.se.t === 1)
+        else if (h.se.t > 0) // landing
         {
             //console.log('stop se', player.mp);// h.sw.y * 64, player.pos.y + player.size.hy);
             //player.pos.x -= b;
             //player.pos.y -= b;
             player.pos.y = (h.sw.y * 64) - 64;
+            // decelerate
+            if (player.v.x > 0 && player.stunned !== true)
+            {
+                //console.log('slowing', player.v.x);
+
+                // slow horizontal velocity
+                player.v.x -= 1;
+                // set landing flag (moving)
+                player.landed = 2;
+            }
+            else
+            {
+                // stuck landing (no velocity)
+                player.v.x = 0;
+                // set landing flag (stationary)
+                player.landed = 1;
+            }
         }
     }
     //}
@@ -2307,8 +2359,9 @@ game_core.prototype.client_update = function()
     // TODO: lerp camera movement for extra smoothness
     if (this.players.self.landed !== 1)
     {
-        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 64, 64);//this.this.world.width);
-        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 64, 64);//this.game.world.height);
+        var pad = 0;
+        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - pad, pad);//this.this.world.width);
+        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
     }
