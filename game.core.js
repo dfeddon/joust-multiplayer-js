@@ -269,7 +269,7 @@ game_core.prototype.api = function()
     console.log('## api call');//, this.players.self.instance);//.instance.game);
     xmlhttp = new XMLHttpRequest();
     //var url = "http://localhost:4004/api/orbs/";
-    var url = "http://localhost:4004/assets/tilemaps/joust-alpha-1.tmx";
+    var url = "./assets/tilemaps/joust-alpha-1.tmx";
     xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
