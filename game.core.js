@@ -88,6 +88,7 @@ var game_core = function(game_instance)
     this.orbs = [];
 
     this.tilemap;
+    this.tilemapData;
 
     this.cam = {};
 
@@ -97,10 +98,10 @@ var game_core = function(game_instance)
     this.allplayers = []; // client/server players store
 
     this.platforms = [];
-    this.platforms.push({x:this.world.width/2,y:this.world.height-200,w:300,h:40});
-    this.platforms.push({x:this.world.width/4,y:300,w:200,h:40});
-    this.platforms.push({x:this.world.width -100,y:500,w:100,h:40});
-    this.platforms.push({x:0,y:800,w:200,h:40});
+    this.platforms.push({x:this.world.width/2,y:this.world.height-400,w:512,h:64});
+    this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
+    this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
+    this.platforms.push({x:0,y:800,w:256,h:64});
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -109,6 +110,8 @@ var game_core = function(game_instance)
     {
         var UUID = require('node-uuid');
         console.log("##-@@ adding server player and assigning client instance...");
+
+        this.apiNode(); // load tilemap data
 
         var o;
         for (var i = 1; i < this.world.totalplayers; i++)
@@ -157,6 +160,8 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
+        this.api(); // load and build tilemap
+
         /*this.prerendCanvas = document.getElementById('prerend');
         this.prerendCanvas.width = this.world.width;
         this.prerendCanvas.height = this.world.height;*/
@@ -260,7 +265,7 @@ game_core.prototype.api = function()
 {
     var self = this;
 
-    console.log('## api call', this.players.self.instance);//.instance.game);
+    console.log('## api call');//, this.players.self.instance);//.instance.game);
     xmlhttp = new XMLHttpRequest();
     //var url = "http://localhost:4004/api/orbs/";
     var url = "http://localhost:4004/assets/tilemaps/joust-alpha-1.tmx";
@@ -285,6 +290,38 @@ game_core.prototype.api = function()
     };
 };
 
+game_core.prototype.apiNode = function()
+{
+    console.log('apiNode');
+    var _this = this;
+    var xml2js = require('xml2js');
+    var fs = require('fs');
+    var parser = new xml2js.Parser();
+    fs.readFile( './assets/tilemaps/joust-alpha-1.tmx', function(err, data)
+    {
+        parser.parseString(data, function (err, result)
+        {
+            //console.dir(result.note.to[0]);
+            console.log(JSON.stringify(result.map.layer[0].data[0]._));
+            var data = JSON.stringify(result.map.layer[0].data[0]._);
+            var split = data.split('\\n');
+            //split = split.shift();
+            var base = [];
+            console.log(split.length);
+            // ignore first and last rows
+            var split2;
+            var len = split.length;
+            for (var i = 1; i < len - 1; i++)
+            {
+                split2 = split[i].split(",");
+                split2.pop(); // remove last item (undefined)
+                base.push(split2);
+            }
+            console.log(base[0].length, base[0]);
+            _this.tilemapData = base;
+        });
+    });
+};
 /*
     Helper functions for the game code
 
@@ -504,13 +541,15 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         else console.log('** added player (without instance)');
         //if (isGhost) console.log('** ^ player is ghost, adding to ghost store');
 
+        var self = this;
+
         this.instance = player_instance;
         this.game = game_instance;
 
         //Set up initial values for our state information
         this.pos = { x:0, y:0 };
         //this.size = { x:16, y:16, hx:8, hy:8 };
-        this.size = { x:32, y:32, hx:32, hy:32 };
+        this.size = { x:64, y:64, hx:64, hy:64 };
         this.dir = 0; // 0 = right, 1 = left (derek added)
         this.v = { x:0, y:0 }; // velocity (derek added)
         this.flap = false; // flapped bool (derek added)
@@ -541,30 +580,79 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
         //The world bounds we are confined to
         this.pos_limits = {
-            x_min: this.size.hx,
-            x_max: this.game.world.width - this.size.hx - 10,
-            y_min: this.size.hy5,
-            y_max: this.game.world.height - this.size.hy - 10
+            x_min: 0,//this.size.hx,
+            x_max: this.game.world.width - this.size.hx,
+            y_min: 0,//this.size.hy,
+            y_max: this.game.world.height - this.size.hy
         };
 
         //The 'host' of a game gets created with a player instance since
         //the server already knows who they are. If the server starts a game
         //with only a host, the other player is set up in the 'else' below
-        if(isHost) // if host?
+        /*if(isHost) // if host?
         {
             console.log('## host positioning');
-            this.pos = { x:-500, y:-500 };
+            //this.pos = { x:-500, y:-500 };
         }
         else
-        {
+        {*/
             //this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
             this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:this.game.world.height-this.size.hy };
-        }
+        //}
 
         //These are used in moving us around later
         this.old_state = {pos:this.pos};
         this.cur_state = {pos:this.pos};
         this.state_time = new Date().getTime();
+
+        this.stunned = false;
+        var stunLen = 1500; // 1.5 sec
+        this.isStunned = function()
+        {
+            console.log('Im stunned!');
+
+            self.stunned = true;
+
+            var stun = setInterval(function()
+            {
+                self.stunned = false;
+                console.log('No longer stunned...');
+                clearInterval(stun);
+            }, stunLen);
+            // setInterval (3 sec)
+        }
+
+        this.getGrid = function()
+        {
+            return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+        };
+
+        this.getCoord = function()
+        {
+            // direction-dependent, account for
+            var nw = { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+            var ne = { x: Math.floor((this.pos.x + this.size.hx) / 64),y: Math.floor(this.pos.y / 64) };
+            var sw = { x: Math.floor(this.pos.x / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
+            var se = { x: Math.floor((this.pos.x + this.size.hx) / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
+            return { nw:nw, ne:ne, sw:sw, se:se };
+            //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+        };
+        this.hitGrid = function()
+        {
+            //if (this.game.server) console.log(this.tilemapData);
+            if (this.game.tilemapData === undefined) return;
+            var tmd = this.game.tilemapData;
+
+            var c = this.getCoord();
+            //console.log(c);
+            //console.log('sw', tmd[c.ne.y][c.ne.x]);
+            return {
+                nw: (tmd[c.nw.y] && tmd[c.nw.y][c.nw.x]) ? {t:parseInt(tmd[c.nw.y][c.nw.x]),x:c.nw.x,y:c.nw.y} : 0,
+                ne: (tmd[c.ne.y] && tmd[c.ne.y][c.ne.x]) ? {t:parseInt(tmd[c.ne.y][c.ne.x]),x:c.ne.x,y:c.ne.y} : 0,
+                sw: (tmd[c.sw.y] && tmd[c.sw.y][c.sw.x]) ? {t:parseInt(tmd[c.sw.y][c.sw.x]),x:c.sw.x,y:c.sw.y} : 0,
+                se: (tmd[c.se.y] && tmd[c.se.y][c.se.x]) ? {t:parseInt(tmd[c.se.y][c.se.x]),x:c.se.x,y:c.se.y} : 0
+            };
+        };
 
 
     }; //game_player.constructor
@@ -573,6 +661,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     {
         var canvas3 = document.createElement('canvas');
         canvas3.id = "canvas3";
+        canvas3.x = 0;
+        canvas3.y = 0;
         canvas3.width = this.world.width;//v.width;
         canvas3.height = this.world.height;//v.height;
         context3 = canvas3.getContext('2d');
@@ -619,7 +709,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             var rows = data.split("\n");
             rows.shift(); // first item is newline
             rows.pop(); // last item is newline
-            //console.log(rows);
+            console.log(rows);
             for (var i = 0; i < rows.length; i++)
             {
                 rows[i] = rows[i].split(",");
@@ -627,7 +717,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                     rows[i].pop(); // last item of each row is newline (except last line)
                 base.push(rows[i]);
             }
-            //console.log(base);
+            this.tilemapData = base;
+            console.log(base);
 
             // build bitmap from tilelist image
             var source, trans, imageWidth, imageHeight;
@@ -651,7 +742,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                 tilemap.id = "tilemap";
                 tilemap.width = width * tileWidth;
                 tilemap.height = height * tileHeight;//v.height;
-                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+                console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
                 tmContext = tilemap.getContext('2d');
 
                 // add tilemap to tile canvas context
@@ -660,31 +751,34 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                 // now, let's add tiles
                 var tile, t;
                 var count = 0;
-                var rowMax = (imageWidth / tileWidth);
-                var colMax = (imageHeight / tileHeight);
-                //console.log(rowMax, colMax);
+                var colMax = (imageWidth / tileWidth);
+                var rowMax = (imageHeight / tileHeight);
+                console.log(rowMax,colMax);
+                var col, row;
                 for (var j = 0; j < base.length; j++)
                 {
                     for (var k = 0; k < base[j].length; k++)
                     {
                         t = parseInt(base[j][k] - 1);
-                        if (t > 0) // ignore 0 tiles
+                        if (t > -1) // ignore 0 tiles
                         {
                             //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
                             //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                            console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
+                            col = (t % colMax) | 0;
                             tile = tmContext.getImageData
                             (
-                                ((t % colMax)) * tileWidth,// tileHeight, // x
-                                (Math.floor(t / rowMax)) * tileHeight, // y
+                                col * tileWidth,// tileHeight, // x
+                                (Math.floor(t / colMax)) * tileWidth, // y
                                 tileWidth, // w
                                 tileHeight // h
                             );
-                            context3.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
+                            context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
                         }
                         count++;
                     }
-                }
-                _this.canvas3 = canvas3
+                };
+                _this.canvas3 = canvas3;
             }; // end tilemap image loaded
             image.src = source.replace("..", "/assets");
             //console.log(image.src);
@@ -911,11 +1005,12 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         /////////////////////////////////////////
         // draw borders
         /////////////////////////////////////////
+        /*
         context2.beginPath();
         // bottom
         context2.moveTo(0, this.world.height);
         context2.lineTo(this.world.width, this.world.height);
-        context2.strokeStyle = 'yellow';
+        context2.strokeStyle = 'black';
         // top
         context2.moveTo(0, 0);
         context2.lineTo(this.world.width, 0);
@@ -928,8 +1023,9 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         // styles
         context2.closePath();
         context2.lineWidth = 10;
-        context2.strokeStyle = 'yellow';
+        context2.strokeStyle = 'black';
         context2.stroke();
+        //*/
 
         /////////////////////////////////////////
         // platforms
@@ -959,10 +1055,11 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                 game.ctx.fillStyle = 'red';
                 game.ctx.fillText(this.game.allplayers[i].mp, this.game.allplayers[i].pos.x, this.game.allplayers[i].pos.y - 20);
             }
-            else if (this.game.players.self.visible)
+            else if (this.game.players.self.visible);// && this.game.players.self.landed !== 1)
             {
                 game.ctx.fillStyle = 'white';
-                game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x, this.game.players.self.pos.y - 20);
+                //if (this.game.players.self.landed === 1) console.log(this.game.players.self.pos.y);
+                game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x.fixed(1), this.game.players.self.pos.y.fixed(1) - 20);
             }
         }
 
@@ -998,15 +1095,24 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         var img, imgW, imgH;
         //if (this.pos.d == 1)
         //if (this.landed > 0) console.log(this.landed, this.mp);
-        if (this.flap === true)
+        if (this.stunned === true)
+        {
+            if (this.dir === 1)
+                img = document.getElementById("p1stun-l");
+            else img = document.getElementById("p1stun-r");
+
+            imgW = 64;//40;
+            imgH = 64;//40;
+        }
+        else if (this.flap === true)
         {
             // reset flap on client
             this.flap = false;
             if (this.dir === 1) img = document.getElementById("p1l");
             else img = document.getElementById("p1r");
 
-            imgW = 40;
-            imgH = 40;
+            imgW = 64;//40;
+            imgH = 64;//40;
         }
         else if (this.landed === 1) // standing
         {
@@ -1015,8 +1121,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                 img = document.getElementById("p1stand-l");
             else img = document.getElementById("p1stand-r");
 
-            imgW = 33;
-            imgH = 44;
+            imgW = 64;//33;
+            imgH = 64;//44;
         }
         else if (this.landed === 2) // walking/skidding
         {
@@ -1024,16 +1130,17 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                 img = document.getElementById("p1skid-l");
             else img = document.getElementById("p1skid-r");
 
-            imgW = 33;
-            imgH = 44;
+            imgW = 64;//33;
+            imgH = 64;//44;
         }
-        else
+        else // gliding
         {
-            if (this.dir === 1) img = document.getElementById("p2l");
+            if (this.dir === 1)
+                img = document.getElementById("p2l");
             else img = document.getElementById("p2r");
 
-            imgW = 40;
-            imgH = 40;
+            imgW = 64;//40;
+            imgH = 64;//40;
         }
         //game.ctx.beginPath();
         if(String(window.location).indexOf('debug') == -1 && this.visible===true)
@@ -1101,30 +1208,35 @@ game_core.prototype.check_collision = function( player )
     //console.log('##+@@check_collision', player.mp);
     if (player.mp === 'hp') return;
 
+    //console.log('g', this.players.self.getGrid());
+
     //Left wall. TODO:stop accel
-    if(player.pos.x <= player.pos_limits.x_min) {
+    if(player.pos.x < player.pos_limits.x_min)
+    {
         player.pos.x = player.pos_limits.x_min;
         player.v.x = 0;
         player.landed = 1;
     }
 
     //Right wall TODO: stop accel
-    if(player.pos.x >= player.pos_limits.x_max ) {
+    if(player.pos.x > player.pos_limits.x_max ) {
         player.pos.x = player.pos_limits.x_max;
         player.v.x = 0;
         player.landed = 1;
     }
 
     //Roof wall. TODO: stop accel
-    if(player.pos.y <= player.pos_limits.y_min) {
+    if(player.pos.y < player.pos_limits.y_min) {
         player.pos.y = player.pos_limits.y_min;
     }
 
     //Floor wall TODO: stop gravity ( + 15 accounts for birds legs )
-    if(player.pos.y + 15 >= player.pos_limits.y_max )
+    //if(player.pos.y + 15 >= player.pos_limits.y_max )
+    if(player.pos.y > player.pos_limits.y_max )
     {
         //console.log('hit bottom');
-        player.pos.y = player.pos_limits.y_max - 15;
+        //player.pos.y = player.pos_limits.y_max - 15;
+        player.pos.y = player.pos_limits.y_max;// - 15;
         // decelerate
         if (player.v.x > 0)
         {
@@ -1177,6 +1289,24 @@ game_core.prototype.check_collision = function( player )
                         player.pos.x += 50;
                         this.allplayers[i].pos.x -= 50;
                     }
+                    // manage velocit and stop state
+                    // if player and enemy are facing same direction
+                    if (player.v.x > 0 && player.dir !== this.allplayers[i].dir)
+                    {
+                        //console.log('slowing', player.v.x);
+
+                        // slow horizontal velocity
+                        player.v.x = 0;//-= 1;
+                        // set landing flag (moving)
+                        player.landed = 2;
+                    }
+                    else
+                    {
+                        // stuck landing (no velocity)
+                        player.v.x = 0;
+                        // set landing flag (stationary)
+                        player.landed = 1;
+                    }
                 }
                 else
                 {
@@ -1186,7 +1316,7 @@ game_core.prototype.check_collision = function( player )
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         waspos = this.allplayers[i].pos;
                         this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
-                        this.allplayers[i].visible = false;
+                        //this.allplayers[i].visible = false;
                         splatteree = this.allplayers[i];
                         //this.allplayers[i].old_state = this.allplayers[i].pos;
                     }
@@ -1195,7 +1325,7 @@ game_core.prototype.check_collision = function( player )
                         //console.log(this.allplayers[i].mp, 'WINS!');
                         waspos = player.pos;
                         player.pos = {x:Math.floor((Math.random() * player.game.world.width) + 1), y:-1000};
-                        player.visible = false;
+                        //player.visible = false;
                         splatteree = player;
                         //player.old_state = player.pos;
                     }
@@ -1248,7 +1378,7 @@ game_core.prototype.check_collision = function( player )
             player.pos.x < (this.platforms[j].x + this.platforms[j].w) &&
             (player.pos.x + player.size.hx) > this.platforms[j].x &&
             player.pos.y < (this.platforms[j].y + this.platforms[j].h) &&
-            (player.pos.y + player.size.hy + 10) > this.platforms[j].y
+            (player.pos.y + player.size.hy) > this.platforms[j].y
         )
         {
             //console.log('hit platform!');
@@ -1260,6 +1390,7 @@ game_core.prototype.check_collision = function( player )
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
                 player.pos.y = this.platforms[j].y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
+                //console.log('--->',player.pos.y);
                 // decelerate
                 if (player.v.x > 0)
                 {
@@ -1325,6 +1456,47 @@ game_core.prototype.check_collision = function( player )
             break;
         }
     }
+
+    //if (player === this.players.self)
+    //{
+    var b = 10; // bounce
+    var h = player.hitGrid();
+    //console.log(c);
+    //console.log('::', h);
+    if (h !== undefined)
+    {
+        if (h.nw.t === 1)
+        {
+            //console.log('stop nw', player.mp);
+            //player.pos.x += b;
+            player.pos.y += b;
+            if (player.stunned===false)
+            player.isStunned();
+        }
+        if (h.ne.t === 1)
+        {
+            //console.log('stop ne', player.mp);
+            //player.pos.x -= b;
+            player.pos.y += b;
+            if (player.stunned===false)
+            player.isStunned();
+        }
+        if (h.sw.t === 1)
+        {
+            //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
+            //player.pos.x += b;
+            //player.pos.y -= b;
+            player.pos.y = (h.sw.y * 64) - 64;
+        }
+        if (h.se.t === 1)
+        {
+            //console.log('stop se', player.mp);// h.sw.y * 64, player.pos.y + player.size.hy);
+            //player.pos.x -= b;
+            //player.pos.y -= b;
+            player.pos.y = (h.sw.y * 64) - 64;
+        }
+    }
+    //}
 
 }; //game_core.check_collision
 
@@ -1688,6 +1860,12 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 
 game_core.prototype.client_handle_input = function(){
     if (glog) console.log('## client_handle_input');
+
+    if (this.players.self.stunned === true)
+    {
+        console.log('player is stunned!');
+        return;
+    }
     //if(this.lit > this.local_time) return;
     //this.lit = this.local_time+0.5; //one second delay
 
@@ -2119,17 +2297,27 @@ game_core.prototype.client_update = function()
     if (glog)
     console.log('## client_update');
     //console.log(this.viewport);
-    //Clear the screen area (just client's viewport, not world)
-    var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
-    var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
-    this.cam.x = parseInt(camX);
-    this.cam.y = parseInt(camY);
+    if (this.players.self.mp == "hp") return;
+
+    //////////////////////////////////////////
+    // Camera
+    //////////////////////////////////////////
+    // Clear the screen area (just client's viewport, not world)
+    // if player stopped, use last camera pos
+    // TODO: lerp camera movement for extra smoothness
+    if (this.players.self.landed !== 1)
+    {
+        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 64, 64);//this.this.world.width);
+        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 64, 64);//this.game.world.height);
+        //this.cam.x = parseInt(camX);
+        //this.cam.y = parseInt(camY);
+    }
     // +100 accounts for -50 padding offset along the edge of world
     //console.log(this.players.self.pos.x, (this.viewport.width/2));
-    this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+100, this.viewport.height+100);//worldWidth,worldHeight);
+    this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);//worldWidth,worldHeight);
 
     //draw help/information if required
-    this.client_draw_info();
+    // this.client_draw_info();
 
     // draw prerenders
     //var preprend = this.canvas2
@@ -2152,12 +2340,14 @@ game_core.prototype.client_update = function()
     //update the actual local client position on screen as well.
     //if( !this.naive_approach )
     //{
-        this.client_process_net_updates();
+    this.client_process_net_updates();
     //}
 
+    //////////////////////////////////////////
+    // Draw Players
+    //////////////////////////////////////////
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
-
     for (var i = 0; i < this.allplayers.length; i++)
     {
         if (this.allplayers[i] != this.players.self)// && this.allplayers[i].active===true)
@@ -2179,7 +2369,7 @@ game_core.prototype.client_update = function()
     //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.world.width - this.viewport.width) - 50, 50);//this.this.world.width);
     //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
     //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
-    this.ctx.translate( camX, camY );
+    this.ctx.translate( this.cam.x, this.cam.y );
     //console.log(camX,camY);
     //this.ctx.restore();
 
@@ -2407,17 +2597,17 @@ game_core.prototype.client_onjoingame = function(data)
     //if (glog)
     console.log('## client_onjoingame');//, data);// (player joined is not host: self.host=false)');
 
-    //console.log('derek', this.gameid);
+    // console.log('derek', data);
 
     var alldata = data.split("|");
 
     this.mp = alldata[0];
     this.gameid = alldata[1];
-    console.log('1',alldata[0]);
-    console.log('2',alldata[1]);
+    //console.log('1',alldata[0]);
+    //console.log('2',alldata[1]);
     this.orbs = JSON.parse(alldata[2]);
 
-    console.log('3',alldata[2]);
+    //console.log('3',alldata[2]);
 
     console.log('len', this.allplayers.length);
     console.log('vp', this.viewport);
@@ -2467,7 +2657,7 @@ game_core.prototype.client_onjoingame = function(data)
     //this.socket.send('p.' + 'derekisnew' );
     //this.socket.send('c.' + 'derekcolor');
     //console.log('instance', this.socket);//this.players.self.gameid);
-    this.api();
+    // this.api();
 
     // create prerenders
     this.prerenderer();

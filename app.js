@@ -15,6 +15,7 @@ var
     clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
+    // xml2js          = require('xml2js'),
 
     verbose         = false,
     http            = require('http'),
