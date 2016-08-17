@@ -14,15 +14,17 @@
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
-// requestAnimationFrame polyfill by Erik Möller
-// fixes from Paul Irish and Tino Zijdel
+console.log('game.core loaded');
 
 var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
 var worldWidth = 1280;//420;
 var worldHeight = 1280;//720;
+
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
+// requestAnimationFrame polyfill by Erik Möller
+// fixes from Paul Irish and Tino Zijdel
 ( function () {
 
     var lastTime = 0;
@@ -87,8 +89,8 @@ var game_core = function(game_instance)
     this.world.maxOrbs = 150;
     this.orbs = [];
 
-    this.tilemap;
-    this.tilemapData;
+    this.tilemap = null;
+    this.tilemapData = null;
 
     this.cam = {};
 
@@ -106,9 +108,14 @@ var game_core = function(game_instance)
     //We create a player set, passing them
     //the game that is running them, as well
     console.log('##-@@ is server?', this.server);
+    //var game_player_class = require('./class.player');
     if(this.server) // only for server, not clients (browsers)
     {
+        // include uuid
         var UUID = require('node-uuid');
+        // include player class
+        var game_player_class = require('./class.player');
+
         console.log("##-@@ adding server player and assigning client instance...");
 
         this.apiNode(); // load tilemap data
@@ -116,12 +123,12 @@ var game_core = function(game_instance)
         var o;
         for (var i = 1; i < this.world.totalplayers; i++)
         {
-            o = new game_player(this, null, false);
+            o = new game_player_class(this, null, false);
             //console.log('o', o.mp);
             //o.pos = {x:100, y:100};
             this.allplayers.push(o);
         }
-        var hp = new game_player(this, this.instance.player_host, true);
+        var hp = new game_player_class(this, this.instance.player_host, true);
         //hp.pos = {x:-100,y:-100};
         this.allplayers.push(hp);
         this.players = {};
@@ -161,6 +168,7 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
+        //console.log('game_player', game_player);
         this.api(); // load and build tilemap
 
         /*this.prerendCanvas = document.getElementById('prerend');
@@ -348,7 +356,8 @@ game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.ma
 //Simple linear interpolation between 2 vectors
 game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
 
-/*
+//*
+// http://www.ibm.com/developerworks/library/wa-build2dphysicsengine/
 
 // Collision Decorator Pattern Abstraction
 
@@ -379,8 +388,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     // built as functional objects so that they can be
     // instantiated by using the 'new' keyword.
 
-    var PhysicsEntity = function(collisionName, type) {
-
+    var PhysicsEntity = function(collisionName, type)
+    {
         // Setup the defaults if no parameters are given
         // Type represents the collision detector's handling
         this.type = type || PhysicsEntity.DYNAMIC;
@@ -390,8 +399,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         this.collision = collisionName || PhysicsEntity.ELASTIC;
 
         // Take in a width and height
-        this.width  = 20;
-        this.height = 20;
+        this.width  = 64;//20;
+        this.height = 64;//20;
 
         // Store a half size for quicker calculations
         this.halfWidth = this.width * 0.5;
@@ -420,8 +429,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     };
 
     // Physics entity calculations
-    PhysicsEntity.prototype = {
-
+    PhysicsEntity.prototype =
+    {
         // Update bounds includes the rect's
         // boundary updates
         updateBounds: function() {
@@ -490,9 +499,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
     // Rect collision tests the edges of each rect to
     // test whether the objects are overlapping the other
     var CollisionDetector = function(){};
-    CollisionDetector.prototype.collideRect =
-        function(collider, collidee) {
-
+    CollisionDetector.prototype.collideRect = function(collider, collidee)
+    {
         // Store the collider and collidee edges
         var l1 = collider.getLeft();
         var t1 = collider.getTop();
@@ -533,7 +541,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
       return p;
     };
 
-    var game_player = function( game_instance, player_instance, isHost )
+    /*var game_player = function( game_instance, player_instance, isHost )
     {
         //console.log('game_player', game_instance, player_instance);
         //Store the instance, if any
@@ -549,10 +557,10 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 
         //Set up initial values for our state information
         this.pos = { x:0, y:0 };
-        //this.size = { x:16, y:16, hx:8, hy:8 };
         this.size = { x:64, y:64, hx:64, hy:64 };
         this.dir = 0; // 0 = right, 1 = left (derek added)
         this.v = { x:0, y:0 }; // velocity (derek added)
+
         this.flap = false; // flapped bool (derek added)
         this.landed = 0; // 0=flying, 1=stationary, 2=walking
         this.visible = true;
@@ -590,16 +598,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //The 'host' of a game gets created with a player instance since
         //the server already knows who they are. If the server starts a game
         //with only a host, the other player is set up in the 'else' below
-        /*if(isHost) // if host?
-        {
-            console.log('## host positioning');
-            //this.pos = { x:-500, y:-500 };
-        }
-        else
-        {*/
-            //this.pos = { x:Math.floor((Math.random() * this.game.world.width) + 1), y:Math.floor((Math.random() * this.game.world.height) + 1) };
-            this.pos = { x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:128};//this.game.world.height-this.size.hy };
-        //}
+        this.pos = { x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:128};//this.game.world.height-this.size.hy };
 
         //These are used in moving us around later
         this.old_state = {pos:this.pos};
@@ -655,9 +654,12 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
             };
         };
 
+        // new physics properties begin
+
+        // new physics properies end
 
     }; //game_player.constructor
-
+    //*/
     game_core.prototype.tilemapper = function()
     {
         var canvas3 = document.createElement('canvas');
@@ -765,7 +767,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
                         {
                             //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
                             //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                            console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
+                            //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
                             col = (t % colMax) | 0;
                             tile = tmContext.getImageData
                             (
@@ -1045,6 +1047,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //*/
     };
 
+    /*
     game_player.prototype.draw = function()
     {
         // player nametags (temp)
@@ -1154,6 +1157,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
         //game.ctx.restore();
 
     }; //game_player.draw
+    //*/
 
     function clamp(value, min, max)
     {
@@ -1770,8 +1774,8 @@ game_core.prototype.server_update_physics = function() {
     for (var i = 0; i < this.allplayers.length; i++)
     {
         this.allplayers[i].old_state.pos = this.pos( this.allplayers[i].pos );
-        var other_new_dir = this.process_input(this.allplayers[i]);
-        this.allplayers[i].pos = this.v_add( this.allplayers[i].old_state.pos, other_new_dir);
+        var new_dir = this.process_input(this.allplayers[i]);
+        this.allplayers[i].pos = this.v_add( this.allplayers[i].old_state.pos, new_dir);
 
         //Keep the physics position in the world
         this.check_collision( this.allplayers[i] );
@@ -2327,20 +2331,22 @@ game_core.prototype.client_update_local_position = function()
 
 }; //game_core.prototype.client_update_local_position
 
-game_core.prototype.client_update_physics = function() {
+game_core.prototype.client_update_physics = function()
+{
     if (glog)
     console.log('## client_update_physics');
-        //Fetch the new direction from the input buffer,
-        //and apply it to the state so we can smooth it in the visual state
+    //Fetch the new direction from the input buffer,
+    //and apply it to the state so we can smooth it in the visual state
 
-    if(this.client_predict) {
+    //if(this.client_predict)
+    //{
 
         this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
         var nd = this.process_input(this.players.self);
         this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, nd);
         this.players.self.state_time = this.local_time;
 
-    }
+    //}
 
 }; //game_core.client_update_physics
 

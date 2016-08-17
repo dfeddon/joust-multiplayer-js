@@ -9,7 +9,7 @@
 			canvas { display:block; } /* To remove the scrollbars */
 		</style>
 
-		<title> Real time multi-player games with HTML5</title>
+		<title>FlapJoust.io</title>
 
 			<!-- Load style sheet -->
 		<link href="index.css" media="screen" rel="stylesheet" type="text/css">
@@ -32,9 +32,13 @@
 	<!-- Game code -->
 
 	 		<!-- Load the common game code. -->
-		<script type="text/javascript" src="game.core.js"></script>
+		<!-- <script type="text/javascript" src="game.core.js"></script> -->
 			<!-- Finally, Load the game client code. -->
-		<script type="text/javascript" src="client.js"></script>
+		<!-- <script type="text/javascript" src="client.js"></script> -->
+		<script src="require.js"></script>
+		<script>require( ['main'], function(){});</script>
+		<!-- <script data-main="game.core" src="require.js"></script>
+		<script data-main="client" src="require.js"></script> -->
 
 	</head>
 

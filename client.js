@@ -5,14 +5,19 @@
 
     MIT Licensed.
 */
+console.log('client loaded', window);
 
-	//A window global for our game root variable.
+//A window global for our game root variable.
+
 var game = {};
 
+//function hi(){console.log("hi")};
 	//When loading, we store references to our
 	//drawing canvases, and initiate a game instance.
-window.onload = function()
-{
+//window.onload = function()
+//{
+//function go(){
+	console.log('window onload');
 	//Create our game client instance.
 	game = new game_core();
 
@@ -36,5 +41,5 @@ window.onload = function()
 
 	//Finally, start the loop
 	game.update( new Date().getTime() );
-
-}; //window.onload
+//}
+//}; //window.onload
