@@ -10,27 +10,17 @@ console.log('main');
 //   }
 // });
 
+// load DOM, player class and game core
 define(['require', 'domReady', 'class.player', 'game.core'], function (require, domReady, player, game)
 {
-  //console.log('domReady');
-  // var _this = this;
-  // this.client = client;
   domReady(function()
   {
     console.log('domReady');
+
+    // DOM is loaded, now load client
     require(['client'], function(client)
     {
       console.log('client loaded');
-      //client.go();
     });
-    /*define(['class.player', 'game_core'], function (player, game)
-    {
-      console.log('hi');
-    });*/
-    //var clientLoad = require('client');
-    //console.log(clientLoad);
-    //client.go();
   });
-  //client(function(){console.log('hi');})
-  //console.log('waiting for domReady');
 });
