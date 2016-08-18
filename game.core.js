@@ -111,10 +111,23 @@ var game_core = function(game_instance)
 
     if(this.server) // only for server, not clients (browsers)
     {
-        // include uuid
-        var UUID = require('node-uuid');
-        // include player class
-        var playerClass = require('./class.player');
+        // include modules
+        var UUID            = require('node-uuid'),
+        playerClass         = require('./class.player'),
+        collisionObject     = require('./class.collision'),
+        PhysicsEntity       = require('./class.physicsEntity'),
+        CollisionDetector   = require('./class.collisionDetector'),
+        CollisionSolver     = require('./class.collisionSolver');
+
+        //var co = collisionObject;
+        // phy 2.0
+        var pe1 = new PhysicsEntity(PhysicsEntity.ELASTIC);
+        var pe2 = new PhysicsEntity(PhysicsEntity.ELASTIC);
+        this.entities = [pe1,pe2];
+        console.log('entities', this.entities.length, this.entities);
+        this.collisionDetector = new CollisionDetector();
+        this.collisionSolver = new CollisionSolver();
+        //console.log('physent', this.collisionDetector);
 
         console.log("##-@@ adding server player and assigning client instance...");
 
@@ -168,7 +181,18 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
-        //console.log('game_player', game_player);
+        /*var collisionObject = require('./class.collision'),
+        PhysicsEntity       = require('./class.physicsEntity'),
+        CollisionDetector   = require('./class.collisionDetector'),
+        CollisionSolver     = require('./class.collisionSolver');*/
+
+        console.log('pe', physicsEntity);
+        var pe1 = new physicsEntity(physicsEntity.ELASTIC);
+        var pe2 = new physicsEntity(physicsEntity.ELASTIC);
+        this.entities = [pe1,pe2];
+        console.log(this.entities);
+
+        // tilemap
         this.api(); // load and build tilemap
 
         /*this.prerendCanvas = document.getElementById('prerend');
@@ -356,590 +380,423 @@ game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.ma
 //Simple linear interpolation between 2 vectors
 game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
 
-//*
-// http://www.ibm.com/developerworks/library/wa-build2dphysicsengine/
 
-// Collision Decorator Pattern Abstraction
+/*
+    The player class
 
-// These methods describe the attributes necessary for
-// the resulting collision calculations
+        A simple class to maintain state of a player on screen,
+        as well as to draw that state when required.
+*/
+game_core.prototype.newPlayer = function(client)
+{
+  console.log('##-@@ proto-newplayer', client.userid);
 
-    var Collision = {
+  //var p = new game_player(this, this.instance.player_client, false);
+  var p = new game_player(this, client, false);
+  p.id = client.userid;
 
-        // Elastic collisions refer to the simple cast where
-        // two entities collide and a transfer of energy is
-        // performed to calculate the resulting speed
-        // We will follow Box2D's example of using
-        // restitution to represent "bounciness"
+  return p;
+};
 
-        elastic: function(restitution) {
-            this.restitution = restitution || 0.2;
-        },
-
-        displace: function() {
-            // While not supported in this engine
-    	       // the displacement collisions could include
-            // friction to slow down entities as they slide
-            // across the colliding entity
-        }
-    };
-    // The physics entity will take on a shape, collision
-    // and type based on its parameters. These entities are
-    // built as functional objects so that they can be
-    // instantiated by using the 'new' keyword.
-
-    var PhysicsEntity = function(collisionName, type)
+game_core.prototype.tilemapper = function()
+{
+    var canvas3 = document.createElement('canvas');
+    canvas3.id = "canvas3";
+    canvas3.x = 0;
+    canvas3.y = 0;
+    canvas3.width = this.world.width;//v.width;
+    canvas3.height = this.world.height;//v.height;
+    context3 = canvas3.getContext('2d');
+    /////////////////////////////////////////
+    // Tilemap
+    /////////////////////////////////////////
+    if (this.tilemap)// && this.tmCanvas == undefined)
     {
-        // Setup the defaults if no parameters are given
-        // Type represents the collision detector's handling
-        this.type = type || PhysicsEntity.DYNAMIC;
+        var _this = this;
+        // parse xml
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
+        //console.log('xml', xmlDoc);
 
-        // Collision represents the type of collision
-        // another object will receive upon colliding
-        this.collision = collisionName || PhysicsEntity.ELASTIC;
+        // map
+        var mapNode = xmlDoc.getElementsByTagName('map');
+        var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
+        renderOrder = mapNode[0].getAttribute('renderorder');
+        width = mapNode[0].getAttribute('width');
+        height = mapNode[0].getAttribute('height');
+        tileWidth = mapNode[0].getAttribute('tilewidth');
+        tileHeight = mapNode[0].getAttribute('tileheight');
+        nextObjectId = mapNode[0].getAttribute('nextobjectid');
+        //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
 
-        // Take in a width and height
-        this.width  = 64;//20;
-        this.height = 64;//20;
+        // tileset
+        var tilesetNode = xmlDoc.getElementsByTagName('tileset');
+        //console.log('tileset', tilesetNode.length);
+        tileCount = tilesetNode[0].getAttribute('tilecount');
+        columns = tilesetNode[0].getAttribute('columns');
+        name = tilesetNode[0].getAttribute('name');
+        //console.log(tileCount, columns, name);
 
-        // Store a half size for quicker calculations
-        this.halfWidth = this.width * 0.5;
-        this.halfHeight = this.height * 0.5;
+        // data
+        var data, encoding;
+        var dataNode = xmlDoc.getElementsByTagName('data');
+        encoding = dataNode[0].getAttribute('encoding');
+        data = dataNode[0].innerHTML;
+        //console.log(dataNode[0]);
+        //console.log(data);
 
-        var collision = Collision[this.collision];
-        collision.call(this);
-
-        // Setup the positional data in 2D
-
-        // Position
-        this.x = 0;
-        this.y = 0;
-
-        // Velocity
-        this.vx = 0;
-        this.vy = 0;
-
-        // Acceleration
-        this.ax = 0;
-        this.ay = 0;
-
-        // Update the bounds of the object to recalculate
-        // the half sizes and any other pieces
-        this.updateBounds();
-    };
-
-    // Physics entity calculations
-    PhysicsEntity.prototype =
-    {
-        // Update bounds includes the rect's
-        // boundary updates
-        updateBounds: function() {
-            this.halfWidth = this.width * 0.5;
-            this.halfHeight = this.height * 0.5;
-        },
-
-        // Getters for the mid point of the rect
-        getMidX: function() {
-            return this.halfWidth + this.x;
-        },
-
-        getMidY: function() {
-            return this.halfHeight + this.y;
-        },
-
-        // Getters for the top, left, right, and bottom
-        // of the rectangle
-        getTop: function() {
-            return this.y;
-        },
-        getLeft: function() {
-            return this.x;
-        },
-        getRight: function() {
-            return this.x + this.width;
-        },
-        getBottom: function() {
-            return this.y + this.height;
+        // build 2d array of row data
+        var base = [];
+        var rows = data.split("\n");
+        rows.shift(); // first item is newline
+        rows.pop(); // last item is newline
+        console.log(rows);
+        for (var i = 0; i < rows.length; i++)
+        {
+            rows[i] = rows[i].split(",");
+            if (i !== rows.length - 1)
+                rows[i].pop(); // last item of each row is newline (except last line)
+            base.push(rows[i]);
         }
-    };
+        this.tilemapData = base;
+        console.log(base);
 
-    // Constants
+        // build bitmap from tilelist image
+        var source, trans, imageWidth, imageHeight;
+        var imageNode = xmlDoc.getElementsByTagName('image');
+        source = imageNode[0].getAttribute('source');
+        trans = imageNode[0].getAttribute('trans');
+        imageWidth = imageNode[0].getAttribute('width');
+        imageHeight = imageNode[0].getAttribute('height');
+        //console.log(source, trans, imageWidth, imageHeight);
 
-    // Engine Constants
+        var image = new Image();
+        image.onload = function(e)
+        {
+            // image loaded
+            var sheet = e.target;
+            //context2.drawImage(e.target, 0, 0);
 
-    // These constants represent the 3 different types of
-    // entities acting in this engine
-    // These types are derived from Box2D's engine that
-    // model the behaviors of its own entities/bodies
+            // first, create canvas the exact size of the tilemap
+            var tilemap = document.createElement('canvas');
+            self.tmCanvas = tilemap
+            tilemap.id = "tilemap";
+            tilemap.width = width * tileWidth;
+            tilemap.height = height * tileHeight;//v.height;
+            console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+            tmContext = tilemap.getContext('2d');
 
-    // Kinematic entities are not affected by gravity, and
-    // will not allow the solver to solve these elements
-    // These entities will be our platforms in the stage
-    PhysicsEntity.KINEMATIC = 'kinematic';
+            // add tilemap to tile canvas context
+            tmContext.drawImage(e.target, 0, 0);
 
-    // Dynamic entities will be completely changing and are
-    // affected by all aspects of the physics system
-    PhysicsEntity.DYNAMIC   = 'dynamic';
+            // now, let's add tiles
+            var tile, t;
+            var count = 0;
+            var colMax = (imageWidth / tileWidth);
+            var rowMax = (imageHeight / tileHeight);
+            console.log(rowMax,colMax);
+            var col, row;
+            for (var j = 0; j < base.length; j++)
+            {
+                for (var k = 0; k < base[j].length; k++)
+                {
+                    t = parseInt(base[j][k] - 1);
+                    if (t > -1) // ignore 0 tiles
+                    {
+                        //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                        //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                        //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
+                        col = (t % colMax) | 0;
+                        tile = tmContext.getImageData
+                        (
+                            col * tileWidth,// tileHeight, // x
+                            (Math.floor(t / colMax)) * tileWidth, // y
+                            tileWidth, // w
+                            tileHeight // h
+                        );
+                        context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                    }
+                    count++;
+                }
+            };
+            _this.canvas3 = canvas3;
+        }; // end tilemap image loaded
+        image.src = source.replace("..", "/assets");
+        //console.log(image.src);
 
-    // Solver Constants
+    }
+};
 
-    // These constants represent the different methods our
-    // solver will take to resolve collisions
-
-    // The displace resolution will only move an entity
-    // outside of the space of the other and zero the
-    // velocity in that direction
-    PhysicsEntity.DISPLACE = 'displace';
-
-    // The elastic resolution will displace and also bounce
-    // the colliding entity off by reducing the velocity by
-    // its restituion coefficient
-    PhysicsEntity.ELASTIC = 'elastic';
-
-    // Rect collision tests the edges of each rect to
-    // test whether the objects are overlapping the other
-    var CollisionDetector = function(){};
-    CollisionDetector.prototype.collideRect = function(collider, collidee)
+game_core.prototype.prerenderer = function()
+{
+    console.log('## preprenderer', this.orbs.length);
+    var self = this;
+    var context2, max, canvas2;
+    //*
+    if (!this.canvas2)
     {
-        // Store the collider and collidee edges
-        var l1 = collider.getLeft();
-        var t1 = collider.getTop();
-        var r1 = collider.getRight();
-        var b1 = collider.getBottom();
+        console.log('creating canvas2');
+        //var v = document.getElementById("viewport");
+        canvas2 = document.createElement('canvas');
+        canvas2.id = "canvas2";
+        canvas2.width = this.world.width;//v.width;
+        canvas2.height = this.world.height;//v.height;
+        context2 = canvas2.getContext('2d');
+        //max = this.world.maxOrbs;
+    }
+    else
+    {
+        //max = this.orbs.length;
+        context2 = this.canvas2.getContext('2d');
+        // clear existing canvas
+        context2.clearRect(0,0, this.world.width, this.world.height);
+    }
+    //*/
+    //console.log(context2);
+    //var prerendCanvas = document.getElementById('prerend');
+    //prerendCanvas.width = this.world.width;//v.width;
+    //prerendCanvas.height = this.world.height;//v.height;
+    /*context2 = this.prerendCanvas.getContext('2d');
+    context2.clearRect(0,0, this.world.width, this.world.height);*/
 
-        var l2 = collidee.getLeft();
-        var t2 = collidee.getTop();
-        var r2 = collidee.getRight();
-        var b2 = collidee.getBottom();
+    /////////////////////////////////////////
+    // Tilemap
+    /////////////////////////////////////////
+    if (this.tilemap7)// && this.tmCanvas == undefined)
+    {
+        // parse xml
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
+        //console.log('xml', xmlDoc);
 
-        // If the any of the edges are beyond any of the
-        // others, then we know that the box cannot be
-        // colliding
-        if (b1 < t2 || t1 > b2 || r1 < l2 || l1 > r2) {
-            return false;
+        // map
+        var mapNode = xmlDoc.getElementsByTagName('map');
+        var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
+        renderOrder = mapNode[0].getAttribute('renderorder');
+        width = mapNode[0].getAttribute('width');
+        height = mapNode[0].getAttribute('height');
+        tileWidth = mapNode[0].getAttribute('tilewidth');
+        tileHeight = mapNode[0].getAttribute('tileheight');
+        nextObjectId = mapNode[0].getAttribute('nextobjectid');
+        //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
+
+        // tileset
+        var tilesetNode = xmlDoc.getElementsByTagName('tileset');
+        //console.log('tileset', tilesetNode.length);
+        tileCount = tilesetNode[0].getAttribute('tilecount');
+        columns = tilesetNode[0].getAttribute('columns');
+        name = tilesetNode[0].getAttribute('name');
+        //console.log(tileCount, columns, name);
+
+        // data
+        var data, encoding;
+        var dataNode = xmlDoc.getElementsByTagName('data');
+        encoding = dataNode[0].getAttribute('encoding');
+        data = dataNode[0].innerHTML;
+        //console.log(dataNode[0]);
+        //console.log(data);
+
+        // build 2d array of row data
+        var base = [];
+        var rows = data.split("\n");
+        rows.shift(); // first item is newline
+        rows.pop(); // last item is newline
+        //console.log(rows);
+        for (var i = 0; i < rows.length; i++)
+        {
+            rows[i] = rows[i].split(",");
+            if (i !== rows.length - 1)
+                rows[i].pop(); // last item of each row is newline (except last line)
+            base.push(rows[i]);
         }
+        //console.log(base);
 
-        // If the algorithm made it here, it had to collide
-        return true;
-    };
+        // build bitmap from tilelist image
+        var source, trans, imageWidth, imageHeight;
+        var imageNode = xmlDoc.getElementsByTagName('image');
+        source = imageNode[0].getAttribute('source');
+        trans = imageNode[0].getAttribute('trans');
+        imageWidth = imageNode[0].getAttribute('width');
+        imageHeight = imageNode[0].getAttribute('height');
+        //console.log(source, trans, imageWidth, imageHeight);
+
+        var image = new Image();
+        image.onload = function(e)
+        {
+            // image loaded
+            var sheet = e.target;
+            //context2.drawImage(e.target, 0, 0);
+
+            // first, create canvas the exact size of the tilemap
+            var tilemap = document.createElement('canvas');
+            self.tmCanvas = tilemap
+            tilemap.id = "tilemap";
+            tilemap.width = width * tileWidth;
+            tilemap.height = height * tileHeight;//v.height;
+            //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+            tmContext = tilemap.getContext('2d');
+
+            // add tilemap to tile canvas context
+            tmContext.drawImage(e.target, 0, 0);
+
+            // now, let's add tiles
+            var tile, t;
+            var count = 0;
+            var rowMax = (imageWidth / tileWidth);
+            var colMax = (imageHeight / tileHeight);
+            //console.log(rowMax, colMax);
+            for (var j = 0; j < base.length; j++)
+            {
+                for (var k = 0; k < base[j].length; k++)
+                {
+                    t = parseInt(base[j][k] - 1);
+                    if (t > 0) // ignore 0 tiles
+                    {
+                        //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                        //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                        tile = tmContext.getImageData
+                        (
+                            ((t % colMax)) * tileWidth,// tileHeight, // x
+                            (Math.floor(t / rowMax)) * tileHeight, // y
+                            tileWidth, // w
+                            tileHeight // h
+                        );
+                        context2.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
+                    }
+                    count++;
+                }
+            }
+        }; // end tilemap image loaded
+        image.src = source.replace("..", "/assets");
+        //console.log(image.src);
+
+    }
+
+    /////////////////////////////////////////
+    // Orbs
+    /////////////////////////////////////////
+    var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
+    var c, gradient, x, y, size;
+
+    // so we do not apply styles to all contexts!
+    context2.save();
+    context2.translate(x,y);
+
+    //for (var k = 0; k < max; k++)
+    var orbs = this.orbs;
+    console.log('orbz',orbs.length);//, this.orbs);
+    for (var k = 0; k < this.orbs.length; k++)
+    {
+        size = Math.floor(Math.random() * 4) + 2;
+        c = colors[Math.floor(Math.random() * colors.length)];
+        // TODO: Avoid foreground tiles
+        x = Math.floor(Math.random() * this.world.width) + 1;
+        y = Math.floor(Math.random() * this.world.height) + 1;
+
+        // create new orb if undefined
+        /*if (orbs[k]===undefined)
+        {
+            // console.log('new', k, orbs.length);
+            var neworb = {x:x, y:y, c:c, w:size, h:size, r:false};
+            orbs.push( neworb );
+        }*/
+        // reset r if not null
+        /*if (orbs[k].r === true)
+        {
+            console.log('removed!, adding...');
+            orbs[k].x = -100;
+            orbs[k].y = -100;
+            continue;
+        }*/
+
+        context2.beginPath();
+
+        gradient = context2.createRadialGradient(this.orbs[k].x, this.orbs[k].y, 0, this.orbs[k].x, this.orbs[k].y, this.orbs[k].w);
+        gradient.addColorStop(0, 'white');
+        gradient.addColorStop(1, orbs[k].c);
+        context2.fillStyle = gradient;//c;
+        context2.arc(
+            orbs[k].x,
+            orbs[k].y,
+            orbs[k].w,
+            0 * Math.PI,
+            2 * Math.PI
+        );
+        context2.shadowBlur = 10;
+        context2.shadowColor = 'white';
+        //context2.shadowOffsetX = 0;
+        //context2.shadowOffsetY = 0;
+    	context2.fill();
+
+        context2.closePath();
+    }
+    // so we do not apply styles to all contexts!
+    context2.restore();
+
+    /////////////////////////////////////////
+    // center circle
+    /////////////////////////////////////////
+    /*context2.beginPath();
+	context2.arc(this.world.width/2,this.world.height/2,50,0*Math.PI,2*Math.PI);
+    context2.fillStyle = "red";
+    //context2.shadowBlur = 10;
+    //context2.shadowColor = 'red';
+	context2.closePath();
+	context2.fill();*/
+
+    /////////////////////////////////////////
+    // draw borders
+    /////////////////////////////////////////
+    /*
+    context2.beginPath();
+    // bottom
+    context2.moveTo(0, this.world.height);
+    context2.lineTo(this.world.width, this.world.height);
+    context2.strokeStyle = 'black';
+    // top
+    context2.moveTo(0, 0);
+    context2.lineTo(this.world.width, 0);
+    // left
+    context2.moveTo(0, this.world.height);
+    context2.lineTo(0, 0);
+    // right
+    context2.moveTo(this.world.width, this.world.height);
+    context2.lineTo(this.world.width, 0);
+    // styles
+    context2.closePath();
+    context2.lineWidth = 10;
+    context2.strokeStyle = 'black';
+    context2.stroke();
     //*/
 
-    /*
-        The player class
-
-            A simple class to maintain state of a player on screen,
-            as well as to draw that state when required.
-    */
-    game_core.prototype.newPlayer = function(client)
+    /////////////////////////////////////////
+    // platforms
+    /////////////////////////////////////////
+    for (var j = 0; j < this.platforms.length; j++)
     {
-      console.log('##-@@ proto-newplayer', client.userid);
-
-      //var p = new game_player(this, this.instance.player_client, false);
-      var p = new game_player(this, client, false);
-      p.id = client.userid;
-
-      return p;
-    };
-
-    game_core.prototype.tilemapper = function()
-    {
-        var canvas3 = document.createElement('canvas');
-        canvas3.id = "canvas3";
-        canvas3.x = 0;
-        canvas3.y = 0;
-        canvas3.width = this.world.width;//v.width;
-        canvas3.height = this.world.height;//v.height;
-        context3 = canvas3.getContext('2d');
-        /////////////////////////////////////////
-        // Tilemap
-        /////////////////////////////////////////
-        if (this.tilemap)// && this.tmCanvas == undefined)
-        {
-            var _this = this;
-            // parse xml
-            var parser = new DOMParser();
-            var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
-            //console.log('xml', xmlDoc);
-
-            // map
-            var mapNode = xmlDoc.getElementsByTagName('map');
-            var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
-            renderOrder = mapNode[0].getAttribute('renderorder');
-            width = mapNode[0].getAttribute('width');
-            height = mapNode[0].getAttribute('height');
-            tileWidth = mapNode[0].getAttribute('tilewidth');
-            tileHeight = mapNode[0].getAttribute('tileheight');
-            nextObjectId = mapNode[0].getAttribute('nextobjectid');
-            //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
-
-            // tileset
-            var tilesetNode = xmlDoc.getElementsByTagName('tileset');
-            //console.log('tileset', tilesetNode.length);
-            tileCount = tilesetNode[0].getAttribute('tilecount');
-            columns = tilesetNode[0].getAttribute('columns');
-            name = tilesetNode[0].getAttribute('name');
-            //console.log(tileCount, columns, name);
-
-            // data
-            var data, encoding;
-            var dataNode = xmlDoc.getElementsByTagName('data');
-            encoding = dataNode[0].getAttribute('encoding');
-            data = dataNode[0].innerHTML;
-            //console.log(dataNode[0]);
-            //console.log(data);
-
-            // build 2d array of row data
-            var base = [];
-            var rows = data.split("\n");
-            rows.shift(); // first item is newline
-            rows.pop(); // last item is newline
-            console.log(rows);
-            for (var i = 0; i < rows.length; i++)
-            {
-                rows[i] = rows[i].split(",");
-                if (i !== rows.length - 1)
-                    rows[i].pop(); // last item of each row is newline (except last line)
-                base.push(rows[i]);
-            }
-            this.tilemapData = base;
-            console.log(base);
-
-            // build bitmap from tilelist image
-            var source, trans, imageWidth, imageHeight;
-            var imageNode = xmlDoc.getElementsByTagName('image');
-            source = imageNode[0].getAttribute('source');
-            trans = imageNode[0].getAttribute('trans');
-            imageWidth = imageNode[0].getAttribute('width');
-            imageHeight = imageNode[0].getAttribute('height');
-            //console.log(source, trans, imageWidth, imageHeight);
-
-            var image = new Image();
-            image.onload = function(e)
-            {
-                // image loaded
-                var sheet = e.target;
-                //context2.drawImage(e.target, 0, 0);
-
-                // first, create canvas the exact size of the tilemap
-                var tilemap = document.createElement('canvas');
-                self.tmCanvas = tilemap
-                tilemap.id = "tilemap";
-                tilemap.width = width * tileWidth;
-                tilemap.height = height * tileHeight;//v.height;
-                console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
-                tmContext = tilemap.getContext('2d');
-
-                // add tilemap to tile canvas context
-                tmContext.drawImage(e.target, 0, 0);
-
-                // now, let's add tiles
-                var tile, t;
-                var count = 0;
-                var colMax = (imageWidth / tileWidth);
-                var rowMax = (imageHeight / tileHeight);
-                console.log(rowMax,colMax);
-                var col, row;
-                for (var j = 0; j < base.length; j++)
-                {
-                    for (var k = 0; k < base[j].length; k++)
-                    {
-                        t = parseInt(base[j][k] - 1);
-                        if (t > -1) // ignore 0 tiles
-                        {
-                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
-                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                            //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
-                            col = (t % colMax) | 0;
-                            tile = tmContext.getImageData
-                            (
-                                col * tileWidth,// tileHeight, // x
-                                (Math.floor(t / colMax)) * tileWidth, // y
-                                tileWidth, // w
-                                tileHeight // h
-                            );
-                            context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
-                        }
-                        count++;
-                    }
-                };
-                _this.canvas3 = canvas3;
-            }; // end tilemap image loaded
-            image.src = source.replace("..", "/assets");
-            //console.log(image.src);
-
-        }
-    };
-
-    game_core.prototype.prerenderer = function()
-    {
-        console.log('## preprenderer', this.orbs.length);
-        var self = this;
-        var context2, max, canvas2;
-        //*
-        if (!this.canvas2)
-        {
-            console.log('creating canvas2');
-            //var v = document.getElementById("viewport");
-            canvas2 = document.createElement('canvas');
-            canvas2.id = "canvas2";
-            canvas2.width = this.world.width;//v.width;
-            canvas2.height = this.world.height;//v.height;
-            context2 = canvas2.getContext('2d');
-            //max = this.world.maxOrbs;
-        }
-        else
-        {
-            //max = this.orbs.length;
-            context2 = this.canvas2.getContext('2d');
-            // clear existing canvas
-            context2.clearRect(0,0, this.world.width, this.world.height);
-        }
-        //*/
-        //console.log(context2);
-        //var prerendCanvas = document.getElementById('prerend');
-        //prerendCanvas.width = this.world.width;//v.width;
-        //prerendCanvas.height = this.world.height;//v.height;
-        /*context2 = this.prerendCanvas.getContext('2d');
-        context2.clearRect(0,0, this.world.width, this.world.height);*/
-
-        /////////////////////////////////////////
-        // Tilemap
-        /////////////////////////////////////////
-        if (this.tilemap7)// && this.tmCanvas == undefined)
-        {
-            // parse xml
-            var parser = new DOMParser();
-            var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
-            //console.log('xml', xmlDoc);
-
-            // map
-            var mapNode = xmlDoc.getElementsByTagName('map');
-            var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
-            renderOrder = mapNode[0].getAttribute('renderorder');
-            width = mapNode[0].getAttribute('width');
-            height = mapNode[0].getAttribute('height');
-            tileWidth = mapNode[0].getAttribute('tilewidth');
-            tileHeight = mapNode[0].getAttribute('tileheight');
-            nextObjectId = mapNode[0].getAttribute('nextobjectid');
-            //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
-
-            // tileset
-            var tilesetNode = xmlDoc.getElementsByTagName('tileset');
-            //console.log('tileset', tilesetNode.length);
-            tileCount = tilesetNode[0].getAttribute('tilecount');
-            columns = tilesetNode[0].getAttribute('columns');
-            name = tilesetNode[0].getAttribute('name');
-            //console.log(tileCount, columns, name);
-
-            // data
-            var data, encoding;
-            var dataNode = xmlDoc.getElementsByTagName('data');
-            encoding = dataNode[0].getAttribute('encoding');
-            data = dataNode[0].innerHTML;
-            //console.log(dataNode[0]);
-            //console.log(data);
-
-            // build 2d array of row data
-            var base = [];
-            var rows = data.split("\n");
-            rows.shift(); // first item is newline
-            rows.pop(); // last item is newline
-            //console.log(rows);
-            for (var i = 0; i < rows.length; i++)
-            {
-                rows[i] = rows[i].split(",");
-                if (i !== rows.length - 1)
-                    rows[i].pop(); // last item of each row is newline (except last line)
-                base.push(rows[i]);
-            }
-            //console.log(base);
-
-            // build bitmap from tilelist image
-            var source, trans, imageWidth, imageHeight;
-            var imageNode = xmlDoc.getElementsByTagName('image');
-            source = imageNode[0].getAttribute('source');
-            trans = imageNode[0].getAttribute('trans');
-            imageWidth = imageNode[0].getAttribute('width');
-            imageHeight = imageNode[0].getAttribute('height');
-            //console.log(source, trans, imageWidth, imageHeight);
-
-            var image = new Image();
-            image.onload = function(e)
-            {
-                // image loaded
-                var sheet = e.target;
-                //context2.drawImage(e.target, 0, 0);
-
-                // first, create canvas the exact size of the tilemap
-                var tilemap = document.createElement('canvas');
-                self.tmCanvas = tilemap
-                tilemap.id = "tilemap";
-                tilemap.width = width * tileWidth;
-                tilemap.height = height * tileHeight;//v.height;
-                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
-                tmContext = tilemap.getContext('2d');
-
-                // add tilemap to tile canvas context
-                tmContext.drawImage(e.target, 0, 0);
-
-                // now, let's add tiles
-                var tile, t;
-                var count = 0;
-                var rowMax = (imageWidth / tileWidth);
-                var colMax = (imageHeight / tileHeight);
-                //console.log(rowMax, colMax);
-                for (var j = 0; j < base.length; j++)
-                {
-                    for (var k = 0; k < base[j].length; k++)
-                    {
-                        t = parseInt(base[j][k] - 1);
-                        if (t > 0) // ignore 0 tiles
-                        {
-                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
-                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                            tile = tmContext.getImageData
-                            (
-                                ((t % colMax)) * tileWidth,// tileHeight, // x
-                                (Math.floor(t / rowMax)) * tileHeight, // y
-                                tileWidth, // w
-                                tileHeight // h
-                            );
-                            context2.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
-                        }
-                        count++;
-                    }
-                }
-            }; // end tilemap image loaded
-            image.src = source.replace("..", "/assets");
-            //console.log(image.src);
-
-        }
-
-        /////////////////////////////////////////
-        // Orbs
-        /////////////////////////////////////////
-        var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
-        var c, gradient, x, y, size;
-
-        // so we do not apply styles to all contexts!
-        context2.save();
-        context2.translate(x,y);
-
-        //for (var k = 0; k < max; k++)
-        var orbs = this.orbs;
-        console.log('orbz',orbs.length);//, this.orbs);
-        for (var k = 0; k < this.orbs.length; k++)
-        {
-            size = Math.floor(Math.random() * 4) + 2;
-            c = colors[Math.floor(Math.random() * colors.length)];
-            // TODO: Avoid foreground tiles
-            x = Math.floor(Math.random() * this.world.width) + 1;
-            y = Math.floor(Math.random() * this.world.height) + 1;
-
-            // create new orb if undefined
-            /*if (orbs[k]===undefined)
-            {
-                // console.log('new', k, orbs.length);
-                var neworb = {x:x, y:y, c:c, w:size, h:size, r:false};
-                orbs.push( neworb );
-            }*/
-            // reset r if not null
-            /*if (orbs[k].r === true)
-            {
-                console.log('removed!, adding...');
-                orbs[k].x = -100;
-                orbs[k].y = -100;
-                continue;
-            }*/
-
-            context2.beginPath();
-
-            gradient = context2.createRadialGradient(this.orbs[k].x, this.orbs[k].y, 0, this.orbs[k].x, this.orbs[k].y, this.orbs[k].w);
-            gradient.addColorStop(0, 'white');
-            gradient.addColorStop(1, orbs[k].c);
-            context2.fillStyle = gradient;//c;
-            context2.arc(
-                orbs[k].x,
-                orbs[k].y,
-                orbs[k].w,
-                0 * Math.PI,
-                2 * Math.PI
-            );
-            context2.shadowBlur = 10;
-            context2.shadowColor = 'white';
-            //context2.shadowOffsetX = 0;
-            //context2.shadowOffsetY = 0;
-        	context2.fill();
-
-            context2.closePath();
-        }
-        // so we do not apply styles to all contexts!
-        context2.restore();
-
-        /////////////////////////////////////////
-        // center circle
-        /////////////////////////////////////////
-        /*context2.beginPath();
-    	context2.arc(this.world.width/2,this.world.height/2,50,0*Math.PI,2*Math.PI);
-        context2.fillStyle = "red";
-        //context2.shadowBlur = 10;
-        //context2.shadowColor = 'red';
-    	context2.closePath();
-    	context2.fill();*/
-
-        /////////////////////////////////////////
-        // draw borders
-        /////////////////////////////////////////
-        /*
-        context2.beginPath();
-        // bottom
-        context2.moveTo(0, this.world.height);
-        context2.lineTo(this.world.width, this.world.height);
-        context2.strokeStyle = 'black';
-        // top
-        context2.moveTo(0, 0);
-        context2.lineTo(this.world.width, 0);
-        // left
-        context2.moveTo(0, this.world.height);
-        context2.lineTo(0, 0);
-        // right
-        context2.moveTo(this.world.width, this.world.height);
-        context2.lineTo(this.world.width, 0);
-        // styles
-        context2.closePath();
-        context2.lineWidth = 10;
-        context2.strokeStyle = 'black';
-        context2.stroke();
-        //*/
-
-        /////////////////////////////////////////
-        // platforms
-        /////////////////////////////////////////
-        for (var j = 0; j < this.platforms.length; j++)
-        {
-            context2.fillStyle = 'green';
-            context2.fillRect(this.platforms[j].x, this.platforms[j].y, this.platforms[j].w, this.platforms[j].h);
-        }
-
-        //context2.restore();
-        //*
-        if (!this.canvas2)
-        this.canvas2 = canvas2;
-        //*/
-    };
-
-    function clamp(value, min, max)
-    {
-        return Math.max(min, Math.min(value, max));
-        //console.log(value);//, min, max);
-        /*
-        //console.log(value, min, max);
-        if(value < min) return min;
-        else if(value > max) return max;
-
-        return value;
-        //*/
+        context2.fillStyle = 'green';
+        context2.fillRect(this.platforms[j].x, this.platforms[j].y, this.platforms[j].w, this.platforms[j].h);
     }
+
+    //context2.restore();
+    //*
+    if (!this.canvas2)
+    this.canvas2 = canvas2;
+    //*/
+};
+
+function clamp(value, min, max)
+{
+    return Math.max(min, Math.min(value, max));
+    //console.log(value);//, min, max);
+    /*
+    //console.log(value, min, max);
+    if(value < min) return min;
+    else if(value > max) return max;
+
+    return value;
+    //*/
+}
 //*/
 /*
 
@@ -1441,6 +1298,40 @@ game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
 game_core.prototype.update_physics = function() {
     if (glog)
     console.log('##+@@ update_physics');
+
+    // phy 2.0
+    // phy 2.0
+    var GRAVITY_X = 1;
+    var GRAVITY_Y = 1;
+    var elapsed = this._pdt;//this.dt;
+    var gx = GRAVITY_X * elapsed;
+    var gy = GRAVITY_Y * elapsed;
+    var entity;
+    var entities = this.entities;
+    for (var j = 0; j < entities.length; j++)
+    {
+        entity = entities[j];
+        // console.log('entity', entity);
+        switch(entity.type)
+        {
+            case 'dynamic'://PhysicsEntity.DYNAMIC:
+            entity.vx += entity.ax * elapsed + gx;
+             entity.vy += entity.ay * elapsed + gy;
+             entity.x  += entity.vx * elapsed;
+             entity.y  += entity.vy * elapsed;
+             break;
+         case 'kinematic'://PhysicsEntity.KINEMATIC:
+             entity.vx += entity.ax * elapsed;
+             entity.vy += entity.ay * elapsed;
+             entity.x  += entity.vx * elapsed;
+             entity.y  += entity.vy * elapsed;
+             break;
+        }
+    }
+    //console.log(entities[0].x, entities[0].y);
+    this.allplayers[5].pos.x = entities[0].x;
+    this.allplayers[5].pos.y = entities[0].y;
+
     // gravity TODO: add (g)ravity & variable ac-/de-celeration vars, which affect y
     // also, ignore grav if player on ground/platform
     if (this.playerspeed > 120)
@@ -1553,6 +1444,19 @@ game_core.prototype.server_update_physics = function() {
         this.allplayers[i].inputs = []; //we have cleared the input buffer, so remove this
     }
 
+    // phy 2.0
+    // var collisions = this.collider.detectCollisions(
+    //     this.player,
+    //     this.collidables
+    // );
+    var collisions = this.collisionDetector.collideRect(this.entities[0], this.entities[1]);
+
+    // if (collisions != null) {
+    //     this.solver.resolve(this.player, collisions);
+    // }
+    //console.log(':*', collisions);
+    if (collisions != null)
+        this.collisionSolver.resolveElastic(this.entities[0], this.entities[1]);
 }; //game_core.server_update_physics
 
 //Makes sure things run smoothly and notifies clients of changes
@@ -1899,6 +1803,8 @@ game_core.prototype.client_process_net_updates = function()
         if(time_point == -Infinity) time_point = 0;
         if(time_point == Infinity) time_point = 0;
 
+        //console.log(time_point);
+
         //The most recent server update
         var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
 
@@ -2088,12 +1994,12 @@ game_core.prototype.client_update_local_position = function()
         var old_state = this.players.self.old_state.pos;
         var current_state = this.players.self.cur_state.pos;
 
-            //Make sure the visual position matches the states we have stored
+        //Make sure the visual position matches the states we have stored
         //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
         //console.log(current_state.d);
         this.players.self.pos = current_state;
 
-            //We handle collision on client if predicting.
+        //We handle collision on client if predicting.
         this.check_collision( this.players.self );
 
     }  //if(this.client_predict)

@@ -1,6 +1,6 @@
 function game_player( game_instance, player_instance, isHost )
 {
-    console.log('game_player', game_instance, player_instance);
+    console.log('game_player');//, game_instance, player_instance);
     //Store the instance, if any
     // ## NOTE: only server sends instance, not clients!!
     if (player_instance) console.log('** server added player (with instance)');
@@ -77,7 +77,7 @@ function game_player( game_instance, player_instance, isHost )
             clearInterval(stun);
         }, stunLen);
         // setInterval (3 sec)
-    }
+    };
 
     this.getGrid = function()
     {
@@ -115,7 +115,7 @@ function game_player( game_instance, player_instance, isHost )
 
     // new physics properies end
 
-}; //game_player.constructor
+} //game_player.constructor
 
 game_player.prototype.draw = function()
 {
@@ -227,6 +227,7 @@ game_player.prototype.draw = function()
 
 }; //game_player.draw
 //console.log('dtf',this.parent.server);
-if (typeof module != 'undefined')
-module.exports = game_player;
+//if (typeof module != 'undefined')
+if('undefined' != typeof global)
+    module.exports = game_player;
 else console.log('running client');

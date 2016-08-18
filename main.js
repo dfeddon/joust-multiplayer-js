@@ -11,16 +11,27 @@ console.log('main');
 // });
 
 // load DOM, player class and game core
-define(['require', 'domReady', 'class.player', 'game.core'], function (require, domReady, player, game)
-{
+define(
+  [
+    'require',
+    'domReady',
+    'class.player',
+    'class.collision',
+    'class.physicsEntity',
+    'class.collisionDetector',
+    'class.collisionSolver'
+  ], function (require, domReady, player) {
   domReady(function()
   {
     console.log('domReady');
-
-    // DOM is loaded, now load client
-    require(['client'], function(client)
+    // DOM is loaded, now load game
+    require(['game.core'], function(game)
     {
-      console.log('client loaded');
+      console.log('game loaded');
+      require(['client'], function(client)
+      {
+        console.log('client loaded');
+      });
     });
   });
 });
