@@ -98,6 +98,7 @@ var game_core = function(game_instance)
     this.gameid = null;
 
     this.allplayers = []; // client/server players store
+    this.entities = [];
 
     this.platforms = [];
     /*this.platforms.push({x:this.world.width/2,y:this.world.height-400,w:512,h:64});
@@ -121,12 +122,10 @@ var game_core = function(game_instance)
 
         //var co = collisionObject;
         // phy 2.0
-        var pe1 = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        var pe2 = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        this.entities = [pe1,pe2];
-        console.log('entities', this.entities.length, this.entities);
-        this.collisionDetector = new CollisionDetector();
-        this.collisionSolver = new CollisionSolver();
+        // var pe1 = new PhysicsEntity(PhysicsEntity.ELASTIC);
+        // var pe2 = new PhysicsEntity(PhysicsEntity.ELASTIC);
+        // this.entities = [pe1,pe2];
+        // console.log('entities', this.entities.length, this.entities);
         //console.log('physent', this.collisionDetector);
 
         console.log("##-@@ adding server player and assigning client instance...");
@@ -137,13 +136,18 @@ var game_core = function(game_instance)
         for (var i = 1; i < this.world.totalplayers; i++)
         {
             other = new playerClass(this, null, false);
+            other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //console.log('o', o.mp);
             //o.pos = {x:100, y:100};
             this.allplayers.push(other);
+            this.entities.push(other);
         }
         var hp = new playerClass(this, this.instance.player_host, true);
+        hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
         //hp.pos = {x:-100,y:-100};
         this.allplayers.push(hp);
+        this.entities.push(hp);
+
         this.players = {};
         this.players.self = hp;
         this.players.hostGame = hp.game;
@@ -178,6 +182,10 @@ var game_core = function(game_instance)
         }
         console.log("##-@@ orbs built", this.orbs.length);
 
+        // setup collision detect/solve pattern (decorator)
+        this.collisionDetector = new CollisionDetector();
+        this.collisionSolver = new CollisionSolver();
+
     }
     else // clients (browsers)
     {
@@ -186,11 +194,11 @@ var game_core = function(game_instance)
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
 
-        console.log('pe', physicsEntity);
-        var pe1 = new physicsEntity(physicsEntity.ELASTIC);
-        var pe2 = new physicsEntity(physicsEntity.ELASTIC);
-        this.entities = [pe1,pe2];
-        console.log(this.entities);
+        // console.log('pe', physicsEntity);
+        // var pe1 = new physicsEntity(physicsEntity.ELASTIC);
+        // var pe2 = new physicsEntity(physicsEntity.ELASTIC);
+        // this.entities = [pe1,pe2];
+        // console.log(this.entities);
 
         // tilemap
         this.api(); // load and build tilemap
@@ -209,17 +217,21 @@ var game_core = function(game_instance)
         for (var l = 1; l < this.world.totalplayers; l++)
         {
             p = new game_player(this);
+            p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
             //p.pos = {x:100, y:100};
             this.allplayers.push(p);//,null,false));
+            this.entities.push(p);
         }
         var chost = new game_player(this);
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
+        chost.ent = new physicsEntity(physicsEntity.ELASTIC);
         //chost.pos.x = -1000;
         //chost.pos.y = -1000;
         this.allplayers.push(chost);
+        this.entities.push(chost);
 
         this.players.self = chost;//new game_player(this);
 
@@ -1303,7 +1315,7 @@ game_core.prototype.update_physics = function() {
     // phy 2.0
     var GRAVITY_X = 1;
     var GRAVITY_Y = 1;
-    var elapsed = this._pdt;//this.dt;
+    var elapsed = 1;//this._pdt;//this.dt;
     var gx = GRAVITY_X * elapsed;
     var gy = GRAVITY_Y * elapsed;
     var entity;
@@ -1329,8 +1341,8 @@ game_core.prototype.update_physics = function() {
         }
     }
     //console.log(entities[0].x, entities[0].y);
-    this.allplayers[5].pos.x = entities[0].x;
-    this.allplayers[5].pos.y = entities[0].y;
+    // this.allplayers[5].pos.x = entities[0].x;
+    // this.allplayers[5].pos.y = entities[0].y;
 
     // gravity TODO: add (g)ravity & variable ac-/de-celeration vars, which affect y
     // also, ignore grav if player on ground/platform
@@ -1443,20 +1455,20 @@ game_core.prototype.server_update_physics = function() {
         //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
         this.allplayers[i].inputs = []; //we have cleared the input buffer, so remove this
     }
-
+    //console.log(this.players.self.mp);
     // phy 2.0
     // var collisions = this.collider.detectCollisions(
     //     this.player,
     //     this.collidables
     // );
-    var collisions = this.collisionDetector.collideRect(this.entities[0], this.entities[1]);
+    var collisions = this.collisionDetector.collideRect(this.players.self.ent, this.entities[5].ent);
 
     // if (collisions != null) {
     //     this.solver.resolve(this.player, collisions);
     // }
-    //console.log(':*', collisions);
+    console.log(collisions);
     if (collisions != null)
-        this.collisionSolver.resolveElastic(this.entities[0], this.entities[1]);
+        this.collisionSolver.resolveElastic(this.players.self.ent, this.entities[5].ent);
 }; //game_core.server_update_physics
 
 //Makes sure things run smoothly and notifies clients of changes
@@ -1556,6 +1568,8 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
             this.players.self : this.players.other;*/
     // set default
     //var player_client;
+    //console.log('1',client.userid);
+    //console.log('2',this.players.self.instance.userid);
     if (client.userid == this.players.self.instance.userid)
         player_client = this.players.self;//.instance.userid);
     else

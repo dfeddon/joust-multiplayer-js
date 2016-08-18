@@ -359,8 +359,13 @@ game_server.startGame = function(game)
             //var hosted = this.hasHost();
             //if (hosted)
                 //this.log('@@ hosted by', hosted);
+            //game_instance.gamecore.players.self = nonhosts[j];
+            // assign client to player instance
+            //game_instance.gamecore.players.self.instance = host;
+            //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
+            //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
+            console.log('sjn', game_instance.gamecore.players.self);
             // send user mp, game id, orbs array
-            //this.players.self = nonhosts[j];
             nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(game_instance.gamecore.orbs));
             nonhosts[j].game = game;
         }
