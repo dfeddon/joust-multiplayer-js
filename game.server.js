@@ -350,6 +350,7 @@ game_server.startGame = function(game)
     if (host)
     {
         //host.send('s.j.', host.userid);
+        console.log('nonhosts len', nonhosts.length);
         for (var j = 0; j < nonhosts.length; j++)
         {
             this.log('@@', nonhosts[j].userid, nonhosts[j].mp);
@@ -359,7 +360,23 @@ game_server.startGame = function(game)
             //var hosted = this.hasHost();
             //if (hosted)
                 //this.log('@@ hosted by', hosted);
+            // if current player is host...
+            if (game_instance.gamecore.players.self.mp == "hp")
+            {
+                // typically first player has joined, reassign self from host to nonhost[j].mp
+                for (var k = 0; k < game_instance.gamecore.allplayers.length; k++)
+                {
+                    if (game_instance.gamecore.allplayers[k].mp == nonhosts[j].mp)
+                    {
+                        game_instance.gamecore.players.self = game_instance.gamecore.allplayers[k];
+                        break;
+                    }
+                }
+            }
+            //game_instance.gamecore.players.self = null;
             //game_instance.gamecore.players.self = nonhosts[j];
+            //var clientInstance = nonhosts[j];
+            //break;
             // assign client to player instance
             //game_instance.gamecore.players.self.instance = host;
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;

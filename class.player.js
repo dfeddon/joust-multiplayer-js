@@ -16,7 +16,14 @@ function game_player( game_instance, player_instance, isHost )
     this.pos = { x:0, y:0 };
     this.size = { x:64, y:64, hx:64, hy:64 };
     this.dir = 0; // 0 = right, 1 = left (derek added)
-    this.v = { x:0, y:0 }; // velocity (derek added)
+
+    // velocity
+    this.vx = 0; // velocity (derek added)
+    this.vy = 0;
+
+    // acceleration
+    this.ax = 0;
+    this.ay = 0;
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 0; // 0=flying, 1=stationary, 2=walking

@@ -50,7 +50,7 @@ function physicsEntity(collisionName, type)
     // Store a half size for quicker calculations
     this.halfWidth = this.width * 0.5;
     this.halfHeight = this.height * 0.5;
-    
+
     console.log(collisionObj);
     var collision = collisionObj[this.collision];
     console.log('col', collision, this.collision);
@@ -59,8 +59,8 @@ function physicsEntity(collisionName, type)
     // Setup the positional data in 2D
 
     // Position
-    this.x = 0;
-    this.y = 0;
+    this.x = Math.floor(Math.random() * 1000) + 128;
+    this.y = Math.floor(Math.random() * 1000) + 128;
 
     // Velocity
     this.vx = 0;

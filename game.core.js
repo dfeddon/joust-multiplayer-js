@@ -858,14 +858,14 @@ game_core.prototype.check_collision = function( player )
     if(player.pos.x < player.pos_limits.x_min)
     {
         player.pos.x = player.pos_limits.x_min;
-        player.v.x = 0;
+        player.vx = 0;
         player.landed = 1;
     }
 
     //Right wall TODO: stop accel
     if(player.pos.x > player.pos_limits.x_max ) {
         player.pos.x = player.pos_limits.x_max;
-        player.v.x = 0;
+        player.vx = 0;
         player.landed = 1;
     }
 
@@ -882,19 +882,19 @@ game_core.prototype.check_collision = function( player )
         //player.pos.y = player.pos_limits.y_max - 15;
         player.pos.y = player.pos_limits.y_max;// - 15;
         // decelerate
-        if (player.v.x > 0)
+        if (player.vx > 0)
         {
-            //console.log('-->slowing', player.v.x);
+            //console.log('-->slowing', player.vx);
 
             // slow horizontal velocity
-            player.v.x -= 10;
+            player.vx -= 10;
             // set landing flag (moving)
             player.landed = 2;
         }
         else
         {
             // stuck landing (no velocity)
-            player.v.x = 0;
+            player.vx = 0;
             // set landing flag (stationary)
             player.landed = 1;
         }
@@ -938,19 +938,19 @@ game_core.prototype.check_collision = function( player )
                     }
                     // manage velocit and stop state
                     // if player and enemy are facing same direction
-                    if (player.v.x > 0 && player.dir !== this.allplayers[i].dir)
+                    if (player.vx > 0 && player.dir !== this.allplayers[i].dir)
                     {
-                        //console.log('slowing', player.v.x);
+                        //console.log('slowing', player.vx);
 
                         // slow horizontal velocity
-                        player.v.x = 0;//-= 1;
+                        player.vx = 0;//-= 1;
                         // set landing flag (moving)
                         player.landed = 2; // TODO: only if on platform
                     }
                     else
                     {
                         // stuck landing (no velocity)
-                        player.v.x = 0;
+                        player.vx = 0;
                         // set landing flag (stationary)
                         player.landed = 1; // TODO: only if on platform
                     }
@@ -1041,19 +1041,19 @@ game_core.prototype.check_collision = function( player )
                 player.pos.y = this.platforms[j].y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
                 //console.log('--->',player.pos.y);
                 // decelerate
-                if (player.v.x > 0)
+                if (player.vx > 0)
                 {
-                    //console.log('slowing', player.v.x);
+                    //console.log('slowing', player.vx);
 
                     // slow horizontal velocity
-                    player.v.x -= 1;
+                    player.vx -= 1;
                     // set landing flag (moving)
                     player.landed = 2;
                 }
                 else
                 {
                     // stuck landing (no velocity)
-                    player.v.x = 0;
+                    player.vx = 0;
                     // set landing flag (stationary)
                     player.landed = 1;
                 }
@@ -1118,12 +1118,12 @@ game_core.prototype.check_collision = function( player )
         if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
             player.pos.x += 15; // bounce
-            player.v.x = 0; // stop accel
+            player.vx = 0; // stop accel
         }
         else if (h.ne.t > 0 && h.se.t > 0)
         {
             player.pos.x -= 15; //bounce
-            player.v.x = 0; // stop accel
+            player.vx = 0; // stop accel
         }
         else if (h.nw.t > 0) // collide from below
         {
@@ -1148,19 +1148,19 @@ game_core.prototype.check_collision = function( player )
             //player.pos.y -= b;
             player.pos.y = (h.sw.y * 64) - 64;
             // decelerate
-            if (player.v.x > 0)
+            if (player.vx > 0)
             {
-                //console.log('slowing', player.v.x);
+                //console.log('slowing', player.vx);
 
                 // slow horizontal velocity
-                player.v.x -= 1;
+                player.vx -= 1;
                 // set landing flag (moving)
                 player.landed = 2;
             }
             else
             {
                 // stuck landing (no velocity)
-                player.v.x = 0;
+                player.vx = 0;
                 // set landing flag (stationary)
                 player.landed = 1;
             }
@@ -1172,19 +1172,19 @@ game_core.prototype.check_collision = function( player )
             //player.pos.y -= b;
             player.pos.y = (h.sw.y * 64) - 64;
             // decelerate
-            if (player.v.x > 0 && player.stunned !== true)
+            if (player.vx > 0 && player.stunned !== true)
             {
-                //console.log('slowing', player.v.x);
+                //console.log('slowing', player.vx);
 
                 // slow horizontal velocity
-                player.v.x -= 1;
+                player.vx -= 1;
                 // set landing flag (moving)
                 player.landed = 2;
             }
             else
             {
                 // stuck landing (no velocity)
-                player.v.x = 0;
+                player.vx = 0;
                 // set landing flag (stationary)
                 player.landed = 1;
             }
@@ -1257,19 +1257,19 @@ game_core.prototype.process_input = function( player )
                     player.flap = true;
                     player.landed = 0;
                     this.playerspeed = 200;//150;
-                    player.v.y = -1;
+                    player.vy = -1;
                     y_dir -= 1;
                     if (player.dir === 0)
                     {
                         x_dir += 0;
-                        if (player.v.x < 0 ) player.v.x = 6;
-                        else player.v.x +=6;
+                        if (player.vx < 0 ) player.vx = 6;
+                        else player.vx +=6;
                     }
                     if (player.dir === 1)
                     {
                         x_dir -= 0;
-                        if (player.v.x > 0) player.v.x = -6;
-                        else player.v.x -=6;
+                        if (player.vx > 0) player.vx = -6;
+                        else player.vx -=6;
                     }
                 }
                 else player.flap = false;
@@ -1311,7 +1311,6 @@ game_core.prototype.update_physics = function() {
     if (glog)
     console.log('##+@@ update_physics');
 
-    // phy 2.0
     // phy 2.0
     var GRAVITY_X = 1;
     var GRAVITY_Y = 1;
@@ -1358,27 +1357,27 @@ game_core.prototype.update_physics = function() {
         ////////////////////////////////////////////////////////
         // horizontal velocity
         ////////////////////////////////////////////////////////
-        if (this.allplayers[i].v.x > 0)
+        if (this.allplayers[i].vx > 0)
         {
-            this.allplayers[i].v.x=(this.allplayers[i].v.x-0.025).fixed(3);
-            //console.log(this.players[i].v.x);
-            if (this.allplayers[i].v.x < 0) this.allplayers[i].v.x = 0;
-            this.allplayers[i].pos.x += (0.5 * 2);// this.players[i].v.x;
+            this.allplayers[i] = (this.allplayers[i].vx-0.025).fixed(3);
+            //console.log(this.players[i].vx);
+            if (this.allplayers[i].vx < 0) this.allplayers[i].vx = 0;
+            this.allplayers[i].pos.x += (0.5 * 2);// this.players[i].vx;
         }
-        else if (this.allplayers[i].v.x < 0)
+        else if (this.allplayers[i].vx < 0)
         {
-            this.allplayers[i].v.x=(this.allplayers[i].v.x+0.025).fixed(3);
-            if (this.allplayers[i].v.x > 0) this.allplayers[i].v.x = 0;
-            this.allplayers[i].pos.x -= (0.5 * 2);// this.players[i].v.x;
+            this.allplayers[i].vx=(this.allplayers[i].vx+0.025).fixed(3);
+            if (this.allplayers[i].vx > 0) this.allplayers[i].vx = 0;
+            this.allplayers[i].pos.x -= (0.5 * 2);// this.players[i].vx;
         }
         ////////////////////////////////////////////////////////
         // vertical velocity
         ////////////////////////////////////////////////////////
-        if (this.allplayers[i].v.y < 0)
+        if (this.allplayers[i].vy < 0)
         {
-            //console.log('v.y', this.allplayers[i].v.y.fixed(3), this.allplayers[i].v.x);
-            this.allplayers[i].v.y = (this.allplayers[i].v.y + 0.025).fixed(3);
-            this.allplayers[i].pos.y = (this.allplayers[i].pos.y + 0.05 + this.allplayers[i].v.y).fixed(3);//this.players[i].v.y;
+            //console.log('v.y', this.allplayers[i].vy.fixed(3), this.allplayers[i].vx);
+            this.allplayers[i].vy = (this.allplayers[i].vy + 0.025).fixed(3);
+            this.allplayers[i].pos.y = (this.allplayers[i].pos.y + 0.05 + this.allplayers[i].vy).fixed(3);//this.players[i].vy;
         }
 
         ////////////////////////////////////////////////////////
@@ -1390,7 +1389,7 @@ game_core.prototype.update_physics = function() {
         }
         else // touching ground (TODO:add drag)
         {
-            this.allplayers[i].v.y = 0;
+            this.allplayers[i].vy = 0;
             //console.log('floor!');
         }
         //else console.log(this.players[i].pos.y, "floor");
@@ -1461,14 +1460,14 @@ game_core.prototype.server_update_physics = function() {
     //     this.player,
     //     this.collidables
     // );
-    var collisions = this.collisionDetector.collideRect(this.players.self.ent, this.entities[5].ent);
+    //var collisions = this.collisionDetector.collideRect(this.players.self.ent, this.entities[5].ent);
 
     // if (collisions != null) {
     //     this.solver.resolve(this.player, collisions);
     // }
-    console.log(collisions);
-    if (collisions != null)
-        this.collisionSolver.resolveElastic(this.players.self.ent, this.entities[5].ent);
+    //console.log(collisions);
+    //if (collisions != null)
+        //this.collisionSolver.resolveElastic(this.players.self.ent, this.entities[5].ent);
 }; //game_core.server_update_physics
 
 //Makes sure things run smoothly and notifies clients of changes

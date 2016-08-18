@@ -1,7 +1,7 @@
 function CollisionSolver(){}
 CollisionSolver.prototype.resolveElastic = function(player, entity)
 {
-    //console.log('CollisionSolver.resolveElastic', player, entity);
+    console.log('CollisionSolver.resolveElastic', player.x, player.y);
     var STICKY_THRESHOLD = 0.0004;
     // Find the mid points of the entity and player
     var pMidX = player.getMidX();
