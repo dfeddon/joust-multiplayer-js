@@ -69,7 +69,62 @@ function game_player( game_instance, player_instance, isHost )
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
 
+    this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
+    this.mana = 0;
+    this.pointsTotal = 0;
+    this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
+    this.progression = 0;
+    this.numStores = 0;
+
+    this.playerName = "Ze Bot";
+    //this.lastNamePlate = "YOU";
+
+    this.updateMana = function(val)
+    {
+        console.log('update mana', val);
+        if (val > 0)
+        {
+            this.mana += val;
+            this.pointsTotal += val;
+        }
+        else
+        {
+            this.mana -= val;
+        }
+        // calculate level, progression and mana stores
+        if (this.pointsTotal < this.levels[0])
+        {
+            this.level = 1;
+            this.progression = this.mana;
+            this.numStores = 0;
+        }
+        else if (this.pointsTotal < this.levels[1])
+            this.level = 2;
+        else if (this.pointsTotal < this.levels[2])
+            this.level = 3;
+        else if (this.pointsTotal < this.levels[3])
+            this.level = 4;
+        else if (this.pointsTotal < this.levels[4])
+            this.level = 5;
+        else if (this.pointsTotal < this.levels[5])
+            this.level = 6;
+        else if (this.pointsTotal < this.levels[6])
+            this.level = 7;
+        else if (this.pointsTotal < this.levels[7])
+            this.level = 8;
+        else if (this.pointsTotal < this.levels[8])
+            this.level = 9;
+        else if (this.pointsTotal < this.levels[9])
+            this.level = 10;
+        else if (this.pointsTotal < this.levels[10])
+            this.level = 11;
+
+        this.level = Math.ceil(this.mana / 256);
+        console.log(this.level, this.mana);
+    };
+
     this.stunned = false;
+
     var stunLen = 1500; // 1.5 sec
     this.isStunned = function()
     {
@@ -127,50 +182,56 @@ function game_player( game_instance, player_instance, isHost )
 game_player.prototype.draw = function()
 {
     // player nametags (temp)
-    //console.log(this.pos);
-    for(var i=0; i < this.game.allplayers.length; i++)
-    {
-        //console.log(i, this.host);//this.game.allplayers[i].mp, this.mp);
-        if (this.game.players.self.mp != this.game.allplayers[i].mp && this.game.allplayers[i].visible)// != this.mp)
-        {
-            game.ctx.fillStyle = 'red';
-            game.ctx.fillText(this.game.allplayers[i].mp, this.game.allplayers[i].pos.x, this.game.allplayers[i].pos.y - 20);
-        }
-        else if (this.game.players.self.visible);// && this.game.players.self.landed !== 1)
-        {
-            game.ctx.fillStyle = 'white';
-            //if (this.game.players.self.landed === 1) console.log(this.game.players.self.pos.y);
-            game.ctx.fillText(this.game.players.self.mp + " " + this.game.fps.fixed(1), this.game.players.self.pos.x.fixed(1), this.game.players.self.pos.y.fixed(1) - 20);
-        }
-    }
-
-    // draw hitbox on players (if debugging)
-    if(String(window.location).indexOf('debug') != -1)
+    // mana bar bg
+    var txtOffset = 10;
+    if (this.isLocal === true)
     {
         game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
+        game.ctx.strokeStyle = 'gray';
+        game.ctx.moveTo(this.pos.x + 14, this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
         game.ctx.stroke();
 
+        // mana progress
         game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
+        game.ctx.strokeStyle = 'green';
+        game.ctx.moveTo(this.pos.x + 14 + (64/4), this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
         game.ctx.stroke();
 
+        // mana stores
+        game.ctx.fillStyle = 'green';
         game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+        game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
+        game.ctx.fill();
 
-        game.ctx.beginPath();
-        game.ctx.moveTo(this.pos.x + (this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.lineTo(this.pos.x + (this.size.hx - this.size.hx/4), this.pos.y + (this.size.hy - this.size.hy/4));
-        game.ctx.strokeStyle = 'red';
-        game.ctx.stroke();
+        // nameplate color
+        game.ctx.fillStyle = 'white';
+        game.ctx.font = "small-caps lighter 12px arial";
+
+        txtOffset = 30;
     }
+    else
+    {
+        // nameplate color
+        game.ctx.fillStyle = '#f73a07';
+        game.ctx.font = "small-caps lighter 12px arial";
+    }
+    // game.ctx.strokeRect(
+    //     this.pos.x,
+    //     this.pos.y-10,
+    //     this.size.hx,
+    //     5);
+
+    // nameplate
+    game.ctx.font = "small-caps lighter 12px arial";
+    game.ctx.textAlign = 'center';
+    game.ctx.fillText(
+        this.playerName + " (" + this.mp + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+        this.pos.x + (this.size.hx/2),//.fixed(1),
+        this.pos.y - txtOffset
+        //100
+    );
 
     // player bitamps
     var img, imgW, imgH;
@@ -228,7 +289,7 @@ game_player.prototype.draw = function()
         game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
     // player x y
-    // game.ctx.fillText(this.game.players.self.pos.x + "/" + this.game.players.self.pos.y, this.game.players.self.pos.x, this.game.players.self.pos.y - 40);
+    // game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);
     //game.ctx.translate(camX,camY);
     //game.ctx.restore();
 

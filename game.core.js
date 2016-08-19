@@ -114,11 +114,11 @@ var game_core = function(game_instance)
     {
         // include modules
         var UUID            = require('node-uuid'),
-        playerClass         = require('./class.player'),
-        collisionObject     = require('./class.collision'),
+        playerClass         = require('./class.player');
+        /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
-        CollisionSolver     = require('./class.collisionSolver');
+        CollisionSolver     = require('./class.collisionSolver');*/
 
         //var co = collisionObject;
         // phy 2.0
@@ -136,29 +136,23 @@ var game_core = function(game_instance)
         for (var i = 1; i < this.world.totalplayers; i++)
         {
             other = new playerClass(this, null, false);
-            other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-            //console.log('o', o.mp);
-            //o.pos = {x:100, y:100};
+            // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             this.allplayers.push(other);
-            this.entities.push(other);
+            // this.entities.push(other);
         }
         var hp = new playerClass(this, this.instance.player_host, true);
-        hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        //hp.pos = {x:-100,y:-100};
+        // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
         this.allplayers.push(hp);
-        this.entities.push(hp);
+        // this.entities.push(hp);
 
         this.players = {};
         this.players.self = hp;
         this.players.hostGame = hp.game;
 
         // add player (host)
-        //this.allplayers.push(this.players.self);
         console.log('len', this.allplayers.length);
         for (var j in this.allplayers)
             console.log(this.allplayers[j].mp);
-        //this.allplayers.push(this.players.other);
-        //console.log('^^',this.allplayers[1].instance.clientid);//host);
 
         console.log('##-@@ creating orbs on server', this.orbs.length);
         var size,c,ox,oy,id;
@@ -183,8 +177,8 @@ var game_core = function(game_instance)
         console.log("##-@@ orbs built", this.orbs.length);
 
         // setup collision detect/solve pattern (decorator)
-        this.collisionDetector = new CollisionDetector();
-        this.collisionSolver = new CollisionSolver();
+        // this.collisionDetector = new CollisionDetector();
+        // this.collisionSolver = new CollisionSolver();
 
     }
     else // clients (browsers)
@@ -194,44 +188,28 @@ var game_core = function(game_instance)
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
 
-        // console.log('pe', physicsEntity);
-        // var pe1 = new physicsEntity(physicsEntity.ELASTIC);
-        // var pe2 = new physicsEntity(physicsEntity.ELASTIC);
-        // this.entities = [pe1,pe2];
-        // console.log(this.entities);
-
         // tilemap
         this.api(); // load and build tilemap
 
-        /*this.prerendCanvas = document.getElementById('prerend');
-        this.prerendCanvas.width = this.world.width;
-        this.prerendCanvas.height = this.world.height;*/
-
         console.log("## adding client players...", this.world.totalplayers);
-
-        //this.canvas = document.getElementById('viewport');
-        //console.log('vp', this.canvas);
 
         this.players = {};
         var p;
         for (var l = 1; l < this.world.totalplayers; l++)
         {
             p = new game_player(this);
-            p.ent = new physicsEntity(physicsEntity.ELASTIC);
+            // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
-            //p.pos = {x:100, y:100};
             this.allplayers.push(p);//,null,false));
-            this.entities.push(p);
+            // this.entities.push(p);
         }
         var chost = new game_player(this);
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
-        chost.ent = new physicsEntity(physicsEntity.ELASTIC);
-        //chost.pos.x = -1000;
-        //chost.pos.y = -1000;
+        // chost.ent = new physicsEntity(physicsEntity.ELASTIC);
         this.allplayers.push(chost);
-        this.entities.push(chost);
+        // this.entities.push(chost);
 
         this.players.self = chost;//new game_player(this);
 
@@ -240,8 +218,6 @@ var game_core = function(game_instance)
         for (var y in this.allplayers)
             console.log(this.allplayers[y].mp);
     }
-
-    //if (this.players.self.mp == 'hp') return;
 
     //The speed at which the clients move.
     this.playerspeed = 120;
@@ -991,7 +967,7 @@ game_core.prototype.check_collision = function( player )
                     var colors = ['white'];
                     for (var x = 0; x < 50; x++)
                     {
-                        size = Math.floor(Math.random() * 8) + 4;
+                        size = Math.floor(Math.random() * 8) + 3;
                         c = colors[Math.floor(Math.random() * colors.length)];
                         // TODO: Avoid barriers
                         ox = waspos.x + Math.floor(Math.random() * 100) + 1;
@@ -1002,10 +978,12 @@ game_core.prototype.check_collision = function( player )
 
                         neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
                         this.orbs.push( neworb );
-                    }//}
+                    }
                     console.log('total orbs', this.orbs.length);//, this.orbs);
+
+                    // show splatter locally
                     if (!this.server)
-                    this.prerenderer();
+                        this.prerenderer();
                 }
 
                 break;
@@ -1084,13 +1062,18 @@ game_core.prototype.check_collision = function( player )
             (player.pos.y + player.size.hy) > this.orbs[k].y
         )
         {
-            console.log('orb hit!', this.orbs[k].id, this.server);
+            console.log('orb hit!', this.orbs[k]);//this.orbs[k].id, this.server);
             var rid = this.orbs[k].id;
             console.log('by player', player.mp, this.players.self.mp);
+
+            //if (player.mp == this.players.self.mp)
+                //player.updateMana(this.orbs[k].w);
+
             console.log('ids', player.id, this.players.self.id);
 
-            // remove it
-            this.orbs.splice(k, 1);
+            // remove it (from server only)
+            if (this.server)
+                this.orbs.splice(k, 1);
 
             console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
             for (var l = 0; l < this.allplayers.length; l++)
@@ -1098,7 +1081,7 @@ game_core.prototype.check_collision = function( player )
                 if (this.allplayers[l].instance)
                 {
                     console.log('remote orb removal index', rid, this.players.self.mp);
-                    this.allplayers[l].instance.send('o.r.' + rid);//, k );
+                    this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
                 }
             }
 
@@ -1146,7 +1129,7 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
             //player.pos.x += b;
             //player.pos.y -= b;
-            player.pos.y = (h.sw.y * 64) - 64;
+            player.pos.y = parseInt((h.sw.y * 64) - 64);
             // decelerate
             if (player.vx > 0)
             {
@@ -1170,7 +1153,7 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop se', player.mp);// h.sw.y * 64, player.pos.y + player.size.hy);
             //player.pos.x -= b;
             //player.pos.y -= b;
-            player.pos.y = (h.sw.y * 64) - 64;
+            player.pos.y = parseInt((h.sw.y * 64) - 64);
             // decelerate
             if (player.vx > 0 && player.stunned !== true)
             {
@@ -1190,29 +1173,42 @@ game_core.prototype.check_collision = function( player )
             }
         }
     }
-    //}
-
 }; //game_core.check_collision
 
-game_core.prototype.client_on_orbremoval = function(id)
+game_core.prototype.client_on_orbremoval = function(data)
 {
-    console.log('## orbRemoval', id);//, this.orbs[index]);
+    // data = orb id | player mp
+    var split = data.split("|");
+    var id = split[0];
+    var mp = split[1];
+    var isLocal = false;
+    var orbFound = false;
+    if (this.players.self.mp == mp)
+        isLocal = true;
+    console.log('## orbRemoval', id, mp, isLocal);//, this.orbs[index]);
     //this.orbs.splice(index, 1);
     for (var i = 0; i < this.orbs.length; i++)
     {
         if (this.orbs[i].id == id)
         {
+            orbFound = true;
             this.orbs[i].x = -100;
             this.orbs[i].y = -100;
             this.orbs[i].r = true;
-            console.log('removed orb', this.orbs[i].id);
+            console.log('## removed orb', this.orbs[i].id, isLocal, isLocal, mp);
             this.orbs.splice(i, 1);
+
+            // local player got orb
+            if (isLocal === true)
+                this.players.self.updateMana(this.orbs[i].w);
             break;
         }
     }
     //this.orbs[index]
     //this.orbs.splice(index, 1);
-    this.prerenderer();
+    if (orbFound === true)
+        this.prerenderer();
+    else console.log('orb id', id, 'not found!');
 };
 
 
@@ -1312,6 +1308,7 @@ game_core.prototype.update_physics = function() {
     console.log('##+@@ update_physics');
 
     // phy 2.0
+    /*
     var GRAVITY_X = 1;
     var GRAVITY_Y = 1;
     var elapsed = 1;//this._pdt;//this.dt;
@@ -1339,12 +1336,14 @@ game_core.prototype.update_physics = function() {
              break;
         }
     }
+    //*/
     //console.log(entities[0].x, entities[0].y);
-    // this.allplayers[5].pos.x = entities[0].x;
+    // this.allplayers[5].ent.x = entities[0].x;
     // this.allplayers[5].pos.y = entities[0].y;
 
     // gravity TODO: add (g)ravity & variable ac-/de-celeration vars, which affect y
     // also, ignore grav if player on ground/platform
+    //*
     if (this.playerspeed > 120)
         this.playerspeed -= 1;
 
@@ -1354,12 +1353,13 @@ game_core.prototype.update_physics = function() {
     //for (var i in this.players)
     for (var i = 0; i < this.allplayers.length; i++)
     {
+        //console.log(this.allplayers[i]);
         ////////////////////////////////////////////////////////
         // horizontal velocity
         ////////////////////////////////////////////////////////
         if (this.allplayers[i].vx > 0)
         {
-            this.allplayers[i] = (this.allplayers[i].vx-0.025).fixed(3);
+            this.allplayers[i].vx = (this.allplayers[i].vx-0.025).fixed(3);
             //console.log(this.players[i].vx);
             if (this.allplayers[i].vx < 0) this.allplayers[i].vx = 0;
             this.allplayers[i].pos.x += (0.5 * 2);// this.players[i].vx;
@@ -1401,6 +1401,7 @@ game_core.prototype.update_physics = function() {
     //if (this.players.self.pos.)
     //console.log(this.players.self.pos.y, this.players.self.pos_limits.y_max);// + this.players.self.size.hx, this.world.height);
     //if (this.players.self.pos.y + this.players.self.size.hx !== this.world.height)
+    //*/
 
     if(this.server) {
         this.server_update_physics();
@@ -1466,8 +1467,8 @@ game_core.prototype.server_update_physics = function() {
     //     this.solver.resolve(this.player, collisions);
     // }
     //console.log(collisions);
-    //if (collisions != null)
-        //this.collisionSolver.resolveElastic(this.players.self.ent, this.entities[5].ent);
+    // if (collisions != null)
+    //     this.collisionSolver.resolveElastic(this.players.self.ent, this.entities[5].ent);
 }; //game_core.server_update_physics
 
 //Makes sure things run smoothly and notifies clients of changes
@@ -2335,8 +2336,42 @@ game_core.prototype.client_onreadygame = function(data) {
 game_core.prototype.resizeCanvas = function()
 {
     console.log('resizeCanvas', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
-    this.viewport.width = window.innerWidth;
-    this.viewport.height = window.innerHeight;
+
+    // finally query the various pixel ratios
+    var ratio = window.devicePixelRatio;
+
+    //var ctx = this.viewport.getContext('2d');
+    //ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    // var devicePixelRatio, backingStoreRatio,ratio;
+    // devicePixelRatio = window.devicePixelRatio || 1,
+    // backingStoreRatio = context.webkitBackingStorePixelRatio ||
+    //                     context.mozBackingStorePixelRatio ||
+    //                     context.msBackingStorePixelRatio ||
+    //                     context.oBackingStorePixelRatio ||
+    //                     context.backingStorePixelRatio || 1,
+    //
+    // ratio = devicePixelRatio / backingStoreRatio;
+
+    var winWidth = window.innerWidth;
+    var winHeight = window.innerHeight;
+    /*
+    var w2hRatio = winWidth / winHeight;
+    var newWidth2Height = winWidth / winHeight;
+
+    var widthToHeight = 4 / 3;
+
+    if (newWidth2Height > widthToHeight)
+    {
+        winWidth = winHeight * widthToHeight;
+    }
+    else winHeight = winWidth / widthToHeight;
+    //*/
+
+    this.viewport.width = winWidth;// * ratio;
+    this.viewport.height = winHeight;// * ratio;
+    //this.viewport.style.width = this.viewport.width;
+    //this.viewport.style.height = this.viewport.height;
 };
 
 game_core.prototype.client_onjoingame = function(data)
@@ -2380,6 +2415,8 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.mis = this.allplayers[i].mis;
             //if (data.me)
             this.allplayers[i].active = true;
+            this.allplayers[i].isLocal = true;
+            this.allplayers[i].playerName = "Jouster"
             this.players.self = this.allplayers[i];
             console.log(this.players.self);
         }
@@ -2500,7 +2537,7 @@ game_core.prototype.client_onping = function(data) {
 }; //client_onping
 
 game_core.prototype.client_onnetmessage = function(data) {
-    //if (glog)
+    if (glog)
     console.log('client_onnetmessage', data);
 
     var commands = data.split('.');

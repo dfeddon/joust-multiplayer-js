@@ -361,18 +361,23 @@ game_server.startGame = function(game)
             //if (hosted)
                 //this.log('@@ hosted by', hosted);
             // if current player is host...
-            if (game_instance.gamecore.players.self.mp == "hp")
+            /*if (game_instance.gamecore.players.self.mp == "hp")
             {
+                this.log("@@ found host, replacing with first available slot (cp1)");
                 // typically first player has joined, reassign self from host to nonhost[j].mp
                 for (var k = 0; k < game_instance.gamecore.allplayers.length; k++)
                 {
                     if (game_instance.gamecore.allplayers[k].mp == nonhosts[j].mp)
                     {
+                        this.log("################", nonhosts[j].mp, game_instance.gamecore.allplayers[k].mp);
+                        // assign socket to instance
+                        game_instance.gamecore.allplayers[k].instance = nonhosts[j];
+                        // assign player to self (replacing host)
                         game_instance.gamecore.players.self = game_instance.gamecore.allplayers[k];
                         break;
                     }
                 }
-            }
+            }*/
             //game_instance.gamecore.players.self = null;
             //game_instance.gamecore.players.self = nonhosts[j];
             //var clientInstance = nonhosts[j];
@@ -381,7 +386,7 @@ game_server.startGame = function(game)
             //game_instance.gamecore.players.self.instance = host;
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
             //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
-            console.log('sjn', game_instance.gamecore.players.self);
+            console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
             // send user mp, game id, orbs array
             nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(game_instance.gamecore.orbs));
             nonhosts[j].game = game;
