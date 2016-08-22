@@ -15,6 +15,7 @@ define(
   [
     'require',
     'domReady',
+    'egyptian_set',
     'class.player',
     'class.collision',
     'class.physicsEntity',

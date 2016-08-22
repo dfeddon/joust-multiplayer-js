@@ -9,6 +9,8 @@ MIT Licensed.
 var
     game_server = module.exports = { games : {}, game_count:0 },
     UUID        = require('node-uuid'),
+    //namegen     = require('./name_generator'),
+    name_set    = require('./egyptian_set'),
     verbose     = true;
 
 //Since we are sharing code with the browser, we
@@ -393,6 +395,9 @@ game_server.startGame = function(game)
         }
     }
 
+    //console.log('dfed', new namegen().generate_name(set));//, name_set);
+    //var pname = namegen.generate_name('egyptian');
+    //console.log('pname', pname);
     //now we tell both that the game is ready to start
     //clients will reset their positions in this case.
     // game.player_client.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
@@ -428,7 +433,16 @@ game_server.startGame = function(game)
 //     }
 //     return val;
 // };
-
+// game_server.nameGenerator = function()
+// {
+//     // name generator
+//     var set = new name_set().getSet();
+//     var rnd = Math.floor(Math.random() * set.length);
+//     var pname = set[rnd];
+//     console.log('pname', pname);
+//
+//     return pname;
+// }
 game_server.findGame = function(client)
 {
     this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
@@ -489,6 +503,8 @@ game_server.findGame = function(client)
                                 game_instance.gamecore.allplayers[i].instance = client;
                                 game_instance.gamecore.allplayers[i].id = client.userid;
                                 game_instance.gamecore.allplayers[i].isLocal = true;
+                                // game_instance.gamecore.allplayers[i].playerName = this.nameGenerator();
+                                // console.log('playername', game_instance.gamecore.allplayers[i].playerName);
                                 //game_instance.gamecore.allplayers[i].gameid = gameid;
                                 client.mp = game_instance.gamecore.allplayers[i].mp;
                                 //this.log(client);

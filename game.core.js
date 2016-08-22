@@ -114,6 +114,7 @@ var game_core = function(game_instance)
     {
         // include modules
         var UUID            = require('node-uuid'),
+        name_set            = require('./egyptian_set'),
         playerClass         = require('./class.player');
         /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
@@ -137,6 +138,7 @@ var game_core = function(game_instance)
         {
             other = new playerClass(this, null, false);
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
+            other.playerName = this.nameGenerator();
             this.allplayers.push(other);
             // this.entities.push(other);
         }
@@ -188,6 +190,27 @@ var game_core = function(game_instance)
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
 
+        this.flashBang = 0;
+        // TODO: if mobile, orientation change
+        window.addEventListener('orientationChange', this.resizeCanvas, false);
+        window.addEventListener('resize', this.resizeCanvas(), false);
+        window.addEventListener('keydown', function(e)
+        {
+            //console.log('key event', e.keyCode);
+            switch(e.keyCode)
+            {
+                case 40: // down button
+                case 83: // s
+                    e.view.game.players.self.doCycleAbility();
+                break;
+
+                case 32: // spacebar
+                    e.view.game.players.self.doAbility();
+                break;
+            }
+
+        }, false);
+
         // tilemap
         this.api(); // load and build tilemap
 
@@ -200,6 +223,7 @@ var game_core = function(game_instance)
             p = new game_player(this);
             // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
+            p.playerName = this.nameGenerator();
             this.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
@@ -282,6 +306,20 @@ if( 'undefined' != typeof global )
     module.exports = global.game_core = game_core;
 }
 
+game_core.prototype.nameGenerator = function()
+{
+    // name generator
+    var name_set;
+    if (this.server)
+        name_set = require('./egyptian_set');
+    else name_set = egyptian_set;
+    var set = new name_set().getSet();
+    var rnd = Math.floor(Math.random() * set.length);
+    var pname = set[rnd];
+    console.log('pname', pname);
+
+    return pname;
+}
 game_core.prototype.api = function()
 {
     var self = this;
@@ -550,7 +588,7 @@ game_core.prototype.prerenderer = function()
     /////////////////////////////////////////
     // Tilemap
     /////////////////////////////////////////
-    if (this.tilemap7)// && this.tmCanvas == undefined)
+    if (this.tilemap_off)// && this.tmCanvas == undefined)
     {
         // parse xml
         var parser = new DOMParser();
@@ -896,11 +934,16 @@ game_core.prototype.check_collision = function( player )
             {
                 // TODO: if vulnerable (stunned) then vuln user is victim
 
+                // set both players as 'engaged'
+                player.isEngaged();
+                this.allplayers[i].isEngaged();
+
                 // otherwise, positioning counts
                 var dif = player.pos.y - this.allplayers[i].pos.y;
                 //console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
                 if (dif >= -5 && dif <= 5 && player.stunned === false && this.allplayers[i].stunned === false)//player.pos.y === this.allplayers[i].pos.y)
                 {
+                    this.flashBang = 1;
                     //console.log("TIE!", player.mp, this.allplayers[i].mp);
                     if (player.pos.x < this.allplayers[i].pos.x)
                     {
@@ -933,6 +976,7 @@ game_core.prototype.check_collision = function( player )
                 }
                 else // we have a victim
                 {
+                    this.flashBang = 2;
                     var splatteree, waspos;
                     if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].stunned === true)
                     {
@@ -1221,16 +1265,20 @@ game_core.prototype.process_input = function( player )
     var x_dir = 0;
     var y_dir = 0;
     var ic = player.inputs.length;
-    if(ic) {
-        for(var j = 0; j < ic; ++j) {
-                //don't process ones we already have simulated locally
+    //console.log('ic:', ic);
+    if(ic)
+    {
+        for(var j = 0; j < ic; ++j)
+        {
+            //don't process ones we already have simulated locally
             if(player.inputs[j].seq <= player.last_input_seq) continue;
 
             var input = player.inputs[j].inputs;
             var c = input.length;
-            for(var i = 0; i < c; ++i) {
+            for(var i = 0; i < c; ++i)
+            {
                 var key = input[i];
-                //console.log('key', key);
+                //console.log('key', key, ic);
                 // if player.landed > 0
                 // bird walks to the left
                 if(key == 'l') {
@@ -1245,11 +1293,19 @@ game_core.prototype.process_input = function( player )
                     player.dir = 0;
                     //player.pos.d = 0;
                 }
-                // if(key == 'd') {
-                //     y_dir += 1;
-                // }
+                /*if(key == 'd') {// && ic===1) {
+                    //y_dir += 1;
+                    //console.log('cycle ability');
+                    player.doCycleAbility();
+                }*/
+                //else player.cycle = false;
+                if (key == "sp")
+                {
+                    console.log('ABILITY');
+                }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
+                    //console.log('flap');
                     player.flap = true;
                     player.landed = 0;
                     this.playerspeed = 200;//150;
@@ -1278,7 +1334,7 @@ game_core.prototype.process_input = function( player )
         } //for each input command
     } //if we have inputs
 
-        //we have a direction vector now, so apply the same physics as the client
+    //we have a direction vector now, so apply the same physics as the client
     var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
     if(player.inputs.length) {
         //we can now clear the array since these have been processed
@@ -1637,13 +1693,13 @@ game_core.prototype.client_handle_input = function(){
 
         } //right
 
-    if( this.keyboard.pressed('S') ||
+    /*if( this.keyboard.pressed('S') ||
         this.keyboard.pressed('down')) {
 
             //y_dir = 1;
             input.push('d');
 
-        } //down
+        }*/ //down
 
     if( this.keyboard.pressed('W') ||
         this.keyboard.pressed('up')) {
@@ -1652,6 +1708,13 @@ game_core.prototype.client_handle_input = function(){
             input.push('u');
 
         } //up
+
+    /*if( this.keyboard.pressed('space')) {
+
+            //y_dir = -1;
+            input.push('sp');
+
+        }*/ //up
 
     if(input.length) {
 
@@ -2064,6 +2127,20 @@ game_core.prototype.client_update = function()
     //console.log(this.players.self.pos.x, (this.viewport.width/2));
     this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);//worldWidth,worldHeight);
 
+    // flash bang
+    if (this.flashBang > 0)
+    {
+        console.log('flashbang');
+        this.ctx.beginPath();
+        if (this.flashBang === 1)
+        this.ctx.fillStyle = 'white';
+        else this.ctx.fillStyle = 'red';
+        this.ctx.rect(-this.cam.x,-this.cam.y,this.viewport.width+128,this.viewport.height+128);
+        this.ctx.fill();
+        this.ctx.closePath();
+        this.flashBang = 0;
+    }
+
     //draw help/information if required
     // this.client_draw_info();
 
@@ -2335,6 +2412,9 @@ game_core.prototype.client_onreadygame = function(data) {
 
 game_core.prototype.resizeCanvas = function()
 {
+    // http://stackoverflow.com/questions/33515707/scaling-a-javascript-canvas-game-properly
+    // https://jsfiddle.net/blindman67/fdjqoj04/
+    if (this.viewport == undefined) return;
     console.log('resizeCanvas', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
 
     // finally query the various pixel ratios
@@ -2370,8 +2450,8 @@ game_core.prototype.resizeCanvas = function()
 
     this.viewport.width = winWidth;// * ratio;
     this.viewport.height = winHeight;// * ratio;
-    //this.viewport.style.width = this.viewport.width;
-    //this.viewport.style.height = this.viewport.height;
+    this.viewport.style.width = this.viewport.width;
+    this.viewport.style.height = this.viewport.height;
 };
 
 game_core.prototype.client_onjoingame = function(data)
