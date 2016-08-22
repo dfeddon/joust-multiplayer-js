@@ -935,8 +935,8 @@ game_core.prototype.check_collision = function( player )
                 // TODO: if vulnerable (stunned) then vuln user is victim
 
                 // set both players as 'engaged'
-                player.isEngaged();
-                this.allplayers[i].isEngaged();
+                player.isEngaged(10000);
+                this.allplayers[i].isEngaged(10000);
 
                 // otherwise, positioning counts
                 var dif = player.pos.y - this.allplayers[i].pos.y;
@@ -1158,7 +1158,7 @@ game_core.prototype.check_collision = function( player )
             //player.pos.x += b;
             player.pos.y += b;
             if (player.stunned===false)
-                player.isStunned();
+                player.isStunned(500);
         }
         else if (h.ne.t > 0) // collide from below
         {
@@ -1166,7 +1166,7 @@ game_core.prototype.check_collision = function( player )
             //player.pos.x -= b;
             player.pos.y += b;
             if (player.stunned===false)
-                player.isStunned();
+                player.isStunned(500);
         }
         else if (h.sw.t > 0) // landing
         {

@@ -35,7 +35,7 @@ function game_player( game_instance, player_instance, isHost )
     //this.id = '';
     this.engaged = false;
     this.stunned = false;
-    this.stunLen = 500; // 1.5 sec
+    //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
 
@@ -75,7 +75,8 @@ function game_player( game_instance, player_instance, isHost )
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;
     this.pointsTotal = 0;
-    this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
+    //this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
+    this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
     this.progression = 0;
     this.abilities = []; // 0:none 1:burst
     this.ability = -1; // abilities index
@@ -88,15 +89,23 @@ function game_player( game_instance, player_instance, isHost )
     this.doCycleAbility = function()
     {
         console.log('Next Ability');
+
+        // no abilities (level 1)
         if (this.ability === -1) return;
         // if last ability selected, roll over to first
         if (this.ability === this.abilities.length - 1)
             this.ability = 0;
+        // otherwise, get next ability
         else this.ability++;
+        //console.log(this.ability, this.abilities.length, this.abilities[this.ability]);
     };
     this.doAbility = function()
     {
-        console.log('Ability!');
+        console.log('Fire Ability!');
+
+        // engage player
+        if (this.engaged === false)
+            this.isEngaged(5000);
     };
     this.updateMana = function(val)
     {
@@ -109,6 +118,8 @@ function game_player( game_instance, player_instance, isHost )
         else
         {
             this.mana -= val;
+            this.progression = this.mana;
+            return;
         }
         // calculate level, progression and mana stores
         if (this.pointsTotal < this.levels[1])
@@ -116,9 +127,9 @@ function game_player( game_instance, player_instance, isHost )
             this.level = 1;
             this.progression = this.mana;
         }
-        else if (this.level === 1 && this.pointsTotal < this.levels[2])
+        else if (this.level === 1 && this.pointsTotal > this.levels[1])
         {
-            console.log('** level up!');
+            console.log('** level up 2!');
             this.level = 2;
             this.abilities.push({label:"burst"});
             this.ability = 0; // set default to 'burst'
@@ -126,33 +137,38 @@ function game_player( game_instance, player_instance, isHost )
             // update progression
             this.progression = this.mana;
         }
-        else if (this.pointsTotal < this.levels[3])
+        else if (this.level === 2 && this.pointsTotal > this.levels[2])
         {
+            console.log('** level up 3!');
             this.level = 3;
             this.abilities.push({label:"frost"});
+            this.abilities.push({label:"blink"});
+            this.abilities.push({label:"grapple"});
+            this.abilities.push({label:"anchor"});
+            this.abilities.push({label:"cinder"});
         }
-        else if (this.pointsTotal < this.levels[4])
+        else if (this.level === 3 && this.pointsTotal > this.levels[3])
             this.level = 4;
-        else if (this.pointsTotal < this.levels[4])
+        else if (this.level === 4 && this.pointsTotal > this.levels[4])
             this.level = 5;
-        else if (this.pointsTotal < this.levels[5])
+        else if (this.level === 5 && this.pointsTotal > this.levels[5])
             this.level = 6;
-        else if (this.pointsTotal < this.levels[6])
+        else if (this.level === 6 && this.pointsTotal > this.levels[6])
             this.level = 7;
-        else if (this.pointsTotal < this.levels[7])
+        else if (this.level === 7 && this.pointsTotal > this.levels[7])
             this.level = 8;
-        else if (this.pointsTotal < this.levels[8])
+        else if (this.level === 8 && this.pointsTotal > this.levels[8])
             this.level = 9;
-        else if (this.pointsTotal < this.levels[9])
+        else if (this.level === 9 && this.pointsTotal > this.levels[9])
             this.level = 10;
-        else if (this.pointsTotal < this.levels[10])
+        else if (this.level === 10 && this.pointsTotal > this.levels[10])
             this.level = 11;
 
         //this.level = Math.ceil(this.mana / 256);
         console.log(this.level, this.mana);
     };
 
-    this.isEngaged = function()
+    this.isEngaged = function(len)
     {
         console.log('** isEngaged');
 
@@ -164,21 +180,24 @@ function game_player( game_instance, player_instance, isHost )
         {
             console.log('no longer engaged!');
             self.engaged = false;
-        }, 10000);
+        }, len);
     };
 
-    this.isStunned = function()
+    this.isStunned = function(len)
     {
         console.log('Im stunned!');
 
         self.stunned = true;
+
+        // also set to engaged
+        this.isEngaged(len);
 
         var stun = setInterval(function()
         {
             self.stunned = false;
             console.log('No longer stunned...');
             clearInterval(stun);
-        }, this.stunLen);
+        }, len);
         // setInterval (3 sec)
     };
 
@@ -273,7 +292,7 @@ game_player.prototype.draw = function()
         game.ctx.font = "small-caps lighter 15px arial";
 
         // ability
-        if (this.ability >= 0)
+        if (this.ability !== -1)
             game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
 
 
