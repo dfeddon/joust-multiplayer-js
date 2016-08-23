@@ -76,6 +76,9 @@ var game_core = function(game_instance)
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
 
+    // global delay flag for change ability input
+    this.inputDelay = false;
+
     //Used in collision etc.
     this.world = {
         width : worldWidth,//720,
@@ -194,7 +197,7 @@ var game_core = function(game_instance)
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
         window.addEventListener('resize', this.resizeCanvas(), false);
-        window.addEventListener('keydown', function(e)
+        /*window.addEventListener('keydown', function(e)
         {
             //console.log('key event', e.keyCode);
             switch(e.keyCode)
@@ -211,7 +214,7 @@ var game_core = function(game_instance)
                 break;
             }
 
-        }, false);
+        }, false);*/
 
         // tilemap
         this.api(); // load and build tilemap
@@ -557,7 +560,7 @@ game_core.prototype.tilemapper = function()
 
 game_core.prototype.prerenderer = function()
 {
-    console.log('## preprenderer', this.orbs.length);
+    //console.log('## preprenderer', this.orbs.length);
     var self = this;
     var context2, max, canvas2;
     //*
@@ -712,7 +715,7 @@ game_core.prototype.prerenderer = function()
 
     //for (var k = 0; k < max; k++)
     var orbs = this.orbs;
-    console.log('orbz',orbs.length);//, this.orbs);
+    //console.log('orbz',orbs.length);//, this.orbs);
     for (var k = 0; k < this.orbs.length; k++)
     {
         size = Math.floor(Math.random() * 4) + 2;
@@ -937,8 +940,13 @@ game_core.prototype.check_collision = function( player )
                 // TODO: if vulnerable (stunned) then vuln user is victim
 
                 // set both players as 'engaged'
-                player.isEngaged(10000);
-                this.allplayers[i].isEngaged(10000);
+                if (!this.server)
+                {
+                    if (player.isLocal)
+                        player.isEngaged(10000);
+                    else if (this.allplayers[i].isLocal)
+                        this.allplayers[i].isEngaged(10000);
+                }
 
                 // otherwise, positioning counts
                 var dif = player.pos.y - this.allplayers[i].pos.y;
@@ -1108,9 +1116,9 @@ game_core.prototype.check_collision = function( player )
             (player.pos.y + player.size.hy) > this.orbs[k].y
         )
         {
-            console.log('orb hit!', this.orbs[k]);//this.orbs[k].id, this.server);
+            //console.log('orb hit!', this.orbs[k]);//this.orbs[k].id, this.server);
             var rid = this.orbs[k].id;
-            console.log('by player', player.mp, this.server);//this.players.self.mp);
+            //console.log('by player', player.mp, this.server);//this.players.self.mp);
 
             //if (player.mp == this.players.self.mp)
                 //player.updateMana(this.orbs[k].w);
@@ -1130,7 +1138,7 @@ game_core.prototype.check_collision = function( player )
             {
                 if (this.allplayers[l].instance && this.allplayers[l].mp != player.mp)
                 {
-                    console.log('remote orb removal index', rid);//, this.players.self.mp);
+                    //console.log('remote orb removal index', rid);//, this.players.self.mp);
                     this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
                 }
             }
@@ -1238,7 +1246,7 @@ game_core.prototype.client_on_orbremoval = function(data)
     var orbFound = false;
     //if (this.players.self.mp == mp)
         //isLocal = true;
-    console.log('## orbRemoval', id, mp);//, isLocal);//, this.orbs[index]);
+    //console.log('## orbRemoval', id, mp);//, isLocal);//, this.orbs[index]);
 
     // if player got orb, already removed
     /*if (mp === this.players.self.mp)
@@ -1255,7 +1263,7 @@ game_core.prototype.client_on_orbremoval = function(data)
             this.orbs[i].x = -100;
             this.orbs[i].y = -100;
             this.orbs[i].r = true;
-            console.log('## removed orb', mp, this.orbs[i].id);
+            //console.log('## removed orb', mp, this.orbs[i].id);
             this.orbs.splice(i, 1);
 
             // local player got orb
@@ -1276,8 +1284,10 @@ game_core.prototype.process_input = function( player )
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
+    var _this = this;
     var x_dir = 0;
     var y_dir = 0;
+    //var delay = false;
     var ic = player.inputs.length;
     //console.log('ic:', ic);
     if(ic)
@@ -1307,17 +1317,26 @@ game_core.prototype.process_input = function( player )
                     player.dir = 0;
                     //player.pos.d = 0;
                 }
-                /*if(key == 'd') {// && ic===1) {
-                    //y_dir += 1;
-                    //console.log('cycle ability');
-                    player.doCycleAbility();
-                }*/
+                if(key == 'd')
+                {
+                    // delay kepresses by 200 ms
+                    if (this.inputDelay === false)
+                    {
+                        this.inputDelay = true;
+                        player.doCycleAbility();
+                        setTimeout(function()
+                        {
+                            _this.inputDelay = false;
+                        }, 200);
+                    }
+                }
                 //else player.cycle = false;
-                /*if (key == "sp")
+                if (key == "sp")
                 {
                     //console.log('ABILITY');
-                    player.doAbility();
-                }*/
+                    if (player.cooldown === false)
+                        player.doAbility();
+                }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
                     //console.log('flap!');
@@ -1562,12 +1581,16 @@ game_core.prototype.server_update = function()
             y:this.allplayers[i].pos.y,
             d:this.allplayers[i].dir,
             f:this.allplayers[i].flap,
-            l:this.allplayers[i].landed
+            l:this.allplayers[i].landed,
+            v:this.allplayers[i].vuln,
+            a:this.allplayers[i].abil
         };
         this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
 
         // reset flap on server instance
         if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
+        // rest abil on server instance
+        if (this.allplayers[i].abil > 0) this.allplayers[i].abil = 0;
     }
 
     this.laststate.t = this.server_time;
@@ -1654,7 +1677,7 @@ game_core.prototype.client_handle_input = function(){
 
     if (this.players.self.vuln === true)
     {
-        console.log('player is stunned!');
+        console.log('player is vulnerable!');
         return;
     }
     //if(this.lit > this.local_time) return;
@@ -1909,6 +1932,8 @@ game_core.prototype.client_process_net_updates = function()
                 this.allplayers[j].dir = target[this.allplayers[j].mp].d;
                 this.allplayers[j].flap = target[this.allplayers[j].mp].f;
                 this.allplayers[j].landed = target[this.allplayers[j].mp].l;
+                this.allplayers[j].vuln = target[this.allplayers[j].mp].v;
+                this.allplayers[j].abil = target[this.allplayers[j].mp].a;
                 //console.log(this.allplayers[j].pos);
             }
         }

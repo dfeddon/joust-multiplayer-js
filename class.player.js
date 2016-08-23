@@ -80,18 +80,20 @@ function game_player( game_instance, player_instance, isHost )
     this.progression = 0;
     this.abilities = []; // 0:none 1:burst
     this.ability = -1; // abilities index (-1 means no ability available)
+    this.abil = 0;
     this.buffs = [];
     this.debuffs = [];
     this.potions = [];
+    this.cooldown = false;
 
     this.playerName = "";
     //this.lastNamePlate = "YOU";
     this.doCycleAbility = function()
     {
-        console.log('Next Ability');
-
         // no abilities (level 1)
         if (this.ability === -1) return;
+
+        console.log('Next Ability');
         // if last ability selected, roll over to first
         if (this.ability === this.abilities.length - 1)
             this.ability = 0;
@@ -101,8 +103,20 @@ function game_player( game_instance, player_instance, isHost )
     };
     this.doAbility = function()
     {
-        // first ensure player is not vulnerable
-        if (this.vuln === true || this.ability === -1) return;
+        console.log('doAbility', this.mp);
+        // first ensure player is not vulnerable, has no abilities, or on global cooldown
+        console.log(this.vuln, this.ability, this.cooldown);
+        if (this.vuln === true || this.ability === -1 || this.cooldown === true) return;
+
+        // check for ability cooldown
+        //console.log(new Date(this.abilities[this.ability].t).getTime(), new Date().getTime());//.getSeconds());
+        if (this.abilities[this.ability].t !== 0 && new Date(this.abilities[this.ability].t).getTime() > new Date().getTime())
+        {
+            console.log('ability on cooldown...');//, this.abilities[this.ability].t, new Date().getSeconds());
+            return;
+        }
+
+        var _this = this;
 
         // next, check for active buffs/debuffs
         //console.log(this.abilities);
@@ -110,17 +124,24 @@ function game_player( game_instance, player_instance, isHost )
         console.log('Fire Ability', this.abilities[this.ability]);
 
         // engage player
-        if (this.engaged === false)
+        if (this.engaged === false && this.isLocal)
             this.isEngaged(5000);
+
+        // set ability index
+        this.abil = this.abilities[this.ability].id;
 
         // activate ability
         switch(this.abilities[this.ability].label)
         {
             case "burst":
+                //this.abil = 1;
+                // start cooldown
             break;
 
             case "blink":
-                console.log('blinking', this.dir);
+                //console.log('blinking', this.dir);
+                //this.abil = 2;
+                // start cooldown
                 if (this.dir === 0)
                     this.pos.x += 150;
                 else this.pos.x -= 150;
@@ -144,10 +165,29 @@ function game_player( game_instance, player_instance, isHost )
             default:
                 console.log('ERROR: unknown ability!');
         }
+
+        // start 3 second global cooldown (for non-channelling abilities)
+        if (this.abilities[this.ability].cd >= 1000)
+        {
+            this.cooldown = true;
+            setTimeout(function()
+            {
+                console.log('off global cooldown');
+                _this.cooldown = false;
+            }, 3000);
+        }
+
+        // start ability cooldown
+        var d = new Date();
+        // if cooldown in seconds, else milliseconds
+        if (this.abilities[this.ability].cd >= 1000)
+            this.abilities[this.ability].t = d.setSeconds(d.getSeconds() + (this.abilities[this.ability].cd / 1000));
+        else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
+        //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
     };
     this.updateMana = function(val)
     {
-        console.log('update mana', val);
+        //console.log('update mana', val);
 
         // does user have mana booster?
 
@@ -172,17 +212,18 @@ function game_player( game_instance, player_instance, isHost )
         {
             console.log('** level up 2!');
             this.level = 2;
-            this.abilities.push({label:"burst"});
+            this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
             this.ability = 0; // set default to 'burst'
 
             //this.ability = 0;
             // this.abilities.push({label:"burst"});
-            this.abilities.push({label:"frost"});
-            this.abilities.push({label:"blink"});
-            this.abilities.push({label:"grapple"});
-            this.abilities.push({label:"anchor"});
-            this.abilities.push({label:"cinder"});
-            this.abilities.push({label:"confusion"});
+            // cd = cooldown, gc = global cooldown, t = time last used (for cd)
+            this.abilities.push({label:"frost", id:2, cd: 250, gc:false, t:0});
+            this.abilities.push({label:"blink", id:3, cd: 5000, gc:true, t:0});
+            this.abilities.push({label:"grapple", id:4, cd: 5000, gc:true, t:0});
+            this.abilities.push({label:"anchor", id:5, cd: 5000, gc:true, t:0});
+            this.abilities.push({label:"cinder", id:6, cd: 250, gc:false, t:0});
+            this.abilities.push({label:"confusion", id:7, cd: 60000, gc:true, t:0});
 
             // update progression
             this.progression = this.mana;
@@ -191,12 +232,12 @@ function game_player( game_instance, player_instance, isHost )
         {
             console.log('** level up 3!');
             this.level = 3;
-            this.abilities.push({label:"frost"});
-            this.abilities.push({label:"blink"});
-            this.abilities.push({label:"grapple"});
-            this.abilities.push({label:"anchor"});
-            this.abilities.push({label:"cinder"});
-            this.abilities.push({label:"confusion"});
+            // this.abilities.push({label:"frost"});
+            // this.abilities.push({label:"blink"});
+            // this.abilities.push({label:"grapple"});
+            // this.abilities.push({label:"anchor"});
+            // this.abilities.push({label:"cinder"});
+            // this.abilities.push({label:"confusion"});
         }
         else if (this.level === 3 && this.pointsTotal > this.levels[3])
             this.level = 4;
@@ -216,12 +257,12 @@ function game_player( game_instance, player_instance, isHost )
             this.level = 11;
 
         //this.level = Math.ceil(this.mana / 256);
-        console.log(this.level, this.mana);
+        //console.log(this.level, this.mana);
     };
 
     this.isEngaged = function(len)
     {
-        console.log('** isEngaged');
+        //console.log(this.mp, 'isEngaged');
 
         var _this = this;
         self.engaged = true;
@@ -229,7 +270,7 @@ function game_player( game_instance, player_instance, isHost )
         // timer 10 sec
         setTimeout(function()
         {
-            console.log('no longer engaged!');
+            //console.log(self.mp, 'no longer engaged!');
             self.engaged = false;
         }, len);
     };
@@ -241,12 +282,13 @@ function game_player( game_instance, player_instance, isHost )
         self.vuln = true;
 
         // also set to engaged
-        this.isEngaged(len);
+        if (this.isLocal)
+            this.isEngaged(len);
 
         var stun = setInterval(function()
         {
             self.vuln = false;
-            console.log('No longer stunned...');
+            console.log('...no longer vulnerable');
             clearInterval(stun);
         }, len);
         // setInterval (3 sec)
@@ -292,6 +334,8 @@ function game_player( game_instance, player_instance, isHost )
 
 game_player.prototype.draw = function()
 {
+    this.pos.x = this.pos.x.fixed(1);
+    this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
     // mana bar bg
     var txtOffset = 10;
@@ -325,6 +369,7 @@ game_player.prototype.draw = function()
             game.ctx.closePath();
 
             // buffs, potions, and boosters
+            //console.log(this.pos.x, this.pos.y);
             game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
             game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
             game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
@@ -340,18 +385,14 @@ game_player.prototype.draw = function()
         }
 
         // nameplate color
-        game.ctx.fillStyle = 'white';
-        game.ctx.font = "small-caps lighter 15px arial";
-
-        // ability
-        //if (this.ability !== -1)
-            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
+        game.ctx.fillStyle = '#526869';
+        game.ctx.font = "small-caps lighter 15px serif";
     }
     else
     {
         // nameplate color
         game.ctx.fillStyle = '#FF6961';
-        game.ctx.font = "small-caps 15px arial";
+        game.ctx.font = "small-caps 15px serif";
     }
     // game.ctx.strokeRect(
     //     this.pos.x,
@@ -379,10 +420,54 @@ game_player.prototype.draw = function()
             15, 15);
     }
 
+
+    // ability
+    if (this.abil > 0)
+    {
+        console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
+
+        switch(this.abil)
+        {
+            case 1: // burst
+            this.abil = 0; // reset
+            game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
+            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
+            break;
+
+            case 2: // frost
+            break;
+
+            case 2: // frost
+            break;
+
+            case 3: // blink
+            break;
+
+            case 4: // grapple
+            break;
+
+            case 5: // anchor
+            break;
+
+            case 6: // cinder
+            break;
+
+            case 7: // confusion
+            break;
+
+            default:
+                console.log('ERROR: invalid abil value');
+        }
+    }
+
     // player bitamps
     var img, imgW, imgH;
     //if (this.pos.d == 1)
     //if (this.landed > 0) console.log(this.landed, this.mp);
+    // if (this.abil > 0)
+    // {
+    //     console.log('abil!', this.abil, this.mp);
+    // }
     if (this.vuln === true)
     {
         if (this.dir === 1)
@@ -444,4 +529,4 @@ game_player.prototype.draw = function()
 //if (typeof module != 'undefined')
 if('undefined' != typeof global)
     module.exports = game_player;
-else console.log('running client');
+//else console.log('running client');
