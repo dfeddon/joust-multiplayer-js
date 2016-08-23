@@ -202,6 +202,8 @@ var game_core = function(game_instance)
                 case 40: // down button
                 case 83: // s
                     e.view.game.players.self.doCycleAbility();
+                //     e.view.game.players.self.inputs.push("d");
+                //     e.view.game.process_input(e.view.game.players.self);
                 break;
 
                 case 32: // spacebar
@@ -941,7 +943,7 @@ game_core.prototype.check_collision = function( player )
                 // otherwise, positioning counts
                 var dif = player.pos.y - this.allplayers[i].pos.y;
                 //console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
-                if (dif >= -5 && dif <= 5 && player.stunned === false && this.allplayers[i].stunned === false)//player.pos.y === this.allplayers[i].pos.y)
+                if (dif >= -5 && dif <= 5 && player.vuln === false && this.allplayers[i].vuln === false)//player.pos.y === this.allplayers[i].pos.y)
                 {
                     this.flashBang = 1;
                     //console.log("TIE!", player.mp, this.allplayers[i].mp);
@@ -978,7 +980,7 @@ game_core.prototype.check_collision = function( player )
                 {
                     this.flashBang = 2;
                     var splatteree, waspos;
-                    if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].stunned === true)
+                    if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].vuln === true)
                     {
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         waspos = this.allplayers[i].pos;
@@ -1108,26 +1110,33 @@ game_core.prototype.check_collision = function( player )
         {
             console.log('orb hit!', this.orbs[k]);//this.orbs[k].id, this.server);
             var rid = this.orbs[k].id;
-            console.log('by player', player.mp, this.players.self.mp);
+            console.log('by player', player.mp, this.server);//this.players.self.mp);
 
             //if (player.mp == this.players.self.mp)
                 //player.updateMana(this.orbs[k].w);
 
-            console.log('ids', player.id, this.players.self.id);
+            //console.log('ids', player.id, this.players.self.id);
+
+            // add orb to player mana store
+            //console.log('::player', player);
+            player.updateMana(this.orbs[k].w);
 
             // remove it (from server only)
-            if (this.server)
-                this.orbs.splice(k, 1);
+            //if (this.server)
+            this.orbs.splice(k, 1);
 
-            console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
+            //console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
             for (var l = 0; l < this.allplayers.length; l++)
             {
-                if (this.allplayers[l].instance)
+                if (this.allplayers[l].instance && this.allplayers[l].mp != player.mp)
                 {
-                    console.log('remote orb removal index', rid, this.players.self.mp);
+                    console.log('remote orb removal index', rid);//, this.players.self.mp);
                     this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
                 }
             }
+
+            // remove orb from view
+            if (!this.server) this.prerenderer();
 
             // get out
             break;
@@ -1157,16 +1166,16 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop nw', player.mp);
             //player.pos.x += b;
             player.pos.y += b;
-            if (player.stunned===false)
-                player.isStunned(500);
+            if (player.vuln===false)
+                player.isVuln(500);
         }
         else if (h.ne.t > 0) // collide from below
         {
             //console.log('stop ne', player.mp);
             //player.pos.x -= b;
             player.pos.y += b;
-            if (player.stunned===false)
-                player.isStunned(500);
+            if (player.vuln===false)
+                player.isVuln(500);
         }
         else if (h.sw.t > 0) // landing
         {
@@ -1199,7 +1208,7 @@ game_core.prototype.check_collision = function( player )
             //player.pos.y -= b;
             player.pos.y = parseInt((h.sw.y * 64) - 64);
             // decelerate
-            if (player.vx > 0 && player.stunned !== true)
+            if (player.vx > 0 && player.vuln !== true)
             {
                 //console.log('slowing', player.vx);
 
@@ -1227,9 +1236,16 @@ game_core.prototype.client_on_orbremoval = function(data)
     var mp = split[1];
     var isLocal = false;
     var orbFound = false;
-    if (this.players.self.mp == mp)
-        isLocal = true;
-    console.log('## orbRemoval', id, mp, isLocal);//, this.orbs[index]);
+    //if (this.players.self.mp == mp)
+        //isLocal = true;
+    console.log('## orbRemoval', id, mp);//, isLocal);//, this.orbs[index]);
+
+    // if player got orb, already removed
+    /*if (mp === this.players.self.mp)
+    {
+        this.prerenderer();
+        return;
+    }*/
     //this.orbs.splice(index, 1);
     for (var i = 0; i < this.orbs.length; i++)
     {
@@ -1239,20 +1255,18 @@ game_core.prototype.client_on_orbremoval = function(data)
             this.orbs[i].x = -100;
             this.orbs[i].y = -100;
             this.orbs[i].r = true;
-            console.log('## removed orb', this.orbs[i].id, isLocal, isLocal, mp);
+            console.log('## removed orb', mp, this.orbs[i].id);
             this.orbs.splice(i, 1);
 
             // local player got orb
-            if (isLocal === true)
-                this.players.self.updateMana(this.orbs[i].w);
+            //if (this.players.self.isLocal === true)
+                //this.players.self.updateMana(this.orbs[i].w);
             break;
         }
     }
-    //this.orbs[index]
-    //this.orbs.splice(index, 1);
     if (orbFound === true)
         this.prerenderer();
-    else console.log('orb id', id, 'not found!');
+    //else console.log('orb id', id, 'not found!');
 };
 
 
@@ -1299,13 +1313,14 @@ game_core.prototype.process_input = function( player )
                     player.doCycleAbility();
                 }*/
                 //else player.cycle = false;
-                if (key == "sp")
+                /*if (key == "sp")
                 {
-                    console.log('ABILITY');
-                }
+                    //console.log('ABILITY');
+                    player.doAbility();
+                }*/
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    //console.log('flap');
+                    //console.log('flap!');
                     player.flap = true;
                     player.landed = 0;
                     this.playerspeed = 200;//150;
@@ -1541,43 +1556,20 @@ game_core.prototype.server_update = function()
     this.laststate = {};
     for (var i = 0; i < this.allplayers.length; i++)
     {
-        //console.log(':',i, this.allplayers[i].mp);
-        /*if (this.allplayers[i].instance && this.allplayers[i].instance.hosting === true)
+        this.laststate[this.allplayers[i].mp] =
         {
-            this.laststate.hp = this.allplayers[i].pos;
-            this.laststate.his = this.allplayers[i].last_input_seq;
-        }
-        else
-        {
-            this.laststate.cp = this.allplayers[i].pos;
-            this.laststate.cis = this.allplayers[i].last_input_seq;
-        }*/
-        //if (this.allplayers[i].mp)
-        //{
-            //console.log(this.allplayers[i].mp);
-            //this.laststate[this.allplayers[i].mp] = this.allplayers[i].pos;
-            this.laststate[this.allplayers[i].mp] =
-            {
-                x:this.allplayers[i].pos.x,
-                y:this.allplayers[i].pos.y,
-                d:this.allplayers[i].dir,
-                f:this.allplayers[i].flap,
-                l:this.allplayers[i].landed
-            };
-            this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
+            x:this.allplayers[i].pos.x,
+            y:this.allplayers[i].pos.y,
+            d:this.allplayers[i].dir,
+            f:this.allplayers[i].flap,
+            l:this.allplayers[i].landed
+        };
+        this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
 
-            // reset flap on server instance
-            if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
-        //}
+        // reset flap on server instance
+        if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
     }
-    //console.log(this.laststate);
-    /*
-    if (!this.laststate.cp) // TODO: STUB - Remove this check (forcing "other" player)
-    {
-        this.laststate.cp = this.players.other.pos;
-        this.laststate.cis = this.players.other.last_input_seq;
-    }
-    //*/
+
     this.laststate.t = this.server_time;
     //console.log(this.laststate);
     //console.log('len', this.allplayers.length);
@@ -1660,7 +1652,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 game_core.prototype.client_handle_input = function(){
     if (glog) console.log('## client_handle_input');
 
-    if (this.players.self.stunned === true)
+    if (this.players.self.vuln === true)
     {
         console.log('player is stunned!');
         return;
@@ -1693,13 +1685,13 @@ game_core.prototype.client_handle_input = function(){
 
         } //right
 
-    /*if( this.keyboard.pressed('S') ||
+    if( this.keyboard.pressed('S') ||
         this.keyboard.pressed('down')) {
 
             //y_dir = 1;
             input.push('d');
 
-        }*/ //down
+        } //down
 
     if( this.keyboard.pressed('W') ||
         this.keyboard.pressed('up')) {
@@ -1709,12 +1701,12 @@ game_core.prototype.client_handle_input = function(){
 
         } //up
 
-    /*if( this.keyboard.pressed('space')) {
+    if( this.keyboard.pressed('space')) {
 
             //y_dir = -1;
             input.push('sp');
 
-        }*/ //up
+        } //up
 
     if(input.length) {
 

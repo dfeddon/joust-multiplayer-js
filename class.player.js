@@ -34,7 +34,7 @@ function game_player( game_instance, player_instance, isHost )
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
     this.engaged = false;
-    this.stunned = false;
+    this.vuln = false;
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -79,7 +79,7 @@ function game_player( game_instance, player_instance, isHost )
     this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
     this.progression = 0;
     this.abilities = []; // 0:none 1:burst
-    this.ability = -1; // abilities index
+    this.ability = -1; // abilities index (-1 means no ability available)
     this.buffs = [];
     this.debuffs = [];
     this.potions = [];
@@ -101,15 +101,56 @@ function game_player( game_instance, player_instance, isHost )
     };
     this.doAbility = function()
     {
-        console.log('Fire Ability!');
+        // first ensure player is not vulnerable
+        if (this.vuln === true || this.ability === -1) return;
+
+        // next, check for active buffs/debuffs
+        //console.log(this.abilities);
+        //console.log(this.ability);
+        console.log('Fire Ability', this.abilities[this.ability]);
 
         // engage player
         if (this.engaged === false)
             this.isEngaged(5000);
+
+        // activate ability
+        switch(this.abilities[this.ability].label)
+        {
+            case "burst":
+            break;
+
+            case "blink":
+                console.log('blinking', this.dir);
+                if (this.dir === 0)
+                    this.pos.x += 150;
+                else this.pos.x -= 150;
+            break;
+
+            case "grapple":
+            break;
+
+            case "anchor":
+            break;
+
+            case "frost":
+            break;
+
+            case "cinder":
+            break;
+
+            case "confusion":
+            break;
+
+            default:
+                console.log('ERROR: unknown ability!');
+        }
     };
     this.updateMana = function(val)
     {
         console.log('update mana', val);
+
+        // does user have mana booster?
+
         if (val > 0)
         {
             this.mana += val;
@@ -134,6 +175,15 @@ function game_player( game_instance, player_instance, isHost )
             this.abilities.push({label:"burst"});
             this.ability = 0; // set default to 'burst'
 
+            //this.ability = 0;
+            // this.abilities.push({label:"burst"});
+            this.abilities.push({label:"frost"});
+            this.abilities.push({label:"blink"});
+            this.abilities.push({label:"grapple"});
+            this.abilities.push({label:"anchor"});
+            this.abilities.push({label:"cinder"});
+            this.abilities.push({label:"confusion"});
+
             // update progression
             this.progression = this.mana;
         }
@@ -146,6 +196,7 @@ function game_player( game_instance, player_instance, isHost )
             this.abilities.push({label:"grapple"});
             this.abilities.push({label:"anchor"});
             this.abilities.push({label:"cinder"});
+            this.abilities.push({label:"confusion"});
         }
         else if (this.level === 3 && this.pointsTotal > this.levels[3])
             this.level = 4;
@@ -183,18 +234,18 @@ function game_player( game_instance, player_instance, isHost )
         }, len);
     };
 
-    this.isStunned = function(len)
+    this.isVuln = function(len)
     {
-        console.log('Im stunned!');
+        console.log('Im vulnerable!');
 
-        self.stunned = true;
+        self.vuln = true;
 
         // also set to engaged
         this.isEngaged(len);
 
         var stun = setInterval(function()
         {
-            self.stunned = false;
+            self.vuln = false;
             console.log('No longer stunned...');
             clearInterval(stun);
         }, len);
@@ -244,6 +295,7 @@ game_player.prototype.draw = function()
     // player nametags (temp)
     // mana bar bg
     var txtOffset = 10;
+    var abil;
     if (this.isLocal === true)
     {
         if (this.engaged === false)
@@ -292,10 +344,8 @@ game_player.prototype.draw = function()
         game.ctx.font = "small-caps lighter 15px arial";
 
         // ability
-        if (this.ability !== -1)
-            game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
-
-
+        //if (this.ability !== -1)
+            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
     }
     else
     {
@@ -312,18 +362,28 @@ game_player.prototype.draw = function()
     // nameplate
     game.ctx.font = "small-caps lighter 12px arial";
     game.ctx.textAlign = 'center';
+    var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
     game.ctx.fillText(
-        "[" + this.level + "] " + this.playerName,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+        txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
         this.pos.y - txtOffset
         //100
     );
+    if (this.isLocal === true && this.ability !== -1)
+    {
+        game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
+            //this.pos.x - 15,
+            this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
+            //this.pos.x + (this.size.hx/2) - 30,
+            this.pos.y - txtOffset - 12,
+            15, 15);
+    }
 
     // player bitamps
     var img, imgW, imgH;
     //if (this.pos.d == 1)
     //if (this.landed > 0) console.log(this.landed, this.mp);
-    if (this.stunned === true)
+    if (this.vuln === true)
     {
         if (this.dir === 1)
             img = document.getElementById("p1stun-l");
