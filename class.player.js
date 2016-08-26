@@ -25,6 +25,9 @@ function game_player( game_instance, player_instance, isHost )
     this.ax = 0;
     this.ay = 0;
 
+    // mass
+    this.m = 0.1; // kg
+
     this.flap = false; // flapped bool (derek added)
     this.landed = 0; // 0=flying, 1=stationary, 2=walking
     this.visible = true;
@@ -79,8 +82,9 @@ function game_player( game_instance, player_instance, isHost )
     this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
     this.progression = 0;
     this.abilities = []; // 0:none 1:burst
-    this.ability = -1; // abilities index (-1 means no ability available)
-    this.abil = 0;
+    this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
+    this.ability = 0; // abilities index (-1 means no ability available)
+    this.abil = 1;
     this.buffs = [];
     this.debuffs = [];
     this.potions = [];
@@ -88,7 +92,8 @@ function game_player( game_instance, player_instance, isHost )
 
     this.playerName = "";
     //this.lastNamePlate = "YOU";
-    this.doCycleAbility = function()
+} // end game_player constructor
+    game_player.prototype.doCycleAbility = function()
     {
         // no abilities (level 1)
         if (this.ability === -1) return;
@@ -101,7 +106,8 @@ function game_player( game_instance, player_instance, isHost )
         else this.ability++;
         //console.log(this.ability, this.abilities.length, this.abilities[this.ability]);
     };
-    this.doAbility = function()
+
+    game_player.prototype.doAbility = function()
     {
         console.log('doAbility', this.mp);
         // first ensure player is not vulnerable, has no abilities, or on global cooldown
@@ -135,6 +141,14 @@ function game_player( game_instance, player_instance, isHost )
         {
             case "burst":
                 //this.abil = 1;
+                console.log('bursting!!', this.x_dir, this.mp, this.game.playerspeed);
+                //if (this.dir === 0)
+                    //this.x_dir += 500;//this.pos.x += this.size.hx + 150;
+                //else this.ax -= 100;//this.pos.x -= 150;
+                this.vx += 500;
+                console.log('post!!', this.x_dir, this.mp, this.game.playerspeed);
+
+                //if (this.isLocal) this.game.players.self.pos.x = this.pos.x;
                 // start cooldown
             break;
 
@@ -185,7 +199,7 @@ function game_player( game_instance, player_instance, isHost )
         else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
         //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
     };
-    this.updateMana = function(val)
+    game_player.prototype.updateMana = function(val)
     {
         //console.log('update mana', val);
 
@@ -260,26 +274,27 @@ function game_player( game_instance, player_instance, isHost )
         //console.log(this.level, this.mana);
     };
 
-    this.isEngaged = function(len)
+    game_player.prototype.isEngaged = function(len)
     {
         //console.log(this.mp, 'isEngaged');
 
         var _this = this;
-        self.engaged = true;
+        this.engaged = true;
 
         // timer 10 sec
         setTimeout(function()
         {
             //console.log(self.mp, 'no longer engaged!');
-            self.engaged = false;
+            _this.engaged = false;
         }, len);
     };
 
-    this.isVuln = function(len)
+    game_player.prototype.isVuln = function(len)
     {
         console.log('Im vulnerable!');
+        var _this = this;
 
-        self.vuln = true;
+        this.vuln = true;
 
         // also set to engaged
         if (this.isLocal)
@@ -287,19 +302,19 @@ function game_player( game_instance, player_instance, isHost )
 
         var stun = setInterval(function()
         {
-            self.vuln = false;
+            _this.vuln = false;
             console.log('...no longer vulnerable');
             clearInterval(stun);
         }, len);
         // setInterval (3 sec)
     };
 
-    this.getGrid = function()
+    game_player.prototype.getGrid = function()
     {
         return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
     };
 
-    this.getCoord = function()
+    game_player.prototype.getCoord = function()
     {
         // direction-dependent, account for
         var nw = { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
@@ -309,7 +324,7 @@ function game_player( game_instance, player_instance, isHost )
         return { nw:nw, ne:ne, sw:sw, se:se };
         //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
     };
-    this.hitGrid = function()
+    game_player.prototype.hitGrid = function()
     {
         //if (this.game.server) console.log(this.tilemapData);
         if (this.game.tilemapData == undefined) return;
@@ -330,7 +345,52 @@ function game_player( game_instance, player_instance, isHost )
 
     // new physics properies end
 
-} //game_player.constructor
+//} //game_player.constructor
+
+game_player.prototype.drawAbilities = function()
+{
+    if (this.engaged === false)
+    {
+        game.ctx.beginPath();
+        game.ctx.strokeStyle = 'gray';
+        game.ctx.moveTo(this.pos.x, this.pos.y-20);
+        game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-20);
+        game.ctx.lineWidth = 3;
+        game.ctx.stroke();
+        game.ctx.closePath();
+
+        // mana progression
+        // calculate
+        var progressPercent = (this.mana / this.levels[this.level]);
+        // 64 is the width of the progression bar
+        var progressVal = ((progressPercent / 100) * 64) * 100;
+        // draw it
+        game.ctx.beginPath();
+        game.ctx.strokeStyle = 'yellow';
+        // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
+        // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
+        game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-20);
+        game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-20);
+        game.ctx.lineWidth = 3;
+        game.ctx.stroke();
+        game.ctx.closePath();
+
+        // buffs, potions, and boosters
+        //console.log(this.pos.x, this.pos.y);
+        game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
+        /*game.ctx.fillStyle = 'yellow';
+        game.ctx.beginPath();
+        game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
+        game.ctx.fill();*/
+        // TODO: if not buffs, debuffs or boosters
+        // then txtOffset = 20;
+        txtOffset = 30;
+    } // end isEngaged
+};
 
 game_player.prototype.draw = function()
 {
@@ -342,52 +402,11 @@ game_player.prototype.draw = function()
     var abil;
     if (this.isLocal === true)
     {
-        if (this.engaged === false)
-        {
-            game.ctx.beginPath();
-            game.ctx.strokeStyle = 'gray';
-            game.ctx.moveTo(this.pos.x, this.pos.y-20);
-            game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-20);
-            game.ctx.lineWidth = 3;
-            game.ctx.stroke();
-            game.ctx.closePath();
-
-            // mana progression
-            // calculate
-            var progressPercent = (this.mana / this.levels[this.level]);
-            // 64 is the width of the progression bar
-            var progressVal = ((progressPercent / 100) * 64) * 100;
-            // draw it
-            game.ctx.beginPath();
-            game.ctx.strokeStyle = 'yellow';
-            // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
-            // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-            game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-20);
-            game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-20);
-            game.ctx.lineWidth = 3;
-            game.ctx.stroke();
-            game.ctx.closePath();
-
-            // buffs, potions, and boosters
-            //console.log(this.pos.x, this.pos.y);
-            game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
-            game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
-            game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
-            game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
-            game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
-            /*game.ctx.fillStyle = 'yellow';
-            game.ctx.beginPath();
-            game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
-            game.ctx.fill();*/
-            // TODO: if not buffs, debuffs or boosters
-            // then txtOffset = 20;
-            txtOffset = 30;
-        }
 
         // nameplate color
         game.ctx.fillStyle = '#526869';
         game.ctx.font = "small-caps lighter 15px serif";
-    }
+    } // end isLocal
     else
     {
         // nameplate color
@@ -403,14 +422,15 @@ game_player.prototype.draw = function()
     // nameplate
     game.ctx.font = "small-caps lighter 12px arial";
     game.ctx.textAlign = 'center';
-    var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
+    //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
+    var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
     game.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
         this.pos.y - txtOffset
         //100
     );
-    if (this.isLocal === true && this.ability !== -1)
+    if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
         game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
             //this.pos.x - 15,
