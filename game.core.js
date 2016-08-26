@@ -76,6 +76,10 @@ var game_core = function(game_instance)
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
 
+    this.bg = null;
+    this.fg = null;
+    this.barriers = null;
+
     // global delay flag for change ability input
     this.inputDelay = false;
 
@@ -367,8 +371,9 @@ game_core.prototype.apiNode = function()
         parser.parseString(data, function (err, result)
         {
             //console.dir(result.note.to[0]);
-            console.log(JSON.stringify(result.map.layer[0].data[0]._));
-            var data = JSON.stringify(result.map.layer[0].data[0]._);
+            //NOTE: map.layers[1] is barriers layer
+            console.log(JSON.stringify(result.map.layer[1].data[0]._));
+            var data = JSON.stringify(result.map.layer[1].data[0]._);
             var split = data.split('\\n');
             //split = split.shift();
             var base = [];
@@ -432,6 +437,7 @@ game_core.prototype.newPlayer = function(client)
 
 game_core.prototype.tilemapper = function()
 {
+    console.log('tilemapper');
     var canvas3 = document.createElement('canvas');
     canvas3.id = "canvas3";
     canvas3.x = 0;
@@ -448,7 +454,7 @@ game_core.prototype.tilemapper = function()
         // parse xml
         var parser = new DOMParser();
         var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
-        //console.log('xml', xmlDoc);
+        console.log('xml', xmlDoc);
 
         // map
         var mapNode = xmlDoc.getElementsByTagName('map');
@@ -469,29 +475,58 @@ game_core.prototype.tilemapper = function()
         name = tilesetNode[0].getAttribute('name');
         //console.log(tileCount, columns, name);
 
-        // data
-        var data, encoding;
-        var dataNode = xmlDoc.getElementsByTagName('data');
-        encoding = dataNode[0].getAttribute('encoding');
-        data = dataNode[0].innerHTML;
-        //console.log(dataNode[0]);
-        //console.log(data);
+        // layers
+        var layerNode = xmlDoc.getElementsByTagName('layer');
+        console.log('num layers', layerNode.length);
+        console.log(layerNode);
 
-        // build 2d array of row data
+        var layerData = [];
         var base = [];
-        var rows = data.split("\n");
-        rows.shift(); // first item is newline
-        rows.pop(); // last item is newline
-        console.log(rows);
-        for (var i = 0; i < rows.length; i++)
+        var layerName, data, encoding, dataNode;
+
+        // iterate layers
+        for (var x = 0; x < layerNode.length; x++)
         {
-            rows[i] = rows[i].split(",");
-            if (i !== rows.length - 1)
-                rows[i].pop(); // last item of each row is newline (except last line)
-            base.push(rows[i]);
+            console.log(layerNode[x].getAttribute('name'));
+            /*console.log(layerNode[x].getElementsByTagName('data')[0]);
+            console.log(layerNode[x].getElementsByTagName('data')[0].innerHTML);*/
+
+            layerName = layerNode[x].getAttribute('name');
+            dataNode = layerNode[x].getElementsByTagName('data')[0];
+            data = layerNode[x].getElementsByTagName('data')[0].innerHTML;
+            //continue;
+
+            // data
+            //var data, encoding;
+            /*dataNode = xmlDoc.getElementsByTagName('data');
+            encoding = dataNode[0].getAttribute('encoding');
+            data = dataNode[0].innerHTML;*/
+            // console.log(dataNode[0]);
+            //console.log(data);
+
+            // build 2d array of row data
+            // clear base array
+            base = [];
+            var rows = data.split("\n");
+            rows.shift(); // first item is newline
+            rows.pop(); // last item is newline
+            console.log(rows);
+            for (var i = 0; i < rows.length; i++)
+            {
+                rows[i] = rows[i].split(",");
+                if (i !== rows.length - 1)
+                    rows[i].pop(); // last item of each row is newline (except last line)
+                base.push(rows[i]);
+            }
+            // tilemapData tracks on the 'barrier' layer (for collision detection)
+            if (layerName == "barriers")
+                this.tilemapData = base;
+            //console.log(base);
+            layerData.push(base);
+
         }
-        this.tilemapData = base;
-        console.log(base);
+        //console.log(layerData);
+        //return;
 
         // build bitmap from tilelist image
         var source, trans, imageWidth, imageHeight;
@@ -502,6 +537,7 @@ game_core.prototype.tilemapper = function()
         imageHeight = imageNode[0].getAttribute('height');
         //console.log(source, trans, imageWidth, imageHeight);
 
+        var layers = [];
         var image = new Image();
         image.onload = function(e)
         {
@@ -510,8 +546,10 @@ game_core.prototype.tilemapper = function()
             //context2.drawImage(e.target, 0, 0);
 
             // first, create canvas the exact size of the tilemap
-            var tilemap = document.createElement('canvas');
-            self.tmCanvas = tilemap
+            //n = layerNode[y].getAttribute('name')
+            //console.log(n);
+            var tilemap = document.createElement('canvas');//('canvas_' + y.toString());
+            self.tmCanvas = tilemap;
             tilemap.id = "tilemap";
             tilemap.width = width * tileWidth;
             tilemap.height = height * tileHeight;//v.height;
@@ -521,37 +559,80 @@ game_core.prototype.tilemapper = function()
             // add tilemap to tile canvas context
             tmContext.drawImage(e.target, 0, 0);
 
-            // now, let's add tiles
-            var tile, t;
-            var count = 0;
-            var colMax = (imageWidth / tileWidth);
-            var rowMax = (imageHeight / tileHeight);
-            console.log(rowMax,colMax);
-            var col, row;
-            for (var j = 0; j < base.length; j++)
+
+            // iterate layers
+            var n, c, cContext;//, layerCanvas;
+            //var canvases = [];
+            var div = document.getElementById('canvases');
+            for (var y = 0; y < layerData.length; y++)
             {
-                for (var k = 0; k < base[j].length; k++)
+
+                // first, create layer canvas
+                n = layerNode[y].getAttribute('name')
+                console.log(n);
+                c = document.createElement('canvas');//('canvas_' + y.toString());
+                c.style.cssText = "position:absolute;display:block;top:0;left:0";
+                c.zIndex = y + 1;
+                self.tmCanvas = tilemap;
+                c.id = n;
+                c.width = width * tileWidth;
+                c.height = height * tileHeight;//v.height;
+                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
+                cContext = c.getContext('2d');
+
+                // add tilemap to tile canvas context
+                //tmContext.drawImage(e.target, 0, 0);
+
+                // now, let's add tiles
+                var tile, t;
+                var count = 0;
+                var colMax = (imageWidth / tileWidth);
+                var rowMax = (imageHeight / tileHeight);
+                console.log(rowMax,colMax);
+                var col, row;
+                for (var j = 0; j < layerData[y].length; j++)
                 {
-                    t = parseInt(base[j][k] - 1);
-                    if (t > -1) // ignore 0 tiles
+                    for (var k = 0; k < layerData[y][j].length; k++)
                     {
-                        //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
-                        //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                        //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
-                        col = (t % colMax) | 0;
-                        tile = tmContext.getImageData
-                        (
-                            col * tileWidth,// tileHeight, // x
-                            (Math.floor(t / colMax)) * tileWidth, // y
-                            tileWidth, // w
-                            tileHeight // h
-                        );
-                        context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                        t = parseInt(layerData[y][j][k] - 1);
+                        if (t > -1) // ignore 0 tiles
+                        {
+                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                            //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
+                            col = (t % colMax) | 0;
+                            tile = tmContext.getImageData
+                            (
+                                col * tileWidth,// tileHeight, // x
+                                (Math.floor(t / colMax)) * tileWidth, // y
+                                tileWidth, // w
+                                tileHeight // h
+                            );
+                            //context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                            cContext.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                        }
+                        count++;
                     }
-                    count++;
                 }
-            };
-            _this.canvas3 = canvas3;
+                //canvases.push(c);
+                //console.log(c.id);
+                //if (c.id == 'barriers')
+                _this[c.id] = c;
+                console.log('cid',this[c.id]);
+                //div.appendChild(c);
+
+                // _this.canvas3 = canvas3;
+                //document.body.appendChild(tilemap);
+            }
+            /*console.log('canvases', canvases);
+            var div = document.getElementById('canvases');
+            console.log(div.children.length);
+            for (var z = canvases.length - 1; z >= 0; z--)
+                div.appendChild(canvases[z]);
+            console.log(div.children.length);
+            if (canvases[0].canvas == canvases[1].canvas) console.log('HIDEREK');*/
+
+            //_this.canvas3 = canvas3;
         }; // end tilemap image loaded
         image.src = source.replace("..", "/assets");
         //console.log(image.src);
@@ -590,119 +671,6 @@ game_core.prototype.prerenderer = function()
     //prerendCanvas.height = this.world.height;//v.height;
     /*context2 = this.prerendCanvas.getContext('2d');
     context2.clearRect(0,0, this.world.width, this.world.height);*/
-
-    /////////////////////////////////////////
-    // Tilemap
-    /////////////////////////////////////////
-    if (this.tilemap_off)// && this.tmCanvas == undefined)
-    {
-        // parse xml
-        var parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
-        //console.log('xml', xmlDoc);
-
-        // map
-        var mapNode = xmlDoc.getElementsByTagName('map');
-        var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
-        renderOrder = mapNode[0].getAttribute('renderorder');
-        width = mapNode[0].getAttribute('width');
-        height = mapNode[0].getAttribute('height');
-        tileWidth = mapNode[0].getAttribute('tilewidth');
-        tileHeight = mapNode[0].getAttribute('tileheight');
-        nextObjectId = mapNode[0].getAttribute('nextobjectid');
-        //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
-
-        // tileset
-        var tilesetNode = xmlDoc.getElementsByTagName('tileset');
-        //console.log('tileset', tilesetNode.length);
-        tileCount = tilesetNode[0].getAttribute('tilecount');
-        columns = tilesetNode[0].getAttribute('columns');
-        name = tilesetNode[0].getAttribute('name');
-        //console.log(tileCount, columns, name);
-
-        // data
-        var data, encoding;
-        var dataNode = xmlDoc.getElementsByTagName('data');
-        encoding = dataNode[0].getAttribute('encoding');
-        data = dataNode[0].innerHTML;
-        //console.log(dataNode[0]);
-        //console.log(data);
-
-        // build 2d array of row data
-        var base = [];
-        var rows = data.split("\n");
-        rows.shift(); // first item is newline
-        rows.pop(); // last item is newline
-        //console.log(rows);
-        for (var i = 0; i < rows.length; i++)
-        {
-            rows[i] = rows[i].split(",");
-            if (i !== rows.length - 1)
-                rows[i].pop(); // last item of each row is newline (except last line)
-            base.push(rows[i]);
-        }
-        //console.log(base);
-
-        // build bitmap from tilelist image
-        var source, trans, imageWidth, imageHeight;
-        var imageNode = xmlDoc.getElementsByTagName('image');
-        source = imageNode[0].getAttribute('source');
-        trans = imageNode[0].getAttribute('trans');
-        imageWidth = imageNode[0].getAttribute('width');
-        imageHeight = imageNode[0].getAttribute('height');
-        //console.log(source, trans, imageWidth, imageHeight);
-
-        var image = new Image();
-        image.onload = function(e)
-        {
-            // image loaded
-            var sheet = e.target;
-            //context2.drawImage(e.target, 0, 0);
-
-            // first, create canvas the exact size of the tilemap
-            var tilemap = document.createElement('canvas');
-            self.tmCanvas = tilemap
-            tilemap.id = "tilemap";
-            tilemap.width = width * tileWidth;
-            tilemap.height = height * tileHeight;//v.height;
-            //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
-            tmContext = tilemap.getContext('2d');
-
-            // add tilemap to tile canvas context
-            tmContext.drawImage(e.target, 0, 0);
-
-            // now, let's add tiles
-            var tile, t;
-            var count = 0;
-            var rowMax = (imageWidth / tileWidth);
-            var colMax = (imageHeight / tileHeight);
-            //console.log(rowMax, colMax);
-            for (var j = 0; j < base.length; j++)
-            {
-                for (var k = 0; k < base[j].length; k++)
-                {
-                    t = parseInt(base[j][k] - 1);
-                    if (t > 0) // ignore 0 tiles
-                    {
-                        //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
-                        //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                        tile = tmContext.getImageData
-                        (
-                            ((t % colMax)) * tileWidth,// tileHeight, // x
-                            (Math.floor(t / rowMax)) * tileHeight, // y
-                            tileWidth, // w
-                            tileHeight // h
-                        );
-                        context2.putImageData(tile, (count % 20) * tileHeight, Math.floor(count/20) * tileWidth);
-                    }
-                    count++;
-                }
-            }
-        }; // end tilemap image loaded
-        image.src = source.replace("..", "/assets");
-        //console.log(image.src);
-
-    }
 
     /////////////////////////////////////////
     // Orbs
@@ -813,7 +781,7 @@ game_core.prototype.prerenderer = function()
     //context2.restore();
     //*
     if (!this.canvas2)
-    this.canvas2 = canvas2;
+        this.canvas2 = canvas2;
     //*/
 };
 
@@ -1192,16 +1160,16 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop nw', player.mp);
             //player.pos.x += b;
             player.pos.y += b;
-            if (player.vuln===false)
-                player.isVuln(500);
+            /*if (player.vuln===false)
+                player.isVuln(500);*/
         }
         else if (h.ne.t > 0) // collide from below
         {
             //console.log('stop ne', player.mp);
             //player.pos.x -= b;
             player.pos.y += b;
-            if (player.vuln===false)
-                player.isVuln(500);
+            /*if (player.vuln===false)
+                player.isVuln(500);*/
         }
         else if (h.sw.t > 0) // landing
         {
@@ -1374,10 +1342,7 @@ game_core.prototype.process_input = function( player )
                     {
                         this.inputDelay = true;
                         player.doCycleAbility();
-                        setTimeout(function()
-                        {
-                            _this.inputDelay = false;
-                        }, 200);
+                        setTimeout(this.timeoutInputDelay, 200);
                     }
                 }
                 //else player.cycle = false;
@@ -1449,6 +1414,10 @@ game_core.prototype.process_input = function( player )
 
 }; //game_core.process_input
 
+game_core.prototype.timeoutInputDelay = function()
+{
+    _this.inputDelay = false;
+};
 game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
     //console.log('##+@@ physics_movement_vector_from_direction');
     //Must be fixed step, at physics sync speed.
@@ -2230,6 +2199,14 @@ game_core.prototype.client_update = function()
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
     }
+    /*if (this.barriers)
+    {
+        var bctx = this.barriers.getContext('2d');
+        bctx.save();
+        bctx.translate(-this.cam.x, -this.cam.y);
+        bctx.restore();
+    }*/
+    //console.log(this.cam.x,this.cam.y);
     // +100 accounts for -50 padding offset along the edge of world
     //console.log(this.players.self.pos.x, (this.viewport.width/2));
     this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);//worldWidth,worldHeight);
@@ -2252,16 +2229,11 @@ game_core.prototype.client_update = function()
     // this.client_draw_info();
 
     // draw prerenders
-    //var preprend = this.canvas2
-    //*
-    if (this.canvas2) // prerenderer
-        this.ctx.drawImage(this.canvas2, 0,0);
-    if (this.canvas3) // tilemap
-        this.ctx.drawImage(this.canvas3, 0, 0);
-    //*/
-    //this.ctx.drawImage(this.prerendCanvas, 0, 0);
-    //else console.log('no canvas');
-    //this.ctx.
+    //console.log(this.canvas2, this.bg, this.barriers, this.fg);
+    this.ctx.drawImage(this.bg, 0, 0);
+    this.ctx.drawImage(this.canvas2, 0,0);
+    this.ctx.drawImage(this.barriers, 0, 0);
+    this.ctx.drawImage(this.fg, 0, 0);
 
     //Capture inputs from the player
     this.client_handle_input();

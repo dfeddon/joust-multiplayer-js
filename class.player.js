@@ -184,11 +184,7 @@ function game_player( game_instance, player_instance, isHost )
         if (this.abilities[this.ability].cd >= 1000)
         {
             this.cooldown = true;
-            setTimeout(function()
-            {
-                console.log('off global cooldown');
-                _this.cooldown = false;
-            }, 3000);
+            setTimeout(_this.timeoutGlobalCooldown, 3000);
         }
 
         // start ability cooldown
@@ -198,6 +194,11 @@ function game_player( game_instance, player_instance, isHost )
             this.abilities[this.ability].t = d.setSeconds(d.getSeconds() + (this.abilities[this.ability].cd / 1000));
         else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
         //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
+    };
+    game_player.prototype.timeoutGlobalCooldown = function()
+    {
+        console.log('off global cooldown');
+        _this.cooldown = false;
     };
     game_player.prototype.updateMana = function(val)
     {
@@ -282,11 +283,13 @@ function game_player( game_instance, player_instance, isHost )
         this.engaged = true;
 
         // timer 10 sec
-        setTimeout(function()
-        {
-            //console.log(self.mp, 'no longer engaged!');
-            _this.engaged = false;
-        }, len);
+        setTimeout(_this.timeoutEngaged, len);
+    };
+
+    game_player.prototype.timeoutEngaged = function()
+    {
+        //console.log(self.mp, 'no longer engaged!');
+        this.engaged = false;
     };
 
     game_player.prototype.isVuln = function(len)
@@ -300,14 +303,14 @@ function game_player( game_instance, player_instance, isHost )
         if (this.isLocal)
             this.isEngaged(len);
 
-        var stun = setInterval(function()
-        {
-            _this.vuln = false;
-            console.log('...no longer vulnerable');
-            clearInterval(stun);
-        }, len);
-        // setInterval (3 sec)
+        var stun = setTimeout(this.timeoutVuln, len);
     };
+
+    game_player.prototype.timeoutVuln = function()
+    {
+        this.vuln = false;
+        console.log('...no longer vulnerable');
+    }
 
     game_player.prototype.getGrid = function()
     {
@@ -327,6 +330,8 @@ function game_player( game_instance, player_instance, isHost )
     game_player.prototype.hitGrid = function()
     {
         //if (this.game.server) console.log(this.tilemapData);
+
+        // don't proceed unless tilemapData is loaded
         if (this.game.tilemapData == undefined) return;
         var tmd = this.game.tilemapData;
 
@@ -394,8 +399,9 @@ game_player.prototype.drawAbilities = function()
 
 game_player.prototype.draw = function()
 {
-    this.pos.x = this.pos.x.fixed(1);
-    this.pos.y = this.pos.y.fixed(1);
+    //console.log(this.pos.x, this.pos.y);
+    //this.pos.x = this.pos.x.fixed(1);
+    //this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
     // mana bar bg
     var txtOffset = 10;
@@ -444,7 +450,7 @@ game_player.prototype.draw = function()
     // ability
     if (this.abil > 0)
     {
-        console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
+        //console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
 
         switch(this.abil)
         {
