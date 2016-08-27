@@ -1215,7 +1215,7 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop se', player.mp);// h.sw.y * 64, player.pos.y + player.size.hy);
             //player.pos.x -= b;
             //player.pos.y -= b;
-            player.pos.y = parseInt((h.sw.y * 64) - 64);
+            player.pos.y = parseInt((h.se.y * 64) - 64);
             // decelerate
             if (player.vx > 0 && player.vuln !== true)
             {
@@ -1416,7 +1416,7 @@ game_core.prototype.process_input = function( player )
 
 game_core.prototype.timeoutInputDelay = function()
 {
-    _this.inputDelay = false;
+    this.inputDelay = false;
 };
 game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
     //console.log('##+@@ physics_movement_vector_from_direction');
@@ -2230,10 +2230,13 @@ game_core.prototype.client_update = function()
 
     // draw prerenders
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
-    this.ctx.drawImage(this.bg, 0, 0);
-    this.ctx.drawImage(this.canvas2, 0,0);
-    this.ctx.drawImage(this.barriers, 0, 0);
-    this.ctx.drawImage(this.fg, 0, 0);
+    if (this.bg)
+    {
+        this.ctx.drawImage(this.bg, 0, 0);
+        this.ctx.drawImage(this.canvas2, 0,0);
+        this.ctx.drawImage(this.barriers, 0, 0);
+        this.ctx.drawImage(this.fg, 0, 0);
+    }
 
     //Capture inputs from the player
     this.client_handle_input();
