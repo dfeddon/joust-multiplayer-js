@@ -331,15 +331,12 @@ function game_player( game_instance, player_instance, isHost )
     };
     game_player.prototype.hitGrid = function()
     {
-        //if (this.game.server) console.log(this.tilemapData);
-
         // don't proceed unless tilemapData is loaded
-        if (this.game.tilemapData == undefined) return;
+        //if (this.game.tilemapData == undefined) return;
         var tmd = this.game.tilemapData;
 
         var c = this.getCoord();
-        //console.log(c);
-        //console.log('nw', tmd.length);
+
         return {
             nw: (tmd[c.nw.y] && tmd[c.nw.y][c.nw.x]) ? {t:parseInt(tmd[c.nw.y][c.nw.x]),x:c.nw.x,y:c.nw.y} : 0,
             ne: (tmd[c.ne.y] && tmd[c.ne.y][c.ne.x]) ? {t:parseInt(tmd[c.ne.y][c.ne.x]),x:c.ne.x,y:c.ne.y} : 0,
