@@ -18,7 +18,7 @@ console.log('game.core loaded');
 
 var glog = false; // global console logging
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
-var worldWidth = 1280;//420;
+var worldWidth = 2560;//420;
 var worldHeight = 1280;//720;
 
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
@@ -109,10 +109,10 @@ var game_core = function(game_instance)
     this.player_abilities_enabled = false;
 
     this.platforms = [];
-    /*this.platforms.push({x:this.world.width/2,y:this.world.height-400,w:512,h:64});
-    this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
-    this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
-    this.platforms.push({x:0,y:800,w:256,h:64});*/
+    //this.platforms.push({x:(this.world.width/2) + (64 * 5),y:(this.world.height/2) - (64 * 5),w:512,h:64});
+    // this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
+    // this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
+    // this.platforms.push({x:0,y:800,w:256,h:64});*/
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -123,7 +123,8 @@ var game_core = function(game_instance)
         // include modules
         var UUID            = require('node-uuid'),
         name_set            = require('./egyptian_set'),
-        playerClass         = require('./class.player');
+        playerClass         = require('./class.player'),
+        platformClass       = require('./class.platform');
         /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -190,6 +191,16 @@ var game_core = function(game_instance)
         // this.collisionDetector = new CollisionDetector();
         // this.collisionSolver = new CollisionSolver();
 
+        // define platforms
+        var plat;
+        plat = new platformClass(this);
+
+        plat.x = (this.world.width/2) + (64 * 5);
+        plat.y = (this.world.height/2) - (64 * 5);
+        plat.w = 512;
+        plat.h = 64;
+        //console.log('plat',plat);
+        this.platforms.push(plat);
     }
     else // clients (browsers)
     {
@@ -197,7 +208,7 @@ var game_core = function(game_instance)
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
-
+        this.canvasPlatforms = null;
         this.flashBang = 0;
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
@@ -237,7 +248,7 @@ var game_core = function(game_instance)
             this.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
-        var chost = new game_player(this);
+        var chost = new game_player(this);//, true);
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
@@ -251,6 +262,28 @@ var game_core = function(game_instance)
 
         for (var y in this.allplayers)
             console.log(this.allplayers[y].mp);
+
+        // define platforms
+        var canvasPlatforms = document.createElement('canvas');
+
+        canvasPlatforms.id = "canvasPlatforms";
+        canvasPlatforms.width = this.world.width;
+        canvasPlatforms.height = this.world.height;
+        //canvasPlatforms = canvasPlatforms.getContext('2d');
+
+        this.canvasPlatforms = canvasPlatforms;
+
+        // build them
+        var cplat;
+        cplat = new game_platform(this, true);
+
+        cplat.x = (this.world.width/2) + (64 * 5);
+        cplat.y = (this.world.height/2) - (64 * 5);
+        cplat.w = 512;
+        cplat.h = 64;
+        //console.log('cplat',cplat);
+        this.platforms.push(cplat);
+
     }
 
     //The speed at which the clients move.
@@ -329,7 +362,7 @@ game_core.prototype.nameGenerator = function()
     console.log('pname', pname);
 
     return pname;
-}
+};
 game_core.prototype.api = function()
 {
     var self = this;
@@ -355,8 +388,31 @@ game_core.prototype.api = function()
             self.tilemap = xmlhttp.responseText;
             self.tilemapper();
             self.prerenderer();
+            self.buildPlatforms();
         }
     };
+};
+
+game_core.prototype.buildPlatforms = function()
+{
+    console.log('building platforms');
+
+    /*var canvasPlatforms = document.createElement('canvas');
+
+    canvasPlatforms.id = "canvasPlatforms";
+    canvasPlatforms.width = this.world.width;
+    canvasPlatforms.height = this.world.height;
+    //canvasPlatforms = canvasPlatforms.getContext('2d');
+
+    this.canvasPlatforms = canvasPlatforms;*/
+
+    for (var i = 0; i < this.platforms.length; i++)
+    {
+        console.log('drawing platform', this.platforms[i]);
+        this.platforms[i].draw();
+    }
+
+
 };
 
 game_core.prototype.apiNode = function()
@@ -492,6 +548,8 @@ game_core.prototype.tilemapper = function()
             console.log(layerNode[x].getElementsByTagName('data')[0].innerHTML);*/
 
             layerName = layerNode[x].getAttribute('name');
+            layerWidth = layerNode[x].getAttribute('width');
+            layerHeight = layerNode[x].getAttribute('height');
             dataNode = layerNode[x].getElementsByTagName('data')[0];
             data = layerNode[x].getElementsByTagName('data')[0].innerHTML;
             //continue;
@@ -563,7 +621,7 @@ game_core.prototype.tilemapper = function()
             // iterate layers
             var n, c, cContext;//, layerCanvas;
             //var canvases = [];
-            var div = document.getElementById('canvases');
+            //var div = document.getElementById('canvases');
             for (var y = 0; y < layerData.length; y++)
             {
 
@@ -588,10 +646,13 @@ game_core.prototype.tilemapper = function()
                 var count = 0;
                 var colMax = (imageWidth / tileWidth);
                 var rowMax = (imageHeight / tileHeight);
-                console.log(rowMax,colMax);
+                //console.log(rowMax,colMax);
+                console.log('layerData H', layerData[y].length);
+                console.log('layerData W', layerData[y][0].length);
                 var col, row;
                 for (var j = 0; j < layerData[y].length; j++)
                 {
+                    console.log(layerData[y][j].length);
                     for (var k = 0; k < layerData[y][j].length; k++)
                     {
                         t = parseInt(layerData[y][j][k] - 1);
@@ -609,7 +670,7 @@ game_core.prototype.tilemapper = function()
                                 tileHeight // h
                             );
                             //context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
-                            cContext.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                            cContext.putImageData(tile, (count % width) * tileHeight, Math.floor(count / width) * tileWidth);
                         }
                         count++;
                     }
@@ -772,14 +833,38 @@ game_core.prototype.prerenderer = function()
     /////////////////////////////////////////
     // platforms
     /////////////////////////////////////////
+    /*
     for (var j = 0; j < this.platforms.length; j++)
     {
+        // // left side
+        // game.ctx.drawImage(
+        //     document.getElementById("plat-l"),
+        //     this.platforms[j].x,
+        //     this.platforms[j].y,
+        //     64,
+        //     64
+        // );
+        //
+        // // right side
+        // game.ctx.drawImage(
+        //     document.getElementById("plat-r"),
+        //     this.platforms[j].x + this.platforms[j].w,
+        //     this.platforms[j].y,
+        //     64,
+        //     64
+        // );
+        //
+        // //var rest = this.platforms[j]
+        //
+        // // middle
         context2.fillStyle = 'green';
         context2.fillRect(this.platforms[j].x, this.platforms[j].y, this.platforms[j].w, this.platforms[j].h);
     }
+    //*/
 
     //context2.restore();
     //*
+
     if (!this.canvas2)
         this.canvas2 = canvas2;
     //*/
@@ -1036,7 +1121,7 @@ game_core.prototype.check_collision = function( player )
     }
 
     // platform collisions
-    /*
+    //*
     for (var j = 0; j < this.platforms.length; j++)
     {
         //console.log('platform', this.platforms[j]);
@@ -1051,8 +1136,10 @@ game_core.prototype.check_collision = function( player )
             //console.log('hit platform!');
             if (player.pos.y > (this.platforms[j].y))// + this.platforms[j].h))//this.world.height - 200)
             {
-                //console.log('from bottom');
+                console.log('from bottom', player.hasHelment);
                 player.pos.y += 5;
+                if (player.hasHelment)
+                    console.log('destroy will FALL!');
             }
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
@@ -1064,11 +1151,25 @@ game_core.prototype.check_collision = function( player )
                     //console.log('slowing', player.vx);
 
                     // slow horizontal velocity
-                    player.vx -= 1;
+                    player.vx -= 200;
+
                     // set landing flag (moving)
                     player.landed = 2;
+
+                    if (player.vx < 0)
+                    {
+                        player.vx = 0;
+                        player.landed = 1;
+                    }
                 }
-                else
+                else if (player.vx < 0)
+                {
+                    player.vx += 200;
+                    player.landed = 2;
+
+                    if (player.vx > 0) player.vx = 0;
+                }
+                if (player.vx === 0)
                 {
                     // stuck landing (no velocity)
                     player.vx = 0;
@@ -1145,6 +1246,8 @@ game_core.prototype.check_collision = function( player )
     // console.log('::', h);
     if (h !== undefined)
     {
+        //if (player.landed === 1) return;
+
         if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
             player.pos.x += 15; // bounce
@@ -2236,6 +2339,7 @@ game_core.prototype.client_update = function()
         this.ctx.drawImage(this.canvas2, 0,0);
         this.ctx.drawImage(this.barriers, 0, 0);
         this.ctx.drawImage(this.fg, 0, 0);
+        this.ctx.drawImage(this.canvasPlatforms, 0, 0);
     }
 
     //Capture inputs from the player

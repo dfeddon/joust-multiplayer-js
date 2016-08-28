@@ -17,6 +17,7 @@ define(
     'domReady',
     'egyptian_set',
     'class.player',
+    'class.platform',
     'class.collision',
     'class.physicsEntity',
     'class.collisionDetector',
