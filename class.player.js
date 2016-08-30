@@ -334,6 +334,7 @@ function game_player( game_instance, player_instance, isHost )
         // don't proceed unless tilemapData is loaded
         //if (this.game.tilemapData == undefined) return;
         var tmd = this.game.tilemapData;
+        if (tmd == null) return;
 
         var c = this.getCoord();
 

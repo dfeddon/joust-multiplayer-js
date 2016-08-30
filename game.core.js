@@ -109,7 +109,29 @@ var game_core = function(game_instance)
     this.player_abilities_enabled = false;
 
     this.platforms = [];
-    //this.platforms.push({x:(this.world.width/2) + (64 * 5),y:(this.world.height/2) - (64 * 5),w:512,h:64});
+    this.platformsData = [];
+    this.platformsData.push(
+        {
+            id:'p1',
+            x:(this.world.width/2) + (64 * 5),
+            y:(this.world.height/2) - (64 * 5),
+            w:256,
+            h:64,
+            t:1,
+            s:0
+        }
+    );
+    this.platformsData.push(
+        {
+            id:'p2',
+            x:(this.world.width/2) + (5 * 64),
+            y:15 * 64,
+            w:256,
+            h:64,
+            t:1,
+            s:0
+        }
+    );
     // this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
     // this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
@@ -193,17 +215,22 @@ var game_core = function(game_instance)
 
         // define platforms
         var plat;
-        plat = new platformClass(this);
-
-        plat.setter(
+        for (var m = 0; m < this.platformsData.length; m++)
         {
-            x:(this.world.width/2) + (64 * 5),
-            y:(this.world.height/2) - (64 * 5),
-            w:512,
-            h:64
-        });
-        //console.log('plat',plat);
-        this.platforms.push(plat);
+            plat = new platformClass(this);
+            plat.id = this.platformsData[m].id,
+
+            plat.setter(
+            {
+                //id:this.platformsData[m].id,
+                x:this.platformsData[m].x,//(this.world.width/2) + (64 * 5),
+                y:this.platformsData[m].y,//(this.world.height/2) - (64 * 5),
+                w:this.platformsData[m].w,//512,
+                h:this.platformsData[m].h//64
+            });
+            //console.log('plat',plat);
+            this.platforms.push(plat);
+        }
     }
     else // clients (browsers)
     {
@@ -278,18 +305,22 @@ var game_core = function(game_instance)
 
         // build them
         var cplat;
-        cplat = new game_platform(this, true);
-
-        cplat.setter(
+        for (var n = 0; n < this.platformsData.length; n++)
         {
-            x:(this.world.width/2) + (64 * 5),
-            y:(this.world.height/2) - (64 * 5),
-            w:512,
-            h:64
-        });
-        //console.log('cplat',cplat);
-        this.platforms.push(cplat);
+            cplat = new game_platform(this, true);
+            cplat.id = this.platformsData[n].id;
 
+            cplat.setter(
+            {
+                //id:this.platformsData[n].id,
+                x:this.platformsData[n].x,//(this.world.width/2) + (64 * 5),
+                y:this.platformsData[n].y,//(this.world.height/2) - (64 * 5),
+                w:this.platformsData[n].w,//512,
+                h:this.platformsData[n].h//64
+            });
+            //console.log('cplat',cplat);
+            this.platforms.push(cplat);
+        }
     }
 
     //The speed at which the clients move.
@@ -298,7 +329,7 @@ var game_core = function(game_instance)
     //Set up some physics integration values
     this._pdt = 0.0001;                 //The physics update delta time
     this._pdte = new Date().getTime();  //The physics update last delta time
-        //A local timer for precision on server and client
+    //A local timer for precision on server and client
     this.local_time = 0.016;            //The local timer
     this._dt = new Date().getTime();    //The local timer delta
     this._dte = new Date().getTime();   //The local timer last frame time
@@ -1142,26 +1173,43 @@ game_core.prototype.check_collision = function( player )
             //console.log('hit platform!');
             if (player.pos.y > (this.platforms[j].y))// + this.platforms[j].h))//this.world.height - 200)
             {
+                // bounce off
+                player.pos.y = this.platforms[j].y + this.platforms[j].h + 5;
+
                 if (this.platforms[j].state === 1) // platform intact, not moving
                 {
                     console.log('from bottom', player.hasHelment);
-                    player.pos.y += 5;
-
                     // if player has helment and platform status is intact
-                    if (player.hasHelment && this.platforms[j].state === 1)
+                    if (player.hasHelment)// && this.platforms[j].state === 1)
                     {
-                        console.log('destroy will FALL!');
-                        this.platforms[j].doShake(2);
+                        //player.hasHelment = false;
+                        console.log('platform will FALL!', player.mp, this.platforms[j].id);
+                        this.platforms[j].doShake(2, player.mp);
+                        //this.platforms[j].state = 5
+                        //this.platforms[j].triggerer = player.mp;
                     }
                 }
                 else if (this.platforms[j].state === 2) // platform falling
                 {
-                    console.log('platform HIT player!', player.mp);
+                    console.log('platform HIT player!', player.mp, player.landed);
+                    //player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
+
+                    // if standing or walking, victim
+                    // if (player.landed > 0 )
+                    // {
+                        //console.log('splatter!');
+                        //player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
+                    // }
 
                     // TODO: push player down
+                    // player.pos.y += 5;
 
                     // TODO: if player landed = 1, dead!
-                    this.flashbang = 2;
+                    //this.flashbang = 2;
+                }
+                else
+                {
+                    player.pos.y += 5;
                 }
             }
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
@@ -1692,26 +1740,7 @@ game_core.prototype.update_physics = function() {
             // this.platforms[j].old.y = this.platforms[j].y;
             // this.platforms[j].old.w = this.platforms[j].w;
             // this.platforms[j].old.h = this.platforms[j].h;
-
-            switch(this.platforms[j].state)
-            {
-                case 2: // falling
-                {
-                    //var t = (this.local_time - this.players.self.state_time) / this._pdt;
-                    //this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )
-                    console.log('update().falling!');
-
-                    // update y (falling)
-                    this.platforms[j].setter(
-                        {
-                            x:this.platforms[j].x,
-                            y:this.platforms[j].y + this.world.gravity,
-                            w:this.platforms[j].w,
-                            h:this.platforms[j].h
-                        }
-                    );
-                }
-            }
+            this.platforms[j].update();
         }
     }
 
@@ -1773,10 +1802,10 @@ game_core.prototype.server_update_physics = function() {
     // platform collisions (minus player)
     for (var j = 0; j < this.platforms.length; j++)
     {
-        if (this.platforms[j].state !== 1)
-        {
+        //if (this.platforms[j].state !== 1)
+        //{
             this.platforms[j].check_collision();
-        }
+        //}
     }
     //console.log(this.players.self.mp);
     // phy 2.0
@@ -1803,8 +1832,12 @@ game_core.prototype.server_update = function()
     //Update the state of our local clock to match the timer
     this.server_time = this.local_time;
 
-    var host;
-    var others = [];
+    //var host;
+    //var others = [];
+
+    /////////////////////////////////
+    // process players
+    /////////////////////////////////
     this.laststate = {};
     for (var i = 0; i < this.allplayers.length; i++)
     {
@@ -1824,6 +1857,28 @@ game_core.prototype.server_update = function()
         if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
         // rest abil on server instance
         if (this.allplayers[i].abil > 0) this.allplayers[i].abil = 0;
+    }
+
+    /////////////////////////////////
+    // process platforms
+    /////////////////////////////////
+    //this.lastPlatformState = {};
+    for (var k = 0; k < this.platforms.length; k++)
+    {
+        //if (this.platforms.state !== 1) // 1 is fixed/dormant
+        //{
+            // send: id, state, status, x, y, r(rotation?)
+            //if (this.platforms[k].id == undefined) console.log("HIHIHIHIHIIHIHHIIHI", this.platforms[k]);
+            this.laststate[this.platforms[k].id] =
+            {
+                x: this.platforms[k].x,
+                y: this.platforms[k].y,
+                r: this.platforms[k].r,
+                s: this.platforms[k].state,
+                t: this.platforms[k].type,
+                p: this.platforms[k].triggerer
+            };
+        //}
     }
 
     this.laststate.t = this.server_time;
@@ -2055,6 +2110,72 @@ game_core.prototype.client_process_net_prediction_correction = function()
 
 }; //game_core.client_process_net_prediction_correction
 
+/*game_core.prototype.getTimePoint = function()
+{
+    if (!this.server_updates) return 0;
+    //Find the position in the timeline of updates we stored.
+    var current_time = this.client_time;
+    var count = this.server_updates.length-1;
+    var target = null;
+    var previous = null;
+
+    var time_point = 0;
+
+
+    //We look from the 'oldest' updates, since the newest ones
+    //are at the end (list.length-1 for example). This will be expensive
+    //only when our time is not found on the timeline, since it will run all
+    //samples. Usually this iterates very little before breaking out with a target.
+    for(var i = 0; i < count; ++i)
+    {
+        var point = this.server_updates[i];
+        var next_point = this.server_updates[i+1];
+
+        //Compare our point in time with the server times we have
+        if(current_time > point.t && current_time < next_point.t)
+        {
+            target = next_point;
+            previous = point;
+            break;
+        }
+    }
+
+    //With no target we store the last known
+    //server position and move to that instead
+    if(!target)
+    {
+        target = this.server_updates[0];
+        previous = this.server_updates[0];
+    }
+    //console.log('target', target);
+    //console.log('previous', previous);
+    //Now that we have a target and a previous destination,
+    //We can interpolate between then based on 'how far in between' we are.
+    //This is simple percentage maths, value/target = [0,1] range of numbers.
+    //lerp requires the 0,1 value to lerp to? thats the one.
+     //console.log(target);
+      //if (target.cp2.f == 1)
+      //console.log(target.cp2);
+     if(target && previous)
+     {
+
+        this.target_time = target.t;
+
+        var difference = this.target_time - current_time;
+        var max_difference = (target.t - previous.t).fixed(3);
+        time_point = (difference/max_difference).fixed(3);
+
+        //Because we use the same target and previous in extreme cases
+        //It is possible to get incorrect values due to division by 0 difference
+        //and such. This is a safe guard and should probably not be here. lol.
+        if( isNaN(time_point) ) time_point = 0;
+        if(time_point == -Infinity) time_point = 0;
+        if(time_point == Infinity) time_point = 0;
+    }
+
+    return time_point;
+};*/
+
 game_core.prototype.client_process_net_updates = function()
 {
     if (glog)
@@ -2128,6 +2249,9 @@ game_core.prototype.client_process_net_updates = function()
         if(time_point == -Infinity) time_point = 0;
         if(time_point == Infinity) time_point = 0;
 
+        // store globally
+        this.time_point = time_point;
+
         //console.log(time_point);
 
         //The most recent server update
@@ -2172,7 +2296,36 @@ game_core.prototype.client_process_net_updates = function()
         }
         // console.log(other_server_pos2);
         //*/
-
+        var pos;
+        for (var k = 0; k < this.platforms.length; k++)
+        {
+            // omit local player who triggered the effect
+            if (target[this.platforms[k].id] && (target[this.platforms[k].triggerer] != this.players.self.mp))
+            {
+                // if (previous[this.platforms[k].id] === undefined)
+                // {
+                //     console.log('cont!', target, previous);//target[this.platforms[k].id]);
+                //     console.log(previous['undefined']);
+                //     previous[this.platforms[k].id] = previous[undefined]
+                //     //continue;
+                // }
+                ghostStub = this.v_lerp(
+                    previous[this.platforms[k].id],//other_past_pos2,
+                    target[this.platforms[k].id],//other_target_pos2,
+                    time_point
+                );
+                //console.log(previous[this.allplayers[j].mp]);
+                //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
+                pos = this.v_lerp({x:this.platforms[k].x,y:this.platforms[k].y}, ghostStub, this._pdt * this.client_smooth);
+                //console.log(target[this.platforms[k].id]);
+                this.platforms[k].x = pos.x;// target[this.platforms[k].id].x;
+                this.platforms[k].y = pos.y;//target[this.platforms[k].id].y;
+                this.platforms[k].r = target[this.platforms[k].id].r;
+                this.platforms[k].state = target[this.platforms[k].id].s;
+                this.platforms[k].type = target[this.platforms[k].id].t;
+                this.platforms[k].triggerer = target[this.platforms[k].id].p;
+            }
+        }
         //The other players positions in this timeline, behind us and in front of us
         /*var other_target_pos = this.players.self.host ? target.cp : target.hp;
         var other_past_pos = this.players.self.host ? previous.cp : previous.hp;*/
@@ -2238,8 +2391,8 @@ game_core.prototype.client_process_net_updates = function()
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
 {
-    if (glog)
-    console.log('## client_onserverupdate_recieved', data);
+    //if (glog)
+    //console.log('## client_onserverupdate_recieved', data);
     //console.log(data);
     //if (data.hp.d === 0)
     //console.log('data', data);
@@ -2309,8 +2462,8 @@ game_core.prototype.client_onserverupdate_recieved = function(data)
 game_core.prototype.client_update_local_position = function()
 {
 
- if(this.client_predict)
- {
+ //if(this.client_predict)
+ //{
      if (glog)
      console.log('## client_update_local_position');
 
@@ -2329,7 +2482,7 @@ game_core.prototype.client_update_local_position = function()
         //We handle collision on client if predicting.
         this.check_collision( this.players.self );
 
-    }  //if(this.client_predict)
+    //}  //if(this.client_predict)
 
 }; //game_core.prototype.client_update_local_position
 
@@ -2353,10 +2506,10 @@ game_core.prototype.client_update_physics = function()
     // platform collisions (minus player)
     for (var j = 0; j < this.platforms.length; j++)
     {
-        if (this.platforms[j].state !== 1)
-        {
+        //if (this.platforms[j].state !== 1)
+        //{
             this.platforms[j].check_collision();
-        }
+        //}
     }
 }; //game_core.client_update_physics
 
