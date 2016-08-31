@@ -2,6 +2,15 @@ function game_platform(game_instance, client)
 {
   console.log('game platform constructor', client);
 
+  // constants
+  this.STATE_REMOVED = 0;
+  this.STATE_INTACT = 1;
+  this.STATE_FALLING = 2;
+  this.STATE_DESTROYED = 3;
+  this.STATE_ROTATING = 4;
+  this.STATE_SHAKING = 5;
+
+  // parameters
   this.game = game_instance;
   //_this = this;
 
@@ -14,7 +23,7 @@ function game_platform(game_instance, client)
   this.y = 0;
   this.w = 0;
   this.h = 0;
-  this.old = {x:this.x,y:this.y,w:this.w,h:this.h};
+  this.old = { x:this.x, y:this.y, w:this.w, h:this.h };
 
   // spawn position/dimension, when re-spawning destructable platform
   this.spawn = null;
@@ -23,11 +32,13 @@ function game_platform(game_instance, client)
   this.tiles = [];
 
   this.type = 1; // 1 = fixed, 2 = destructable, 3 = rain
-  this.state = 1; // 1 = intact, 2 = falling, 3 = destroyed, 4 = rotating, 5 = shaking, 6 = destroyed
-  this.status = 1; // 0 = destroyed, 1 = intact, 2 = shaking, 3 = falling
+  //this.state = 1; // 1 = intact, 2 = falling, 3 = destroyed, 4 = rotating, 5 = shaking, 6 = destroyed
+  this.status = 1; // 0 = destroyed, 1 = intact, 2 = shaking, 3 = falling, 4 = rotating
 
   this.triggerer = null;
 }
+
+game_platform.prototype.state = 1;
 
 game_platform.prototype.setter = function(data)
 {
@@ -53,6 +64,8 @@ game_platform.prototype.setter = function(data)
   this.y = data.y;
   this.w = data.w;
   this.h = data.h;
+  //if (data.t) this.t = data.t;
+  //if (data.s) this.s = data.s;
 };
 
 game_platform.prototype.getCoord = function()
@@ -97,10 +110,10 @@ game_platform.prototype.check_collision = function()
           (this.y + this.h) > this.game.platforms[i].y
       )
       {
-        if (this.state === 2) // falling
+        if (this.state === this.STATE_FALLING) // falling
         {
-          // destroy this platform
-          this.state = 1;
+          // destroy this platform (state 3)
+          this.state = this.STATE_DESTROYED;
           console.log('platform', this.id, 'has hit platform', this.game.platforms[i].id);
           this.y = this.game.platforms[i].y - this.h - 5;
         }
@@ -111,6 +124,7 @@ game_platform.prototype.check_collision = function()
   }
 
   // platform to tilemap collision
+  //return;
   var h = this.hitGrid();
   if (h !== undefined)
   {
@@ -136,54 +150,78 @@ game_platform.prototype.check_collision = function()
       {
         // presume that our platform had fallen and struck a 'barrier' tile below
         console.log('platform hit tile!');
+        //return; // TODO:Stub
 
-        this.state = 6; // destroyed: stop both falling state and redraw
+        this.state = this.STATE_DESTROYED; // destroyed: stop both falling state and redraw
+        //this.y = this.game.platforms[i].y - this.h - 5;
 
         // settimeout for rnd seconds before removeFromStage(true)
         // setTimeout(_this.timeoutDestroyed, 1000);
 
-        this.x = this.spawn.x;
+        /*this.x = this.spawn.x;
         this.y = this.spawn.y;
         this.w = this.spawn.w;
         this.h = this.spawn.h;
 
         // only draw if client
         if (!this.game.server)
-          this.draw();
+          this.draw();*/
       }
       /*else if (h.se.t > 0) // landing
       {
         console.log('phit6');
-        this.state = 1;
+        this.state = this.STATE_INTACT;
       }*/
   }
 };
 
 game_platform.prototype.update = function()
 {
-  switch(this.state)
-  {
-    case 6: // destroyed
-      console.log('update().destroy!');
-      // clear image
-      //this.state = 1;
-      this.removeFromStage(true);
-    break;
+    switch(this.state)
+    {
+        case this.STATE_SHAKING:
+            console.log('update().shaking!');
+            // num between -10 and 10
+            var shake = 5;
+            var sx = Math.floor(Math.random()*(shake*2) + 1) - shake;
+            var sy = Math.floor(Math.random()*(shake*2) + 1) - shake;
+            this.setter({x:this.spawn.x + sx, y:this.spawn.y + sy, w:this.w, h:this.h});
+        break;
 
-    case 2: // falling
-      console.log('update().falling!', this.y);
+        case this.STATE_DESTROYED: // destroyed
+          console.log('update().destroy!');
+          // clear image
+          //this.state = 1;
+          //this.removeFromStage(true);
+          if (this.status !== 1) // 1 = destroy begin
+          {
+            setTimeout(this.timeoutDestroyed.bind(this), 2000);
+            this.status = 1;
+          }
+        break;
 
-      // update y (falling)
-      this.setter(
-        {
-          x:this.x,
-          y:this.y = this.y + (this.game.world.gravity * 2),
-          w:this.w,
-          h:this.h
-        }
-      );
-    break;
-  }
+        case this.STATE_FALLING: // falling
+          console.log('update().falling!', this.y);
+
+          // update y (falling)
+          this.setter(
+            {
+              x:this.x,
+              y:this.y = this.y + (this.game.world.gravity * 2),
+              w:this.w,
+              h:this.h
+            }
+          );
+        break;
+
+        case this.STATE_REMOVED:
+
+            console.log('update().removed!');
+
+        break;
+
+        default: console.log("ERROR: Invalid state in platform.update()", this.state);
+    }
 };
 
 game_platform.prototype.timeoutDestroyed = function()
@@ -191,27 +229,28 @@ game_platform.prototype.timeoutDestroyed = function()
   console.log('timeoutDestroyed complete');
 
   // set state to removed (on cooldown)
-  this.state = 0;
+  this.state = this.STATE_REMOVED;
 
   // remove platform from stage and ready respawn
   this.removeFromStage(true);
   //setTimeout(this.timeoutShaking.bind(this), 2000);
-}
+};
 
 game_platform.prototype.doShake = function(postShakeState, triggerer)
 {
   console.log('doShake', this.state, postShakeState, triggerer, this.id);
-  if (this.state !== 1) return;
+  if (this.state !== this.STATE_INTACT) return;
 
-  var self = this;
+  //var self = this;
 
+  // TODO: Clear below var?
   this.triggerer = triggerer;
 
-  console.log('shaking...', self.state);
+  console.log('shaking...', this.state);
 
   // set status to shaking
-  this.state = 5;
-  console.log('shaking 2', self.state, postShakeState, triggerer);
+  this.state = this.STATE_SHAKING;
+  console.log('shaking 2', this.state, postShakeState, triggerer);
 
   // after shaking, fall
   this.status = postShakeState; // after shaking, fall
@@ -234,13 +273,20 @@ game_platform.prototype.timeoutShaking = function()
   // change status, act on state (fall or destroy)
   this.state = this.status;
 
+  // return position to original
+  console.log('pre', this.x, this.y);
+  this.setter({x:this.spawn.x, y:this.spawn.y, w:this.w, h:this.h});
+  console.log('post', this.x, this.y);
+  if (!this.game.server)
+    this.draw();
+
   switch(this.state)
   {
-    case 2: // falling
+    case this.STATE_FALLING: // falling
       console.log('platform fall!');
     break;
 
-    case 3: // destroyed
+    case this.STATE_DESTROYED: // destroyed
       console.log('destroyed');
     break;
 
@@ -276,7 +322,7 @@ game_platform.prototype.timeoutRespawn = function()
   console.log('timeoutRespawn');
 
   // set state
-  this.state = 1;
+  this.state = this.STATE_INTACT;
 
   // respawn position
   console.log(this.spawn);
@@ -292,47 +338,57 @@ game_platform.prototype.timeoutRespawn = function()
 
 game_platform.prototype.draw = function()
 {
-  //console.log('platform.draw()');
-  //if (status === 1)
-  //if (this.state == 2)
+    console.log('platform.draw()', this.state);
+    //if (status === 1)
+    //if (this.state == 2)
     //cy =
-  //console.log('platform.draw()', this.status, this.ctx.width, this.ctx.height);
+    //console.log('platform.draw()', this.status, this.ctx.width, this.ctx.height);
 
-  //this.ctx.save();
+    //this.ctx.save();
+    //this.ctx.beginPath();
+    // left side
+    if (this.state === this.STATE_INTACT || this.state === this.STATE_FALLING || this.state === this.STATE_SHAKING)
+    {
+        this.ctx.clearRect(this.old.x,this.old.y - this.h, this.old.w, this.old.h + this.h);//this.game.canvasPlatforms.height);
 
-  this.ctx.clearRect(this.old.x,this.old.y - this.h, this.old.w, this.old.h+this.h);//this.game.canvasPlatforms.height);
-  //this.ctx.beginPath();
-  // left side
-  this.ctx.drawImage(
-      document.getElementById("plat-l"),
-      this.x,
-      this.y,
-      64,
-      64
-  );
+        this.ctx.drawImage(
+            document.getElementById("plat-l"),
+            this.x,
+            this.y,
+            64,
+            64
+        );
 
-  // right side
-  this.ctx.drawImage(
-      document.getElementById("plat-r"),
-      this.x + this.w - 64,
-      this.y,
-      64,
-      64
-  );
+        // right side
+        this.ctx.drawImage(
+            document.getElementById("plat-r"),
+            this.x + this.w - 64,
+            this.y,
+            64,
+            64
+        );
 
-  // get num of remaining "middle" tiles
-  var rest = (this.w - 128) / 64;
+        // get num of remaining "middle" tiles
+        var rest = (this.w - 128) / 64;
 
-  for (var i = 0; i < rest; i++)
-  {
-    this.ctx.drawImage(
-        document.getElementById("plat-m"),
-        this.x + (64 * (i + 1)),
-        this.y,
-        64,
-        64
-    );
-  }
+        for (var i = 0; i < rest; i++)
+        {
+            this.ctx.drawImage(
+                document.getElementById("plat-m"),
+                this.x + (64 * (i + 1)),
+                this.y,
+                64,
+                64
+            );
+        }
+    }
+    // destroy particle fx
+    else if (this.state === this.STATE_DESTROYED)
+    {
+        console.log('draw destroyed animation...');
+        this.ctx.clearRect(this.x,this.y - 5, this.w, this.h + 5);//this.game.canvasPlatforms.height);
+    }
+
 
   //this.ctx.restore();
 };

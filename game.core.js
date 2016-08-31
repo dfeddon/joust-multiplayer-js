@@ -132,6 +132,17 @@ var game_core = function(game_instance)
             s:0
         }
     );
+    this.platformsData.push(
+        {
+            id:'p3',
+            x:(this.world.width/2) + (12 * 64),
+            y:8 * 64,
+            w:64*6,
+            h:64,
+            t:1,
+            s:4
+        }
+    );
     // this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
     // this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
@@ -1176,20 +1187,20 @@ game_core.prototype.check_collision = function( player )
                 // bounce off
                 player.pos.y = this.platforms[j].y + this.platforms[j].h + 5;
 
-                if (this.platforms[j].state === 1) // platform intact, not moving
+                if (this.platforms[j].state === this.platforms[j].STATE_INTACT) // platform intact, not moving
                 {
                     console.log('from bottom', player.hasHelment);
                     // if player has helment and platform status is intact
-                    if (player.hasHelment)// && this.platforms[j].state === 1)
+                    if (player.hasHelment && this.platforms[j].state === this.platforms[j].STATE_INTACT)
                     {
                         //player.hasHelment = false;
                         console.log('platform will FALL!', player.mp, this.platforms[j].id);
-                        this.platforms[j].doShake(2, player.mp);
-                        //this.platforms[j].state = 5
+                        this.platforms[j].doShake(this.platforms[j].STATE_FALLING, player.mp);
+                        //this.platforms[j].state = this.platforms[j].STATE_SHAKING;
                         //this.platforms[j].triggerer = player.mp;
                     }
                 }
-                else if (this.platforms[j].state === 2) // platform falling
+                else if (this.platforms[j].state === this.platforms[j].STATE_FALLING) // platform falling
                 {
                     console.log('platform HIT player!', player.mp, player.landed);
                     //player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
@@ -1733,7 +1744,7 @@ game_core.prototype.update_physics = function() {
     var jlen = this.platforms.length;
     for (var j = 0; j < jlen; j++)
     {
-        if (this.platforms[j].state !== 1)
+        if (this.platforms[j].state !== this.platforms[j].STATE_INTACT && this.platforms[j].state !== this.platforms[j].STATE_REMOVED)
         {
             // store old values (for clearRect)
             // this.platforms[j].old.x = this.platforms[j].x;
@@ -1742,6 +1753,7 @@ game_core.prototype.update_physics = function() {
             // this.platforms[j].old.h = this.platforms[j].h;
             this.platforms[j].update();
         }
+        //else console.log('no plat update()', this.platforms[j].id, this.platforms[j].state);
     }
 
     if(this.server) {
@@ -1802,7 +1814,7 @@ game_core.prototype.server_update_physics = function() {
     // platform collisions (minus player)
     for (var j = 0; j < this.platforms.length; j++)
     {
-        //if (this.platforms[j].state !== 1)
+        //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
             this.platforms[j].check_collision();
         //}
@@ -1865,7 +1877,7 @@ game_core.prototype.server_update = function()
     //this.lastPlatformState = {};
     for (var k = 0; k < this.platforms.length; k++)
     {
-        //if (this.platforms.state !== 1) // 1 is fixed/dormant
+        //if (this.platforms[k].state !== this.platforms[k].STATE_INTACT) // 1 is fixed/dormant
         //{
             // send: id, state, status, x, y, r(rotation?)
             //if (this.platforms[k].id == undefined) console.log("HIHIHIHIHIIHIHHIIHI", this.platforms[k]);
@@ -2299,9 +2311,11 @@ game_core.prototype.client_process_net_updates = function()
         var pos;
         for (var k = 0; k < this.platforms.length; k++)
         {
-            // omit local player who triggered the effect
-            if (target[this.platforms[k].id] && (target[this.platforms[k].triggerer] != this.players.self.mp))
+            // if provided, omit local player (triggerer: .p/.mp) who 'triggered' the effect;
+            // we'll manage the platform physics locally
+            if (target[this.platforms[k].id] && (target[this.platforms[k].id].p != this.players.self.mp))
             {
+                //console.log('NET UPDATE', target[this.platforms[k].id], this.players.self.mp);
                 // if (previous[this.platforms[k].id] === undefined)
                 // {
                 //     console.log('cont!', target, previous);//target[this.platforms[k].id]);
@@ -2506,7 +2520,7 @@ game_core.prototype.client_update_physics = function()
     // platform collisions (minus player)
     for (var j = 0; j < this.platforms.length; j++)
     {
-        //if (this.platforms[j].state !== 1)
+        //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
             this.platforms[j].check_collision();
         //}
@@ -2608,7 +2622,7 @@ game_core.prototype.client_update = function()
     // platforms
     for (var j = 0; j < this.platforms.length; j++)
     {
-        if (this.platforms[j].state !== 1)
+        if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
             this.platforms[j].draw();
     }
 

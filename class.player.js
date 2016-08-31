@@ -200,7 +200,7 @@ function game_player( game_instance, player_instance, isHost )
     game_player.prototype.timeoutGlobalCooldown = function()
     {
         console.log('off global cooldown');
-        _this.cooldown = false;
+        this.cooldown = false;
     };
     game_player.prototype.updateMana = function(val)
     {
