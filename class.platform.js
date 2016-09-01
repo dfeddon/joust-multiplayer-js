@@ -2,7 +2,10 @@ function game_platform(game_instance, client)
 {
   console.log('game platform constructor', client);
 
+	///////////////////////////
   // constants
+	///////////////////////////
+	// states
   this.STATE_REMOVED = 0;
   this.STATE_INTACT = 1;
   this.STATE_FALLING = 2;
@@ -10,12 +13,25 @@ function game_platform(game_instance, client)
   this.STATE_ROTATING = 4;
   this.STATE_SHAKING = 5;
 
+	// status
+	this.STATUS_ROTATING = 4;
+
+	// misc
+  this.TO_RADIANS = Math.PI/180;
+
   // parameters
   this.game = game_instance;
+	this.client = client;
   //_this = this;
 
-  if (client)
-  this.ctx = game_instance.canvasPlatforms.getContext('2d');
+  if (this.client)
+  {
+  	this.ctx = game_instance.canvasPlatforms.getContext('2d');
+    this.trans = new Transform();
+  }
+  else {
+    this.transformClass = require('./class.transform');
+  }
 
   this.id = 'noid';
 
@@ -29,7 +45,7 @@ function game_platform(game_instance, client)
   this.spawn = null;
   this.layout = "h"; // horizontal or vertical
 
-  this.tiles = [];
+  //this.tiles = [];
 
   this.type = 1; // 1 = fixed, 2 = destructable, 3 = rain
   //this.state = 1; // 1 = intact, 2 = falling, 3 = destroyed, 4 = rotating, 5 = shaking, 6 = destroyed
@@ -42,7 +58,7 @@ game_platform.prototype.state = 1;
 
 game_platform.prototype.setter = function(data)
 {
-  // if no spawn vals, store it;
+  // if no spawn vals then store it;
   if (this.spawn == null)
   {
     console.log('setting platform spawn vals');
@@ -180,7 +196,7 @@ game_platform.prototype.update = function()
     switch(this.state)
     {
         case this.STATE_SHAKING:
-            console.log('update().shaking!');
+            //console.log('update().shaking!');
             // num between -10 and 10
             var shake = 5;
             var sx = Math.floor(Math.random()*(shake*2) + 1) - shake;
@@ -189,7 +205,7 @@ game_platform.prototype.update = function()
         break;
 
         case this.STATE_DESTROYED: // destroyed
-          console.log('update().destroy!');
+          //console.log('update().destroy!');
           // clear image
           //this.state = 1;
           //this.removeFromStage(true);
@@ -201,7 +217,7 @@ game_platform.prototype.update = function()
         break;
 
         case this.STATE_FALLING: // falling
-          console.log('update().falling!', this.y);
+          //console.log('update().falling!', this.y);
 
           // update y (falling)
           this.setter(
@@ -212,6 +228,46 @@ game_platform.prototype.update = function()
               h:this.h
             }
           );
+        break;
+
+        case this.STATE_ROTATING:
+
+          console.log('update().rotating!', this.r);
+          this.r += 9;//5;
+          console.log('post', this.r);
+          if (this.r < 181)
+          {
+            console.log('*');//,this.r);
+            /*this.trans.rotate(this.r);
+            var pos = this.trans.transformPoint(this.x + (this.w/2), this.y + (this.h/2));
+            //console.log('pos', pos);
+            newx = pos[0];
+            newy = pos[1];
+            console.log('derek', newx, newy);*/
+
+            // var cx = this.x + (this.w/2);
+            // var cy = this.y + (this.h/2);
+            /*var cx = this.w/2;
+            var cy = this.h/2;
+
+
+            var cos = Math.cos(this.r);
+            var sin = Math.cos(this.r);
+            var nx = (cos * (this.x - cx)) + (sin * (this.y - cy)) + cx;
+            var ny = (cos * (this.y - cy)) - (sin * (this.x - cx)) + cy;
+
+            this.x = nx;
+            this.y = ny;
+            console.log(this.x, this.y, this.r);*/
+          }
+          else
+          {
+            this.r = 0;
+            console.log('client', this.game.server);
+            if (!this.game.server) this.draw();
+            this.state = this.STATE_INTACT;//this.r = 0;
+          }
+
         break;
 
         case this.STATE_REMOVED:
@@ -234,6 +290,26 @@ game_platform.prototype.timeoutDestroyed = function()
   // remove platform from stage and ready respawn
   this.removeFromStage(true);
   //setTimeout(this.timeoutShaking.bind(this), 2000);
+};
+
+game_platform.prototype.doRotate = function()
+{
+  console.log('doRotate');
+
+  // this.triggerer =
+
+  if (this.client && this.trans == null)
+  {
+    this.trans = new Translate();
+  }
+  else if (this.trans == null)
+  {
+    this.trans = new this.transformClass();
+    console.log('trans', this.trans);
+  }
+  //this.trans = new this.trans();
+  this.r = 1;
+  this.state = this.STATE_ROTATING;
 };
 
 game_platform.prototype.doShake = function(postShakeState, triggerer)
@@ -338,7 +414,7 @@ game_platform.prototype.timeoutRespawn = function()
 
 game_platform.prototype.draw = function()
 {
-    console.log('platform.draw()', this.state);
+    //console.log('platform.draw()', this.state);
     //if (status === 1)
     //if (this.state == 2)
     //cy =
@@ -349,7 +425,7 @@ game_platform.prototype.draw = function()
     // left side
     if (this.state === this.STATE_INTACT || this.state === this.STATE_FALLING || this.state === this.STATE_SHAKING)
     {
-        this.ctx.clearRect(this.old.x,this.old.y - this.h, this.old.w, this.old.h + this.h);//this.game.canvasPlatforms.height);
+        this.ctx.clearRect(this.old.x,this.old.y - this.h, this.old.w, this.old.h + this.h);
 
         this.ctx.drawImage(
             document.getElementById("plat-l"),
@@ -388,10 +464,53 @@ game_platform.prototype.draw = function()
         console.log('draw destroyed animation...');
         this.ctx.clearRect(this.x,this.y - 5, this.w, this.h + 5);//this.game.canvasPlatforms.height);
     }
+    else if (this.state == this.STATE_ROTATING)
+    {
+      console.log('draw rotating animation...');
 
+			this.ctx.clearRect(this.x,this.y - (this.w/2), this.w + 10, this.w + 40);
+			//*
+      //var TO_RADIANS = Math.PI/180;
+      //function drawRotatedImage(image, x, y, angle)
+      //{
+      // save the current co-ordinate system
+      // before we screw with it
+      this.ctx.save();
 
-  //this.ctx.restore();
-};
+      // move to the middle of where we want to draw our image
+      this.ctx.translate(this.x + (this.w / 2), this.y + (this.h / 2));
+
+      // rotate around that point, converting our
+      // angle from degrees to radians
+			//console.log(this.TO_RADIANS);
+      this.ctx.rotate(this.r * this.TO_RADIANS);
+
+      // draw it up and to the left by half the width
+      // and height of the image
+      //this.ctx.drawImage(image, -(image.width/2), -(image.height/2));
+
+			this.ctx.drawImage(
+					document.getElementById("plat-rotate"),
+					-(this.w/2),
+					-(this.h/2),
+					384,
+					64
+			);
+
+			/*this.ctx.drawImage(
+					document.getElementById("plat-rotate"),
+					(this.x),
+					(this.y)//,
+					//384,
+					//64
+			);*/
+
+      // and restore the co-ords to how they were when we began
+      this.ctx.restore();
+			//*/
+      //}
+    }
+}; // draw
 
 if('undefined' != typeof global)
     module.exports = game_platform;

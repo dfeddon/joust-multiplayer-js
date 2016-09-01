@@ -16,6 +16,7 @@ define(
     'require',
     'domReady',
     'egyptian_set',
+    'class.transform',
     'class.player',
     'class.platform',
     'class.collision',

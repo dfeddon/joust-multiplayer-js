@@ -157,7 +157,8 @@ var game_core = function(game_instance)
         var UUID            = require('node-uuid'),
         name_set            = require('./egyptian_set'),
         playerClass         = require('./class.player'),
-        platformClass       = require('./class.platform');
+        platformClass       = require('./class.platform'),
+        transformClass      = require('./class.transform');
         /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -240,6 +241,18 @@ var game_core = function(game_instance)
                 h:this.platformsData[m].h//64
             });
             //console.log('plat',plat);
+            if (this.platformsData[m].s === 4)
+            {
+                plat.state = 1;
+                plat.status = 4;
+                //console.log('plat rotate');
+                // start rotation trigger timer
+                setInterval(function()
+                {
+                    console.log('rotate');
+                    plat.doRotate();
+                }, 5000);
+            }
             this.platforms.push(plat);
         }
     }
