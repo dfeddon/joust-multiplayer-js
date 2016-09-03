@@ -224,6 +224,15 @@ var game_core = function(game_instance)
         // setup collision detect/solve pattern (decorator)
         // this.collisionDetector = new CollisionDetector();
         // this.collisionSolver = new CollisionSolver();
+        var t = 0;
+        function rndInterval()
+        {
+            t = (Math.random()*5000) + 5000;
+            console.log('rndInterval', t);
+            console.log('rotate');
+            plat.doRotate();
+            setTimeout(rndInterval, t);
+        }
 
         // define platforms
         var plat;
@@ -245,13 +254,8 @@ var game_core = function(game_instance)
             {
                 plat.state = 1;
                 plat.status = 4;
-                //console.log('plat rotate');
-                // start rotation trigger timer
-                setInterval(function()
-                {
-                    console.log('rotate');
-                    plat.doRotate();
-                }, 5000);
+
+                rndInterval();
             }
             this.platforms.push(plat);
         }
@@ -298,7 +302,7 @@ var game_core = function(game_instance)
             p = new game_player(this);
             // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
-            p.playerName = this.nameGenerator();
+            p.playerName = this.nameGenerator() + " [" + p.mp + "]";
             this.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
@@ -1185,7 +1189,7 @@ game_core.prototype.check_collision = function( player )
     //*
     for (var j = 0; j < this.platforms.length; j++)
     {
-        //console.log('platform', this.platforms[j]);
+        //console.log('collision().platform:state', this.platforms[j].state);
         // Note: hy + 10 below accounts for birds unseen legs.
         if (
             player.pos.x < (this.platforms[j].x + this.platforms[j].w) &&
@@ -1204,14 +1208,11 @@ game_core.prototype.check_collision = function( player )
                 {
                     console.log('from bottom', player.hasHelment);
                     // if player has helment and platform status is intact
-                    if (player.hasHelment && this.platforms[j].state === this.platforms[j].STATE_INTACT)
+                    /*if (player.hasHelment)// && this.platforms[j].state === this.platforms[j].STATE_INTACT)
                     {
-                        //player.hasHelment = false;
                         console.log('platform will FALL!', player.mp, this.platforms[j].id);
                         this.platforms[j].doShake(this.platforms[j].STATE_FALLING, player.mp);
-                        //this.platforms[j].state = this.platforms[j].STATE_SHAKING;
-                        //this.platforms[j].triggerer = player.mp;
-                    }
+                    }*/
                 }
                 else if (this.platforms[j].state === this.platforms[j].STATE_FALLING) // platform falling
                 {
@@ -1235,7 +1236,7 @@ game_core.prototype.check_collision = function( player )
                 {
                     player.pos.y += 5;
                 }
-            }
+            } // end player hit from below
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
                 player.pos.y = this.platforms[j].y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
@@ -1271,10 +1272,11 @@ game_core.prototype.check_collision = function( player )
                     // set landing flag (stationary)
                     player.landed = 1;
                 }
-            }
+            } // end player hit from above
 
             break;
-        }
+        } // end collision
+
         //else if (player.landed > 0) player.landed = 0; // if player slides off platform, fly!
     }
     //*/
@@ -1757,6 +1759,7 @@ game_core.prototype.update_physics = function() {
     var jlen = this.platforms.length;
     for (var j = 0; j < jlen; j++)
     {
+        //console.log(this.platforms[j].state);
         if (this.platforms[j].state !== this.platforms[j].STATE_INTACT && this.platforms[j].state !== this.platforms[j].STATE_REMOVED)
         {
             // store old values (for clearRect)
@@ -2348,7 +2351,7 @@ game_core.prototype.client_process_net_updates = function()
                 this.platforms[k].x = pos.x;// target[this.platforms[k].id].x;
                 this.platforms[k].y = pos.y;//target[this.platforms[k].id].y;
                 this.platforms[k].r = target[this.platforms[k].id].r;
-                this.platforms[k].state = target[this.platforms[k].id].s;
+                this.platforms[k].setState(target[this.platforms[k].id].s);
                 this.platforms[k].type = target[this.platforms[k].id].t;
                 this.platforms[k].triggerer = target[this.platforms[k].id].p;
             }
