@@ -985,10 +985,49 @@ game_core.prototype.update = function(t)
     Shared between server and client.
     In this example, `item` is always of type game_player.
 */
+game_core.prototype.playerKill = function(victim, victor)
+{
+    console.log('playerKill', victim.dead);
+    if (victim.dead === true) return;
+    else victim.dead = true;
+    this.flashBang = 2;
+
+    var waspos = victim.pos;
+    victim.pos = {x:Math.floor((Math.random() * victim.game.world.width - 64) + 64), y:-1000};
+    victim.landed = 0;
+
+    var size, c, ox, oy, id, neworb;
+    var colors = ['white'];
+    for (var x = 0; x < 50; x++)
+    {
+        size = Math.floor(Math.random() * 8) + 3;
+        c = colors[Math.floor(Math.random() * colors.length)];
+        // TODO: Avoid barriers
+        ox = waspos.x + Math.floor(Math.random() * 100) + 1;
+        ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+        oy = waspos.y + Math.floor(Math.random() * 20) + 1;
+        oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+        id = Math.floor(Math.random() * 5000) + 1;
+
+        neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+        this.orbs.push( neworb );
+    }
+    console.log('total orbs', this.orbs.length);//, this.orbs);
+
+    // show splatter locally
+    if (!this.server)
+        this.prerenderer();
+
+};
+
 game_core.prototype.check_collision = function( player )
 {
     //console.log('##+@@check_collision', player.mp);
-    if (player.mp === 'hp') return;
+    if (player.mp === 'hp' || player.landed === 1)
+    {
+        //console.log('standing', player.mp);
+        return;
+    }
 
     //console.log('g', this.players.self.getGrid());
 
@@ -1090,11 +1129,15 @@ game_core.prototype.check_collision = function( player )
                         // console.log("BUMP")
                         // player.pos = this.physics_movement_vector_from_direction(-50, 0);
                         // this.allplayers[i].pos = this.physics_movement_vector_from_direction(50,0);
+                        player.landed = 2;
+                        this.allplayers[i].landed = 2;
                     }
                     else
                     {
                         player.pos.x += 50;
                         this.allplayers[i].pos.x -= 50;
+                        player.landed = 2;
+                        this.allplayers[i].landed = 2;
                     }
                     // manage velocit and stop state
                     // if player and enemy are facing same direction
@@ -1122,58 +1165,60 @@ game_core.prototype.check_collision = function( player )
                 }
                 else // we have a victim
                 {
-                    this.flashBang = 2;
-                    var splatteree, waspos;
+                    //this.flashBang = 2;
+                    //var splatteree, waspos;
                     if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].vuln === true)
                     {
+                        this.playerKill(this.allplayers[i], player);
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
-                        waspos = this.allplayers[i].pos;
-                        this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
-                        //this.allplayers[i].visible = false;
-                        splatteree = this.allplayers[i];
+                        // waspos = this.allplayers[i].pos;
+                        // this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
+                        // //this.allplayers[i].visible = false;
+                        // splatteree = this.allplayers[i];
                         //this.allplayers[i].old_state = this.allplayers[i].pos;
                     }
                     else
                     {
+                        this.playerKill(player, this.allplayers[i]);
                         //console.log(this.allplayers[i].mp, 'WINS!');
-                        waspos = player.pos;
-                        player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
-                        //player.visible = false;
-                        splatteree = player;
+                        // waspos = player.pos;
+                        // player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
+                        // //player.visible = false;
+                        // splatteree = player;
                         //player.old_state = player.pos;
                     }
 
                     // splatter
                     //if (this.server){
                     //var UUID = require('node-uuid');
-                    console.log('splatter!');
+                    // console.log('splatter!');
 
                     // get diffs
                     // var spreadX = 100;
                     // var spreadY = 100;
                     // if (this.world.height - waspos.y > spreadX)
                     //     spreadX = 100 -
-                    var size, c, ox, oy, id, neworb;
-                    var colors = ['white'];
-                    for (var x = 0; x < 50; x++)
-                    {
-                        size = Math.floor(Math.random() * 8) + 3;
-                        c = colors[Math.floor(Math.random() * colors.length)];
-                        // TODO: Avoid barriers
-                        ox = waspos.x + Math.floor(Math.random() * 100) + 1;
-                        ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
-                        oy = waspos.y + Math.floor(Math.random() * 20) + 1;
-                        oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
-                        id = Math.floor(Math.random() * 5000) + 1;
-
-                        neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
-                        this.orbs.push( neworb );
-                    }
-                    console.log('total orbs', this.orbs.length);//, this.orbs);
-
-                    // show splatter locally
-                    if (!this.server)
-                        this.prerenderer();
+                    // var size, c, ox, oy, id, neworb;
+                    // var colors = ['white'];
+                    // for (var x = 0; x < 50; x++)
+                    // {
+                    //     size = Math.floor(Math.random() * 8) + 3;
+                    //     c = colors[Math.floor(Math.random() * colors.length)];
+                    //     // TODO: Avoid barriers
+                    //     ox = waspos.x + Math.floor(Math.random() * 100) + 1;
+                    //     ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+                    //     oy = waspos.y + Math.floor(Math.random() * 20) + 1;
+                    //     oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+                    //     id = Math.floor(Math.random() * 5000) + 1;
+                    //
+                    //     neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+                    //     this.orbs.push( neworb );
+                    // }
+                    // console.log('total orbs', this.orbs.length);//, this.orbs);
+                    //
+                    // // show splatter locally
+                    // if (!this.server)
+                    //     this.prerenderer();
                 }
 
                 break;
@@ -1722,7 +1767,9 @@ game_core.prototype.update_physics = function() {
         ////////////////////////////////////////////////////////
         // if player not on floor, apply gravity
         ////////////////////////////////////////////////////////
-        if (this.allplayers[i].pos.y !== this.allplayers[i].pos_limits.y_max)
+        //if (this.allplayers[i].pos.y !== this.allplayers[i].pos_limits.y_max)
+        //console.log(this.allplayers[]);
+        if (this.allplayers[i].landed !== 1)
         {
             this.allplayers[i].pos.y+=this.world.gravity;
 

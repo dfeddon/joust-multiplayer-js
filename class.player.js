@@ -95,6 +95,9 @@ function game_player( game_instance, player_instance, isHost )
     this.playerName = "";
     //this.lastNamePlate = "YOU";
 } // end game_player constructor
+
+game_player.prototype.dead = false;
+
     game_player.prototype.doCycleAbility = function()
     {
         // no abilities (level 1)
