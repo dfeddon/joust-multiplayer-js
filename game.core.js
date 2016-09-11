@@ -140,7 +140,7 @@ var game_core = function(game_instance)
             w:64*6,
             h:64,
             t:1,
-            s:4
+            s:0//4 = rotating
         }
     );
     // this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
@@ -149,7 +149,7 @@ var game_core = function(game_instance)
 
     this.spritesheets = [];
     this.spritesheetsData = [];
-    this.spritesheetsData.push({type:'animate-torches', x:258, y:400, w:64, h:64, frames:4});
+    //this.spritesheetsData.push({type:'animate-torches', x:258, y:400, w:64, h:64, frames:4});
 
     //We create a player set, passing them
     //the game that is running them, as well
