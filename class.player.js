@@ -30,6 +30,7 @@ function game_player( game_instance, player_instance, isHost )
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 0; // 0=flying, 1=stationary, 2=walking
+    this.supportingPlatformId = "none"; // id of platform on which player is standing
     this.visible = true;
     this.active = false;
     this.state = 'not-connected';
@@ -98,464 +99,516 @@ function game_player( game_instance, player_instance, isHost )
 
 game_player.prototype.dead = false;
 
-    game_player.prototype.doCycleAbility = function()
+game_player.prototype.doStand = function(id)
+{
+    console.log('doStand', id);
+    // id = platform id
+    this.supportingPlatformId = id;
+};
+
+game_player.prototype.doKill = function(victor)
+{
+    console.log('playerKill', this.dead);
+
+    // avoid reduncancy
+    if (this.dead === true) return;
+    else this.dead = true;
+
+    // apply red flash fx
+    this.game.flashBang = 2;
+
+    // store current position
+    var waspos = this.pos;
+    this.pos = {x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:-1000};
+
+    // reset landed prop
+    this.landed = 0;
+
+    // splatter "orbs of death"
+    var size, c, ox, oy, id, neworb;
+    var colors = ['white'];
+    for (var x = 0; x < 50; x++)
     {
-        // no abilities (level 1)
-        if (this.ability === -1) return;
+        size = Math.floor(Math.random() * 8) + 3;
+        c = colors[Math.floor(Math.random() * colors.length)];
+        // TODO: Avoid barriers
+        ox = waspos.x + Math.floor(Math.random() * 100) + 1;
+        ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+        oy = waspos.y + Math.floor(Math.random() * 20) + 1;
+        oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
+        id = Math.floor(Math.random() * 5000) + 1;
 
-        console.log('Next Ability');
-        // if last ability selected, roll over to first
-        if (this.ability === this.abilities.length - 1)
-            this.ability = 0;
-        // otherwise, get next ability
-        else this.ability++;
-        //console.log(this.ability, this.abilities.length, this.abilities[this.ability]);
-    };
+        neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+        this.game.orbs.push( neworb );
+    }
+    console.log('total orbs', this.game.orbs.length);//, this.orbs);
 
-    game_player.prototype.doAbility = function()
+    // show splatter locally
+    if (!this.game.server)
+        this.game.prerenderer();
+
+    // set timer to reset player dead state
+
+};
+
+game_player.prototype.doCycleAbility = function()
+{
+    // no abilities (level 1)
+    if (this.ability === -1) return;
+
+    console.log('Next Ability');
+    // if last ability selected, roll over to first
+    if (this.ability === this.abilities.length - 1)
+        this.ability = 0;
+    // otherwise, get next ability
+    else this.ability++;
+    //console.log(this.ability, this.abilities.length, this.abilities[this.ability]);
+};
+
+game_player.prototype.doAbility = function()
+{
+    console.log('doAbility', this.mp);
+    // first ensure player is not vulnerable, has no abilities, or on global cooldown
+    console.log(this.vuln, this.ability, this.cooldown);
+    if (this.vuln === true || this.ability === -1 || this.cooldown === true) return;
+
+    // check for ability cooldown
+    //console.log(new Date(this.abilities[this.ability].t).getTime(), new Date().getTime());//.getSeconds());
+    if (this.abilities[this.ability].t !== 0 && new Date(this.abilities[this.ability].t).getTime() > new Date().getTime())
     {
-        console.log('doAbility', this.mp);
-        // first ensure player is not vulnerable, has no abilities, or on global cooldown
-        console.log(this.vuln, this.ability, this.cooldown);
-        if (this.vuln === true || this.ability === -1 || this.cooldown === true) return;
-
-        // check for ability cooldown
-        //console.log(new Date(this.abilities[this.ability].t).getTime(), new Date().getTime());//.getSeconds());
-        if (this.abilities[this.ability].t !== 0 && new Date(this.abilities[this.ability].t).getTime() > new Date().getTime())
-        {
-            console.log('ability on cooldown...');//, this.abilities[this.ability].t, new Date().getSeconds());
-            return;
-        }
-
-        var _this = this;
-
-        // next, check for active buffs/debuffs
-        //console.log(this.abilities);
-        //console.log(this.ability);
-        console.log('Fire Ability', this.abilities[this.ability]);
-
-        // engage player
-        if (this.engaged === false && this.isLocal)
-            this.isEngaged(5000);
-
-        // set ability index
-        this.abil = this.abilities[this.ability].id;
-
-        // activate ability
-        switch(this.abilities[this.ability].label)
-        {
-            case "burst":
-                //this.abil = 1;
-                console.log('bursting!!', this.x_dir, this.mp, this.game.playerspeed);
-                //if (this.dir === 0)
-                    //this.x_dir += 500;//this.pos.x += this.size.hx + 150;
-                //else this.ax -= 100;//this.pos.x -= 150;
-                this.vx += 500;
-                console.log('post!!', this.x_dir, this.mp, this.game.playerspeed);
-
-                //if (this.isLocal) this.game.players.self.pos.x = this.pos.x;
-                // start cooldown
-            break;
-
-            case "blink":
-                //console.log('blinking', this.dir);
-                //this.abil = 2;
-                // start cooldown
-                if (this.dir === 0)
-                    this.pos.x += 150;
-                else this.pos.x -= 150;
-            break;
-
-            case "grapple":
-            break;
-
-            case "anchor":
-            break;
-
-            case "frost":
-            break;
-
-            case "cinder":
-            break;
-
-            case "confusion":
-            break;
-
-            default:
-                console.log('ERROR: unknown ability!');
-        }
-
-        // start 3 second global cooldown (for non-channelling abilities)
-        if (this.abilities[this.ability].cd >= 1000)
-        {
-            this.cooldown = true;
-            setTimeout(_this.timeoutGlobalCooldown, 3000);
-        }
-
-        // start ability cooldown
-        var d = new Date();
-        // if cooldown in seconds, else milliseconds
-        if (this.abilities[this.ability].cd >= 1000)
-            this.abilities[this.ability].t = d.setSeconds(d.getSeconds() + (this.abilities[this.ability].cd / 1000));
-        else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
-        //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
-    };
-    game_player.prototype.timeoutGlobalCooldown = function()
-    {
-        console.log('off global cooldown');
-        this.cooldown = false;
-    };
-    game_player.prototype.updateMana = function(val)
-    {
-        //console.log('update mana', val);
-
-        // does user have mana booster?
-
-        if (val > 0)
-        {
-            this.mana += val;
-            this.pointsTotal += val;
-        }
-        else
-        {
-            this.mana -= val;
-            this.progression = this.mana;
-            return;
-        }
-        // calculate level, progression and mana stores
-        if (this.pointsTotal < this.levels[1])
-        {
-            this.level = 1;
-            this.progression = this.mana;
-        }
-        else if (this.level === 1 && this.pointsTotal > this.levels[1])
-        {
-            console.log('** level up 2!');
-            this.level = 2;
-            this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
-            this.ability = 0; // set default to 'burst'
-
-            //this.ability = 0;
-            // this.abilities.push({label:"burst"});
-            // cd = cooldown, gc = global cooldown, t = time last used (for cd)
-            this.abilities.push({label:"frost", id:2, cd: 250, gc:false, t:0});
-            this.abilities.push({label:"blink", id:3, cd: 5000, gc:true, t:0});
-            this.abilities.push({label:"grapple", id:4, cd: 5000, gc:true, t:0});
-            this.abilities.push({label:"anchor", id:5, cd: 5000, gc:true, t:0});
-            this.abilities.push({label:"cinder", id:6, cd: 250, gc:false, t:0});
-            this.abilities.push({label:"confusion", id:7, cd: 60000, gc:true, t:0});
-
-            // update progression
-            this.progression = this.mana;
-        }
-        else if (this.level === 2 && this.pointsTotal > this.levels[2])
-        {
-            console.log('** level up 3!');
-            this.level = 3;
-            // this.abilities.push({label:"frost"});
-            // this.abilities.push({label:"blink"});
-            // this.abilities.push({label:"grapple"});
-            // this.abilities.push({label:"anchor"});
-            // this.abilities.push({label:"cinder"});
-            // this.abilities.push({label:"confusion"});
-        }
-        else if (this.level === 3 && this.pointsTotal > this.levels[3])
-            this.level = 4;
-        else if (this.level === 4 && this.pointsTotal > this.levels[4])
-            this.level = 5;
-        else if (this.level === 5 && this.pointsTotal > this.levels[5])
-            this.level = 6;
-        else if (this.level === 6 && this.pointsTotal > this.levels[6])
-            this.level = 7;
-        else if (this.level === 7 && this.pointsTotal > this.levels[7])
-            this.level = 8;
-        else if (this.level === 8 && this.pointsTotal > this.levels[8])
-            this.level = 9;
-        else if (this.level === 9 && this.pointsTotal > this.levels[9])
-            this.level = 10;
-        else if (this.level === 10 && this.pointsTotal > this.levels[10])
-            this.level = 11;
-
-        //this.level = Math.ceil(this.mana / 256);
-        //console.log(this.level, this.mana);
-    };
-
-    game_player.prototype.isEngaged = function(len)
-    {
-        //console.log(this.mp, 'isEngaged');
-
-        var _this = this;
-        this.engaged = true;
-
-        // timer 10 sec
-        setTimeout(_this.timeoutEngaged, len);
-    };
-
-    game_player.prototype.timeoutEngaged = function()
-    {
-        //console.log(self.mp, 'no longer engaged!');
-        this.engaged = false;
-    };
-
-    game_player.prototype.isVuln = function(len)
-    {
-        console.log('Im vulnerable!');
-        var _this = this;
-
-        this.vuln = true;
-
-        // also set to engaged
-        if (this.isLocal)
-            this.isEngaged(len);
-
-        var stun = setTimeout(this.timeoutVuln, len);
-    };
-
-    game_player.prototype.timeoutVuln = function()
-    {
-        this.vuln = false;
-        console.log('...no longer vulnerable');
+        console.log('ability on cooldown...');//, this.abilities[this.ability].t, new Date().getSeconds());
+        return;
     }
 
-    game_player.prototype.getGrid = function()
+    var _this = this;
+
+    // next, check for active buffs/debuffs
+    //console.log(this.abilities);
+    //console.log(this.ability);
+    console.log('Fire Ability', this.abilities[this.ability]);
+
+    // engage player
+    if (this.engaged === false && this.isLocal)
+        this.isEngaged(5000);
+
+    // set ability index
+    this.abil = this.abilities[this.ability].id;
+
+    // activate ability
+    switch(this.abilities[this.ability].label)
     {
-        return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
-    };
+        case "burst":
+            //this.abil = 1;
+            console.log('bursting!!', this.x_dir, this.mp, this.game.playerspeed);
+            //if (this.dir === 0)
+                //this.x_dir += 500;//this.pos.x += this.size.hx + 150;
+            //else this.ax -= 100;//this.pos.x -= 150;
+            this.vx += 500;
+            console.log('post!!', this.x_dir, this.mp, this.game.playerspeed);
 
-    game_player.prototype.getCoord = function()
+            //if (this.isLocal) this.game.players.self.pos.x = this.pos.x;
+            // start cooldown
+        break;
+
+        case "blink":
+            //console.log('blinking', this.dir);
+            //this.abil = 2;
+            // start cooldown
+            if (this.dir === 0)
+                this.pos.x += 150;
+            else this.pos.x -= 150;
+        break;
+
+        case "grapple":
+        break;
+
+        case "anchor":
+        break;
+
+        case "frost":
+        break;
+
+        case "cinder":
+        break;
+
+        case "confusion":
+        break;
+
+        default:
+            console.log('ERROR: unknown ability!');
+    }
+
+    // start 3 second global cooldown (for non-channelling abilities)
+    if (this.abilities[this.ability].cd >= 1000)
     {
-        // direction-dependent, account for
-        var nw = { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
-        var ne = { x: Math.floor((this.pos.x + this.size.hx) / 64),y: Math.floor(this.pos.y / 64) };
-        var sw = { x: Math.floor(this.pos.x / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
-        var se = { x: Math.floor((this.pos.x + this.size.hx) / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
-        return { nw:nw, ne:ne, sw:sw, se:se };
-        //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
-    };
-    game_player.prototype.hitGrid = function()
+        this.cooldown = true;
+        setTimeout(_this.timeoutGlobalCooldown, 3000);
+    }
+
+    // start ability cooldown
+    var d = new Date();
+    // if cooldown in seconds, else milliseconds
+    if (this.abilities[this.ability].cd >= 1000)
+        this.abilities[this.ability].t = d.setSeconds(d.getSeconds() + (this.abilities[this.ability].cd / 1000));
+    else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
+    //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
+};
+game_player.prototype.timeoutGlobalCooldown = function()
+{
+    console.log('off global cooldown');
+    this.cooldown = false;
+};
+game_player.prototype.updateMana = function(val)
+{
+    //console.log('update mana', val);
+
+    // does user have mana booster?
+
+    if (val > 0)
     {
-        // don't proceed unless tilemapData is loaded
-        //if (this.game.tilemapData == undefined) return;
-        var tmd = this.game.tilemapData;
-        if (tmd == null) return;
+        this.mana += val;
+        this.pointsTotal += val;
+    }
+    else
+    {
+        this.mana -= val;
+        this.progression = this.mana;
+        return;
+    }
+    // calculate level, progression and mana stores
+    if (this.pointsTotal < this.levels[1])
+    {
+        this.level = 1;
+        this.progression = this.mana;
+    }
+    else if (this.level === 1 && this.pointsTotal > this.levels[1])
+    {
+        console.log('** level up 2!');
+        this.level = 2;
+        this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
+        this.ability = 0; // set default to 'burst'
 
-        var c = this.getCoord();
+        //this.ability = 0;
+        // this.abilities.push({label:"burst"});
+        // cd = cooldown, gc = global cooldown, t = time last used (for cd)
+        this.abilities.push({label:"frost", id:2, cd: 250, gc:false, t:0});
+        this.abilities.push({label:"blink", id:3, cd: 5000, gc:true, t:0});
+        this.abilities.push({label:"grapple", id:4, cd: 5000, gc:true, t:0});
+        this.abilities.push({label:"anchor", id:5, cd: 5000, gc:true, t:0});
+        this.abilities.push({label:"cinder", id:6, cd: 250, gc:false, t:0});
+        this.abilities.push({label:"confusion", id:7, cd: 60000, gc:true, t:0});
 
-        return {
-            nw: (tmd[c.nw.y] && tmd[c.nw.y][c.nw.x]) ? {t:parseInt(tmd[c.nw.y][c.nw.x]),x:c.nw.x,y:c.nw.y} : 0,
-            ne: (tmd[c.ne.y] && tmd[c.ne.y][c.ne.x]) ? {t:parseInt(tmd[c.ne.y][c.ne.x]),x:c.ne.x,y:c.ne.y} : 0,
-            sw: (tmd[c.sw.y] && tmd[c.sw.y][c.sw.x]) ? {t:parseInt(tmd[c.sw.y][c.sw.x]),x:c.sw.x,y:c.sw.y} : 0,
-            se: (tmd[c.se.y] && tmd[c.se.y][c.se.x]) ? {t:parseInt(tmd[c.se.y][c.se.x]),x:c.se.x,y:c.se.y} : 0
-        };
+        // update progression
+        this.progression = this.mana;
+    }
+    else if (this.level === 2 && this.pointsTotal > this.levels[2])
+    {
+        console.log('** level up 3!');
+        this.level = 3;
+        // this.abilities.push({label:"frost"});
+        // this.abilities.push({label:"blink"});
+        // this.abilities.push({label:"grapple"});
+        // this.abilities.push({label:"anchor"});
+        // this.abilities.push({label:"cinder"});
+        // this.abilities.push({label:"confusion"});
+    }
+    else if (this.level === 3 && this.pointsTotal > this.levels[3])
+        this.level = 4;
+    else if (this.level === 4 && this.pointsTotal > this.levels[4])
+        this.level = 5;
+    else if (this.level === 5 && this.pointsTotal > this.levels[5])
+        this.level = 6;
+    else if (this.level === 6 && this.pointsTotal > this.levels[6])
+        this.level = 7;
+    else if (this.level === 7 && this.pointsTotal > this.levels[7])
+        this.level = 8;
+    else if (this.level === 8 && this.pointsTotal > this.levels[8])
+        this.level = 9;
+    else if (this.level === 9 && this.pointsTotal > this.levels[9])
+        this.level = 10;
+    else if (this.level === 10 && this.pointsTotal > this.levels[10])
+        this.level = 11;
+
+    //this.level = Math.ceil(this.mana / 256);
+    //console.log(this.level, this.mana);
+};
+
+game_player.prototype.isEngaged = function(len)
+{
+    //console.log(this.mp, 'isEngaged');
+
+    var _this = this;
+    this.engaged = true;
+
+    // timer 10 sec
+    setTimeout(_this.timeoutEngaged, len);
+};
+
+game_player.prototype.timeoutEngaged = function()
+{
+    //console.log(self.mp, 'no longer engaged!');
+    this.engaged = false;
+};
+
+game_player.prototype.isVuln = function(len)
+{
+    console.log('Im vulnerable!');
+    var _this = this;
+
+    this.vuln = true;
+
+    // also set to engaged
+    if (this.isLocal)
+        this.isEngaged(len);
+
+    var stun = setTimeout(this.timeoutVuln, len);
+};
+
+game_player.prototype.timeoutVuln = function()
+{
+    this.vuln = false;
+    console.log('...no longer vulnerable');
+}
+
+game_player.prototype.getGrid = function()
+{
+    return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+};
+
+game_player.prototype.getCoord = function()
+{
+    // direction-dependent, account for
+    var nw = { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+    var ne = { x: Math.floor((this.pos.x + this.size.hx) / 64),y: Math.floor(this.pos.y / 64) };
+    var sw = { x: Math.floor(this.pos.x / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
+    var se = { x: Math.floor((this.pos.x + this.size.hx) / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
+    return { nw:nw, ne:ne, sw:sw, se:se };
+    //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+};
+game_player.prototype.hitGrid = function()
+{
+    // don't proceed unless tilemapData is loaded
+    //if (this.game.tilemapData == undefined) return;
+    var tmd = this.game.tilemapData;
+    if (tmd == null) return;
+
+    var c = this.getCoord();
+
+    return {
+        nw: (tmd[c.nw.y] && tmd[c.nw.y][c.nw.x]) ? {t:parseInt(tmd[c.nw.y][c.nw.x]),x:c.nw.x,y:c.nw.y} : 0,
+        ne: (tmd[c.ne.y] && tmd[c.ne.y][c.ne.x]) ? {t:parseInt(tmd[c.ne.y][c.ne.x]),x:c.ne.x,y:c.ne.y} : 0,
+        sw: (tmd[c.sw.y] && tmd[c.sw.y][c.sw.x]) ? {t:parseInt(tmd[c.sw.y][c.sw.x]),x:c.sw.x,y:c.sw.y} : 0,
+        se: (tmd[c.se.y] && tmd[c.se.y][c.se.x]) ? {t:parseInt(tmd[c.se.y][c.se.x]),x:c.se.x,y:c.se.y} : 0
     };
+};
 
-    // new physics properties begin
+// new physics properties begin
 
-    // new physics properies end
+// new physics properies end
 
 //} //game_player.constructor
 
 game_player.prototype.drawAbilities = function()
 {
-    if (this.engaged === false)
-    {
-        game.ctx.beginPath();
-        game.ctx.strokeStyle = 'gray';
-        game.ctx.moveTo(this.pos.x, this.pos.y-20);
-        game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-20);
-        game.ctx.lineWidth = 3;
-        game.ctx.stroke();
-        game.ctx.closePath();
+if (this.engaged === false)
+{
+    game.ctx.beginPath();
+    game.ctx.strokeStyle = 'gray';
+    game.ctx.moveTo(this.pos.x, this.pos.y-20);
+    game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-20);
+    game.ctx.lineWidth = 3;
+    game.ctx.stroke();
+    game.ctx.closePath();
 
-        // mana progression
-        // calculate
-        var progressPercent = (this.mana / this.levels[this.level]);
-        // 64 is the width of the progression bar
-        var progressVal = ((progressPercent / 100) * 64) * 100;
-        // draw it
-        game.ctx.beginPath();
-        game.ctx.strokeStyle = 'yellow';
-        // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
-        // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-        game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-20);
-        game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-20);
-        game.ctx.lineWidth = 3;
-        game.ctx.stroke();
-        game.ctx.closePath();
+    // mana progression
+    // calculate
+    var progressPercent = (this.mana / this.levels[this.level]);
+    // 64 is the width of the progression bar
+    var progressVal = ((progressPercent / 100) * 64) * 100;
+    // draw it
+    game.ctx.beginPath();
+    game.ctx.strokeStyle = 'yellow';
+    // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
+    // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
+    game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-20);
+    game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-20);
+    game.ctx.lineWidth = 3;
+    game.ctx.stroke();
+    game.ctx.closePath();
 
-        // buffs, potions, and boosters
-        //console.log(this.pos.x, this.pos.y);
-        game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
-        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
-        game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
-        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
-        game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
-        /*game.ctx.fillStyle = 'yellow';
-        game.ctx.beginPath();
-        game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
-        game.ctx.fill();*/
-        // TODO: if not buffs, debuffs or boosters
-        // then txtOffset = 20;
-        txtOffset = 30;
-    } // end isEngaged
+    // buffs, potions, and boosters
+    //console.log(this.pos.x, this.pos.y);
+    game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
+    game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
+    game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
+    game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
+    game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
+    /*game.ctx.fillStyle = 'yellow';
+    game.ctx.beginPath();
+    game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
+    game.ctx.fill();*/
+    // TODO: if not buffs, debuffs or boosters
+    // then txtOffset = 20;
+    txtOffset = 30;
+} // end isEngaged
 };
 
 game_player.prototype.draw = function()
 {
-    //console.log(this.pos.x, this.pos.y);
-    //this.pos.x = this.pos.x.fixed(1);
-    //this.pos.y = this.pos.y.fixed(1);
-    // player nametags (temp)
-    // mana bar bg
-    var txtOffset = 10;
-    var abil;
-    if (this.isLocal === true)
-    {
+//console.log(this.pos.x, this.pos.y);
+//this.pos.x = this.pos.x.fixed(1);
+//this.pos.y = this.pos.y.fixed(1);
+// player nametags (temp)
+// mana bar bg
+var txtOffset = 10;
+var abil;
+if (this.isLocal === true)
+{
 
-        // nameplate color
-        game.ctx.fillStyle = '#526869';
-        game.ctx.font = "small-caps lighter 15px serif";
-    } // end isLocal
-    else
+    // nameplate color
+    game.ctx.fillStyle = '#526869';
+    game.ctx.font = "small-caps lighter 15px serif";
+} // end isLocal
+else
+{
+    // nameplate color
+    game.ctx.fillStyle = '#FF6961';
+    game.ctx.font = "small-caps 15px serif";
+}
+// game.ctx.strokeRect(
+//     this.pos.x,
+//     this.pos.y-10,
+//     this.size.hx,
+//     5);
+
+// nameplate
+game.ctx.font = "small-caps lighter 12px arial";
+game.ctx.textAlign = 'center';
+//var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
+var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
+game.ctx.fillText(
+    txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+    this.pos.x + (this.size.hx/2),//.fixed(1),
+    this.pos.y - txtOffset
+    //100
+);
+if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
+{
+    game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
+        //this.pos.x - 15,
+        this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
+        //this.pos.x + (this.size.hx/2) - 30,
+        this.pos.y - txtOffset - 12,
+        15, 15);
+}
+
+
+// ability
+if (this.abil > 0)
+{
+    //console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
+
+    switch(this.abil)
     {
-        // nameplate color
-        game.ctx.fillStyle = '#FF6961';
-        game.ctx.font = "small-caps 15px serif";
+        case 1: // burst
+        this.abil = 0; // reset
+        game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
+        //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
+        break;
+
+        case 2: // frost
+        break;
+
+        case 2: // frost
+        break;
+
+        case 3: // blink
+        break;
+
+        case 4: // grapple
+        break;
+
+        case 5: // anchor
+        break;
+
+        case 6: // cinder
+        break;
+
+        case 7: // confusion
+        break;
+
+        default:
+            console.log('ERROR: invalid abil value');
     }
-    // game.ctx.strokeRect(
-    //     this.pos.x,
-    //     this.pos.y-10,
-    //     this.size.hx,
-    //     5);
+}
 
-    // nameplate
-    game.ctx.font = "small-caps lighter 12px arial";
-    game.ctx.textAlign = 'center';
-    //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
-    var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
-    game.ctx.fillText(
-        txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
-        this.pos.x + (this.size.hx/2),//.fixed(1),
-        this.pos.y - txtOffset
-        //100
-    );
-    if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
-    {
-        game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
-            //this.pos.x - 15,
-            this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
-            //this.pos.x + (this.size.hx/2) - 30,
-            this.pos.y - txtOffset - 12,
-            15, 15);
-    }
+// player bitamps
+var img, imgW, imgH;
+//if (this.pos.d == 1)
+//if (this.landed > 0) console.log(this.landed, this.mp);
+// if (this.abil > 0)
+// {
+//     console.log('abil!', this.abil, this.mp);
+// }
+if (this.vuln === true)
+{
+    if (this.dir === 1)
+        img = document.getElementById("p1stun-l");
+    else img = document.getElementById("p1stun-r");
 
+    imgW = 64;//40;
+    imgH = 64;//40;
+}
+else if (this.flap === true)
+{
+    // reset flap on client
+    this.flap = false;
+    if (this.dir === 1) img = document.getElementById("p1l");
+    else img = document.getElementById("p1r");
 
-    // ability
-    if (this.abil > 0)
-    {
-        //console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
+    imgW = 64;//40;
+    imgH = 64;//40;
+}
+else if (this.landed === 1) // standing
+{
+    //console.log('standing', this.landed, this.mp);
+    if (this.dir === 1)
+        img = document.getElementById("p1stand-l");
+    else img = document.getElementById("p1stand-r");
 
-        switch(this.abil)
-        {
-            case 1: // burst
-            this.abil = 0; // reset
-            game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
-            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
-            break;
+    imgW = 64;//33;
+    imgH = 64;//44;
+}
+else if (this.landed === 2) // walking/skidding
+{
+    if (this.dir === 1)
+        img = document.getElementById("p1skid-l");
+    else img = document.getElementById("p1skid-r");
 
-            case 2: // frost
-            break;
+    imgW = 64;//33;
+    imgH = 64;//44;
+}
+else // gliding
+{
+    if (this.dir === 1)
+        img = document.getElementById("p2l");
+    else img = document.getElementById("p2r");
 
-            case 2: // frost
-            break;
+    imgW = 64;//40;
+    imgH = 64;//40;
+}
+//game.ctx.beginPath();
+if(String(window.location).indexOf('debug') == -1 && this.visible===true)
+    game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
-            case 3: // blink
-            break;
-
-            case 4: // grapple
-            break;
-
-            case 5: // anchor
-            break;
-
-            case 6: // cinder
-            break;
-
-            case 7: // confusion
-            break;
-
-            default:
-                console.log('ERROR: invalid abil value');
-        }
-    }
-
-    // player bitamps
-    var img, imgW, imgH;
-    //if (this.pos.d == 1)
-    //if (this.landed > 0) console.log(this.landed, this.mp);
-    // if (this.abil > 0)
-    // {
-    //     console.log('abil!', this.abil, this.mp);
-    // }
-    if (this.vuln === true)
-    {
-        if (this.dir === 1)
-            img = document.getElementById("p1stun-l");
-        else img = document.getElementById("p1stun-r");
-
-        imgW = 64;//40;
-        imgH = 64;//40;
-    }
-    else if (this.flap === true)
-    {
-        // reset flap on client
-        this.flap = false;
-        if (this.dir === 1) img = document.getElementById("p1l");
-        else img = document.getElementById("p1r");
-
-        imgW = 64;//40;
-        imgH = 64;//40;
-    }
-    else if (this.landed === 1) // standing
-    {
-        //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1)
-            img = document.getElementById("p1stand-l");
-        else img = document.getElementById("p1stand-r");
-
-        imgW = 64;//33;
-        imgH = 64;//44;
-    }
-    else if (this.landed === 2) // walking/skidding
-    {
-        if (this.dir === 1)
-            img = document.getElementById("p1skid-l");
-        else img = document.getElementById("p1skid-r");
-
-        imgW = 64;//33;
-        imgH = 64;//44;
-    }
-    else // gliding
-    {
-        if (this.dir === 1)
-            img = document.getElementById("p2l");
-        else img = document.getElementById("p2r");
-
-        imgW = 64;//40;
-        imgH = 64;//40;
-    }
-    //game.ctx.beginPath();
-    if(String(window.location).indexOf('debug') == -1 && this.visible===true)
-        game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
-
-    // player x y
-    // game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);
-    //game.ctx.translate(camX,camY);
-    //game.ctx.restore();
+// player x y
+// game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);
+//game.ctx.translate(camX,camY);
+//game.ctx.restore();
 
 }; //game_player.draw
 //console.log('dtf',this.parent.server);
 //if (typeof module != 'undefined')
 if('undefined' != typeof global)
-    module.exports = game_player;
+module.exports = game_player;
 //else console.log('running client');

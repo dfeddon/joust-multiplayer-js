@@ -27,10 +27,10 @@ function game_platform(game_instance, client)
   if (this.client)
   {
   	this.ctx = game_instance.canvasPlatforms.getContext('2d');
-    this.trans = new Transform();
+    //this.trans = new Transform();
   }
   else {
-    this.transformClass = require('./class.transform');
+    //this.transformClass = require('./class.transform');
   }
 
   this.id = 'noid';
@@ -158,18 +158,18 @@ game_platform.prototype.check_collision = function()
         this.game.allplayers[j].pos.y < (this.y + (this.w/2))
       )
       {
-        console.log("*******************", this.game.allplayers[j].mp, this.game.allplayers[j].pos.x);
+        //console.log("*******************", this.game.allplayers[j].mp, this.game.allplayers[j].pos.x);
         var pl = this.game.allplayers[j];
         var adjust;
         if ( pl.pos.x < this.x + (this.w/2) )
           adjust = ((this.x + (this.w/2) - pl.pos.x) * 2); // left of center
         else adjust = -( (pl.pos.x - (this.x + this.w/2) ) * 2);// right of center
-        console.log('adjust', adjust);
+        //console.log('adjust', adjust);
         pl.pos.x += adjust;
 
         if (!this.game.server && pl.mp == this.game.players.self.mp)
         {
-          console.log('draw player', this.game.players.self.pos.x, this.game.players.self);
+          //console.log('draw player', this.game.players.self.pos.x, this.game.players.self);
           this.game.players.self.draw();
         }
         // console.log('adjust', ((this.x + (this.w)) - pl.pos.x) );
@@ -177,13 +177,15 @@ game_platform.prototype.check_collision = function()
         //   pl.pos.x += ((this.x + (this.w)) - pl.pos.x);
         //else pl.pos.x -=  pl.pos.x - (this.x + (this.w));*/
 
-        console.log('####', pl.pos.x);
+        //console.log('####', pl.pos.x);
 
         //if (!this.game.server) pl.draw();
       }
       //if (this.game.allplayers[j].pos.y )
       //console.log(this.game.allplayers[j].mp, this.game.allplayers[j].pos.x, this.x, this.x + this.w);
-      console.log(this.game.allplayers[j].mp, this.game.allplayers[j].pos.y, this.y - (this.w / 2), this.y + (this.w/2));
+
+      /*console.log(this.game.allplayers[j].mp, this.game.allplayers[j].pos.y, this.y - (this.w / 2), this.y + (this.w/2));*/
+
       //console.log(this.platforms[j].x + width, this.platforms[j].y + height);//this.platforms[j].x * Math.cos(rads), this.platforms[j].y * Math.cos(rads));//, this.platforms[j].x + width,this.platforms[j].y + height);
     }
   }
@@ -246,7 +248,7 @@ game_platform.prototype.setState = function(state)
   this.state = state;
   var is = state;
   if (was != is)
-    console.log('state was', was, 'is now', is);
+    console.log('platform state was', was, 'is now', is);
 
   // ensure rotating platform completes full 180
   // FIXME: resolve socket data with client (off by 1 to 2 tics)
@@ -304,7 +306,7 @@ game_platform.prototype.update = function()
           //console.log('post', this.r);
           if (this.r < 181)
           {
-            console.log('*', this.state);
+            //console.log('*', this.state);
           }
           else
           {
@@ -396,6 +398,19 @@ game_platform.prototype.timeoutShaking = function()
 
   // change status, act on state (fall or destroy)
   this.setState(this.status);
+
+  // if falling, notify players and modify their 'landed' prop to 0
+  if (this.status == this.STATE_FALLING)
+  {
+    for (var i = 0; i < this.game.allplayers.length; i++)
+    {
+      if (this.game.allplayers[i].supportingPlatformId == this.id)
+      {
+        console.log('found landed players...');
+        this.game.allplayers[i].landed = 0;
+      }
+    }
+  }
 
   // return position to original
   console.log('pre', this.x, this.y);
@@ -514,7 +529,7 @@ game_platform.prototype.draw = function()
     }
     else if (this.state == this.STATE_ROTATING)
     {
-      console.log('draw rotating animation...');
+      //console.log('draw rotating animation...');
 
 			this.ctx.clearRect(this.x,this.y - (this.w/2), this.w + 10, this.w + 40);
 			//*

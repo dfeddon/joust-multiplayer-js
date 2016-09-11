@@ -147,6 +147,10 @@ var game_core = function(game_instance)
     // this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
 
+    this.spritesheets = [];
+    this.spritesheetsData = [];
+    this.spritesheetsData.push({type:'animate-torches', x:258, y:400, w:64, h:64, frames:4});
+
     //We create a player set, passing them
     //the game that is running them, as well
     console.log('##-@@ is server?', this.server);
@@ -266,6 +270,14 @@ var game_core = function(game_instance)
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
+        //var SpriteAnim = require('sprite-anim');
+        // define(['animation/sprite-anim'], function(anim)
+        // {
+        //     log('animation2', anim);
+        // });
+        /*this.SpriteAnim = window.anim;
+        console.log('animation sprite', this.SpriteAnim);*/
+
         this.canvasPlatforms = null;
         this.flashBang = 0;
         // TODO: if mobile, orientation change
@@ -759,12 +771,41 @@ game_core.prototype.tilemapper = function()
             if (canvases[0].canvas == canvases[1].canvas) console.log('HIDEREK');*/
 
             //_this.canvas3 = canvas3;
+            tilemap = null;
+            self.tmCanvas = null;
+
+            _this.addSpriteSheets();
         }; // end tilemap image loaded
+
         image.src = source.replace("..", "/assets");
         //console.log(image.src);
 
     }
 };
+game_core.prototype.addSpriteSheets = function()
+{
+    console.log('adding spritesheets');
+    // build animations
+    var csprite;
+    for (var p = 0; p < this.spritesheetsData.length; p++)
+    {
+        csprite = new game_spritesheet(this.ctx);
+        csprite.id = this.spritesheetsData[p].id;
+
+        csprite.setter(
+        {
+            //id:this.platformsData[n].id,
+            type:this.spritesheetsData[p].type,
+            x:this.spritesheetsData[p].x,
+            y:this.spritesheetsData[p].y,
+            w:this.spritesheetsData[p].w,
+            h:this.spritesheetsData[p].h,
+            frames:this.spritesheetsData[p].frames
+        });
+
+        this.spritesheets.push(csprite);
+    }
+}
 
 game_core.prototype.prerenderer = function()
 {
@@ -985,6 +1026,7 @@ game_core.prototype.update = function(t)
     Shared between server and client.
     In this example, `item` is always of type game_player.
 */
+/*
 game_core.prototype.playerKill = function(victim, victor)
 {
     console.log('playerKill', victim.dead);
@@ -1019,7 +1061,7 @@ game_core.prototype.playerKill = function(victim, victor)
         this.prerenderer();
 
 };
-
+*/
 game_core.prototype.check_collision = function( player )
 {
     //console.log('##+@@check_collision', player.mp);
@@ -1129,15 +1171,19 @@ game_core.prototype.check_collision = function( player )
                         // console.log("BUMP")
                         // player.pos = this.physics_movement_vector_from_direction(-50, 0);
                         // this.allplayers[i].pos = this.physics_movement_vector_from_direction(50,0);
-                        player.landed = 2;
-                        this.allplayers[i].landed = 2;
+                        if (player.landed !== 0)
+                            player.landed = 2;
+                        if (this.allplayers[i].landed !== 0)
+                            this.allplayers[i].landed = 2;
                     }
                     else
                     {
                         player.pos.x += 50;
                         this.allplayers[i].pos.x -= 50;
-                        player.landed = 2;
-                        this.allplayers[i].landed = 2;
+                        if (player.landed !== 0)
+                            player.landed = 2;
+                        if (this.allplayers[i].landed !== 0)
+                            this.allplayers[i].landed = 2;
                     }
                     // manage velocit and stop state
                     // if player and enemy are facing same direction
@@ -1148,19 +1194,22 @@ game_core.prototype.check_collision = function( player )
                         // slow horizontal velocity
                         player.vx = 0;//-= 1;
                         // set landing flag (moving)
-                        player.landed = 2; // TODO: only if on platform
+                        if (player.landed !== 0)
+                            player.landed = 2; // TODO: only if on platform
                     }
                     else if (player.vx < 0 && player.dir !== this.allplayers[i].dir)
                     {
                         player.vx = 0;
-                        player.landed = 2;
+                        if (player.landed !== 0)
+                            player.landed = 2;
                     }
                     else
                     {
                         // stuck landing (no velocity)
                         player.vx = 0;
                         // set landing flag (stationary)
-                        player.landed = 1; // TODO: only if on platform
+                        if (player.landed !== 0)
+                            player.landed = 1; // TODO: only if on platform
                     }
                 }
                 else // we have a victim
@@ -1169,7 +1218,8 @@ game_core.prototype.check_collision = function( player )
                     //var splatteree, waspos;
                     if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].vuln === true)
                     {
-                        this.playerKill(this.allplayers[i], player);
+                        //this.playerKill(this.allplayers[i], player);
+                        this.allplayers[i].doKill(player);
                         //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
                         // waspos = this.allplayers[i].pos;
                         // this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
@@ -1179,7 +1229,8 @@ game_core.prototype.check_collision = function( player )
                     }
                     else
                     {
-                        this.playerKill(player, this.allplayers[i]);
+                        //this.playerKill(player, this.allplayers[i]);
+                        player.doKill(this.allplayers[i]);
                         //console.log(this.allplayers[i].mp, 'WINS!');
                         // waspos = player.pos;
                         // player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
@@ -1253,11 +1304,11 @@ game_core.prototype.check_collision = function( player )
                 {
                     console.log('from bottom', player.hasHelment);
                     // if player has helment and platform status is intact
-                    /*if (player.hasHelment)// && this.platforms[j].state === this.platforms[j].STATE_INTACT)
+                    if (player.hasHelment)// && this.platforms[j].state === this.platforms[j].STATE_INTACT)
                     {
                         console.log('platform will FALL!', player.mp, this.platforms[j].id);
                         this.platforms[j].doShake(this.platforms[j].STATE_FALLING, player.mp);
-                    }*/
+                    }
                 }
                 else if (this.platforms[j].state === this.platforms[j].STATE_FALLING) // platform falling
                 {
@@ -1317,6 +1368,10 @@ game_core.prototype.check_collision = function( player )
                     // set landing flag (stationary)
                     player.landed = 1;
                 }
+
+                // set platform id on which player is standing
+                player.doStand(this.platforms[j].id);
+
             } // end player hit from above
 
             break;
@@ -2645,11 +2700,11 @@ game_core.prototype.client_update = function()
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
     if (this.bg)
     {
-        this.ctx.drawImage(this.bg, 0, 0);
-        this.ctx.drawImage(this.canvas2, 0,0);
-        this.ctx.drawImage(this.barriers, 0, 0);
-        this.ctx.drawImage(this.fg, 0, 0);
-        this.ctx.drawImage(this.canvasPlatforms, 0, 0);
+        this.ctx.drawImage(this.bg, 0, 0); // tiled bg layer
+        this.ctx.drawImage(this.canvas2, 0,0); // orbs
+        this.ctx.drawImage(this.barriers, 0, 0); // tiled barriers layer
+        this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
+        this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
     }
 
     //Capture inputs from the player
@@ -2687,6 +2742,13 @@ game_core.prototype.client_update = function()
     {
         if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
             this.platforms[j].draw();
+    }
+
+    // spritesheets
+    for (var k = 0; k < this.spritesheets.length; k++)
+    {
+        //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
+        this.spritesheets[k].update();
     }
 
 
@@ -2748,7 +2810,7 @@ game_core.prototype.client_create_ping_timer = function() {
         this.last_ping_time = new Date().getTime() - this.fake_lag;
         this.socket.send('p.' + (this.last_ping_time) );
 
-    }.bind(this), 1000);
+    }.bind(this), 250);
 
 }; //game_core.client_create_ping_timer
 
