@@ -2109,7 +2109,7 @@ document.derek = function()
     evt.initKeyEvent ("keypress", true, true, window,
                     0, 0, 0, 0,
                     38, 0);
-    document.dispatchEvent(evt);
+    //document.dispatchEvent(evt);
     //alert(game.players.self.mp);
     //return "derek";
     //game.players.self.doAbility();//.inputs.push("u");
