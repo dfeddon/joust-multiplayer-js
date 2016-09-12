@@ -91,7 +91,7 @@ function game_player( game_instance, player_instance, isHost )
     this.potions = [];
     this.cooldown = false;
 
-    this.hasHelment = true;
+    this.hasHelment = false;//true;
 
     this.playerName = "";
     //this.lastNamePlate = "YOU";
