@@ -2100,7 +2100,7 @@ document.derek = function()
 
     //alert(game.players.self.mp);
     //return "derek";
-    game.players.self.doCycleAbility();//.inputs.push("u");
+    game.players.self.doAbility();//.inputs.push("u");
     //game.process_input(e.view.game.players.self);
     return game.players.self.mp;
 }
