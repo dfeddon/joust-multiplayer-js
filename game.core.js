@@ -283,7 +283,7 @@ var game_core = function(game_instance)
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
         window.addEventListener('resize', this.resizeCanvas(), false);
-        /*
+        //*
         window.addEventListener('keydown', function(e)
         {
             console.log('key event', e);//, this);// this.game.players.self.mp);
@@ -300,6 +300,12 @@ var game_core = function(game_instance)
 
                 case 32: // spacebar
                     e.view.game.players.self.doAbility();
+                break;
+
+                case 38: // up
+                    console.log('up!');
+                    //e.view.game.keyboard.press('up');
+                    //e.view.game.client_handle_input();
                 break;
             }
 
@@ -1603,7 +1609,7 @@ game_core.prototype.client_on_orbremoval = function(data)
 
 game_core.prototype.process_input = function( player )
 {
-    //console.log('##+@@process_input');
+    // console.log('##+@@process_input');
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
@@ -1659,7 +1665,7 @@ game_core.prototype.process_input = function( player )
                 }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    //console.log('flap!');
+                    console.log('flap!');
 
                     // set flag
                     player.flap = true;
@@ -2096,19 +2102,25 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 document.derek = function()
 {
     //e.view.game.players.self.inputs.push("d");
+
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
 
+    var evt = document.createEvent("KeyboardEvent");
+    evt.initKeyEvent ("keypress", true, true, null,//window,
+                    0, 0, 0, 0,
+                    38, 0);
+    document.dispatchEvent(evt);
     //alert(game.players.self.mp);
     //return "derek";
     //game.players.self.doAbility();//.inputs.push("u");
     //game.players.self.inputs.push('u');
-    game.keyboard.pressed('up');
-    game.client_handle_input();//process_input(game.players.self);
+    //game.keyboard.pressed('up');
+    //game.client_handle_input();//process_input(game.players.self);
     return game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
     //if (glog)
-    //console.log('## client_handle_input');
+    console.log('## client_handle_input', this.keyboard.pressed('up'));
 
     if (this.players.self.vuln === true)
     {
@@ -2155,6 +2167,7 @@ game_core.prototype.client_handle_input = function(){
         this.keyboard.pressed('up')) {
 
             //y_dir = -1;
+            //console.log('pressed u');
             input.push('u');
 
         } //up
