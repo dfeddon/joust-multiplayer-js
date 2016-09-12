@@ -2102,7 +2102,7 @@ document.derek = function()
     //return "derek";
     //game.players.self.doAbility();//.inputs.push("u");
     //game.players.self.inputs.push('u');
-    game.keyboard.pressed('u');
+    game.keyboard.pressed('up');
     game.client_handle_input();//process_input(game.players.self);
     return game.players.self.mp;
 }
