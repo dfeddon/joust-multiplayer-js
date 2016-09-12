@@ -2094,9 +2094,9 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 document.derek = function()
 {
     //e.view.game.players.self.inputs.push("d");
-    //alert(this.players.self.mp);
+    alert(this.game.players.self.mp);
     //return "derek";
-    this.game.players.self.inputs.push("u");
+    //this.game.players.self.inputs.push("u");
     return this.game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
