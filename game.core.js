@@ -2106,9 +2106,7 @@ document.derek = function()
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
 
     var evt = document.createEvent("KeyboardEvent");
-    /*evt.initKeyEvent ("keypress", true, true, window,
-                    0, 0, 0, 0,
-                    38, 0);*/
+    evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
     //document.dispatchEvent(evt);
 
     //alert(game.players.self.mp);
