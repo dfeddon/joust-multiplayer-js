@@ -283,7 +283,7 @@ var game_core = function(game_instance)
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
         window.addEventListener('resize', this.resizeCanvas(), false);
-        //*
+        /*
         window.addEventListener('keydown', function(e)
         {
             console.log('key event', e);//, this);// this.game.players.self.mp);
@@ -2120,6 +2120,9 @@ document.derek = function()
     //game.players.self.inputs.push('u');
     //game.keyboard.pressed('up');
     //game.client_handle_input();//process_input(game.players.self);
+
+    game.keyboard._onKeyChange({keyCode:38}, false);
+
     return game.players.self.mp;
 };
 game_core.prototype.client_handle_input = function(){
