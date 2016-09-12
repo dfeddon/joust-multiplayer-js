@@ -286,7 +286,9 @@ var game_core = function(game_instance)
         //*
         window.addEventListener('keydown', function(e)
         {
-            console.log('key event', e, this);
+            console.log('key event', document.getElementById('viewport').ownerDocument.defaultView);// e, this);// this.game.players.self.mp);
+            //this.derek();
+            return;
             switch(e.keyCode)
             {
                 case 40: // down button
@@ -2094,10 +2096,12 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 document.derek = function()
 {
     //e.view.game.players.self.inputs.push("d");
-    alert(this.game.players.self.mp);
+    var game = document.getElementById('viewport').ownerDocument.defaultView.game;
+
+    alert(game.players.self.mp);
     //return "derek";
-    //this.game.players.self.inputs.push("u");
-    return this.game.players.self.mp;
+    game.players.self.inputs.push("u");
+    return game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
     //if (glog)
