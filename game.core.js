@@ -2089,7 +2089,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     and usually start with client_* to make things clearer.
 
 */
-game_core.prototype.derek = function()
+document.derek = function()
 {
     alert("derek");
 }
