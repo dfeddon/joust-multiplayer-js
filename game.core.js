@@ -283,9 +283,10 @@ var game_core = function(game_instance)
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
         window.addEventListener('resize', this.resizeCanvas(), false);
-        /*window.addEventListener('keydown', function(e)
+        //*
+        window.addEventListener('keydown', function(e)
         {
-            //console.log('key event', e.keyCode);
+            console.log('key event', e, this);
             switch(e.keyCode)
             {
                 case 40: // down button
@@ -300,7 +301,8 @@ var game_core = function(game_instance)
                 break;
             }
 
-        }, false);*/
+        }, false);
+        //*/
 
         // tilemap
         this.api(); // load and build tilemap
@@ -2094,12 +2096,12 @@ document.derek = function()
     //e.view.game.players.self.inputs.push("d");
     //alert(this.players.self.mp);
     //return "derek";
-    this.players.self.inputs.push("u");
-    return 'up';
+    this.game.players.self.inputs.push("u");
+    return this.game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
     //if (glog)
-    console.log('## client_handle_input');
+    //console.log('## client_handle_input');
 
     if (this.players.self.vuln === true)
     {
