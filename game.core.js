@@ -287,6 +287,7 @@ var game_core = function(game_instance)
         window.addEventListener('keydown', function(e)
         {
             console.log('key event', e);//, this);// this.game.players.self.mp);
+            console.log('keyb', e.view.game.keyboard);
             //this.derek();
             //return;
             switch(e.keyCode)
@@ -2105,9 +2106,13 @@ document.derek = function()
 
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
 
-    var evt = document.createEvent("KeyboardEvent");
-    evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
+    //var evt = document.createEvent("KeyboardEvent");
+    //evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
     //document.dispatchEvent(evt);
+
+    game.keyboard._onKeyChange({keyCode:38}, true);
+
+    //game.keyboard._onKeyDown(evt);
 
     //alert(game.players.self.mp);
     //return "derek";
@@ -2116,10 +2121,10 @@ document.derek = function()
     //game.keyboard.pressed('up');
     //game.client_handle_input();//process_input(game.players.self);
     return game.players.self.mp;
-}
+};
 game_core.prototype.client_handle_input = function(){
     //if (glog)
-    console.log('## client_handle_input', this.keyboard.pressed('up'));
+    //console.log('## client_handle_input', this.keyboard.pressed('up'));
 
     if (this.players.self.vuln === true)
     {
