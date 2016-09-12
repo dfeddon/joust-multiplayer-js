@@ -2091,8 +2091,11 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 */
 document.derek = function()
 {
-    alert(this.players.self.mp);
-    return "derek";
+    //e.view.game.players.self.inputs.push("d");
+    //alert(this.players.self.mp);
+    //return "derek";
+    this.players.self.inputs.push("u");
+    return 'up';
 }
 game_core.prototype.client_handle_input = function(){
     //if (glog)
