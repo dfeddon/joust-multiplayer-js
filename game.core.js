@@ -2101,8 +2101,9 @@ document.derek = function()
     //alert(game.players.self.mp);
     //return "derek";
     //game.players.self.doAbility();//.inputs.push("u");
-    game.players.self.inputs.push('u');
-    game.process_input(game.players.self);
+    //game.players.self.inputs.push('u');
+    game.keyboard.pressed('u');
+    game.client_handle_input();//process_input(game.players.self);
     return game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
