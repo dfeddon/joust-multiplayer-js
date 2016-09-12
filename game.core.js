@@ -2110,8 +2110,6 @@ document.derek = function()
     //evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
     //document.dispatchEvent(evt);
 
-    game.keyboard._onKeyChange({keyCode:38}, true);
-
     //game.keyboard._onKeyDown(evt);
 
     //alert(game.players.self.mp);
@@ -2121,11 +2119,14 @@ document.derek = function()
     //game.keyboard.pressed('up');
     //game.client_handle_input();//process_input(game.players.self);
 
-    game.keyboard._onKeyChange({keyCode:38}, false);
+    //game.keyboard._onKeyChange({keyCode:38}, true);
+    game.client_handle_input('u');
+    //game.server.onInput(this.players.self.instance.id, ['i', 'u'] );
+
 
     return game.players.self.mp;
 };
-game_core.prototype.client_handle_input = function(){
+game_core.prototype.client_handle_input = function(key){
     //if (glog)
     //console.log('## client_handle_input', this.keyboard.pressed('up'));
 
@@ -2171,7 +2172,7 @@ game_core.prototype.client_handle_input = function(){
         } //down
 
     if( this.keyboard.pressed('W') ||
-        this.keyboard.pressed('up')) {
+        this.keyboard.pressed('up') || key=='u') {
 
             //y_dir = -1;
             //console.log('pressed u');
