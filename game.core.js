@@ -2091,7 +2091,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 */
 document.derek = function()
 {
-    alert("derek");
+    alert(this.players.self.mp);
     return "derek";
 }
 game_core.prototype.client_handle_input = function(){
