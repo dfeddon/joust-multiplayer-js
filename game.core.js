@@ -283,12 +283,12 @@ var game_core = function(game_instance)
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
         window.addEventListener('resize', this.resizeCanvas(), false);
-        //*
+        /*
         window.addEventListener('keydown', function(e)
         {
-            console.log('key event', document.getElementById('viewport').ownerDocument.defaultView);// e, this);// this.game.players.self.mp);
+            console.log('key event', e);//, this);// this.game.players.self.mp);
             //this.derek();
-            return;
+            //return;
             switch(e.keyCode)
             {
                 case 40: // down button
@@ -2098,9 +2098,10 @@ document.derek = function()
     //e.view.game.players.self.inputs.push("d");
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
 
-    alert(game.players.self.mp);
+    //alert(game.players.self.mp);
     //return "derek";
     game.players.self.inputs.push("u");
+    game.process_input(e.view.game.players.self);
     return game.players.self.mp;
 }
 game_core.prototype.client_handle_input = function(){
