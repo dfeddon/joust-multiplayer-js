@@ -2103,14 +2103,14 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 document.externalControlAction = function(data)
 {
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
+
     if (data == "A" || data == "D")
     {
         game.client_handle_input(data);
     }
     else // flap!
     {
-        var evt = document.createEvent("KeyboardEvent");
-        evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
+        game.keyboard._onKeyChange({keyCode:38}, true);
     }
     //return game.players.self.mp;
 };
