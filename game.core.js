@@ -2110,7 +2110,10 @@ document.externalControlAction = function(data)
     }
     else // flap!
     {
-        game.keyboard._onKeyChange({keyCode:38}, true);
+        if (data == 'u')
+            game.keyboard._onKeyChange({keyCode:38}, true);
+        else if (data == 'x')
+            game.keyboard._onKeyChange({keyCode:38}, false);
     }
     //return game.players.self.mp;
 };
