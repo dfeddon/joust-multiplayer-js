@@ -2128,7 +2128,7 @@ game_core.prototype.client_handle_input = function(key){
     this.client_has_input = false;
 
     if( this.keyboard.pressed('A') ||
-        this.keyboard.pressed('left')) {
+        this.keyboard.pressed('left') || key=='A') {
 
             //x_dir = -1;
             input.push('l');
@@ -2136,7 +2136,7 @@ game_core.prototype.client_handle_input = function(key){
         } //left
 
     if( this.keyboard.pressed('D') ||
-        this.keyboard.pressed('right')) {
+        this.keyboard.pressed('right') || key=='D') {
 
             //x_dir = 1;
             input.push('r');
