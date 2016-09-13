@@ -2100,30 +2100,10 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     and usually start with client_* to make things clearer.
 
 */
-document.derek = function()
+document.derek = function(data)
 {
-    //e.view.game.players.self.inputs.push("d");
-
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
-
-    //var evt = document.createEvent("KeyboardEvent");
-    //evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
-    //document.dispatchEvent(evt);
-
-    //game.keyboard._onKeyDown(evt);
-
-    //alert(game.players.self.mp);
-    //return "derek";
-    //game.players.self.doAbility();//.inputs.push("u");
-    //game.players.self.inputs.push('u');
-    //game.keyboard.pressed('up');
-    //game.client_handle_input();//process_input(game.players.self);
-
-    //game.keyboard._onKeyChange({keyCode:38}, true);
-    game.client_handle_input('u');
-    //game.server.onInput(this.players.self.instance.id, ['i', 'u'] );
-
-
+    game.client_handle_input(data);
     return game.players.self.mp;
 };
 game_core.prototype.client_handle_input = function(key){
