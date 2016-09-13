@@ -2100,11 +2100,19 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     and usually start with client_* to make things clearer.
 
 */
-document.derek = function(data)
+document.externalControlAction = function(data)
 {
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
-    game.client_handle_input(data);
-    return game.players.self.mp;
+    if (data == "A" || data == "D")
+    {
+        game.client_handle_input(data);
+    }
+    else // flap!
+    {
+        var evt = document.createEvent("KeyboardEvent");
+        evt.initKeyEvent("keypress", true, true, window, 0, 0, 0, 0, 38, 0);
+    }
+    //return game.players.self.mp;
 };
 game_core.prototype.client_handle_input = function(key){
     //if (glog)
