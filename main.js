@@ -19,6 +19,7 @@ define(
     'egyptian_set',
     //'animation/sprite-anim',
     'class.spritesheet',
+    'class.event',
     'class.player',
     'class.platform',
     'class.collision',

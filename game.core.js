@@ -151,6 +151,8 @@ var game_core = function(game_instance)
     this.spritesheetsData = [];
     //this.spritesheetsData.push({type:'animate-torches', x:258, y:400, w:64, h:64, frames:4});
 
+    this.events = [];
+
     //We create a player set, passing them
     //the game that is running them, as well
     console.log('##-@@ is server?', this.server);
@@ -162,7 +164,8 @@ var game_core = function(game_instance)
         name_set            = require('./egyptian_set'),
         playerClass         = require('./class.player'),
         platformClass       = require('./class.platform'),
-        transformClass      = require('./class.transform');
+        //transformClass      = require('./class.transform'),
+        game_event_server   = require('./class.event');
         /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -263,6 +266,12 @@ var game_core = function(game_instance)
             }
             this.platforms.push(plat);
         }
+
+        // create startup events
+        var evt = new game_event_server(this);
+        evt.setRandomTriggerTime(5, 15);
+        this.events.push(evt);
+        console.log('evt',this.events);
     }
     else // clients (browsers)
     {
@@ -1667,7 +1676,7 @@ game_core.prototype.process_input = function( player )
                 }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    console.log('flap!');
+                    //console.log('flap!');
 
                     // set flag
                     player.flap = true;
@@ -2021,6 +2030,16 @@ game_core.prototype.server_update = function()
                 p: this.platforms[k].triggerer
             };
         //}
+    }
+
+    // process events
+    for (var l = 0; l < this.events.length; l++)
+    {
+        if (this.events[l].state !== this.events[l].STATE_STOPPED)
+            if (this.events[l].update() === true)
+            {
+                console.log('add event to socket!');
+            }
     }
 
     this.laststate.t = this.server_time;
