@@ -125,6 +125,7 @@ game_player.prototype.doKill = function(victor)
     this.landed = 0;
 
     // splatter "orbs of death"
+    /*
     var size, c, ox, oy, id, neworb;
     var colors = ['white'];
     for (var x = 0; x < 50; x++)
@@ -142,6 +143,7 @@ game_player.prototype.doKill = function(victor)
         this.game.orbs.push( neworb );
     }
     console.log('total orbs', this.game.orbs.length);//, this.orbs);
+    //*/
 
     // show splatter locally
     if (!this.game.server)

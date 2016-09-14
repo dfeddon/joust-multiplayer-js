@@ -89,11 +89,11 @@ var game_core = function(game_instance)
         height : worldHeight//480
     };
 
-    this.world.gravity = 3.5;
+    this.world.gravity = 2;//3.5;
 
     this.world.totalplayers = 10;//4;
 
-    this.world.maxOrbs = 150;
+    this.world.maxOrbs = 0;//150;
     this.orbs = [];
 
     this.tilemap = null;
@@ -989,6 +989,7 @@ game_core.prototype.prerenderer = function()
 
 function clamp(value, min, max)
 {
+    //console.log(Math.max(min, Math.min(value, max)));
     return Math.max(min, Math.min(value, max));
     //console.log(value);//, min, max);
     /*
@@ -2730,7 +2731,7 @@ game_core.prototype.client_update = function()
     if (this.bg)
     {
         this.ctx.drawImage(this.bg, 0, 0); // tiled bg layer
-        this.ctx.drawImage(this.canvas2, 0,0); // orbs
+        //this.ctx.drawImage(this.canvas2, 0,0); // orbs
         this.ctx.drawImage(this.barriers, 0, 0); // tiled barriers layer
         this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
         this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms

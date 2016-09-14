@@ -114,7 +114,7 @@ game_server._onMessage = function(client,message)
 
 game_server.onInput = function(client, parts)
 {
-    this.log('@@ onInput', client.userid, parts);
+    //this.log('@@ onInput', client.userid, parts);
     //The input commands come in like u-l,
     //so we split them up into separate commands,
     //and then update the players
