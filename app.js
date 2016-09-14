@@ -77,6 +77,8 @@ var sio = io.listen(server);
 sio.configure(function ()
 {
     sio.set('log level', 0);
+    // force websocket transport (disable fallback to xhr-polling)
+    sio.set('transports', ['websocket']);
 
     sio.set('authorization', function (handshakeData, callback)
     {
