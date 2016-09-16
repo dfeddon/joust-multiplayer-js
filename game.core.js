@@ -116,7 +116,7 @@ var game_core = function(game_instance)
     this.platformsData = [];
     this.platformsData.push(
         {
-            id:'p1',
+            id:'plat1',
             x:(this.world.width/2) + (64 * 5),
             y:(this.world.height/2) - (64 * 5),
             w:256,
@@ -127,7 +127,7 @@ var game_core = function(game_instance)
     );
     this.platformsData.push(
         {
-            id:'p2',
+            id:'plat2',
             x:(this.world.width/2) + (5 * 64),
             y:15 * 64,
             w:256,
@@ -138,7 +138,7 @@ var game_core = function(game_instance)
     );
     this.platformsData.push(
         {
-            id:'p3',
+            id:'plat3',
             x:(this.world.width/2) + (12 * 64),
             y:8 * 64,
             w:64*6,
@@ -156,6 +156,12 @@ var game_core = function(game_instance)
     //this.spritesheetsData.push({type:'animate-torches', x:258, y:400, w:64, h:64, frames:4});
 
     this.events = [];
+    this.passives = [
+        {id: 'pass1', type:1, name: "acceleration", duration: 30, modifier: 50},
+        {id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
+        {id: 'pass3', type:3, name: "bubble", duration: 45, modifier: 1}
+    ];
+    this.chests = [];
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -282,6 +288,7 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         var evt = new game_event_server(this);
         evt.type = evt.TYPE_CHEST;
+        evt.id = "ec"; // event chest
         console.log('evt type', evt.type);
         evt.setRandomTriggerTime(5, 15);
         this.events.push(evt);
@@ -2191,8 +2198,21 @@ game_core.prototype.server_update = function()
         {
             if (evt.update() === true)
             {
-                console.log('add event to socket!');
-                evt.getEvent();
+                //console.log('add event to socket!', evt.type);
+                switch(evt.type)
+                {
+                    case evt.TYPE_CHEST:
+                        console.log('adding chest', evt.spawn, 'with passive', evt.passive);
+                        _this.laststate[evt.id] =
+                        {
+                            x: evt.spawn.x,
+                            y: evt.spawn.y,
+                            t: evt.passive.type,
+                            d: evt.passive.duration,
+                            m: evt.passive.modifier
+                        };
+                    break;
+                }
             }
         }
     });
@@ -2668,6 +2688,28 @@ game_core.prototype.client_process_net_updates = function()
                 plat.triggerer = target[plat.id].p;
             }
         });
+
+        // process events
+        //console.log(this._.has(target, 'ec'));//this.events.length);
+        // first, check for chest events (dynamic)
+        if (this._.has(target, 'ec'))
+        {
+            // avoid reduncancy
+            if (!target.ec) return false;
+
+            console.log('got chest', this.events, target.ec);
+            _this.client_addChest(target.ec);
+            // clear it to avoid duplicate reads
+            target.ec = null;
+        }
+        this._.forEach(this.events, function(evt)
+        {
+            console.log('targ', target[evt.id]);
+            if (target[evt.id] == evt.id)
+            {
+                console.log('* got event', evt);
+            }
+        });
         //The other players positions in this timeline, behind us and in front of us
         /*var other_target_pos = this.players.self.host ? target.cp : target.hp;
         var other_past_pos = this.players.self.host ? previous.cp : previous.hp;*/
@@ -2730,6 +2772,12 @@ game_core.prototype.client_process_net_updates = function()
     } //if target && previous
 
 }; //game_core.client_process_net_updates
+
+game_core.prototype.client_addChest = function(chest)
+{
+    console.log('adding chest...', chest);
+    this.chests.push(new game_chest(this.viewport.getContext('2d'), chest));
+};
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
 {
@@ -2965,6 +3013,12 @@ game_core.prototype.client_update = function()
     {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
         ss.update();
+    });
+
+    // chests
+    this._.forEach(this.chests, function(chest)
+    {
+        chest.draw();
     });
 
 

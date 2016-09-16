@@ -21,6 +21,7 @@ define(
     'egyptian_set',
     //'animation/sprite-anim',
     'class.spritesheet',
+    'class.chest',
     'class.event',
     'class.player',
     'class.platform',

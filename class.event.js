@@ -26,15 +26,15 @@ function game_event(game_instance)
   this.STATE_AVAILABLE = 4;
   this.STATE_STOPPED = 5;
   this.STATE_EVENT_READY = 6;
+  this.STATE_EVENT_QUEUED = 7;
 
   // parameters
   this.game = game_instance;
 
-
   this.id = 'noid';
   this.running = false;
   this.state = this.STATE_AVAILABLE;
-  this.status = this.STATE_STOPPED;
+  //this.status = this.STATE_STOPPED;
   this.repeatable = true;
 
   this.rangeMin = 0;
@@ -44,16 +44,18 @@ function game_event(game_instance)
   this.triggerOn = null;
   this.triggerer = null;
 
-  this.triggerOn2 = null;
-  this.triggeredAt2 = null;
+  this.dif = undefined;
+
+  this.spawn = null;
+  this.passive = null;
 }
 
 game_event.prototype.update = function()
 {
-  var dif = Math.floor(this.game.server_time - this.triggerOn);
+  this.dif = Math.floor(this.game.server_time - this.triggerOn);
   //console.log('triggered in', dif, 'seconds', this.triggeredAt, this.triggerOn);// at', this.triggerOn);
 
-  if (dif >= 0)
+  if (this.dif >= 0)
   {
     console.log('TRIGGER EVENT!!!!', this.type);
 
@@ -76,19 +78,16 @@ game_event.prototype.update = function()
         console.log('num active chests', ct);
         // no more than 3
         if (ct > 3) return false;
-        // 2. find available chest spawn point to avoid stacking
-        console.log('assigning available chest', availChests.length);
-        // for (var j = 0; j < availChests.length; j++)
-        // {
-        //   console.log(availChests[j]);
-        // }
-        //console.log(this._.forEach);
-        this._.forEach(availChests, (function(value)
-        {
-          console.log('-->',value);
-        }));
+        // 2. randomaly select available chest spawn point (to avoid stacking)
+        // rng
+        this.spawn = this._.shuffle(availChests)[0];
+        // set active
+        this.spawn.active = true;
+        console.log('selected spawn', this.spawn);
         // 3. rng chest content
-        // 4. slot it
+        this.passive = this._.shuffle(this.game.passives)[0];
+        console.log('selected passive', this.passive);
+        // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
 
         break;
@@ -102,11 +101,6 @@ game_event.prototype.update = function()
     return true;
   }
   else return false;
-};
-
-game_event.prototype.getEvent = function()
-{
-  // return event data
 };
 
 game_event.prototype.setRandomTriggerTime = function(min, max)
