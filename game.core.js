@@ -76,6 +76,8 @@ var game_core = function(game_instance)
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
 
+    var _this = this;
+
     this.bg = null;
     this.fg = null;
     this.barriers = null;
@@ -98,6 +100,8 @@ var game_core = function(game_instance)
 
     this.tilemap = null;
     this.tilemapData = null;
+    this.chestSpawnPoints = [];
+    this.playerSpawnPoints = [];
 
     this.cam = {};
 
@@ -170,6 +174,7 @@ var game_core = function(game_instance)
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
+        this._                   = require('./node_modules/lodash/lodash.min'),
 
         //var co = collisionObject;
         // phy 2.0
@@ -206,6 +211,9 @@ var game_core = function(game_instance)
         for (var j in this.allplayers)
             console.log(this.allplayers[j].mp);
 
+        ///////////////////////////////////
+        // orbs
+        ///////////////////////////////////
         console.log('##-@@ creating orbs on server', this.orbs.length);
         var size,c,ox,oy,id;
         var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
@@ -241,7 +249,9 @@ var game_core = function(game_instance)
             setTimeout(rndInterval, t);
         }
 
+        ///////////////////////////////////
         // define platforms
+        ///////////////////////////////////
         var plat;
         for (var m = 0; m < this.platformsData.length; m++)
         {
@@ -267,14 +277,19 @@ var game_core = function(game_instance)
             this.platforms.push(plat);
         }
 
+        ///////////////////////////////////
         // create startup events
+        ///////////////////////////////////
         var evt = new game_event_server(this);
+        evt.type = evt.TYPE_CHEST;
+        console.log('evt type', evt.type);
         evt.setRandomTriggerTime(5, 15);
         this.events.push(evt);
         console.log('evt',this.events);
     }
     else // clients (browsers)
     {
+        this._ = _;
         /*var collisionObject = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -518,15 +533,16 @@ game_core.prototype.apiNode = function()
     var _this = this;
     var xml2js = require('xml2js');
     var fs = require('fs');
-    var parser = new xml2js.Parser();
+    var parser = new xml2js.Parser({explicitArray:false});
     fs.readFile( './assets/tilemaps/joust-alpha-1.tmx', function(err, data)
     {
         parser.parseString(data, function (err, result)
         {
+            //console.log(result.map.layer[1].data._);
             //console.dir(result.note.to[0]);
             //NOTE: map.layers[1] is barriers layer
-            console.log(JSON.stringify(result.map.layer[1].data[0]._));
-            var data = JSON.stringify(result.map.layer[1].data[0]._);
+            //console.log(JSON.stringify(result.map.layer[1].data[0]._));
+            var data = JSON.stringify(result.map.layer[1].data._);
             var split = data.split('\\n');
             //split = split.shift();
             var base = [];
@@ -542,6 +558,60 @@ game_core.prototype.apiNode = function()
             }
             console.log(base[0].length, base[0]);
             _this.tilemapData = base;
+
+            // objectgroups
+            var builder = new xml2js.Builder();
+            var xml = builder.buildObject(result.map.objectgroup);
+            //console.log('xml', xml);
+            //console.log(result.map.objectgroup);
+            /*var groups = JSON.stringify(result.map.objectgroup)
+            console.log('og', groups.length, groups[0]);
+            var splits = groups.split('\\n');
+            console.log('spl', splits[0].length, splits[0]);*/
+            var objectgroupNode = result.map.objectgroup;
+            console.log(objectgroupNode.length);//, JSON.stringify(objectgroupNode));
+            var node;
+            for (var j = 0; j < objectgroupNode.length; j++)
+            {
+                console.log('--------------');
+                node = objectgroupNode[j];//JSON.stringify(objectgroupNode[j]);
+                //console.log(typeof(objectgroupNode[j]));
+
+                //console.log('::', JSON.stringify(objectgroupNode[j].$));
+                //console.log('::', JSON.stringify(objectgroupNode[j].object));
+
+                console.log(objectgroupNode[j].$.name)
+                switch(objectgroupNode[j].$.name)
+                {
+                    case "chestSpawn":
+                        if (objectgroupNode[j].object.length === undefined)
+                            _this.chestSpawnPoints.push(objectgroupNode[j].object);
+                        else
+                        {
+                            for (var k = 0; k < objectgroupNode[j].object.length; k++)
+                            {
+                                console.log('->',objectgroupNode[j].object[k].$);
+                                _this.chestSpawnPoints.push(objectgroupNode[j].object[k].$)
+                            }
+                        }
+                    break;
+
+                    case "playerSpawn":
+                        if (objectgroupNode[j].object.length === undefined)
+                            _this.playerSpawnPoints.push(objectgroupNode[j].object);
+                        else
+                        {
+                            for (var l = 0; l < objectgroupNode[j].object.$.length; l++)
+                            {
+                                console.log('->',objectgroupNode[j].object[l].$);
+                                _this.playerSpawnPoints.push(objectgroupNode[j].object[l].$)
+                            }
+                        }
+                    break;
+                }
+            }
+            console.log('chests:', _this.chestSpawnPoints);
+            console.log('players:', _this.playerSpawnPoints);
         });
     });
 };
@@ -609,7 +679,9 @@ game_core.prototype.tilemapper = function()
         var xmlDoc = parser.parseFromString(this.tilemap, "text/xml");
         console.log('xml', xmlDoc);
 
+        ///////////////////////////////////
         // map
+        ///////////////////////////////////
         var mapNode = xmlDoc.getElementsByTagName('map');
         var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
         renderOrder = mapNode[0].getAttribute('renderorder');
@@ -620,7 +692,9 @@ game_core.prototype.tilemapper = function()
         nextObjectId = mapNode[0].getAttribute('nextobjectid');
         //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
 
+        ///////////////////////////////////
         // tileset
+        ///////////////////////////////////
         var tilesetNode = xmlDoc.getElementsByTagName('tileset');
         //console.log('tileset', tilesetNode.length);
         tileCount = tilesetNode[0].getAttribute('tilecount');
@@ -628,7 +702,68 @@ game_core.prototype.tilemapper = function()
         name = tilesetNode[0].getAttribute('name');
         //console.log(tileCount, columns, name);
 
+        ///////////////////////////////////
+        // objects
+        ///////////////////////////////////
+        var objectgroupNode = xmlDoc.getElementsByTagName('objectgroup');
+        //console.log('objectgroups', objectgroupNode.length);
+        for (var og = 0; og < objectgroupNode.length; og++)
+        {
+            var ogName = objectgroupNode[og].getAttribute('name');
+            console.log('group name', ogName);//, objectgroupNode[og]);
+            var ogInner = objectgroupNode[og].innerHTML;
+            var ogRows = ogInner.split("\n");
+            ogRows.shift(); ogRows.pop();
+            //console.log(ogRows);
+            var parser = new DOMParser();
+            var xml, atts, s;
+            var nodes = [];
+            for (var d = 0; d < ogRows.length; d++)
+            {
+                // parse to xml
+                xml = parser.parseFromString(ogRows[d], "text/xml");
+                // get attributes (via NamedNodeMap)
+                atts = xml.childNodes[0].attributes;
+                nodes.push(atts);
+                //console.log('atts', atts);
+            }
+            switch(ogName)
+            {
+                case "chestSpawn":
+                    // assign attribues to chest obj
+                    /*for (var e = 0; e < nodes.length; e++)
+                    {
+                        var chestSpawnObj = {};
+                        Array.prototype.slice.call(nodes[e]).forEach(function(item)
+                        {
+                            chestSpawnObj[item.name] = item.value
+                        });
+                        //console.log('chestSpawn', chestSpawnObj);
+                        _this.chestSpawnPoints.push(chestSpawnObj);
+                    }*/
+                break;
+
+                case "playerSpawn":
+                // assign attribues to chest obj
+                /*for (var e = 0; e < nodes.length; e++)
+                {
+                    var playerSpawnObj = {};
+                    Array.prototype.slice.call(nodes[e]).forEach(function(item)
+                    {
+                        playerSpawnObj[item.name] = item.value
+                    });
+                    //console.log('playerSpawn', playerSpawnObj);
+                    _this.playerSpawnPoints.push(playerSpawnObj);
+                }*/
+                break;
+            }
+        }
+        //console.log('chests', this.chestSpawnPoints);
+        //console.log('players', this.playerSpawnPoints);
+
+        ///////////////////////////////////
         // layers
+        ///////////////////////////////////
         var layerNode = xmlDoc.getElementsByTagName('layer');
         console.log('num layers', layerNode.length);
         console.log(layerNode);
@@ -637,7 +772,9 @@ game_core.prototype.tilemapper = function()
         var base = [];
         var layerName, data, encoding, dataNode;
 
+        ///////////////////////////////////
         // iterate layers
+        ///////////////////////////////////
         for (var x = 0; x < layerNode.length; x++)
         {
             console.log(layerNode[x].getAttribute('name'));
@@ -665,7 +802,7 @@ game_core.prototype.tilemapper = function()
             var rows = data.split("\n");
             rows.shift(); // first item is newline
             rows.pop(); // last item is newline
-            console.log(rows);
+            //console.log(rows);
             for (var i = 0; i < rows.length; i++)
             {
                 rows[i] = rows[i].split(",");
@@ -683,7 +820,9 @@ game_core.prototype.tilemapper = function()
         //console.log(layerData);
         //return;
 
+        ///////////////////////////////////
         // build bitmap from tilelist image
+        ///////////////////////////////////
         var source, trans, imageWidth, imageHeight;
         var imageNode = xmlDoc.getElementsByTagName('image');
         source = imageNode[0].getAttribute('source');
@@ -711,11 +850,15 @@ game_core.prototype.tilemapper = function()
             console.log('tilemap w h', tilemap.width, tilemap.height);//, this.world.width, this.world.height);
             tmContext = tilemap.getContext('2d');
 
+            ///////////////////////////////////
             // add tilemap to tile canvas context
+            ///////////////////////////////////
             tmContext.drawImage(e.target, 0, 0);
 
 
+            ///////////////////////////////////
             // iterate layers
+            ///////////////////////////////////
             var n, c, cContext;//, layerCanvas;
             //var canvases = [];
             //var div = document.getElementById('canvases');
@@ -744,12 +887,12 @@ game_core.prototype.tilemapper = function()
                 var colMax = (imageWidth / tileWidth);
                 var rowMax = (imageHeight / tileHeight);
                 //console.log(rowMax,colMax);
-                console.log('layerData H', layerData[y].length);
-                console.log('layerData W', layerData[y][0].length);
+                //console.log('layerData H', layerData[y].length);
+                //console.log('layerData W', layerData[y][0].length);
                 var col, row;
                 for (var j = 0; j < layerData[y].length; j++)
                 {
-                    console.log(layerData[y][j].length);
+                    //console.log(layerData[y][j].length);
                     for (var k = 0; k < layerData[y][j].length; k++)
                     {
                         t = parseInt(layerData[y][j][k] - 1);
@@ -776,7 +919,7 @@ game_core.prototype.tilemapper = function()
                 //console.log(c.id);
                 //if (c.id == 'barriers')
                 _this[c.id] = c;
-                console.log('cid',this[c.id]);
+                //console.log('cid',this[c.id]);
                 //div.appendChild(c);
 
                 // _this.canvas3 = canvas3;
@@ -1156,15 +1299,17 @@ game_core.prototype.check_collision = function( player )
     //player.pos.y = player.pos.y.fixed(4);
 
     // player collision
+    //console.log(this._.forEach);
     for (var i = 0; i < this.allplayers.length; i++)
+    this._.forEach(this.allplayers, function(other)
     {
-        //console.log('->', this.allplayers[i].pos);
-        //this.allplayers[i].pos.x = this.allplayers[i].pos.x.fixed(4);
-        //this.allplayers[i].pos.y = this.allplayers[i].pos.y.fixed(4);
-        if (this.allplayers[i].mp != player.mp)
+        //console.log('->', other.pos);
+        //other.pos.x = other.pos.x.fixed(4);
+        //other.pos.y = other.pos.y.fixed(4);
+        if (other.mp != player.mp)
         {
-            //console.log( (player.pos.x + (player.size.hx / 2)), (this.allplayers[i].pos.x + (this.allplayers[i].size.hx / 2)) );
-            if ( player.pos.x + (player.size.hx/4) < this.allplayers[i].pos.x + (this.allplayers[i].size.hx - this.allplayers[i].size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > this.allplayers[i].pos.x + (this.allplayers[i].size.hx/4) && player.pos.y + (player.size.hy/4) < this.allplayers[i].pos.y + (this.allplayers[i].size.hy - this.allplayers[i].size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > this.allplayers[i].pos.y + (this.allplayers[i].size.hy/4)
+            //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
+            if ( player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
             )
             {
                 // TODO: if vulnerable (stunned) then vuln user is victim
@@ -1174,41 +1319,41 @@ game_core.prototype.check_collision = function( player )
                 {
                     if (player.isLocal)
                         player.isEngaged(10000);
-                    else if (this.allplayers[i].isLocal)
-                        this.allplayers[i].isEngaged(10000);
+                    else if (other.isLocal)
+                        other.isEngaged(10000);
                 }
 
                 // otherwise, positioning counts
-                var dif = player.pos.y - this.allplayers[i].pos.y;
-                //console.log("HIT", dif);// player.mp, player.pos.y, this.allplayers[i].mp, this.allplayers[i].pos.y);
-                if (dif >= -5 && dif <= 5 && player.vuln === false && this.allplayers[i].vuln === false)//player.pos.y === this.allplayers[i].pos.y)
+                var dif = player.pos.y - other.pos.y;
+                //console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
+                if (dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false)//player.pos.y === other.pos.y)
                 {
                     this.flashBang = 1;
-                    //console.log("TIE!", player.mp, this.allplayers[i].mp);
-                    if (player.pos.x < this.allplayers[i].pos.x)
+                    //console.log("TIE!", player.mp, other.mp);
+                    if (player.pos.x < other.pos.x)
                     {
                         player.pos.x -= 50;
-                        this.allplayers[i].pos.x += 50;
+                        other.pos.x += 50;
                         // console.log("BUMP")
                         // player.pos = this.physics_movement_vector_from_direction(-50, 0);
-                        // this.allplayers[i].pos = this.physics_movement_vector_from_direction(50,0);
+                        // other.pos = this.physics_movement_vector_from_direction(50,0);
                         if (player.landed !== 0)
                             player.landed = 2;
-                        if (this.allplayers[i].landed !== 0)
-                            this.allplayers[i].landed = 2;
+                        if (other.landed !== 0)
+                            other.landed = 2;
                     }
                     else
                     {
                         player.pos.x += 50;
-                        this.allplayers[i].pos.x -= 50;
+                        other.pos.x -= 50;
                         if (player.landed !== 0)
                             player.landed = 2;
-                        if (this.allplayers[i].landed !== 0)
-                            this.allplayers[i].landed = 2;
+                        if (other.landed !== 0)
+                            other.landed = 2;
                     }
                     // manage velocit and stop state
                     // if player and enemy are facing same direction
-                    if (player.vx > 0 && player.dir !== this.allplayers[i].dir)
+                    if (player.vx > 0 && player.dir !== other.dir)
                     {
                         //console.log('slowing', player.vx);
 
@@ -1218,7 +1363,7 @@ game_core.prototype.check_collision = function( player )
                         if (player.landed !== 0)
                             player.landed = 2; // TODO: only if on platform
                     }
-                    else if (player.vx < 0 && player.dir !== this.allplayers[i].dir)
+                    else if (player.vx < 0 && player.dir !== other.dir)
                     {
                         player.vx = 0;
                         if (player.landed !== 0)
@@ -1237,21 +1382,21 @@ game_core.prototype.check_collision = function( player )
                 {
                     //this.flashBang = 2;
                     //var splatteree, waspos;
-                    if (player.pos.y < this.allplayers[i].pos.y || this.allplayers[i].vuln === true)
+                    if (player.pos.y < other.pos.y || other.vuln === true)
                     {
-                        //this.playerKill(this.allplayers[i], player);
-                        this.allplayers[i].doKill(player);
-                        //console.log(player.mp, 'WINS!', this.allplayers[i].mp);
-                        // waspos = this.allplayers[i].pos;
-                        // this.allplayers[i].pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
-                        // //this.allplayers[i].visible = false;
-                        // splatteree = this.allplayers[i];
-                        //this.allplayers[i].old_state = this.allplayers[i].pos;
+                        //this.playerKill(other, player);
+                        other.doKill(player);
+                        //console.log(player.mp, 'WINS!', other.mp);
+                        // waspos = other.pos;
+                        // other.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
+                        // //other.visible = false;
+                        // splatteree = other;
+                        //other.old_state = other.pos;
                     }
                     else
                     {
-                        //this.playerKill(player, this.allplayers[i]);
-                        player.doKill(this.allplayers[i]);
+                        //this.playerKill(player, other);
+                        player.doKill(other);
                         //console.log(this.allplayers[i].mp, 'WINS!');
                         // waspos = player.pos;
                         // player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
@@ -1293,45 +1438,46 @@ game_core.prototype.check_collision = function( player )
                     //     this.prerenderer();
                 }
 
-                break;
+                return false;//break;
             }
-            //if (player.pos.x >= this.allplayers[i].pos.x + this.allplayers[i].width && player.y == this.allplayers[i].pos.y)
-                //console.log('HIT', player.mp, this.allplayers[i].mp);
+            //if (player.pos.x >= other.pos.x + other.width && player.y == other.pos.y)
+                //console.log('HIT', player.mp, other.mp);
         }
-        //if (this.players.self.pos === this.allplayers[i].pos.x) console.log('!!!!!!!!!!!!!!!!!!!');
+        //if (this.players.self.pos === other.pos.x) console.log('!!!!!!!!!!!!!!!!!!!');
 
-    }
+    });
 
     // platform collisions
     //*
-    for (var j = 0; j < this.platforms.length; j++)
+    //for (var j = 0; j < this.platforms.length; j++)
+    this._.forEach(this.platforms, function(platform)
     {
-        //console.log('collision().platform:state', this.platforms[j].state);
+        //console.log('collision().platform:state', platform.state);
         // Note: hy + 10 below accounts for birds unseen legs.
         if (
-            player.pos.x < (this.platforms[j].x + this.platforms[j].w) &&
-            (player.pos.x + player.size.hx) > this.platforms[j].x &&
-            player.pos.y < (this.platforms[j].y + this.platforms[j].h) &&
-            (player.pos.y + player.size.hy) > this.platforms[j].y
+            player.pos.x < (platform.x + platform.w) &&
+            (player.pos.x + player.size.hx) > platform.x &&
+            player.pos.y < (platform.y + platform.h) &&
+            (player.pos.y + player.size.hy) > platform.y
         )
         {
             //console.log('hit platform!');
-            if (player.pos.y > (this.platforms[j].y))// + this.platforms[j].h))//this.world.height - 200)
+            if (player.pos.y > (platform.y))// + platform.h))//this.world.height - 200)
             {
                 // bounce off
-                player.pos.y = this.platforms[j].y + this.platforms[j].h + 5;
+                player.pos.y = platform.y + platform.h + 5;
 
-                if (this.platforms[j].state === this.platforms[j].STATE_INTACT) // platform intact, not moving
+                if (platform.state === platform.STATE_INTACT) // platform intact, not moving
                 {
                     console.log('from bottom', player.hasHelment);
                     // if player has helment and platform status is intact
-                    if (player.hasHelment)// && this.platforms[j].state === this.platforms[j].STATE_INTACT)
+                    if (player.hasHelment)// && platform.state === platform.STATE_INTACT)
                     {
-                        console.log('platform will FALL!', player.mp, this.platforms[j].id);
-                        this.platforms[j].doShake(this.platforms[j].STATE_FALLING, player.mp);
+                        console.log('platform will FALL!', player.mp, platform.id);
+                        platform.doShake(platform.STATE_FALLING, player.mp);
                     }
                 }
-                else if (this.platforms[j].state === this.platforms[j].STATE_FALLING) // platform falling
+                else if (platform.state === platform.STATE_FALLING) // platform falling
                 {
                     console.log('platform HIT player!', player.mp, player.landed);
                     //player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
@@ -1356,7 +1502,7 @@ game_core.prototype.check_collision = function( player )
             } // end player hit from below
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
-                player.pos.y = this.platforms[j].y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
+                player.pos.y = platform.y - player.size.hy;// - 10;// -= 1;// this.world.height-200;
                 //console.log('--->',player.pos.y);
                 // decelerate
                 if (player.vx > 0)
@@ -1391,15 +1537,15 @@ game_core.prototype.check_collision = function( player )
                 }
 
                 // set platform id on which player is standing
-                player.doStand(this.platforms[j].id);
+                player.doStand(platform.id);
 
             } // end player hit from above
 
-            break;
+            return false;//break;
         } // end collision
 
         //else if (player.landed > 0) player.landed = 0; // if player slides off platform, fly!
-    }
+    });
     //*/
     //if (player.mp == "cp2")
     //console.log(player.mp, this.orbs.length);
@@ -1458,6 +1604,7 @@ game_core.prototype.check_collision = function( player )
 
     //if (player === this.players.self)
     //{
+    // tilemap
     var b = 10; // bounce
     var h = player.hitGrid();
     //console.log(c);
@@ -1980,6 +2127,8 @@ game_core.prototype.server_update = function()
 {
     if (glog)
     console.log('##-@@ server_update', this.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
+
+    var _this = this;
     //Update the state of our local clock to match the timer
     this.server_time = this.local_time;
 
@@ -1990,69 +2139,76 @@ game_core.prototype.server_update = function()
     // process players
     /////////////////////////////////
     this.laststate = {};
-    for (var i = 0; i < this.allplayers.length; i++)
+    //for (var i = 0; i < this.allplayers.length; i++)
+    this._.forEach(this.allplayers, function(player)
     {
-        this.laststate[this.allplayers[i].mp] =
+        _this.laststate[player.mp] =
         {
-            x:this.allplayers[i].pos.x,
-            y:this.allplayers[i].pos.y,
-            d:this.allplayers[i].dir,
-            f:this.allplayers[i].flap,
-            l:this.allplayers[i].landed,
-            v:this.allplayers[i].vuln,
-            a:this.allplayers[i].abil
+            x:player.pos.x,
+            y:player.pos.y,
+            d:player.dir,
+            f:player.flap,
+            l:player.landed,
+            v:player.vuln,
+            a:player.abil
         };
-        this.laststate[this.allplayers[i].mis] = this.allplayers[i].last_input_seq;
+        _this.laststate[player.mis] = player.last_input_seq;
 
         // reset flap on server instance
-        if (this.allplayers[i].flap === true) this.allplayers[i].flap = false;
+        if (player.flap === true) player.flap = false;
         // rest abil on server instance
-        if (this.allplayers[i].abil > 0) this.allplayers[i].abil = 0;
-    }
+        if (player.abil > 0) player.abil = 0;
+    });
 
     /////////////////////////////////
     // process platforms
     /////////////////////////////////
     //this.lastPlatformState = {};
-    for (var k = 0; k < this.platforms.length; k++)
+    //for (var k = 0; k < this.platforms.length; k++)
+    this._.forEach(this.platforms, function(plat)
     {
-        //if (this.platforms[k].state !== this.platforms[k].STATE_INTACT) // 1 is fixed/dormant
+        //if (plat.state !== plat.STATE_INTACT) // 1 is fixed/dormant
         //{
             // send: id, state, status, x, y, r(rotation?)
-            //if (this.platforms[k].id == undefined) console.log("HIHIHIHIHIIHIHHIIHI", this.platforms[k]);
-            this.laststate[this.platforms[k].id] =
+            //if (plat.id == undefined) console.log("HIHIHIHIHIIHIHHIIHI", plat);
+            _this.laststate[plat.id] =
             {
-                x: this.platforms[k].x,
-                y: this.platforms[k].y,
-                r: this.platforms[k].r,
-                s: this.platforms[k].state,
-                t: this.platforms[k].type,
-                p: this.platforms[k].triggerer
+                x: plat.x,
+                y: plat.y,
+                r: plat.r,
+                s: plat.state,
+                t: plat.type,
+                p: plat.triggerer
             };
         //}
-    }
+    });
 
     // process events
-    for (var l = 0; l < this.events.length; l++)
+    //for (var l = 0; l < this.events.length; l++)
+    this._.forEach(this.events, function(evt)
     {
-        if (this.events[l].state !== this.events[l].STATE_STOPPED)
-            if (this.events[l].update() === true)
+        if (evt.state !== evt.STATE_STOPPED)
+        {
+            if (evt.update() === true)
             {
                 console.log('add event to socket!');
+                evt.getEvent();
             }
-    }
+        }
+    });
 
     this.laststate.t = this.server_time;
     //console.log(this.laststate);
     //console.log('len', this.allplayers.length);
-    for (var j = 0; j < this.allplayers.length; j++)
+    //for (var j = 0; j < this.allplayers.length; j++)
+    this._.forEach(this.allplayers, function(ply)
     {
-        if (this.allplayers[j].instance)// && this.allplayers[j].instance != "host")
+        if (ply.instance)// && this.allplayers[j].instance != "host")
         {
             //console.log('inst', this.allplayers[j].instance);//.userid);
-            this.allplayers[j].instance.emit('onserverupdate', this.laststate);
+            ply.instance.emit('onserverupdate', _this.laststate);
         }
-    }
+    });
 
     //Make a snapshot of the current state, for updating the clients
     // this.laststate = {
@@ -2094,16 +2250,17 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
         player_client = this.players.self;//.instance.userid);
     else
     {
-        for (var i = 0; i < this.allplayers.length; i++)
+        //for (var i = 0; i < this.allplayers.length; i++)
+        this._.forEach(this.allplayers, function(player)
         {
-            if (this.allplayers[i].instance && this.allplayers[i].instance.userid == client.userid)
+            if (player.instance && player.instance.userid == client.userid)
             {
-                //player_client = this.allplayers[i];
+                //player_client = player;
                 //Store the input on the player instance for processing in the physics loop
-                this.allplayers[i].inputs.push({inputs:input, time:input_time, seq:input_seq});
-                break;
+                player.inputs.push({inputs:input, time:input_time, seq:input_seq});
+                return false;//break;
             }
-        }
+        });
     }
 
     //Store the input on the player instance for processing in the physics loop
@@ -2367,6 +2524,8 @@ game_core.prototype.client_process_net_updates = function()
     //No updates...
     if(!this.server_updates.length) return;
 
+    var _this = this;
+
     //First : Find the position in the updates, on the timeline
     //We call this current_time, then we find the past_pos and the target_pos using this,
     //searching throught the server_updates array for current_time in between 2 other times.
@@ -2445,68 +2604,70 @@ game_core.prototype.client_process_net_updates = function()
         //*
         var ghostStub;
         //console.log('len', this.allplayers.length, this.players.self.mp);
-        for (var j = 0; j < this.allplayers.length; j++)
+        //for (var j = 0; j < this.allplayers.length; j++)
+        this._.forEach(this.allplayers, function(player)
         {
-            if (this.allplayers[j] != this.players.self)// && previous[this.allplayers[j].mp])
+            if (player != _this.players.self)// && previous[player.mp])
             {
-                //console.log('**', j, this.allplayers[j].mp);
-                // other_server_pos2=latest_server_data[this.allplayers[j].mp];
-                // other_target_pos2=latest_server_data[this.allplayers[j].mp];
-                // other_past_pos2=latest_server_data[this.allplayers[j].mp];
-                // console.log('*', previous[this.allplayers[j].mp]);
-                ghostStub = this.v_lerp(
-                    previous[this.allplayers[j].mp],//other_past_pos2,
-                    target[this.allplayers[j].mp],//other_target_pos2,
+                //console.log('**', j, player.mp);
+                // other_server_pos2=latest_server_data[player.mp];
+                // other_target_pos2=latest_server_data[player.mp];
+                // other_past_pos2=latest_server_data[player.mp];
+                // console.log('*', previous[player.mp]);
+                ghostStub = _this.v_lerp(
+                    previous[player.mp],//other_past_pos2,
+                    target[player.mp],//other_target_pos2,
                     time_point
                 );
-                //console.log(previous[this.allplayers[j].mp]);
+                //console.log(previous[player.mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
-                this.allplayers[j].pos = this.v_lerp(this.allplayers[j].pos, ghostStub, this._pdt * this.client_smooth);
+                player.pos = _this.v_lerp(player.pos, ghostStub, _this._pdt * _this.client_smooth);
 
                 // get direction
-                //if (target[this.allplayers[j].mp])//.d == 1)
-                this.allplayers[j].dir = target[this.allplayers[j].mp].d;
-                this.allplayers[j].flap = target[this.allplayers[j].mp].f;
-                this.allplayers[j].landed = target[this.allplayers[j].mp].l;
-                this.allplayers[j].vuln = target[this.allplayers[j].mp].v;
-                this.allplayers[j].abil = target[this.allplayers[j].mp].a;
+                //if (target[player.mp])//.d == 1)
+                player.dir = target[player.mp].d;
+                player.flap = target[player.mp].f;
+                player.landed = target[player.mp].l;
+                player.vuln = target[player.mp].v;
+                player.abil = target[player.mp].a;
                 //console.log(this.allplayers[j].pos);
             }
-        }
+        });
         // console.log(other_server_pos2);
         //*/
         var pos;
-        for (var k = 0; k < this.platforms.length; k++)
+        //for (var k = 0; k < this.platforms.length; k++)
+        this._.forEach(this.platforms, function(plat)
         {
             // if provided, omit local player (triggerer: .p/.mp) who 'triggered' the effect;
             // we'll manage the platform physics locally
-            if (target[this.platforms[k].id] && (target[this.platforms[k].id].p != this.players.self.mp))
+            if (target[plat.id] && (target[plat.id].p != _this.players.self.mp))
             {
-                //console.log('NET UPDATE', target[this.platforms[k].id], this.players.self.mp);
-                // if (previous[this.platforms[k].id] === undefined)
+                //console.log('NET UPDATE', target[plat.id], this.players.self.mp);
+                // if (previous[plat.id] === undefined)
                 // {
-                //     console.log('cont!', target, previous);//target[this.platforms[k].id]);
+                //     console.log('cont!', target, previous);//target[plat.id]);
                 //     console.log(previous['undefined']);
-                //     previous[this.platforms[k].id] = previous[undefined]
+                //     previous[plat.id] = previous[undefined]
                 //     //continue;
                 // }
-                ghostStub = this.v_lerp(
-                    previous[this.platforms[k].id],//other_past_pos2,
-                    target[this.platforms[k].id],//other_target_pos2,
+                ghostStub = _this.v_lerp(
+                    previous[plat.id],//other_past_pos2,
+                    target[plat.id],//other_target_pos2,
                     time_point
                 );
                 //console.log(previous[this.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
-                pos = this.v_lerp({x:this.platforms[k].x,y:this.platforms[k].y}, ghostStub, this._pdt * this.client_smooth);
-                //console.log(target[this.platforms[k].id]);
-                this.platforms[k].x = pos.x;// target[this.platforms[k].id].x;
-                this.platforms[k].y = pos.y;//target[this.platforms[k].id].y;
-                this.platforms[k].r = target[this.platforms[k].id].r;
-                this.platforms[k].setState(target[this.platforms[k].id].s);
-                this.platforms[k].type = target[this.platforms[k].id].t;
-                this.platforms[k].triggerer = target[this.platforms[k].id].p;
+                pos = _this.v_lerp({x:plat.x,y:plat.y}, ghostStub, _this._pdt * _this.client_smooth);
+                //console.log(target[plat.id]);
+                plat.x = pos.x;// target[plat.id].x;
+                plat.y = pos.y;//target[plat.id].y;
+                plat.r = target[plat.id].r;
+                plat.setState(target[plat.id].s);
+                plat.type = target[plat.id].t;
+                plat.triggerer = target[plat.id].p;
             }
-        }
+        });
         //The other players positions in this timeline, behind us and in front of us
         /*var other_target_pos = this.players.self.host ? target.cp : target.hp;
         var other_past_pos = this.players.self.host ? previous.cp : previous.hp;*/
@@ -2685,13 +2846,14 @@ game_core.prototype.client_update_physics = function()
     //}
 
     // platform collisions (minus player)
-    for (var j = 0; j < this.platforms.length; j++)
+    //for (var j = 0; j < this.platforms.length; j++)
+    this._.forEach(this.platforms, function(plat)
     {
         //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
-            this.platforms[j].check_collision();
+            plat.check_collision();
         //}
-    }
+    });
 }; //game_core.client_update_physics
 
 game_core.prototype.client_update = function()
@@ -2700,6 +2862,8 @@ game_core.prototype.client_update = function()
     console.log('## client_update');
     //console.log(this.viewport);
     if (this.players.self.mp == "hp") return;
+
+    var _this = this;
 
     //////////////////////////////////////////
     // Camera
@@ -2773,11 +2937,12 @@ game_core.prototype.client_update = function()
     //////////////////////////////////////////
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
-    for (var i = 0; i < this.allplayers.length; i++)
+    //for (var i = 0; i < this.allplayers.length; i++)
+    this._.forEach(this.allplayers, function(ply)
     {
-        if (this.allplayers[i] != this.players.self)// && this.allplayers[i].active===true)
-            this.allplayers[i].draw();
-    }
+        if (ply != _this.players.self)// && this.allplayers[i].active===true)
+            ply.draw();
+    });
 
     //When we are doing client side prediction, we smooth out our position
     //across frames using local input states we have stored.
@@ -2787,18 +2952,20 @@ game_core.prototype.client_update = function()
     this.players.self.draw();
 
     // platforms
-    for (var j = 0; j < this.platforms.length; j++)
+    //for (var j = 0; j < this.platforms.length; j++)
+    this._.forEach(this.platforms, function(plat)
     {
-        if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
-            this.platforms[j].draw();
-    }
+        if (plat.state !== plat.STATE_INTACT)
+            plat.draw();
+    });
 
     // spritesheets
-    for (var k = 0; k < this.spritesheets.length; k++)
+    //for (var k = 0; k < this.spritesheets.length; k++)
+    this._.forEach(this.spritesheets, function(ss)
     {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
-        this.spritesheets[k].update();
-    }
+        ss.update();
+    });
 
 
     //this.ctx.save();

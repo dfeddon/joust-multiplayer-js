@@ -10,6 +10,8 @@ function game_event(game_instance)
 {
   console.log('game event constructor');
 
+  if (game_instance.server) this._ = require('./node_modules/lodash/lodash.min');
+
 	///////////////////////////
   // constants
 	///////////////////////////
@@ -23,6 +25,7 @@ function game_event(game_instance)
   this.STATE_COMPLETE = 3;
   this.STATE_AVAILABLE = 4;
   this.STATE_STOPPED = 5;
+  this.STATE_EVENT_READY = 6;
 
   // parameters
   this.game = game_instance;
@@ -52,7 +55,46 @@ game_event.prototype.update = function()
 
   if (dif >= 0)
   {
-    console.log('TRIGGER EVENT!!!!');
+    console.log('TRIGGER EVENT!!!!', this.type);
+
+    // prep data for the getEvent() fnc
+    switch(this.type)
+    {
+      case this.TYPE_CHEST:
+
+        console.log('prep chest', this.game.chestSpawnPoints.length);
+
+        // 1. ensure a new chest is acceptable (max number?)
+        var ct = 0;
+        var availChests = [];
+        for (var i = 0; i < this.game.chestSpawnPoints.length; i++)
+        {
+          if (this.game.chestSpawnPoints[i].active === true)
+            ct++;
+          else availChests.push(this.game.chestSpawnPoints[i]);
+        }
+        console.log('num active chests', ct);
+        // no more than 3
+        if (ct > 3) return false;
+        // 2. find available chest spawn point to avoid stacking
+        console.log('assigning available chest', availChests.length);
+        // for (var j = 0; j < availChests.length; j++)
+        // {
+        //   console.log(availChests[j]);
+        // }
+        //console.log(this._.forEach);
+        this._.forEach(availChests, (function(value)
+        {
+          console.log('-->',value);
+        }));
+        // 3. rng chest content
+        // 4. slot it
+        // 5. finalize prep for getEvent() (conform event data for socket dispatch)
+
+        break;
+    }
+
+    // repeating? otherwise stop
     if (this.repeatable === true)
       this.setRandomTriggerTime(5, 15);
     else this.state = this.STATE_STOPPED;
@@ -60,6 +102,11 @@ game_event.prototype.update = function()
     return true;
   }
   else return false;
+};
+
+game_event.prototype.getEvent = function()
+{
+  // return event data
 };
 
 game_event.prototype.setRandomTriggerTime = function(min, max)
