@@ -153,6 +153,11 @@ game_player.prototype.doKill = function(victor)
 
 };
 
+game_player.setPassive = function(type, duration, modifier)
+{
+    
+}
+
 game_player.prototype.doCycleAbility = function()
 {
     // no abilities (level 1)

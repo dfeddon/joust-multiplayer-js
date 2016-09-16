@@ -10,7 +10,8 @@ function game_event(game_instance)
 {
   console.log('game event constructor');
 
-  if (game_instance.server) this._ = require('./node_modules/lodash/lodash.min');
+  //if (game_instance.server)
+  this._ = require('./node_modules/lodash/lodash.min');
 
 	///////////////////////////
   // constants
@@ -57,14 +58,14 @@ game_event.prototype.update = function()
 
   if (this.dif >= 0)
   {
-    console.log('TRIGGER EVENT!!!!', this.type);
+    //console.log('TRIGGER EVENT!!!!', this.type);
 
     // prep data for the getEvent() fnc
     switch(this.type)
     {
       case this.TYPE_CHEST:
 
-        console.log('prep chest', this.game.chestSpawnPoints.length);
+        //console.log('prep chest', this.game.chestSpawnPoints.length);
 
         // 1. ensure a new chest is acceptable (max number?)
         var ct = 0;
@@ -75,9 +76,10 @@ game_event.prototype.update = function()
             ct++;
           else availChests.push(this.game.chestSpawnPoints[i]);
         }
-        console.log('num active chests', ct);
+        //console.log('num active chests', ct);
         // no more than 3
         if (ct > 3) return false;
+        //if (this.game.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         // rng
         this.spawn = this._.shuffle(availChests)[0];

@@ -175,7 +175,8 @@ var game_core = function(game_instance)
         playerClass         = require('./class.player'),
         platformClass       = require('./class.platform'),
         //transformClass      = require('./class.transform'),
-        game_event_server   = require('./class.event');
+        game_event_server   = require('./class.event'),
+        game_chest          = require('./class.chest');
         /*collisionObject     = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -290,7 +291,7 @@ var game_core = function(game_instance)
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
         console.log('evt type', evt.type);
-        evt.setRandomTriggerTime(5, 15);
+        evt.setRandomTriggerTime(25, 45);
         this.events.push(evt);
         console.log('evt',this.events);
     }
@@ -1242,6 +1243,8 @@ game_core.prototype.check_collision = function( player )
         return;
     }
 
+    var _this = this;
+
     //console.log('g', this.players.self.getGrid());
 
     //Left wall. TODO:stop accel
@@ -1307,7 +1310,7 @@ game_core.prototype.check_collision = function( player )
 
     // player collision
     //console.log(this._.forEach);
-    for (var i = 0; i < this.allplayers.length; i++)
+    //for (var i = 0; i < this.allplayers.length; i++)
     this._.forEach(this.allplayers, function(other)
     {
         //console.log('->', other.pos);
@@ -1602,15 +1605,31 @@ game_core.prototype.check_collision = function( player )
             }
 
             // remove orb from view
-            if (!this.server) this.prerenderer();
+            /*if (!this.server) this.prerenderer();*/
 
             // get out
             break;
         }
     }
 
-    //if (player === this.players.self)
-    //{
+    //console.log('chests', this.chests.length, player.mp);
+    this._.forEach(this.chests, function(chest)
+    {
+        //console.log('collision().chests', chest);
+        // Note: hy + 10 below accounts for birds unseen legs.
+        if (
+            chest && chest.taken===false && player.pos.x < (chest.x + chest.width) &&
+            (player.pos.x + player.size.hx) > chest.x &&
+            player.pos.y < (chest.y + chest.height) &&
+            (player.pos.y + player.size.hy) > chest.y
+        )
+        {
+            console.log('chest hit');
+            chest.doTake(player);//, _this.chests);
+            //_this._.pull(_this.chests, chest);
+        }
+    });
+
     // tilemap
     var b = 10; // bounce
     var h = player.hitGrid();
@@ -1727,7 +1746,6 @@ game_core.prototype.check_collision = function( player )
             }
         }
     }
-
 }; //game_core.check_collision
 
 game_core.prototype.client_on_orbremoval = function(data)
@@ -2112,6 +2130,10 @@ game_core.prototype.server_update_physics = function() {
             this.platforms[j].check_collision();
         //}
     }
+    /*this._.forEach(this.chests, function(chest)
+    {
+        chest.check_collision();
+    });*/
     //console.log(this.players.self.mp);
     // phy 2.0
     // var collisions = this.collider.detectCollisions(
@@ -2203,6 +2225,8 @@ game_core.prototype.server_update = function()
                 {
                     case evt.TYPE_CHEST:
                         console.log('adding chest', evt.spawn, 'with passive', evt.passive);
+                        if (evt.id == 'ec') // chest event
+                            _this.addChest({x:evt.spawn.x,y:evt.spawn.y,t:evt.passive.type,d:evt.passive.duration,m:evt.passive.modifier});
                         _this.laststate[evt.id] =
                         {
                             x: evt.spawn.x,
@@ -2697,8 +2721,8 @@ game_core.prototype.client_process_net_updates = function()
             // avoid reduncancy
             if (!target.ec) return false;
 
-            console.log('got chest', this.events, target.ec);
-            _this.client_addChest(target.ec);
+            console.log('got chest event', this.events, target.ec);
+            _this.addChest(target.ec);
             // clear it to avoid duplicate reads
             target.ec = null;
         }
@@ -2773,10 +2797,17 @@ game_core.prototype.client_process_net_updates = function()
 
 }; //game_core.client_process_net_updates
 
-game_core.prototype.client_addChest = function(chest)
+game_core.prototype.addChest = function(chest)
 {
     console.log('adding chest...', chest);
-    this.chests.push(new game_chest(this.viewport.getContext('2d'), chest));
+
+    if (this.server)
+    {
+        var game_chest_server = require('./class.chest');
+        this.chests.push(new game_chest_server(this, chest, false));
+    }
+    else this.chests.push(new game_chest(this, chest, true));
+    console.log(this.chests);
 };
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
@@ -3361,7 +3392,7 @@ game_core.prototype.client_onjoingame = function(data)
     // this.api();
 
     // create prerenders
-    this.prerenderer();
+    //this.prerenderer();
 
     this.resizeCanvas();
     //Make sure the positions match servers and other clients
@@ -3490,7 +3521,7 @@ game_core.prototype.client_onnetmessage = function(data) {
 
             break;
 
-            case 'o':
+            case 'o': // orbs
 
                 switch(subcommand)
                 {
@@ -3498,6 +3529,16 @@ game_core.prototype.client_onnetmessage = function(data) {
                     case 'r' : this.client_on_orbremoval(commanddata); break;
                     // get orbs
                     case 'g' : this.client_on_getorbs(commanddata); break;
+                }
+
+            break;
+
+            case 'e': // events
+
+                switch(subcommand)
+                {
+                    case 'c' : // remove chest
+                    break;
                 }
 
             break;
