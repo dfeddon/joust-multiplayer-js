@@ -27,6 +27,9 @@ function game_player( game_instance, player_instance, isHost )
 
     // mass
     this.m = 0.1; // kg
+    // angle
+    this.a = 0; // -90, 0, 90
+    this.thrust = 0.25;
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -98,6 +101,60 @@ function game_player( game_instance, player_instance, isHost )
 } // end game_player constructor
 
 game_player.prototype.dead = false;
+
+game_player.prototype.update = function()
+{
+    console.log('update');
+};
+
+game_player.prototype.doFlap = function()
+{
+    console.log('doFlap', this.dir);
+
+    // set flag
+    this.flap = true;
+
+    // clear landed flag
+    this.landed = 0;
+
+    this.ax = Math.cos(this.a) * this.thrust;
+    this.ay = Math.cos(this.a) * this.thrust;
+
+    if (this.dir === 1)
+        this.ax = -(this.ax);
+
+    // increase velocity
+    this.vx += this.ax;
+    this.vy -= this.ay;
+    //this.vy = -1;
+
+    console.log('=====================');
+    console.log('a', this.a, 'dir', this.dir);
+    console.log('ax', this.ax);
+    console.log('ay', this.ay);
+    console.log('vx', this.vx);
+    console.log('vy', this.vy);
+    console.log('=====================');
+
+};
+
+game_player.prototype.setAngle = function(a)
+{
+    if (a === 0) // right
+    {
+        if (this.a > 90)
+            this.a = 90;
+        //else if (this.a < 0)
+        else this.a+=2;
+    }
+    else // left
+    {
+        if (this.a < - 90)
+            this.a = -90;
+        else this.a-=2;
+    }
+    console.log('a', this.a);
+};
 
 game_player.prototype.doStand = function(id)
 {

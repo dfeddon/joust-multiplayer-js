@@ -84,7 +84,7 @@ var game_core = function(game_instance)
     // global delay flag for change ability input
     this.inputDelay = false;
 
-    var worldWidth = 2560;//420;
+    var worldWidth = 3200;//420;
     var worldHeight = 3200;//720;
 
     //Used in collision etc.
@@ -93,7 +93,7 @@ var game_core = function(game_instance)
         height : worldHeight//480
     };
 
-    this.world.gravity = 2;//3.5;
+    this.world.gravity = 1.3;//2;//3.5;
 
     this.world.totalplayers = 5;//40;//4;
 
@@ -1850,68 +1850,74 @@ game_core.prototype.process_input = function( player )
                 if(key == 'l') {
                     //x_dir -= 1;
                     player.dir = 1;
+                    player.setAngle(1);
                     //player.pos.d = 1;
                 }
                 // if player.landed > 0
                 // bird walks to the right
-                if(key == 'r') {
+                else if(key == 'r') {
                     //x_dir += 1;
                     player.dir = 0;
+                    player.setAngle(0);
                     //player.pos.d = 0;
                 }
-                if(key == 'd')
+                else if(key == 'd')
                 {
                     // delay kepresses by 200 ms
                     if (this.inputDelay === false)
                     {
-                        this.inputDelay = true;
+                        /*this.inputDelay = true;
                         player.doCycleAbility();
-                        setTimeout(this.timeoutInputDelay, 200);
+                        setTimeout(this.timeoutInputDelay, 200);*/
                     }
                 }
                 //else player.cycle = false;
-                if (key == "sp")
+                else if (key == "sp")
                 {
                     //console.log('ABILITY');
                     if (player.cooldown === false)
                         player.doAbility();
                 }
+                // else
+                // {
+                // }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    //console.log('flap!');
+                    console.log('flap!');
 
-                    // set flag
-                    player.flap = true;
-
-                    // clear landed flag
-                    player.landed = 0;
-
-                    // increase y velocity
-                    player.vy = -1;
-
+                    player.doFlap();
+                    // // set flag
+                    // player.flap = true;
+                    //
+                    // // clear landed flag
+                    // player.landed = 0;
+                    //
+                    // // increase y velocity
+                    // player.vy = -1;
+                    //
                     // set y_dir for vector movement
-                    y_dir -= 1;
+                    y_dir -= player.vx;//0.5;//1;
 
                     // apply horizontal velocity based on direction facing
                     if (player.dir === 0) // right
                     {
                         // set x_dir for vector movement
-                        x_dir += 0;
+                        //x_dir += 0;
 
-                        if (player.vx < 0 )
-                            player.vx = 336;
+                        /*if (player.vx < 0 )
+                            player.vx = 0;
                         else
-                            player.vx +=336;
+                            player.vx +=336;*/
                     }
                     if (player.dir === 1) // left
                     {
                         // set x_dir for vector movement
-                        x_dir -= 0;
+                        //x_dir -= 0;
 
-                        if (player.vx > 0)
-                            player.vx = -336;
+                        /*if (player.vx > 0)
+                            player.vx = 0;
                         else
-                            player.vx -=336;
+                            player.vx -=336;*/
                     }
                 }
                 else player.flap = false;
@@ -1926,6 +1932,8 @@ game_core.prototype.process_input = function( player )
 
     //we have a direction vector now, so apply the same physics as the client
     var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
+    if (resulting_vector.x > 0 || resulting_vector.y > 0)
+    console.log('vector', resulting_vector);
     if(player.inputs.length) {
         //we can now clear the array since these have been processed
 
@@ -1956,6 +1964,8 @@ game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
 game_core.prototype.update_physics = function() {
     if (glog)
     console.log('##+@@ update_physics');
+
+    var _this = this;
 
     // phy 2.0
     /*
@@ -2001,7 +2011,8 @@ game_core.prototype.update_physics = function() {
     // iterate players
     ////////////////////////////////////////////////////////
     //for (var i in this.players)
-    for (var i = 0; i < this.allplayers.length; i++)
+    //for (var i = 0; i < this.allplayers.length; i++)
+    this._.forEach(this.allplayers, function(player)
     {
         //console.log(this.allplayers[i]);
 
@@ -2015,22 +2026,23 @@ game_core.prototype.update_physics = function() {
         ////////////////////////////////////////////////////////
         // horizontal velocity
         ////////////////////////////////////////////////////////
-
-        if (this.allplayers[i].vx > 0)
+        //*
+        if (player.vx > 0)
         {
-            //console.log('vx', this.allplayers[i].vx);
-            this.allplayers[i].vx = (this.allplayers[i].vx-1).fixed(3);
-            //console.log(this.allplayers[i].vx);
-            if (this.allplayers[i].vx < 0) this.allplayers[i].vx = 0;
-            this.allplayers[i].pos.x += (0.5 * 4);// this.players[i].vx;
+            //console.log('vx', player.vx);
+            player.vx = (player.vx-1).fixed(3);
+            //console.log(player.vx);
+            if (player.vx < 0) player.vx = 0;
+            player.pos.x += (0.5 * 4);// this.players[i].vx;
         }
-        else if (this.allplayers[i].vx < 0)
+        else if (player.vx < 0)
         {
-            //console.log('vx', this.allplayers[i].vx);
-            this.allplayers[i].vx = (this.allplayers[i].vx+1).fixed(3);
-            if (this.allplayers[i].vx > 0) this.allplayers[i].vx = 0;
-            this.allplayers[i].pos.x -= (0.5 * 4);// this.players[i].vx;
+            //console.log('vx', player.vx);
+            player.vx = (player.vx+1).fixed(3);
+            if (player.vx > 0) player.vx = 0;
+            player.pos.x -= (0.5 * 4);// this.players[i].vx;
         }
+        //*/
         ////////////////////////////////////////////////////////
         // vertical velocity
         ////////////////////////////////////////////////////////
@@ -2047,9 +2059,11 @@ game_core.prototype.update_physics = function() {
         ////////////////////////////////////////////////////////
         //if (this.allplayers[i].pos.y !== this.allplayers[i].pos_limits.y_max)
         //console.log(this.allplayers[]);
-        if (this.allplayers[i].landed !== 1)
+        if (player.landed !== 1)
         {
-            this.allplayers[i].pos.y+=this.world.gravity;
+            player.pos.y+=_this.world.gravity;
+
+            //player.update();
 
             /*if (this.allplayers[i].vx > 0)
             {
@@ -2064,13 +2078,21 @@ game_core.prototype.update_physics = function() {
         }
         else // touching ground (TODO:add drag)
         {
-            this.allplayers[i].vy = 0;
+            player.vy = 0;
             //console.log('floor!');
         }
         //else console.log(this.players[i].pos.y, "floor");
         //if (this.players.other.pos.y !== this.players.other.pos_limits.y_max)
             //this.players.other.pos.y+=this.world.gravity;
-    }
+        //if (!this.server)
+        //console.log('vx', this.allplayers[i].vx);
+
+        // degrade player angle
+        if (player.dir === 0 && player.a > 0)
+            player.a-=0.5;
+        else if (player.a < 0)
+            player.a+=0.5;
+    });
     //console.log('v', this.players[i].v);
     //console.log('pos', this.players[i].pos);
     //if (this.players.self.pos.)
@@ -2763,7 +2785,23 @@ game_core.prototype.client_process_net_updates = function()
         {
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
             {
-                console.log('::',target[flag.id]);
+                //console.log(flag.x,flag.y);
+                ghostStub = _this.v_lerp(
+                    previous[flag.id],//other_past_pos2,
+                    target[flag.id],//other_target_pos2,
+                    time_point
+                );
+                //console.log(previous[this.allplayers[j].mp]);
+                //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
+                pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this._pdt * _this.client_smooth);
+                //console.log(target[flag.id]);
+                flag.x = pos.x;// target[flag.id].x;
+                flag.y = pos.y;//target[flag.id].y;
+                flag.type = target[flag.id].t;
+                flag.isHeld = target[flag.id].h;
+                flag.isPlanted = target[flag.id].p;
+                flag.heldBy = target[flag.id].b;
+                //console.log('::', flag.type, flag.x);//, flag.y);
             }
         });
 

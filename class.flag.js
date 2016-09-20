@@ -34,8 +34,8 @@ game_flag.prototype.setter = function(obj)
   this.id = "flg" + obj.id;
   this.name = obj.name;
   this.type = obj.type;
-  this.x = obj.x;
-  this.y = obj.y;
+  this.x = parseInt(obj.x);
+  this.y = parseInt(obj.y);
   this.width = obj.width;
   this.height = obj.height;
 
