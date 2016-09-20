@@ -22,6 +22,7 @@ define(
     //'animation/sprite-anim',
     'class.spritesheet',
     'class.chest',
+    'class.flag',
     'class.event',
     'class.player',
     'class.platform',

@@ -17,9 +17,8 @@
 console.log('game.core loaded');
 
 var glog = false; // global console logging
+
 var frame_time = 60/1000; // run the local game at 16ms/ 60hz
-var worldWidth = 2560;//420;
-var worldHeight = 1280;//720;
 
 if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
@@ -85,6 +84,9 @@ var game_core = function(game_instance)
     // global delay flag for change ability input
     this.inputDelay = false;
 
+    var worldWidth = 2560;//420;
+    var worldHeight = 3200;//720;
+
     //Used in collision etc.
     this.world = {
         width : worldWidth,//720,
@@ -93,7 +95,7 @@ var game_core = function(game_instance)
 
     this.world.gravity = 2;//3.5;
 
-    this.world.totalplayers = 10;//4;
+    this.world.totalplayers = 5;//40;//4;
 
     this.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -101,7 +103,7 @@ var game_core = function(game_instance)
     this.tilemap = null;
     this.tilemapData = null;
     this.chestSpawnPoints = [];
-    this.playerSpawnPoints = [];
+    this.flagObjects = [];
 
     this.cam = {};
 
@@ -114,17 +116,18 @@ var game_core = function(game_instance)
 
     this.platforms = [];
     this.platformsData = [];
+    //*
     this.platformsData.push(
         {
             id:'plat1',
-            x:(this.world.width/2) + (64 * 5),
-            y:(this.world.height/2) - (64 * 5),
+            x:(this.world.width/2) + (64 * 4),
+            y:(this.world.height/2) - (64 * 4),
             w:256,
             h:64,
             t:1,
             s:0
         }
-    );
+    );/*
     this.platformsData.push(
         {
             id:'plat2',
@@ -147,6 +150,7 @@ var game_core = function(game_instance)
             s:0//4 = rotating
         }
     );
+    //*/
     // this.platforms.push({x:this.world.width/4,y:300,w:256,h:64});
     // this.platforms.push({x:this.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
@@ -287,13 +291,13 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         // create startup events
         ///////////////////////////////////
-        var evt = new game_event_server(this);
+        /*var evt = new game_event_server(this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
         console.log('evt type', evt.type);
         evt.setRandomTriggerTime(25, 45);
         this.events.push(evt);
-        console.log('evt',this.events);
+        console.log('evt',this.events);*/
     }
     else // clients (browsers)
     {
@@ -454,7 +458,9 @@ var game_core = function(game_instance)
         }
 
 
-    } else { //if !server
+    }
+    else
+    { //if !server
 
         this.server_time = 0;
         this.laststate = {};
@@ -588,7 +594,7 @@ game_core.prototype.apiNode = function()
                 //console.log('::', JSON.stringify(objectgroupNode[j].$));
                 //console.log('::', JSON.stringify(objectgroupNode[j].object));
 
-                console.log(objectgroupNode[j].$.name)
+                console.log(objectgroupNode[j].$.name);
                 switch(objectgroupNode[j].$.name)
                 {
                     case "chestSpawn":
@@ -599,27 +605,42 @@ game_core.prototype.apiNode = function()
                             for (var k = 0; k < objectgroupNode[j].object.length; k++)
                             {
                                 console.log('->',objectgroupNode[j].object[k].$);
-                                _this.chestSpawnPoints.push(objectgroupNode[j].object[k].$)
+                                _this.chestSpawnPoints.push(objectgroupNode[j].object[k].$);
                             }
                         }
                     break;
 
-                    case "playerSpawn":
+                    case "flagObjects":
+                        console.log('flagobjs', objectgroupNode[j].object.length);
+                        var game_flag_server = require('./class.flag');
+                        var flag;
                         if (objectgroupNode[j].object.length === undefined)
-                            _this.playerSpawnPoints.push(objectgroupNode[j].object);
+                        {
+                            flag = new game_flag_server();
+                            flag.setter(objectgroupNode[j].object.$);
+                            //flag.id = "flg1";
+                            //console.log('flag', flag);
+                            _this.flagObjects.push(flag);
+                        }
                         else
                         {
                             for (var l = 0; l < objectgroupNode[j].object.$.length; l++)
                             {
                                 console.log('->',objectgroupNode[j].object[l].$);
-                                _this.playerSpawnPoints.push(objectgroupNode[j].object[l].$)
+                                //_this.flagObjects.push(objectgroupNode[j].object[l].$);
+
+                                flag = new game_flag_server();
+                                flag.setter(objectgroupNode[j].object[l].$);
+                                flag.id = "flg" + l.toString();
+                                //console.log('flag', flag);
+                                _this.flagObjects.push(flag);
                             }
                         }
                     break;
                 }
             }
             console.log('chests:', _this.chestSpawnPoints);
-            console.log('players:', _this.playerSpawnPoints);
+            console.log('flagObjects:', _this.flagObjects);
         });
     });
 };
@@ -648,6 +669,11 @@ game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.ma
 //Simple linear interpolation between 2 vectors
 game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
 
+// Grid helpers
+game_core.prototype.gridToPixel = function(x, y)
+{
+    return {x: x * 64, y: y * 64};
+}
 
 /*
     The player class
@@ -751,23 +777,27 @@ game_core.prototype.tilemapper = function()
                     }*/
                 break;
 
-                case "playerSpawn":
+                case "flagObjects":
                 // assign attribues to chest obj
-                /*for (var e = 0; e < nodes.length; e++)
+                var flg;
+                for (var e = 0; e < nodes.length; e++)
                 {
-                    var playerSpawnObj = {};
+                    var flagObjectsObj = {};
                     Array.prototype.slice.call(nodes[e]).forEach(function(item)
                     {
-                        playerSpawnObj[item.name] = item.value
+                        flagObjectsObj[item.name] = item.value;
                     });
-                    //console.log('playerSpawn', playerSpawnObj);
-                    _this.playerSpawnPoints.push(playerSpawnObj);
-                }*/
+                    console.log('derek', flagObjectsObj);
+                    //console.log('flagObjects', flagObjectsObj);
+                    flg = new game_flag(_this.viewport.getContext('2d'));
+                    flg.setter(flagObjectsObj);
+                    _this.flagObjects.push(flg);
+                }
                 break;
             }
         }
         //console.log('chests', this.chestSpawnPoints);
-        //console.log('players', this.playerSpawnPoints);
+        //console.log('players', this.flagObjects);
 
         ///////////////////////////////////
         // layers
@@ -2241,6 +2271,21 @@ game_core.prototype.server_update = function()
         }
     });
 
+    // process flags
+    this._.forEach(this.flagObjects, function(flag)
+    {
+        //console.log('flags', flag);
+        _this.laststate[flag.id] =
+        {
+            x: flag.x,
+            y: flag.y,
+            t: flag.type,
+            h: flag.isHeld,
+            p: flag.isPlanted,
+            b: flag.heldBy
+        };
+    });
+
     this.laststate.t = this.server_time;
     //console.log(this.laststate);
     //console.log('len', this.allplayers.length);
@@ -2713,6 +2758,15 @@ game_core.prototype.client_process_net_updates = function()
             }
         });
 
+        // process flags
+        this._.forEach(this.flagObjects, function(flag)
+        {
+            if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
+            {
+                console.log('::',target[flag.id]);
+            }
+        });
+
         // process events
         //console.log(this._.has(target, 'ec'));//this.events.length);
         // first, check for chest events (dynamic)
@@ -3052,6 +3106,13 @@ game_core.prototype.client_update = function()
         chest.draw();
     });
 
+    // flags
+    this._.forEach(this.flagObjects, function(flagObj)
+    {
+        //console.log('fobj', flagObj);
+        flagObj.draw();
+    });
+
 
     //this.ctx.save();
     this.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
@@ -3214,7 +3275,7 @@ game_core.prototype.client_reset_positions = function()
 {
     console.log('## client_reset_positions');
 
-    console.log('Am I Host?', this.players.self.host, this.allplayers.length);
+    console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
     /*for (var i = 0; i < this.allplayers.length; i++)
     {
@@ -3232,11 +3293,32 @@ game_core.prototype.client_reset_positions = function()
     //Host always spawns at the top left.
     player_host.pos = { x:20,y:20 };
     player_client.pos = { x:500, y:200 };*/
+    console.log(this.players.self.pos);
+    /*if (this.players.self.pos.x === 0 && this.players.self.pos.y === 0)
+    {
+        // spawn
+        console.log('player spawned!');
+        // position based on team
+        if (this.players.self.team == 'blue')
+        {
 
-    //Make sure the local player physics is updated
-    this.players.self.old_state.pos = this.pos(this.players.self.pos);
-    this.players.self.pos = this.pos(this.players.self.pos);
-    this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+        }
+        else
+        {
+            console.log('pspawn!');
+            this.players.self.old_state.pos = this.pos(this.players.self.pos);
+            this.players.self.pos = this.gridToPixel(2, 31);
+            this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+        }
+    }
+    else
+    {*/
+        //Make sure the local player physics is updated
+        this.players.self.old_state.pos = this.pos(this.players.self.pos);
+        this.players.self.pos = this.pos(this.players.self.pos);
+        this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+    /*}
+    console.log(this.players.self.pos);*/
 
     //Position all debug view items to their owners position
     /*this.ghosts.server_pos_self.pos = this.pos(this.players.self.pos);
@@ -3324,7 +3406,7 @@ game_core.prototype.resizeCanvas = function()
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
-    console.log('## client_onjoingame');//, data);// (player joined is not host: self.host=false)');
+    console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
 
     // console.log('derek', data);
 
@@ -3340,7 +3422,7 @@ game_core.prototype.client_onjoingame = function(data)
     //console.log('3',alldata[2]);
 
     console.log('len', this.allplayers.length);
-    console.log('vp', this.viewport);
+    //console.log('vp', this.viewport);
 
     //We are not the host
     this.players.self.host = false;

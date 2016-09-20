@@ -29,7 +29,7 @@ function game_player( game_instance, player_instance, isHost )
     this.m = 0.1; // kg
 
     this.flap = false; // flapped bool (derek added)
-    this.landed = 0; // 0=flying, 1=stationary, 2=walking
+    this.landed = 1; // 0=flying, 1=stationary, 2=walking
     this.supportingPlatformId = "none"; // id of platform on which player is standing
     this.visible = true;
     this.active = false;
@@ -69,8 +69,8 @@ function game_player( game_instance, player_instance, isHost )
     //The 'host' of a game gets created with a player instance since
     //the server already knows who they are. If the server starts a game
     //with only a host, the other player is set up in the 'else' below
-    this.pos = { x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:128};//this.game.world.height-this.size.hy };
-
+    //this.pos = { x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:128};//this.game.world.height-this.size.hy };
+    this.pos = {x: 0, y: 0};
     //These are used in moving us around later
     this.old_state = {pos:this.pos};
     this.cur_state = {pos:this.pos};
@@ -155,7 +155,7 @@ game_player.prototype.doKill = function(victor)
 
 game_player.setPassive = function(type, duration, modifier)
 {
-    
+
 }
 
 game_player.prototype.doCycleAbility = function()

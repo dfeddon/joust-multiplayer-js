@@ -13,5 +13,9 @@
   },
   "engine": {
     "node": "0.10.x"
+  },
+  "devDependencies": {
+    "gulp-concat-util": "^0.5.5",
+    "gulp-uglify": "^2.0.0"
   }
 }

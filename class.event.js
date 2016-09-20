@@ -11,7 +11,7 @@ function game_event(game_instance)
   console.log('game event constructor');
 
   //if (game_instance.server)
-  this._ = require('./node_modules/lodash/lodash.min');
+  this.shuffle = require('./node_modules/lodash/shuffle');
 
 	///////////////////////////
   // constants
@@ -82,12 +82,12 @@ game_event.prototype.update = function()
         //if (this.game.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         // rng
-        this.spawn = this._.shuffle(availChests)[0];
+        this.spawn = this.shuffle(availChests)[0];
         // set active
         this.spawn.active = true;
         console.log('selected spawn', this.spawn);
         // 3. rng chest content
-        this.passive = this._.shuffle(this.game.passives)[0];
+        this.passive = this.shuffle(this.game.passives)[0];
         console.log('selected passive', this.passive);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
