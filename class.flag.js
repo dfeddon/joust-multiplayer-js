@@ -15,7 +15,9 @@ function game_flag(context)
 
   this.type = 1;
   this.isHeld = false;
-  this.isPlanted = false;
+  this.isPlanted = true;
+  this.isActive = true;
+  this.validHolder = undefined;
   this.heldBy = null;
 
   this._ = {};
@@ -36,8 +38,8 @@ game_flag.prototype.setter = function(obj)
   this.type = obj.type;
   this.x = parseInt(obj.x);
   this.y = parseInt(obj.y);
-  this.width = obj.width;
-  this.height = obj.height;
+  this.width = parseInt(obj.width);
+  this.height = parseInt(obj.height);
 
   // if (this.ctx)
   //   this.forEach = _.forEach;

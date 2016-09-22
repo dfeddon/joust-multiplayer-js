@@ -9,8 +9,9 @@ html , body {
 	height: 100%;
 	background-size: 100%;
 	/*background-image: url('/assets/slither-io-bg.jpg');*/
-	background-image: url('/assets/bg5.png');
+	/*background-image: url('/assets/bg5.png');*/
 	/*background-repeat: repeat;*/
+	background-color: #000;
 	background-repeat: no-repeat;
 	background-size: cover;
 }

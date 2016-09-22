@@ -93,7 +93,7 @@ var game_core = function(game_instance)
         height : worldHeight//480
     };
 
-    this.world.gravity = 1.3;//2;//3.5;
+    this.world.gravity = 0.05;//.25;//2;//3.5;
 
     this.world.totalplayers = 5;//40;//4;
 
@@ -624,7 +624,7 @@ game_core.prototype.apiNode = function()
                         }
                         else
                         {
-                            for (var l = 0; l < objectgroupNode[j].object.$.length; l++)
+                            for (var l = 0; l < objectgroupNode[j].object.length; l++)
                             {
                                 console.log('->',objectgroupNode[j].object[l].$);
                                 //_this.flagObjects.push(objectgroupNode[j].object[l].$);
@@ -673,7 +673,7 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 game_core.prototype.gridToPixel = function(x, y)
 {
     return {x: x * 64, y: y * 64};
-}
+};
 
 /*
     The player class
@@ -690,6 +690,98 @@ game_core.prototype.newPlayer = function(client)
   p.id = client.userid;
 
   return p;
+};
+
+game_core.prototype.updateTerritory = function()
+{
+    console.log('updating bg...', this.flagObjects);
+
+    if (this.bg === null)
+    {
+        this.bg = document.createElement('canvas');
+        this.bg.id = "bg";
+        this.bg.x = 0;
+        this.bg.y = 0;
+        this.bg.width = this.world.width;//v.width;
+        this.bg.height = this.world.height;//v.height;
+        //context3 = this.bg.getContext('2d');
+    }
+    var ctx = this.bg.getContext('2d');
+
+    // build bricks
+    var brickWidth = 30;
+    var brickHeight = 15;
+    var brickPadding = 1;
+    var brickOffsetTop = 0;//30;
+    var brickOffsetLeft = 0;//30;
+
+    var brickColumnCount = this.world.width / (brickWidth + brickPadding);
+    var brickRowCount = this.world.height / (brickHeight + brickPadding);
+
+    var bricks = [];
+    for(c=0; c<brickColumnCount; c++)
+    {
+        bricks[c] = [];
+        for(r=0; r<brickRowCount; r++)
+        {
+            bricks[c][r] = { x: 0, y: 0 };
+        }
+    }
+
+    function pixelToBrick(x)
+    {
+        return Math.floor(x / (brickWidth + brickPadding));
+    }
+    /*function brickToPixel(col)
+    {
+
+    }*/
+
+    // flags
+    var red = this._.find(this.flagObjects, {'name':'redFlag'});
+    var mid = this._.find(this.flagObjects, {'name':'midFlag'});
+    var blue = this._.find(this.flagObjects, {'name':'blueFlag'});
+    //console.log(red, mid, blue);
+    //console.log('xs', red.x, mid.x, blue.x);
+    var redflagX = pixelToBrick( (red.x + (red.width/2)) );
+    var midflagX = pixelToBrick( (mid.x + (mid.width/2)) );
+    var blueflagX = pixelToBrick( (blue.x + (blue.width/2)) );
+    //console.log('xs2', redflagX, midflagX, blueflagX);
+
+    // draw bricks
+    var brickX, brickY;
+    for(c=0; c<brickColumnCount; c++)
+    {
+        for(r=0; r<brickRowCount; r++)
+        {
+            brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+            brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+            bricks[c][r].x = brickX;
+            bricks[c][r].y = brickY;
+
+            //console.log('c', c, brickX, brickY);
+            if (
+                (redflagX > 0 && c <= redflagX) ||
+                (c > midflagX && c < blueflagX)
+            )
+            {
+                ctx.beginPath();
+                ctx.fillStyle = "#04293c";
+                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                ctx.fill();
+                ctx.closePath();
+            }
+            else
+            {
+                ctx.beginPath();
+                ctx.fillStyle = "#340404";
+                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    }
+
 };
 
 game_core.prototype.tilemapper = function()
@@ -813,8 +905,18 @@ game_core.prototype.tilemapper = function()
         ///////////////////////////////////
         // iterate layers
         ///////////////////////////////////
+        var layersStored = [];
         for (var x = 0; x < layerNode.length; x++)
         {
+            // is visible?
+            var vis = layerNode[x].getAttribute('visible');
+            console.log('is visible', vis);
+            if (vis == 0)
+            {
+                console.log('skipping layer...', layerNode[x].getAttribute('name'));
+                continue;
+            }
+
             console.log(layerNode[x].getAttribute('name'));
             /*console.log(layerNode[x].getElementsByTagName('data')[0]);
             console.log(layerNode[x].getElementsByTagName('data')[0].innerHTML);*/
@@ -824,6 +926,8 @@ game_core.prototype.tilemapper = function()
             layerHeight = layerNode[x].getAttribute('height');
             dataNode = layerNode[x].getElementsByTagName('data')[0];
             data = layerNode[x].getElementsByTagName('data')[0].innerHTML;
+
+            layersStored.push(layerName);
             //continue;
 
             // data
@@ -849,6 +953,7 @@ game_core.prototype.tilemapper = function()
                 base.push(rows[i]);
             }
             // tilemapData tracks on the 'barrier' layer (for collision detection)
+            console.log('layerName', layerName);
             if (layerName == "barriers")
                 this.tilemapData = base;
             //console.log(base);
@@ -900,11 +1005,12 @@ game_core.prototype.tilemapper = function()
             var n, c, cContext;//, layerCanvas;
             //var canvases = [];
             //var div = document.getElementById('canvases');
+            console.log('layerData len', layerData.length);
             for (var y = 0; y < layerData.length; y++)
             {
 
                 // first, create layer canvas
-                n = layerNode[y].getAttribute('name')
+                n = layersStored[y];//layerNode[y].getAttribute('name')
                 console.log(n);
                 c = document.createElement('canvas');//('canvas_' + y.toString());
                 c.style.cssText = "position:absolute;display:block;top:0;left:0";
@@ -974,6 +1080,8 @@ game_core.prototype.tilemapper = function()
             //_this.canvas3 = canvas3;
             tilemap = null;
             self.tmCanvas = null;
+
+            _this.updateTerritory();
 
             _this.addSpriteSheets();
         }; // end tilemap image loaded
@@ -1660,6 +1768,20 @@ game_core.prototype.check_collision = function( player )
         }
     });
 
+    // flagObjects
+    this._.forEach(this.flagObjects, function(fo)
+    {
+        if (
+            player.pos.x < (fo.x + fo.width) &&
+            (player.pos.x + player.size.hx) > fo.x &&
+            player.pos.y < (fo.y + fo.height) &&
+            (player.pos.y + player.size.hy) > fo.y
+        )
+        {
+            console.log('hit flag obj', fo);
+        }
+    });
+
     // tilemap
     var b = 10; // bounce
     var h = player.hitGrid();
@@ -2026,21 +2148,24 @@ game_core.prototype.update_physics = function() {
         ////////////////////////////////////////////////////////
         // horizontal velocity
         ////////////////////////////////////////////////////////
-        //*
+        player.update();
+        /*
         if (player.vx > 0)
         {
             //console.log('vx', player.vx);
             player.vx = (player.vx-1).fixed(3);
             //console.log(player.vx);
             if (player.vx < 0) player.vx = 0;
-            player.pos.x += (0.5 * 4);// this.players[i].vx;
+
+            player.pos.x += player.vx;// (0.5 * 4);// this.players[i].vx;
         }
         else if (player.vx < 0)
         {
             //console.log('vx', player.vx);
             player.vx = (player.vx+1).fixed(3);
             if (player.vx > 0) player.vx = 0;
-            player.pos.x -= (0.5 * 4);// this.players[i].vx;
+
+            player.pos.x -= player.vx;// (0.5 * 4);// this.players[i].vx;
         }
         //*/
         ////////////////////////////////////////////////////////
@@ -2061,7 +2186,7 @@ game_core.prototype.update_physics = function() {
         //console.log(this.allplayers[]);
         if (player.landed !== 1)
         {
-            player.pos.y+=_this.world.gravity;
+            //player.pos.y+=_this.world.gravity;
 
             //player.update();
 
@@ -3085,10 +3210,13 @@ game_core.prototype.client_update = function()
     if (this.bg)
     {
         this.ctx.drawImage(this.bg, 0, 0); // tiled bg layer
-        //this.ctx.drawImage(this.canvas2, 0,0); // orbs
-        this.ctx.drawImage(this.barriers, 0, 0); // tiled barriers layer
-        this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
-        this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
+    }
+    if (this.fg)
+    {
+    //this.ctx.drawImage(this.canvas2, 0,0); // orbs
+    this.ctx.drawImage(this.barriers, 0, 0); // tiled barriers layer
+    this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
+    this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
     }
 
     //Capture inputs from the player
