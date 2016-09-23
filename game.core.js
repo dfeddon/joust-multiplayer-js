@@ -291,13 +291,15 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         // create startup events
         ///////////////////////////////////
-        /*var evt = new game_event_server(this);
+        //*
+        var evt = new game_event_server(this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
         console.log('evt type', evt.type);
         evt.setRandomTriggerTime(25, 45);
         this.events.push(evt);
-        console.log('evt',this.events);*/
+        console.log('evt',this.events);
+        //*/
     }
     else // clients (browsers)
     {
@@ -616,8 +618,8 @@ game_core.prototype.apiNode = function()
                         var flag;
                         if (objectgroupNode[j].object.length === undefined)
                         {
-                            flag = new game_flag_server();
-                            flag.setter(objectgroupNode[j].object.$);
+                            flag = new game_flag_server(objectgroupNode[j].object.$);
+                            //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
                             //console.log('flag', flag);
                             _this.flagObjects.push(flag);
@@ -629,8 +631,8 @@ game_core.prototype.apiNode = function()
                                 console.log('->',objectgroupNode[j].object[l].$);
                                 //_this.flagObjects.push(objectgroupNode[j].object[l].$);
 
-                                flag = new game_flag_server();
-                                flag.setter(objectgroupNode[j].object[l].$);
+                                flag = new game_flag_server(objectgroupNode[j].object[l].$);
+                                //flag.setter(objectgroupNode[j].object[l].$);
                                 flag.id = "flg" + l.toString();
                                 //console.log('flag', flag);
                                 _this.flagObjects.push(flag);
@@ -832,6 +834,7 @@ game_core.prototype.tilemapper = function()
         // objects
         ///////////////////////////////////
         var objectgroupNode = xmlDoc.getElementsByTagName('objectgroup');
+        var flagArray = [];
         //console.log('objectgroups', objectgroupNode.length);
         for (var og = 0; og < objectgroupNode.length; og++)
         {
@@ -872,19 +875,40 @@ game_core.prototype.tilemapper = function()
                 case "flagObjects":
                 // assign attribues to chest obj
                 var flg;
-                for (var e = 0; e < nodes.length; e++)
+                //for (var e = 0; e < nodes.length; e++)
+                var flagObjectsObj;
+                //var objsArray = [];
+                _this._.forEach(nodes, function(e)
                 {
-                    var flagObjectsObj = {};
-                    Array.prototype.slice.call(nodes[e]).forEach(function(item)
+                    flagObjectsObj = {};
+                    Array.prototype.slice.call(e).forEach(function(item)
                     {
                         flagObjectsObj[item.name] = item.value;
                     });
-                    console.log('derek', flagObjectsObj);
-                    //console.log('flagObjects', flagObjectsObj);
-                    flg = new game_flag(_this.viewport.getContext('2d'));
-                    flg.setter(flagObjectsObj);
-                    _this.flagObjects.push(flg);
-                }
+                    console.log('flag obj', flagObjectsObj);
+                    flagArray.push(flagObjectsObj)
+                    //clone = _.cloneDeep(flagObjectsObj);
+                    // note, we set all flag objects to viewport context,
+                    // however, further down we'll reassociate slot flag objects
+                    // with _this.fg canvas context
+                    //if (flagObjectsObj.type == "flag")
+                    //{
+                        //flg = new game_flag(flagObjectsObj.type, _this.viewport.getContext('2d'));
+                        //_this.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
+                        //flg.setter(flagObjectsObj);
+                    //}
+                    //else {
+                    //    flg = new game_flag(flagObjectsObj.type, null);
+                        //flg.setter(flagObjectsObj);
+                    //}
+                    //_this.flagObjects.push(flg);
+                });
+
+                /*_this._.forEach(objsArray, function(i)
+                {
+                    //console.log(i);
+                    _this.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
+                });*/
                 break;
             }
         }
@@ -1081,9 +1105,36 @@ game_core.prototype.tilemapper = function()
             tilemap = null;
             self.tmCanvas = null;
 
-            _this.updateTerritory();
-
             _this.addSpriteSheets();
+
+            // reassign ctx for slot objects
+            //console.log("_", this._.forEach());
+            console.log('flagArray', flagArray);
+            _this._.forEach(flagArray, function(fo)
+            {
+                console.log('fog', fo);
+                if (fo.type == "flag")
+                {
+                    var flag = new game_flag(fo, _this.viewport.getContext('2d'));
+                    _this.flagObjects.push(new game_flag(fo, _this.viewport.getContext('2d')));
+                }
+                else if (fo.type == "slot")
+                {
+                    var slot = new game_flag(fo, _this.fg.getContext('2d'));
+                    //slot.setter(fo);
+                    _this.flagObjects.push(slot);
+                    slot.draw();
+
+                    /*console.log('revising ctx');
+                    //fo.setCtx(_this.fg.getContext('2d'));
+                    _this.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
+                    //fo.draw();
+                }
+                //else fo.draw();
+            });
+
+            // declare territory
+            _this.updateTerritory();
         }; // end tilemap image loaded
 
         image.src = source.replace("..", "/assets");
@@ -1772,7 +1823,7 @@ game_core.prototype.check_collision = function( player )
     this._.forEach(this.flagObjects, function(fo)
     {
         if (
-            player.pos.x < (fo.x + fo.width) &&
+            fo.isHeld === false && fo.isActive && player.pos.x < (fo.x + fo.width) &&
             (player.pos.x + player.size.hx) > fo.x &&
             player.pos.y < (fo.y + fo.height) &&
             (player.pos.y + player.size.hy) > fo.y
@@ -2908,6 +2959,7 @@ game_core.prototype.client_process_net_updates = function()
         // process flags
         this._.forEach(this.flagObjects, function(flag)
         {
+            //console.log(target);
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
             {
                 //console.log(flag.x,flag.y);
@@ -3275,8 +3327,9 @@ game_core.prototype.client_update = function()
     // flags
     this._.forEach(this.flagObjects, function(flagObj)
     {
-        //console.log('fobj', flagObj);
-        flagObj.draw();
+        //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
+        if (flagObj.type == "flag")
+            flagObj.draw();
     });
 
 

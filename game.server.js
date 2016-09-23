@@ -503,7 +503,7 @@ game_server.findGame = function(client)
                                 game_instance.gamecore.allplayers[i].instance = client;
                                 game_instance.gamecore.allplayers[i].id = client.userid;
                                 game_instance.gamecore.allplayers[i].isLocal = true;
-                                game_instance.gamecore.allplayers[i].pos = game_instance.gamecore.gridToPixel(2,31)
+                                game_instance.gamecore.allplayers[i].pos = game_instance.gamecore.gridToPixel(2,2);
                                 // game_instance.gamecore.allplayers[i].playerName = this.nameGenerator();
                                 // console.log('playername', game_instance.gamecore.allplayers[i].playerName);
                                 //game_instance.gamecore.allplayers[i].gameid = gameid;

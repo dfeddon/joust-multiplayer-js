@@ -137,25 +137,27 @@ game_player.prototype.doFlap = function()
     this.vy -= this.ay;*/
     //this.vy = -1;
 
-    console.log('=====================');
+    /*console.log('=====================');
     console.log('a', this.a, 'dir', this.dir);
     console.log('ax', this.ax);
     console.log('ay', this.ay);
     console.log('vx', this.vx);
     console.log('vy', this.vy);
-    console.log('=====================');
+    console.log('=====================');*/
 
 };
 
 game_player.prototype.update = function()
 {
     if (this.landed === 1) return;
+
     this.vy += this.game.world.gravity;///5;
 
     this.pos.y += this.vy;
 
     this.pos.x += ((this.a/25) * Math.cos(this.vx));
 
+    //if (this.pos.x < 65) this.vx *=-1;
     this.vx *= 1;
 };
 
