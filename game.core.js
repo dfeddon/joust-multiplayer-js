@@ -1437,7 +1437,7 @@ game_core.prototype.check_collision = function( player )
     //console.log('g', this.players.self.getGrid());
 
     //Left wall. TODO:stop accel
-    if(player.pos.x < player.pos_limits.x_min)
+    /*if(player.pos.x < player.pos_limits.x_min)
     {
         player.pos.x = player.pos_limits.x_min;
         player.vx = 0;
@@ -1492,7 +1492,7 @@ game_core.prototype.check_collision = function( player )
         //console.log(player.landed);
     }
     else player.landed = 0;
-
+    */
     //Fixed point helps be more deterministic
     //player.pos.x = player.pos.x.fixed(4);
     //player.pos.y = player.pos.y.fixed(4);
@@ -1844,19 +1844,27 @@ game_core.prototype.check_collision = function( player )
 
         if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
+            //console.log('hit w wall');
             player.pos.x += 15; // bounce
-            player.vx = 0; // stop accel
+            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
+            //player.vx *= -1; // stop accel
+            //console.log('vx', player.vx);
         }
         else if (h.ne.t > 0 && h.se.t > 0)
         {
             player.pos.x -= 15; //bounce
-            player.vx = 0; // stop accel
+            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
+            //player.vx = 0; // stop accel
         }
         else if (h.nw.t > 0) // collide from below
         {
             //console.log('stop nw', player.mp);
             //player.pos.x += b;
             player.pos.y += b;
+            player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
             /*if (player.vuln===false)
                 player.isVuln(500);*/
         }
@@ -1865,6 +1873,8 @@ game_core.prototype.check_collision = function( player )
             //console.log('stop ne', player.mp);
             //player.pos.x -= b;
             player.pos.y += b;
+            player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
             /*if (player.vuln===false)
                 player.isVuln(500);*/
         }
@@ -2472,16 +2482,19 @@ game_core.prototype.server_update = function()
     // process flags
     this._.forEach(this.flagObjects, function(flag)
     {
-        //console.log('flags', flag);
-        _this.laststate[flag.id] =
+        if (flag.isHeld)
         {
-            x: flag.x,
-            y: flag.y,
-            t: flag.type,
-            h: flag.isHeld,
-            p: flag.isPlanted,
-            b: flag.heldBy
-        };
+            console.log('flags', flag);
+            _this.laststate[flag.id] =
+            {
+                x: flag.x,
+                y: flag.y,
+                t: flag.type,
+                h: flag.isHeld,
+                p: flag.isPlanted,
+                b: flag.heldBy
+            };
+        }
     });
 
     this.laststate.t = this.server_time;

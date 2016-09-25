@@ -58,6 +58,8 @@ function game_flag(data, context)
       case "slot9":
       case "slot10":
       case "midSlot":
+      case "slotBlue":
+      case "slotRed":
         this.image = document.getElementById("flag-slot");
         break;
     }
@@ -134,7 +136,7 @@ game_flag.prototype.setCtx = function(ctx)
 
 game_flag.prototype.draw = function()
 {
-  console.log('dodraw', this.image, this.x, this.y);
+  //console.log('dodraw', this.image, this.x, this.y);
   if (this.image)
   this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 };

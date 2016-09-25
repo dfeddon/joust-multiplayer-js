@@ -1,3 +1,4 @@
+Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player( game_instance, player_instance, isHost )
 {
     console.log('game_player');//, game_instance, player_instance);
@@ -29,7 +30,7 @@ function game_player( game_instance, player_instance, isHost )
     this.m = 0.1; // kg
     // angle
     this.a = 0; // -90, 0, 90
-    this.thrust = .125;//1.25;
+    this.thrust = 0.125;//1.25;
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -79,6 +80,7 @@ function game_player( game_instance, player_instance, isHost )
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
 
+    this.team = 0; // 0 = red, 1 = blue
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;
     this.pointsTotal = 0;
@@ -137,28 +139,59 @@ game_player.prototype.doFlap = function()
     this.vy -= this.ay;*/
     //this.vy = -1;
 
-    /*console.log('=====================');
-    console.log('a', this.a, 'dir', this.dir);
-    console.log('ax', this.ax);
-    console.log('ay', this.ay);
-    console.log('vx', this.vx);
-    console.log('vy', this.vy);
-    console.log('=====================');*/
+    // console.log('=====================');
+    // console.log('a', this.a, 'dir', this.dir);
+    // console.log('ax', this.ax);
+    // console.log('ay', this.ay);
+    // console.log('vx', this.vx);
+    // console.log('vy', this.vy);
+    // console.log('=====================');
 
 };
 
+game_player.prototype.collision = false;
+game_player.prototype.hitFrom = 0;
 game_player.prototype.update = function()
 {
     if (this.landed === 1) return;
 
-    this.vy += this.game.world.gravity;///5;
+    this.vy += this.game.world.gravity;//.fixed(2);///5;
+    this.vx = ((this.a/25) * Math.cos(0.123));//.fixed(2);
 
-    this.pos.y += this.vy;
+    this.pos.y += this.vy.fixed(2);
 
-    this.pos.x += ((this.a/25) * Math.cos(this.vx));
+    // /10 = slower /25 = faster /50 = fast
+    this.pos.x += this.vx.fixed(2);//((this.a/25) * Math.cos(this.vx));
+    //console.log('vs', this.vx, this.vy);
 
-    //if (this.pos.x < 65) this.vx *=-1;
-    this.vx *= 1;
+    //if (this.pos.x < 165) this.vx *=-1;
+    //else
+    if (this.collision === true)
+    {
+        switch(this.hitFrom)
+        {
+            case 0: // from the side
+                this.vx *= -1;
+                this.a *= -1;
+                this.collision = false;
+                //console.log('vx', this.vx);
+            break;
+            case 1: // from below
+                //this.vx *= -1;
+                //this.a *= -1;
+                this.vy *= -1;
+                this.collision = false;
+                //console.log('vx', this.vx);
+            break;
+            case 0: // from the side
+                this.vx *= -1;
+                this.a *= -1;
+                this.collision = false;
+                //console.log('vx', this.vx);
+            break;
+        }
+    }
+    else this.vx *= 1;
 };
 
 game_player.prototype.setAngle = function(a)
@@ -176,7 +209,7 @@ game_player.prototype.setAngle = function(a)
             this.a = -90;
         else this.a-=2;
     }
-    console.log('a', this.a);
+    //console.log('a', this.a);
 };
 
 game_player.prototype.doStand = function(id)
