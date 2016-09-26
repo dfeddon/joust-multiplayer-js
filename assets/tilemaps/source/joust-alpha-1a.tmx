@@ -185,7 +185,7 @@
   <object id="10" name="midFlag" type="flag" x="1632" y="832" width="64" height="64"/>
   <object id="12" name="redFlag" type="flag" x="64" y="320" width="64" height="64"/>
   <object id="13" name="blueFlag" type="flag" x="3072" y="1536" width="64" height="64"/>
-  <object id="14" name="midSlot" type="slot" x="1648" y="846" width="32" height="32"/>
+  <object id="14" name="midSlot" type="slot" x="1664" y="864" width="32" height="32"/>
   <object id="15" name="slot5" type="slot" x="1296" y="1612" width="32" height="32"/>
   <object id="16" name="slot6" type="slot" x="1932" y="214" width="32" height="32"/>
   <object id="17" name="slot4" type="slot" x="976" y="208" width="32" height="32"/>
@@ -196,7 +196,7 @@
   <object id="22" name="slot8" type="slot" x="2446" y="208" width="32" height="32"/>
   <object id="23" name="slot9" type="slot" x="2770" y="1614" width="32" height="32"/>
   <object id="24" name="slot10" type="slot" x="2960" y="208" width="32" height="32"/>
-  <object id="25" name="slotRed" type="slot" x="64" y="336" width="32" height="32"/>
-  <object id="26" name="slotBlue" type="slot" x="3104" y="1552" width="32" height="32"/>
+  <object id="25" name="slotRed" type="slot" x="32" y="352" width="32" height="32"/>
+  <object id="26" name="slotBlue" type="slot" x="3104" y="1568" width="32" height="32"/>
  </objectgroup>
 </map>

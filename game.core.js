@@ -1514,13 +1514,13 @@ game_core.prototype.check_collision = function( player )
                 // TODO: if vulnerable (stunned) then vuln user is victim
 
                 // set both players as 'engaged'
-                if (!this.server)
+                /*if (!this.server)
                 {
                     if (player.isLocal)
                         player.isEngaged(10000);
                     else if (other.isLocal)
                         other.isEngaged(10000);
-                }
+                }*/
 
                 // otherwise, positioning counts
                 var dif = player.pos.y - other.pos.y;
@@ -1842,33 +1842,10 @@ game_core.prototype.check_collision = function( player )
     {
         //if (player.landed === 1) return;
 
-        if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
-        {
-            //console.log('hit w wall');
-            player.pos.x += 15; // bounce
-            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
-            //player.vx *= -1; // stop accel
-            //console.log('vx', player.vx);
-        }
-        else if (h.ne.t > 0 && h.se.t > 0)
-        {
-            player.pos.x -= 15; //bounce
-            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
-            //player.vx = 0; // stop accel
-        }
-        else if (h.nw.t > 0) // collide from below
-        {
-            //console.log('stop nw', player.mp);
-            //player.pos.x += b;
-            player.pos.y += b;
-            player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
-            /*if (player.vuln===false)
-                player.isVuln(500);*/
-        }
-        else if (h.ne.t > 0) // collide from below
+        //////////////////////////////
+        // collide from below
+        //////////////////////////////
+        if (h.ne.t > 0 && h.nw.t > 0) // collide from below
         {
             //console.log('stop ne', player.mp);
             //player.pos.x -= b;
@@ -1878,6 +1855,45 @@ game_core.prototype.check_collision = function( player )
             /*if (player.vuln===false)
                 player.isVuln(500);*/
         }
+        //////////////////////////////
+        // land
+        //////////////////////////////
+        else if (h.sw.t > 0 && h.se.t > 0) // land
+        {
+            //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
+            //player.pos.x += b;
+            //player.pos.y -= b;
+
+            // set y
+            player.pos.y = parseInt((h.sw.y * 64) - 64);
+
+            // process landing
+            player.doLand();
+        }
+        //////////////////////////////
+        // side collision
+        //////////////////////////////
+        else if (h.nw.t > 0 || h.sw.t > 0) // hit side wall
+        {
+            //console.log('hit w wall');
+            player.pos.x += 15; // bounce
+            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
+            //player.vx *= -1; // stop accel
+            //console.log('vx', player.vx);
+        }
+        else if (h.ne.t > 0 || h.se.t > 0)
+        {
+            player.pos.x -= 15; //bounce
+            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
+            //player.vx = 0; // stop accel
+        }
+        else if (player.standing === 2)
+        {
+            console.log('player slid off barrier...');
+        }
+        /*
         else if (h.sw.t > 0) // landing
         {
             //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
@@ -1958,6 +1974,7 @@ game_core.prototype.check_collision = function( player )
                 player.landed = 1;
             }
         }
+        //*/
     }
 }; //game_core.check_collision
 
@@ -2028,20 +2045,31 @@ game_core.prototype.process_input = function( player )
             {
                 var key = input[i];
                 //console.log('key', key, ic);
-                // if player.landed > 0
-                // bird walks to the left
-                if(key == 'l') {
-                    //x_dir -= 1;
+
+                /////////////////////////
+                // move left
+                /////////////////////////
+                if(key == 'l')
+                {
                     player.dir = 1;
-                    player.setAngle(1);
+
+                    if (player.landed === 1)
+                        player.doWalk(player.dir);
+                    else player.setAngle(1);
                     //player.pos.d = 1;
                 }
-                // if player.landed > 0
-                // bird walks to the right
-                else if(key == 'r') {
+
+                /////////////////////////
+                // move right
+                /////////////////////////
+                else if(key == 'r')
+                {
                     //x_dir += 1;
                     player.dir = 0;
-                    player.setAngle(0);
+
+                    if (player.landed === 1)
+                        player.doWalk(player.dir);
+                    else player.setAngle(0);
                     //player.pos.d = 0;
                 }
                 else if(key == 'd')
@@ -2150,128 +2178,12 @@ game_core.prototype.update_physics = function() {
 
     var _this = this;
 
-    // phy 2.0
-    /*
-    var GRAVITY_X = 1;
-    var GRAVITY_Y = 1;
-    var elapsed = 1;//this._pdt;//this.dt;
-    var gx = GRAVITY_X * elapsed;
-    var gy = GRAVITY_Y * elapsed;
-    var entity;
-    var entities = this.entities;
-    for (var j = 0; j < entities.length; j++)
-    {
-        entity = entities[j];
-        // console.log('entity', entity);
-        switch(entity.type)
-        {
-            case 'dynamic'://PhysicsEntity.DYNAMIC:
-            entity.vx += entity.ax * elapsed + gx;
-             entity.vy += entity.ay * elapsed + gy;
-             entity.x  += entity.vx * elapsed;
-             entity.y  += entity.vy * elapsed;
-             break;
-         case 'kinematic'://PhysicsEntity.KINEMATIC:
-             entity.vx += entity.ax * elapsed;
-             entity.vy += entity.ay * elapsed;
-             entity.x  += entity.vx * elapsed;
-             entity.y  += entity.vy * elapsed;
-             break;
-        }
-    }
-    //*/
-    //console.log(entities[0].x, entities[0].y);
-    // this.allplayers[5].ent.x = entities[0].x;
-    // this.allplayers[5].pos.y = entities[0].y;
-
-    // gravity TODO: add (g)ravity & variable ac-/de-celeration vars, which affect y
-    // also, ignore grav if player on ground/platform
-    //*
-    //if (this.playerspeed > 500)
-        //this.playerspeed -= 1;
-
     ////////////////////////////////////////////////////////
     // iterate players
     ////////////////////////////////////////////////////////
-    //for (var i in this.players)
-    //for (var i = 0; i < this.allplayers.length; i++)
     this._.forEach(this.allplayers, function(player)
     {
-        //console.log(this.allplayers[i]);
-
-        // update velocity will acceleration
-        /*this.allplayers[i].vx += this.allplayers[i].ax;
-        this.allplayers[i].vy += this.allplayers[i].ay;
-        // update position with velocity
-        this.allplayers[i].x += this.allplayers[i].vx;
-        this.allplayers[i].y += this.allplayers[i].vy;*/
-
-        ////////////////////////////////////////////////////////
-        // horizontal velocity
-        ////////////////////////////////////////////////////////
         player.update();
-        /*
-        if (player.vx > 0)
-        {
-            //console.log('vx', player.vx);
-            player.vx = (player.vx-1).fixed(3);
-            //console.log(player.vx);
-            if (player.vx < 0) player.vx = 0;
-
-            player.pos.x += player.vx;// (0.5 * 4);// this.players[i].vx;
-        }
-        else if (player.vx < 0)
-        {
-            //console.log('vx', player.vx);
-            player.vx = (player.vx+1).fixed(3);
-            if (player.vx > 0) player.vx = 0;
-
-            player.pos.x -= player.vx;// (0.5 * 4);// this.players[i].vx;
-        }
-        //*/
-        ////////////////////////////////////////////////////////
-        // vertical velocity
-        ////////////////////////////////////////////////////////
-        /*if (this.allplayers[i].vy < 0)
-        {
-            console.log('vy', this.allplayers[i].vy);
-            //console.log('v.y', this.allplayers[i].vy.fixed(3), this.allplayers[i].vx);
-            this.allplayers[i].vy = (this.allplayers[i].vy + 0.025).fixed(3);
-            this.allplayers[i].pos.y = (this.allplayers[i].pos.y + 0.05 + this.allplayers[i].vy).fixed(3);//this.players[i].vy;
-        }*/
-
-        ////////////////////////////////////////////////////////
-        // if player not on floor, apply gravity
-        ////////////////////////////////////////////////////////
-        //if (this.allplayers[i].pos.y !== this.allplayers[i].pos_limits.y_max)
-        //console.log(this.allplayers[]);
-        if (player.landed !== 1)
-        {
-            //player.pos.y+=_this.world.gravity;
-
-            //player.update();
-
-            /*if (this.allplayers[i].vx > 0)
-            {
-                this.allplayers[i].vx = (this.allplayers[i].vx - 50);
-                if (this.allplayers[i].vx < 0) this.allplayers[i].vx = 0;
-            }
-            else if (this.allplayers[i].vx < 0)
-            {
-                this.allplayers[i].vx = this.allplayers[i].vx + 50
-                if (this.allplayers[i].vx > 0) this.allplayers[i].vx = 0;
-            }*/
-        }
-        else // touching ground (TODO:add drag)
-        {
-            player.vy = 0;
-            //console.log('floor!');
-        }
-        //else console.log(this.players[i].pos.y, "floor");
-        //if (this.players.other.pos.y !== this.players.other.pos_limits.y_max)
-            //this.players.other.pos.y+=this.world.gravity;
-        //if (!this.server)
-        //console.log('vx', this.allplayers[i].vx);
 
         // degrade player angle
         if (player.dir === 0 && player.a > 0)
@@ -2279,12 +2191,6 @@ game_core.prototype.update_physics = function() {
         else if (player.a < 0)
             player.a+=0.5;
     });
-    //console.log('v', this.players[i].v);
-    //console.log('pos', this.players[i].pos);
-    //if (this.players.self.pos.)
-    //console.log(this.players.self.pos.y, this.players.self.pos_limits.y_max);// + this.players.self.size.hx, this.world.height);
-    //if (this.players.self.pos.y + this.players.self.size.hx !== this.world.height)
-    //*/
 
     ////////////////////////////////////////////////////////
     // iterate platforms
@@ -2295,21 +2201,12 @@ game_core.prototype.update_physics = function() {
         //console.log(this.platforms[j].state);
         if (this.platforms[j].state !== this.platforms[j].STATE_INTACT && this.platforms[j].state !== this.platforms[j].STATE_REMOVED)
         {
-            // store old values (for clearRect)
-            // this.platforms[j].old.x = this.platforms[j].x;
-            // this.platforms[j].old.y = this.platforms[j].y;
-            // this.platforms[j].old.w = this.platforms[j].w;
-            // this.platforms[j].old.h = this.platforms[j].h;
             this.platforms[j].update();
         }
-        //else console.log('no plat update()', this.platforms[j].id, this.platforms[j].state);
     }
 
-    if(this.server) {
-        this.server_update_physics();
-    } else {
-        this.client_update_physics();
-    }
+    if(this.server) this.server_update_physics();
+    else this.client_update_physics();
 
 }; //game_core.prototype.update_physics
 

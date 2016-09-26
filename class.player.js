@@ -13,9 +13,12 @@ function game_player( game_instance, player_instance, isHost )
     this.instance = player_instance;
     this.game = game_instance;
 
+    this.player_abilities_enabled = false;
+
     //Set up initial values for our state information
     this.pos = { x:0, y:0 };
     this.size = { x:64, y:64, hx:64, hy:64 };
+    this.hitbox = {w:32,h:32};
     this.dir = 0; // 0 = right, 1 = left (derek added)
 
     // velocity
@@ -104,10 +107,10 @@ function game_player( game_instance, player_instance, isHost )
 
 game_player.prototype.dead = false;
 
-game_player.prototype.update = function()
-{
-    console.log('update');
-};
+// game_player.prototype.update = function()
+// {
+//     console.log('update');
+// };
 
 game_player.prototype.doFlap = function()
 {
@@ -122,6 +125,7 @@ game_player.prototype.doFlap = function()
     //if (vy < -6)
     this.vy = -this.thrust * 10;
     this.vx = this.thrust;///10;
+    //console.log('vx', this.vy);
 
     /*this.ax = Math.cos(this.a) * this.thrust * 10;
     this.ay = Math.cos(this.a) * this.thrust * 10;
@@ -149,11 +153,72 @@ game_player.prototype.doFlap = function()
 
 };
 
+game_player.prototype.doLand = function()
+{
+    console.log('do land', this.vx);
+
+    // decelerate
+    if (this.vx > 0)
+    {
+        //console.log('slowing', this.vx);
+
+        // slow horizontal velocity
+        //this.vx -= 200;
+
+        // set landing flag (moving)
+        this.landed = 2; // walking
+        this.vy = -0.25; // prevents jolting falloff
+        this.vx -= 0.025; // friction
+
+        if (this.vx < 0)
+        {
+            this.vx = 0;
+            //this.vy = 25;
+            this.landed = 1;
+        }
+    }
+    else if (this.vx < 0)
+    {
+        //this.vx += 200;
+        this.landed = 2; // walking
+        this.vy = -0.25; // prevents jolting falloff
+        this.vx += 0.025; // friction
+
+        if (this.vx > 0) this.vx = 0;
+    }
+    if (this.vx === 0)
+    {
+        // stuck landing (no velocity)
+        this.vx = 0;
+        //this.vy = 25;
+        // set landing flag (stationary)
+        this.landed = 1;
+    }
+};
+
+game_player.prototype.doWalk = function(dir)
+{
+    console.log('walking...', dir, this.ax, this.vx, this.a);
+    this.landed = 2; // walking
+
+    /*if (dir === 0)
+        this.a = 90;
+    else this.a = -90;*/
+    this.vx = this.thrust;
+};
+
 game_player.prototype.collision = false;
 game_player.prototype.hitFrom = 0;
 game_player.prototype.update = function()
 {
-    if (this.landed === 1) return;
+    if (this.landed === 1)
+    {
+        // reset angle
+        //this.a = 0;
+
+        // get out
+        return;
+    }
 
     this.vy += this.game.world.gravity;//.fixed(2);///5;
     this.vx = ((this.a/25) * Math.cos(0.123));//.fixed(2);
@@ -455,7 +520,7 @@ game_player.prototype.updateMana = function(val)
 
 game_player.prototype.isEngaged = function(len)
 {
-    //console.log(this.mp, 'isEngaged');
+    console.log(this.mp, 'isEngaged');
 
     var _this = this;
     this.engaged = true;
@@ -530,201 +595,208 @@ game_player.prototype.hitGrid = function()
 
 game_player.prototype.drawAbilities = function()
 {
-if (this.engaged === false)
-{
-    game.ctx.beginPath();
-    game.ctx.strokeStyle = 'gray';
-    game.ctx.moveTo(this.pos.x, this.pos.y-20);
-    game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-20);
-    game.ctx.lineWidth = 3;
-    game.ctx.stroke();
-    game.ctx.closePath();
+    //console.log('drawAbil', this.engaged);
+    if (this.engaged === false)
+    {
+        game.ctx.beginPath();
+        game.ctx.strokeStyle = 'gray';
+        game.ctx.moveTo(this.pos.x, this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-10);
+        game.ctx.lineWidth = 3;
+        game.ctx.stroke();
+        game.ctx.closePath();
 
-    // mana progression
-    // calculate
-    var progressPercent = (this.mana / this.levels[this.level]);
-    // 64 is the width of the progression bar
-    var progressVal = ((progressPercent / 100) * 64) * 100;
-    // draw it
-    game.ctx.beginPath();
-    game.ctx.strokeStyle = 'yellow';
-    // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
-    // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-    game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-20);
-    game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-20);
-    game.ctx.lineWidth = 3;
-    game.ctx.stroke();
-    game.ctx.closePath();
+        // mana progression
+        // calculate
+        var progressPercent = (this.mana / this.levels[this.level]);
+        // 64 is the width of the progression bar
+        var progressVal = ((progressPercent / 100) * 64) * 100;
+        // draw it
+        game.ctx.beginPath();
+        game.ctx.strokeStyle = 'yellow';
+        // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
+        // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
+        game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-10);
+        game.ctx.lineWidth = 3;
+        game.ctx.stroke();
+        game.ctx.closePath();
 
-    // buffs, potions, and boosters
-    //console.log(this.pos.x, this.pos.y);
-    game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
-    game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
-    game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
-    game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
-    game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
-    /*game.ctx.fillStyle = 'yellow';
-    game.ctx.beginPath();
-    game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
-    game.ctx.fill();*/
-    // TODO: if not buffs, debuffs or boosters
-    // then txtOffset = 20;
-    txtOffset = 30;
-} // end isEngaged
+        // buffs, potions, and boosters
+        //console.log(this.pos.x, this.pos.y);
+        /*
+        game.ctx.drawImage(document.getElementById("potion-1"), this.pos.x, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 13, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-alacrity"), this.pos.x + 26, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("buff-shield"), this.pos.x + 39, this.pos.y - 15, 10, 10);
+        game.ctx.drawImage(document.getElementById("debuff-weakened"), this.pos.x + 52, this.pos.y - 15, 10, 10);
+        //*/
+        /*game.ctx.fillStyle = 'yellow';
+        game.ctx.beginPath();
+        game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
+        game.ctx.fill();*/
+        // TODO: if not buffs, debuffs or boosters
+        // then txtOffset = 20;
+        //txtOffset = 30;
+    } // end isEngaged
 };
 
 game_player.prototype.draw = function()
 {
-//console.log(this.pos.x, this.pos.y);
-//this.pos.x = this.pos.x.fixed(1);
-//this.pos.y = this.pos.y.fixed(1);
-// player nametags (temp)
-// mana bar bg
-var txtOffset = 10;
-var abil;
-if (this.isLocal === true)
-{
-
-    // nameplate color
-    game.ctx.fillStyle = '#526869';
-    game.ctx.font = "small-caps lighter 15px serif";
-} // end isLocal
-else
-{
-    // nameplate color
-    game.ctx.fillStyle = '#FF6961';
-    game.ctx.font = "small-caps 15px serif";
-}
-// game.ctx.strokeRect(
-//     this.pos.x,
-//     this.pos.y-10,
-//     this.size.hx,
-//     5);
-
-// nameplate
-game.ctx.font = "small-caps lighter 12px arial";
-game.ctx.textAlign = 'center';
-//var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
-var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
-game.ctx.fillText(
-    txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
-    this.pos.x + (this.size.hx/2),//.fixed(1),
-    this.pos.y - txtOffset
-    //100
-);
-if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
-{
-    game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
-        //this.pos.x - 15,
-        this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
-        //this.pos.x + (this.size.hx/2) - 30,
-        this.pos.y - txtOffset - 12,
-        15, 15);
-}
-
-
-// ability
-if (this.abil > 0)
-{
-    //console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
-
-    switch(this.abil)
+    //console.log(this.pos.x, this.pos.y);
+    //this.pos.x = this.pos.x.fixed(1);
+    //this.pos.y = this.pos.y.fixed(1);
+    // player nametags (temp)
+    // mana bar bg
+    var txtOffset = 20;
+    //var abil;
+    if (this.isLocal === true)
     {
-        case 1: // burst
-        this.abil = 0; // reset
-        game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
-        //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
-        break;
+        // nameplate color
+        game.ctx.fillStyle = '#526869';
+        game.ctx.font = "small-caps lighter 15px serif";
 
-        case 2: // frost
-        break;
-
-        case 2: // frost
-        break;
-
-        case 3: // blink
-        break;
-
-        case 4: // grapple
-        break;
-
-        case 5: // anchor
-        break;
-
-        case 6: // cinder
-        break;
-
-        case 7: // confusion
-        break;
-
-        default:
-            console.log('ERROR: invalid abil value');
+        // draw progression
+        this.drawAbilities();
+    } // end isLocal
+    else
+    {
+        // nameplate color
+        game.ctx.fillStyle = '#FF6961';
+        game.ctx.font = "small-caps 15px serif";
     }
-}
+    // game.ctx.strokeRect(
+    //     this.pos.x,
+    //     this.pos.y-10,
+    //     this.size.hx,
+    //     5);
 
-// player bitamps
-var img, imgW, imgH;
-//if (this.pos.d == 1)
-//if (this.landed > 0) console.log(this.landed, this.mp);
-// if (this.abil > 0)
-// {
-//     console.log('abil!', this.abil, this.mp);
-// }
-if (this.vuln === true)
-{
-    if (this.dir === 1)
-        img = document.getElementById("p1stun-l");
-    else img = document.getElementById("p1stun-r");
+    // nameplate
+    game.ctx.font = "small-caps lighter 12px arial";
+    game.ctx.textAlign = 'center';
+    //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
+    var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
+    game.ctx.fillText(
+        txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+        this.pos.x + (this.size.hx/2),//.fixed(1),
+        this.pos.y - txtOffset
+        //100
+    );
+    if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
+    {
+        game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
+            //this.pos.x - 15,
+            this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
+            //this.pos.x + (this.size.hx/2) - 30,
+            this.pos.y - txtOffset - 12,
+            15, 15);
+    }
 
-    imgW = 64;//40;
-    imgH = 64;//40;
-}
-else if (this.flap === true)
-{
-    // reset flap on client
-    this.flap = false;
-    if (this.dir === 1) img = document.getElementById("p1l");
-    else img = document.getElementById("p1r");
 
-    imgW = 64;//40;
-    imgH = 64;//40;
-}
-else if (this.landed === 1) // standing
-{
-    //console.log('standing', this.landed, this.mp);
-    if (this.dir === 1)
-        img = document.getElementById("p1stand-l");
-    else img = document.getElementById("p1stand-r");
+    // ability
+    /*
+    if (this.abil > 0)
+    {
+        //console.log('** doDraw ABILITY', this.abil, 'active!', this.mp);
 
-    imgW = 64;//33;
-    imgH = 64;//44;
-}
-else if (this.landed === 2) // walking/skidding
-{
-    if (this.dir === 1)
-        img = document.getElementById("p1skid-l");
-    else img = document.getElementById("p1skid-r");
+        switch(this.abil)
+        {
+            case 1: // burst
+            this.abil = 0; // reset
+            game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
+            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
+            break;
 
-    imgW = 64;//33;
-    imgH = 64;//44;
-}
-else // gliding
-{
-    if (this.dir === 1)
-        img = document.getElementById("p2l");
-    else img = document.getElementById("p2r");
+            case 2: // frost
+            break;
 
-    imgW = 64;//40;
-    imgH = 64;//40;
-}
-//game.ctx.beginPath();
-if(String(window.location).indexOf('debug') == -1 && this.visible===true)
-    game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+            case 2: // frost
+            break;
 
-// player x y
-// game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);
-//game.ctx.translate(camX,camY);
-//game.ctx.restore();
+            case 3: // blink
+            break;
+
+            case 4: // grapple
+            break;
+
+            case 5: // anchor
+            break;
+
+            case 6: // cinder
+            break;
+
+            case 7: // confusion
+            break;
+
+            default:
+                console.log('ERROR: invalid abil value');
+        }
+    }
+    //*/
+
+    // player bitamps
+    var img, imgW, imgH;
+    //if (this.pos.d == 1)
+    //if (this.landed > 0) console.log(this.landed, this.mp);
+    // if (this.abil > 0)
+    // {
+    //     console.log('abil!', this.abil, this.mp);
+    // }
+    if (this.vuln === true)
+    {
+        if (this.dir === 1)
+            img = document.getElementById("p1stun-l");
+        else img = document.getElementById("p1stun-r");
+
+        imgW = 64;//40;
+        imgH = 64;//40;
+    }
+    else if (this.flap === true)
+    {
+        // reset flap on client
+        this.flap = false;
+        if (this.dir === 1) img = document.getElementById("p1l");
+        else img = document.getElementById("p1r");
+
+        imgW = 64;//40;
+        imgH = 64;//40;
+    }
+    else if (this.landed === 1) // standing
+    {
+        //console.log('standing', this.landed, this.mp);
+        if (this.dir === 1)
+            img = document.getElementById("p1stand-l");
+        else img = document.getElementById("p1stand-r");
+
+        imgW = 64;//33;
+        imgH = 64;//44;
+    }
+    else if (this.landed === 2) // walking/skidding
+    {
+        if (this.dir === 1)
+            img = document.getElementById("p1skid-l");
+        else img = document.getElementById("p1skid-r");
+
+        imgW = 64;//33;
+        imgH = 64;//44;
+    }
+    else // gliding
+    {
+        if (this.dir === 1)
+            img = document.getElementById("p2l");
+        else img = document.getElementById("p2r");
+
+        imgW = 64;//40;
+        imgH = 64;//40;
+    }
+    //game.ctx.beginPath();
+    if(String(window.location).indexOf('debug') == -1 && this.visible===true)
+        game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+
+    // player x y
+    // game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);
+    //game.ctx.translate(camX,camY);
+    //game.ctx.restore();
 
 }; //game_player.draw
 //console.log('dtf',this.parent.server);
