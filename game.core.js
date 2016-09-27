@@ -161,9 +161,9 @@ var game_core = function(game_instance)
 
     this.events = [];
     this.passives = [
-        {id: 'pass1', type:1, name: "acceleration", duration: 30, modifier: 50},
-        {id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
-        {id: 'pass3', type:3, name: "bubble", duration: 45, modifier: 1}
+        {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
+        {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
+        //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
     ];
     this.chests = [];
 
@@ -886,7 +886,7 @@ game_core.prototype.tilemapper = function()
                         flagObjectsObj[item.name] = item.value;
                     });
                     console.log('flag obj', flagObjectsObj);
-                    flagArray.push(flagObjectsObj)
+                    flagArray.push(flagObjectsObj);
                     //clone = _.cloneDeep(flagObjectsObj);
                     // note, we set all flag objects to viewport context,
                     // however, further down we'll reassociate slot flag objects
@@ -2094,7 +2094,7 @@ game_core.prototype.process_input = function( player )
                 // }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    console.log('flap!');
+                    //console.log('flap!');
 
                     player.doFlap();
                     // // set flag
@@ -2392,6 +2392,7 @@ game_core.prototype.server_update = function()
                 b: flag.heldBy
             };
         }
+        //else console.log(flag);
     });
 
     this.laststate.t = this.server_time;
@@ -2888,7 +2889,7 @@ game_core.prototype.client_process_net_updates = function()
                 flag.isHeld = target[flag.id].h;
                 flag.isPlanted = target[flag.id].p;
                 flag.heldBy = target[flag.id].b;
-                //console.log('::', flag.type, flag.x);//, flag.y);
+                console.log('::', flag.type, flag.x);//, flag.y);
             }
         });
 

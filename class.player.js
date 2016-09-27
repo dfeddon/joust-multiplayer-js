@@ -33,7 +33,8 @@ function game_player( game_instance, player_instance, isHost )
     this.m = 0.1; // kg
     // angle
     this.a = 0; // -90, 0, 90
-    this.thrust = 0.125;//1.25;
+    this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
+    this.thrustModifier = 0;
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -46,6 +47,7 @@ function game_player( game_instance, player_instance, isHost )
     //this.id = '';
     this.engaged = false;
     this.vuln = false;
+    this.bubble = true;
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -89,7 +91,7 @@ function game_player( game_instance, player_instance, isHost )
     this.pointsTotal = 0;
     //this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
     this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
-    this.progression = 0;
+    this.progression = 250;
     this.abilities = []; // 0:none 1:burst
     this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
     this.ability = 0; // abilities index (-1 means no ability available)
@@ -114,7 +116,7 @@ game_player.prototype.dead = false;
 
 game_player.prototype.doFlap = function()
 {
-    console.log('doFlap', this.dir);
+    //console.log('doFlap', this.dir);
 
     // set flag
     this.flap = true;
@@ -123,9 +125,9 @@ game_player.prototype.doFlap = function()
     this.landed = 0;
 
     //if (vy < -6)
-    this.vy = -this.thrust * 10;
-    this.vx = this.thrust;///10;
-    //console.log('vx', this.vy);
+    this.vy = -(this.thrust + this.thrustModifier) * 10;
+    this.vx = (this.thrust + this.thrustModifier);///10;
+    //console.log('vx', this.vx, 'vy', this.vy);
 
     /*this.ax = Math.cos(this.a) * this.thrust * 10;
     this.ay = Math.cos(this.a) * this.thrust * 10;
@@ -221,7 +223,8 @@ game_player.prototype.update = function()
     }
 
     this.vy += this.game.world.gravity;//.fixed(2);///5;
-    this.vx = ((this.a/25) * Math.cos(0.123));//.fixed(2);
+    // 40 = slow, 30 = medium, 25 = fast
+    this.vx = ((this.a/40) * Math.cos(this.thrust + this.thrustModifier));//.fixed(2);
 
     this.pos.y += this.vy.fixed(2);
 
@@ -331,10 +334,21 @@ game_player.prototype.doKill = function(victor)
 
 };
 
-game_player.setPassive = function(type, duration, modifier)
+game_player.prototype.setPassive = function(data)//type, duration, modifier)
 {
+    console.log('setPassive', this.mp, data);
 
-}
+    switch(data.t)
+    {
+        case 1: // speed boost
+            this.updateProgression(10);
+        break;
+
+        case 2: // bubble
+            this.bubble = true;
+        break;
+    }
+};
 
 game_player.prototype.doCycleAbility = function()
 {
@@ -438,11 +452,30 @@ game_player.prototype.doAbility = function()
     else this.abilities[this.ability].t = d.setSeconds(0, d.getSeconds() + this.abilities[this.ability].cd);
     //console.log('cd', this.abilities[this.ability].cd, this.abilities[this.ability].t);
 };
+
 game_player.prototype.timeoutGlobalCooldown = function()
 {
     console.log('off global cooldown');
     this.cooldown = false;
 };
+
+game_player.prototype.updateProgression = function(val)
+{
+    console.log('updating progression', this.progression, val);
+
+    if (val > 0)
+    {
+        this.progression += val;
+        this.pointsTotal += val;
+
+        this.thrustModifier = this.progression * 0.00025;
+    }
+    else
+    {
+        this.progression -= val;
+    }
+};
+
 game_player.prototype.updateMana = function(val)
 {
     //console.log('update mana', val);
@@ -608,7 +641,8 @@ game_player.prototype.drawAbilities = function()
 
         // mana progression
         // calculate
-        var progressPercent = (this.mana / this.levels[this.level]);
+        //var progressPercent = (this.mana / this.levels[this.level]);
+        var progressPercent = (this.progression / 500);
         // 64 is the width of the progression bar
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
@@ -616,8 +650,8 @@ game_player.prototype.drawAbilities = function()
         game.ctx.strokeStyle = 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-        game.ctx.moveTo(this.pos.x + this.size.hx, this.pos.y-10);
-        game.ctx.lineTo(this.pos.x + this.size.hx - progressVal, this.pos.y-10);
+        game.ctx.moveTo(this.pos.x, this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
         game.ctx.lineWidth = 3;
         game.ctx.stroke();
         game.ctx.closePath();
@@ -653,18 +687,20 @@ game_player.prototype.draw = function()
     if (this.isLocal === true)
     {
         // nameplate color
-        game.ctx.fillStyle = '#526869';
-        game.ctx.font = "small-caps lighter 15px serif";
+        // game.ctx.fillStyle = '#526869';
+        // game.ctx.font = "small-caps lighter 15px serif";
 
         // draw progression
         this.drawAbilities();
     } // end isLocal
-    else
-    {
-        // nameplate color
+    // else
+    // {
+    // nameplate color
+    if (this.team === 0) // 0 = red, 1 = blue
         game.ctx.fillStyle = '#FF6961';
-        game.ctx.font = "small-caps 15px serif";
-    }
+    else game.ctx.fillStyle = '#6ebee6';
+    game.ctx.font = "small-caps 15px serif";
+    // }
     // game.ctx.strokeRect(
     //     this.pos.x,
     //     this.pos.y-10,
@@ -789,9 +825,15 @@ game_player.prototype.draw = function()
         imgW = 64;//40;
         imgH = 64;//40;
     }
+
     //game.ctx.beginPath();
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+
+    if (this.bubble === true)
+        game.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
+
+
 
     // player x y
     // game.ctx.fillText(this.pos.x + "/" + this.pos.y, this.pos.x, this.pos.y - 40);

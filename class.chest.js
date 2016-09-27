@@ -14,6 +14,8 @@ function game_chest(game_instance, data, client)
   this.duration = data.d; // passive duration
   this.modifier = data.m; // passive modifier
 
+  this.data = data;
+
   this.width = 64;
   this.height = 64;
 
@@ -28,15 +30,25 @@ function game_chest(game_instance, data, client)
 game_chest.prototype.doTake = function(player)//, chests)
 {
   console.log('doTake by player', player.mp, this.taken);
+  if (this.taken === true) return;
+  else this.taken = true;
 
   var _this = this;
 
   // no double-takes!
-  if (this.taken === true) return;
-  else this.taken = true;
 
   // assign passive to player
-  console.log('passive', this.type, this.duration, this.modifier);
+  console.log('passive', this.data, this.type, this.duration, this.modifier);
+  switch(this.type)
+  {
+    case 1: // acceleration boost
+      player.setPassive(this.data);
+    break;
+
+    case 2: // bubble
+      player.setPassive(this.data);
+    break;
+  }
 
   // resset chestSpawnPoints.active to false
   //console.log(this.game.chestSpawnPoints.length);
