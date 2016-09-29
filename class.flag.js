@@ -1,6 +1,6 @@
 function game_flag(data, context)
 {
-  console.log('data', data);
+  console.log('flag data', data);
 
   this._ = {};
 
@@ -23,11 +23,30 @@ function game_flag(data, context)
   this.height = 64;
 
   this.type = (data.type) ? data.type : "flag";
+  //this.source = 1; // 1 = midFlag, 2 = redBase, 3 = blueBase
+  this.visible = true;
   this.isHeld = false;
   this.isPlanted = true;
-  this.isActive = true;
+  this.isActive = (this.type == "flag") ? true : false;
   this.validHolder = undefined;
   this.heldBy = null;
+  this.targetSlot = null;
+  this.onCooldown = false;
+  // set flags target slots
+  switch(data.name)
+  {
+    case "midFlag":
+      this.sourceSlot = "midSlot";
+    break;
+
+    case "redFlag":
+      this.sourceSlot = "slotRed";
+    break;
+
+    case "blueFlag":
+      this.sourceSlot = "slotBlue";
+    break;
+  }
 
   this.ctx = context;
 
@@ -36,7 +55,7 @@ function game_flag(data, context)
     switch(data.name)
     {
       case "midFlag":
-        this.image = document.getElementById("flag-blue-r");
+        this.image = document.getElementById("flag-mid-r");
         break;
 
       case "redFlag":
@@ -68,8 +87,14 @@ function game_flag(data, context)
   console.log('construct', data.type, this);
 }
 
+game_flag.prototype.setTargetSlot = function(slot)
+{
+  this.targetSlot = slot;
+};
+
 game_flag.prototype.setter = function(obj)
 {
+  console.log('flag.setter');
   //var _this = this;
   console.log('obj', obj);
   this.id = "flg" + obj.id;
@@ -94,7 +119,7 @@ game_flag.prototype.setter = function(obj)
     console.log(this.key, value);
   });*/
   //console.log('this', this);
-  console.log('ddd', this.ctx, this.type);
+  //console.log('ddd', this.ctx, this.type);
   if (this.type == "slot" && this.ctx)
   {
     //this.draw();
@@ -103,7 +128,7 @@ game_flag.prototype.setter = function(obj)
   else if (this.ctx && this.type == "flag")
   {
     if (this.name == "midFlag")
-      this.image = document.getElementById("flag-blue-r");
+      this.image = document.getElementById("flag-mid-r");
     else if (this.name == "redFlag")
       this.image = document.getElementById("flag-red-l");
     else if (this.name == "blueFlag")
@@ -111,6 +136,80 @@ game_flag.prototype.setter = function(obj)
   }
 
   console.log('flag this', this, this.image);
+};
+
+game_flag.prototype.doTake = function(player)
+{
+  console.log('doTake', this.name, 'by', player.mp);
+  if (this.isHeld === false)
+    this.isHeld = true;
+  else return;
+
+  if (player.hasFlag !== 0)
+  {
+    console.log('player has flag already');
+    this.isHeld = false;
+    return;
+  }
+
+  if (player.team === 1 && this.name == "redFlag")
+  {
+    this.isHeld = false;
+    return;
+  }
+  else if (player.team === 2 && this.name == "blueFlag")
+  {
+    this.isHeld = false;
+    return;
+  }
+
+  // default is midflag
+  var flagType = 1; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
+  if (this.name == "redFlag")
+    flagType = 2;
+  else if (this.name == "blueFlag")
+    flagType = 3;
+  else if (this.name != "midFlag")
+  {
+    console.warn("not a valid flag type to take...");
+    this.isHeld = false;
+    return;
+  }
+
+  player.takeFlag(this, flagType);
+  //player.hasFlag = flagType;
+
+  // set states
+  this.visible = false;
+  this.isActive = false;
+};
+
+game_flag.prototype.slotFlag = function(player)
+{
+  console.log('slotFlag', this.name, player.mp, player.carryingFlag.targetSlot);
+  if (this.name == player.carryingFlag.targetSlot)
+  {
+    console.log('slot flag!!!!');
+    /*player.carryingFlag.x = this.x - (this.width/2);
+    player.carryingFlag.y = this.y - (this.height/2);*/
+    // revise flag targetSlot & sourceSlot
+    // also start flag cooldown
+    player.removeFlag(true, this);
+  }
+};
+
+game_flag.prototype.reset = function(success, server_time)
+{
+  console.log('resetting flag', this.name);
+  this.isHeld = false;
+  this.visible = true;
+  if (success)
+  {
+    this.isActive = false; // flag on cooldown
+    this.onCooldownAt = server_time;
+    this.onCooldown = true;
+  }
+  else this.isActive = true;
 };
 
 game_flag.prototype.setCtx = function(ctx)
@@ -124,7 +223,7 @@ game_flag.prototype.setCtx = function(ctx)
   if (this.ctx && this.type == "flag")
   {
     if (name == "midFlag")
-      this.image = document.getElementById("flag-blue-r");
+      this.image = document.getElementById("flag-mid-r");
     else if (name == "redFlag")
       this.image = document.getElementById("flag-red-l");
     else if (name == "blueFlag")
@@ -137,8 +236,23 @@ game_flag.prototype.setCtx = function(ctx)
 game_flag.prototype.draw = function()
 {
   //console.log('dodraw', this.image, this.x, this.y);
-  if (this.image)
+  if (this.image && this.visible)
   this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+
+  if (this.onCooldown)
+  {
+    console.log('cooldown', this.onCooldownAt);
+    // draw timer
+    game.ctx.font = "small-caps lighter 14px arial";
+    game.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
+    game.ctx.textAlign = 'center';
+    game.ctx.fillText(
+        '60',// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+        this.x + 25,
+        this.y + 30//txtOffset
+        //100
+    );
+  }
 };
 
 if('undefined' != typeof global)

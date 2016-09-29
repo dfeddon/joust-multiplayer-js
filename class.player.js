@@ -85,13 +85,13 @@ function game_player( game_instance, player_instance, isHost )
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
 
-    this.team = 0; // 0 = red, 1 = blue
+    this.team = 1; // 1 = red, 2 = blue
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;
     this.pointsTotal = 0;
     //this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
     this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
-    this.progression = 250;
+    this.progression = 0;// 0, 250, 500
     this.abilities = []; // 0:none 1:burst
     this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
     this.ability = 0; // abilities index (-1 means no ability available)
@@ -102,6 +102,9 @@ function game_player( game_instance, player_instance, isHost )
     this.cooldown = false;
 
     this.hasHelment = false;//true;
+    this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
+    this.flagTakenAt = 0;
+    this.carryingFlag = null;
 
     this.playerName = "";
     //this.lastNamePlate = "YOU";
@@ -118,14 +121,14 @@ game_player.prototype.doFlap = function()
 {
     //console.log('doFlap', this.dir);
 
-    // set flag
+    // set flap flag
     this.flap = true;
 
     // clear landed flag
     this.landed = 0;
 
     //if (vy < -6)
-    this.vy = -(this.thrust + this.thrustModifier) * 10;
+    this.vy = -(this.thrust + this.thrustModifier) * 5;
     this.vx = (this.thrust + this.thrustModifier);///10;
     //console.log('vx', this.vx, 'vy', this.vy);
 
@@ -157,7 +160,7 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    console.log('do land', this.vx);
+    //console.log('do land', this.vx);
 
     // decelerate
     if (this.vx > 0)
@@ -207,6 +210,181 @@ game_player.prototype.doWalk = function(dir)
         this.a = 90;
     else this.a = -90;*/
     this.vx = this.thrust;
+};
+
+game_player.prototype.takeFlag = function(flag, flagType)
+{
+    // console.log('takeFlag', flag, this.team);
+    // if (this.team === 1 && flagType === 2) return;
+    // if (this.team === 2 && flagType === 3) return;
+
+    console.log('player.takeFlag', flagType, flag.name, flag.sourceSlot);
+
+    this.hasFlag = flagType;
+    this.flagTakenAt = this.game.server_time;
+    this.carryingFlag = flag;
+
+    // disable bubble
+    if (this.bubble) this.bubble = false;
+
+    // speed modifier (slow down)
+
+    // set target slot
+    switch(flag.sourceSlot)
+    {
+        case "midSlot":
+            if (this.team === 1) flag.setTargetSlot("slot6");
+            else flag.setTargetSlot("slot5");
+        break;
+
+        case "slotRed":
+            flag.setTargetSlot("slot1");
+        break;
+
+        case "slotBlue":
+            flag.setTargetSlot("slot10");
+        break;
+
+        case "slot1":
+            if (this.team === 1) flag.setTargetSlot("slotRed");
+            else flag.setTargetSlot("slot2");
+        break;
+
+        case "slot2":
+            if (flag.name == "redFlag")
+            {
+                if (this.team === 1) flag.setTargetSlot("slot1");
+                else flag.setTargetSlot("slot3");
+            }
+            else // mid flag
+            {
+                if (this.team === 1) flag.setTargetSlot("slot3");
+                else flag.setTargetSlot("slot1");
+            }
+        break;
+
+        case "slot3":
+            if (flag.name == "redFlag")
+            {
+                if (this.team === 1) flag.setTargetSlot("slot2");
+                else flag.setTargetSlot("slot4");
+            }
+            else // mid flag
+            {
+                if (this.team === 1) flag.setTargetSlot("slot4");
+                else flag.setTargetSlot("slot2");
+            }
+        break;
+
+        case "slot4":
+            if (flag.name == "redFlag")
+            {
+                if (this.team === 1) flag.setTargetSlot("slot3");
+                else flag.setTargetSlot("slot5");
+            }
+            else // mid flag
+            {
+                if (this.team === 1) flag.setTargetSlot("slot5");
+                else flag.setTargetSlot("slot3");
+            }
+        break;
+
+        case "slot5":
+            if (flag.name == "redFlag")
+            {
+                if (this.team === 1) flag.setTargetSlot("slot4");
+                else flag.setTargetSlot("slot6");
+            }
+            else // mid flag
+            {
+                if (this.team === 1) flag.setTargetSlot("midSlot");
+                else flag.setTargetSlot("slot4");
+            }
+        break;
+
+        // blue territory
+
+        case "slot6":
+            if (flag.name == "blueFlag")
+            {
+                if (this.team === 2) flag.setTargetSlot("slot7");
+                else flag.setTargetSlot("slot5");
+            }
+            else // mid flag
+            {
+                if (this.team === 2) flag.setTargetSlot("midSlot");
+                else flag.setTargetSlot("slot7");
+            }
+        break;
+
+        case "slot7":
+            if (flag.name == "blueFlag")
+            {
+                if (this.team === 2) flag.setTargetSlot("slot8");
+                else flag.setTargetSlot("slot6");
+            }
+            else // mid flag
+            {
+                if (this.team === 2) flag.setTargetSlot("slot6");
+                else flag.setTargetSlot("slot8");
+            }
+        break;
+
+        case "slot8":
+            if (flag.name == "blueFlag")
+            {
+                if (this.team === 2) flag.setTargetSlot("slot9");
+                else flag.setTargetSlot("slot7");
+            }
+            else // mid flag
+            {
+                if (this.team === 2) flag.setTargetSlot("slot7");
+                else flag.setTargetSlot("slot9");
+            }
+        break;
+
+        case "slot9":
+            if (flag.name == "blueFlag")
+            {
+                if (this.team === 2) flag.setTargetSlot("slot10");
+                else flag.setTargetSlot("slot8");
+            }
+            else // mid flag
+            {
+                if (this.team === 2) flag.setTargetSlot("slot8");
+                else flag.setTargetSlot("slot10");
+            }
+        break;
+
+        case "slot10":
+            if (flag.name == "blueFlag")
+            {
+                if (this.team === 2) flag.setTargetSlot("slotBlue");
+                else flag.setTargetSlot("slot9");
+            }
+            else // mid flag
+            {
+                if (this.team === 2) flag.setTargetSlot("slot9");
+                else flag.setTargetSlot("slotBlue");
+            }
+        break;
+    }
+};
+
+game_player.prototype.removeFlag = function(success, slot)
+{
+    console.log('removing flag from player', slot);
+    if (success)
+    {
+        this.carryingFlag.x = slot.x - (slot.width/2);
+        this.carryingFlag.y = slot.y - (slot.height/2);
+        this.carryingFlag.sourceSlot = slot.name;
+        // note: targetSlot will be defined when flag is taken!
+    }
+
+    this.carryingFlag.reset(success, this.game.server_time);
+    this.hasFlag = 0;
+    this.carryingFlag = null;
 };
 
 game_player.prototype.collision = false;
@@ -696,7 +874,7 @@ game_player.prototype.draw = function()
     // else
     // {
     // nameplate color
-    if (this.team === 0) // 0 = red, 1 = blue
+    if (this.team === 1) // 0 = red, 1 = blue
         game.ctx.fillStyle = '#FF6961';
     else game.ctx.fillStyle = '#6ebee6';
     game.ctx.font = "small-caps 15px serif";
@@ -824,6 +1002,70 @@ game_player.prototype.draw = function()
 
         imgW = 64;//40;
         imgH = 64;//40;
+    }
+
+    // draw flag?
+    if (this.hasFlag > 0)
+    {
+        //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.game.server_time - this.flagTakenAt));
+        var ct = Math.floor(this.game.server_time - this.flagTakenAt);
+        ct = 60 - ct;
+        if (ct === 0)
+        {
+            console.log('reset', this.hasFlag);
+            // reset flag
+            for (var f = 0; f < this.game.flagObjects.length; f++)
+            {
+                if (this.game.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
+                    this.game.flagObjects[f].reset();
+                else if (this.game.flagObjects[f].name == "redFlag" && this.hasFlag === 2)
+                    this.game.flagObjects[f].reset();
+                else if (this.game.flagObjects[f].name == "blueFlag" && this.hasFlag === 3)
+                    this.game.flagObjects[f].reset();
+            }
+            //console.log('resetting flag', this.flagType);
+            //console.log('flags', this.game.flagObjects);
+
+            this.hasFlag = 0;
+            // get out
+            return;
+        }
+        var flagImg;
+        switch(this.hasFlag)
+        {
+            case 1: // mid
+                if (this.dir === 0)
+                    flagImg = document.getElementById('flag-mid-r');
+                else flagImg = document.getElementById('flag-mid-l');
+            break;
+
+            case 2: // red
+                if (this.dir === 0)
+                    flagImg = document.getElementById('flag-red-r');
+                else flagImg = document.getElementById('flag-red-l');
+            break;
+
+            case 3: // blue
+                if (this.dir === 0)
+                    flagImg = document.getElementById('flag-blue-r');
+                else flagImg = document.getElementById('flag-blue-l');
+            break;
+        }
+        // draw flag
+        //game.ctx.save();
+        game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
+        // draw timer
+        game.ctx.font = "small-caps lighter 14px arial";
+        game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
+        game.ctx.textAlign = 'center';
+        game.ctx.fillText(
+            ct,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+            (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
+            this.pos.y - 5//txtOffset
+            //100
+        );
+        //game.ctx.restore();
+
     }
 
     //game.ctx.beginPath();

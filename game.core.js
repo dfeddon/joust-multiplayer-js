@@ -1819,17 +1819,29 @@ game_core.prototype.check_collision = function( player )
         }
     });
 
-    // flagObjects
+    // flagObjects (flags and slots)
     this._.forEach(this.flagObjects, function(fo)
     {
         if (
-            fo.isHeld === false && fo.isActive && player.pos.x < (fo.x + fo.width) &&
+            //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
+            player.pos.x < (fo.x + fo.width) &&
             (player.pos.x + player.size.hx) > fo.x &&
             player.pos.y < (fo.y + fo.height) &&
             (player.pos.y + player.size.hy) > fo.y
         )
         {
-            console.log('hit flag obj', fo);
+            console.log('hit flag obj', fo.name);
+
+            // player takes flag?
+            if (fo.isHeld === false && fo.isActive && player.hasFlag === 0)
+            {
+                fo.doTake(player);
+            }
+            // player with flag slots it?
+            else if (player.hasFlag > 0)
+            {
+                fo.slotFlag(player);
+            }
         }
     });
 
@@ -2107,7 +2119,8 @@ game_core.prototype.process_input = function( player )
                     // player.vy = -1;
                     //
                     // set y_dir for vector movement
-                    y_dir -= player.vx;//0.5;//1;
+                    y_dir = player.vy;//0.5;//1;
+                    x_dir = player.vx;
 
                     // apply horizontal velocity based on direction facing
                     if (player.dir === 0) // right
@@ -2140,11 +2153,13 @@ game_core.prototype.process_input = function( player )
 
         } //for each input command
     } //if we have inputs
-
+    //x_dir = (player.vx > 0) ? 1 : -1;//ax;
+    //y_dir = (player.vy < 0) ? -1 : 1;
     //we have a direction vector now, so apply the same physics as the client
     var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
-    if (resulting_vector.x > 0 || resulting_vector.y > 0)
-    console.log('vector', resulting_vector);
+    //console.log('resulting_vector', resulting_vector);
+    // if (resulting_vector.x > 0 || resulting_vector.y > 0)
+    //     console.log('vector', resulting_vector);
     if(player.inputs.length) {
         //we can now clear the array since these have been processed
 
@@ -2314,7 +2329,8 @@ game_core.prototype.server_update = function()
             f:player.flap,
             l:player.landed,
             v:player.vuln,
-            a:player.abil
+            a:player.abil,
+            g:player.hasFlag
         };
         _this.laststate[player.mis] = player.last_input_seq;
 
@@ -2381,7 +2397,7 @@ game_core.prototype.server_update = function()
     {
         if (flag.isHeld)
         {
-            console.log('flags', flag);
+            //console.log('flags', flag);
             _this.laststate[flag.id] =
             {
                 x: flag.x,
@@ -2517,6 +2533,8 @@ game_core.prototype.client_handle_input = function(key){
         this.keyboard.pressed('left') || key=='A') {
 
             //x_dir = -1;
+            // y_dir = this.players.self.vy;//0.5;//1;
+            // x_dir = this.players.self.vx;
             input.push('l');
 
         } //left
@@ -2525,6 +2543,8 @@ game_core.prototype.client_handle_input = function(key){
         this.keyboard.pressed('right') || key=='D') {
 
             //x_dir = 1;
+            // y_dir = this.players.self.vy;//0.5;//1;
+            // x_dir = this.players.self.vx;
             input.push('r');
 
         } //right
@@ -2542,6 +2562,8 @@ game_core.prototype.client_handle_input = function(key){
 
             //y_dir = -1;
             //console.log('pressed u');
+            // y_dir = this.players.self.vy;//0.5;//1;
+            // x_dir = this.players.self.vx;
             input.push('u');
 
         } //up
@@ -2576,11 +2598,14 @@ game_core.prototype.client_handle_input = function(key){
         this.socket.send(  server_packet  );
 
             //Return the direction if needed
+            y_dir = this.players.self.vy;//0.5;//1;
+            x_dir = this.players.self.vx;
         return this.physics_movement_vector_from_direction( x_dir, y_dir );
 
     } else {
 
-        return {x:0,y:0};
+        //return {x:0,y:0};
+        return this.physics_movement_vector_from_direction( x_dir, y_dir );
 
     }
 
@@ -2828,6 +2853,7 @@ game_core.prototype.client_process_net_updates = function()
                 player.landed = target[player.mp].l;
                 player.vuln = target[player.mp].v;
                 player.abil = target[player.mp].a;
+                player.hasFlag = target[player.mp].g;
                 //console.log(this.allplayers[j].pos);
             }
         });
@@ -2873,15 +2899,17 @@ game_core.prototype.client_process_net_updates = function()
             //console.log(target);
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
             {
+                /*
                 //console.log(flag.x,flag.y);
                 ghostStub = _this.v_lerp(
-                    previous[flag.id],//other_past_pos2,
-                    target[flag.id],//other_target_pos2,
+                    previous[flag.id],
+                    target[flag.id],
                     time_point
                 );
                 //console.log(previous[this.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this._pdt * _this.client_smooth);
+                */
                 //console.log(target[flag.id]);
                 flag.x = pos.x;// target[flag.id].x;
                 flag.y = pos.y;//target[flag.id].y;
