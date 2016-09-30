@@ -47,7 +47,7 @@ function game_player( game_instance, player_instance, isHost )
     //this.id = '';
     this.engaged = false;
     this.vuln = false;
-    this.bubble = true;
+    this.bubble = false;
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -203,7 +203,7 @@ game_player.prototype.doLand = function()
 
 game_player.prototype.doWalk = function(dir)
 {
-    console.log('walking...', dir, this.ax, this.vx, this.a);
+    console.log('walking...', dir, this.ax, this.vx, this.a, this.vy);
     this.landed = 2; // walking
 
     /*if (dir === 0)
@@ -1020,6 +1020,7 @@ game_player.prototype.draw = function()
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.game.server_time - this.flagTakenAt));
         var ct = Math.floor(this.game.server_time - this.flagTakenAt);
         ct = 60 - ct;
+        //console.log('carrying flag', this.carryingFlag.name);
         if (ct === 0)
         {
             console.log('reset', this.hasFlag);

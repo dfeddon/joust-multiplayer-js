@@ -2198,6 +2198,7 @@ game_core.prototype.update_physics = function() {
     ////////////////////////////////////////////////////////
     this._.forEach(this.allplayers, function(player)
     {
+        //if (_this.players.self)
         player.update();
 
         // degrade player angle
@@ -2319,18 +2320,23 @@ game_core.prototype.server_update = function()
     /////////////////////////////////
     this.laststate = {};
     //for (var i = 0; i < this.allplayers.length; i++)
+    // add a, ax, ay, vx, vy
     this._.forEach(this.allplayers, function(player)
     {
         _this.laststate[player.mp] =
         {
             x:player.pos.x,
             y:player.pos.y,
+            //pos:player.pos,
             d:player.dir,
             f:player.flap,
             l:player.landed,
             v:player.vuln,
-            a:player.abil,
-            g:player.hasFlag
+            a:player.a,//player.abil,
+            vx:player.vx,
+            vy:player.vy,
+            g:player.hasFlag,
+            b:player.bubble
         };
         _this.laststate[player.mis] = player.last_input_seq;
 
@@ -2405,7 +2411,9 @@ game_core.prototype.server_update = function()
                 t: flag.type,
                 h: flag.isHeld,
                 p: flag.isPlanted,
-                b: flag.heldBy
+                b: flag.heldBy,
+                v: flag.visible,
+                //c: JSON.stringify(flag.carryingFlag)
             };
         }
         //else console.log(flag);
@@ -2868,6 +2876,8 @@ game_core.prototype.client_process_net_updates = function()
                     target[player.mp],//other_target_pos2,
                     time_point
                 );
+                player.pos.x = target[player.mp].x;
+                player.pos.y = target[player.mp].y;
                 //console.log(previous[player.mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 player.pos = _this.v_lerp(player.pos, ghostStub, _this._pdt * _this.client_smooth);
@@ -2878,8 +2888,11 @@ game_core.prototype.client_process_net_updates = function()
                 player.flap = target[player.mp].f;
                 player.landed = target[player.mp].l;
                 player.vuln = target[player.mp].v;
-                player.abil = target[player.mp].a;
+                //player.abil = target[player.mp].a;
                 player.hasFlag = target[player.mp].g;
+                player.vx = target[player.mp].vx;
+                player.vy = target[player.mp].vy;
+                player.bubble = target[player.mp].b;
                 //console.log(this.allplayers[j].pos);
             }
         });
@@ -2936,13 +2949,15 @@ game_core.prototype.client_process_net_updates = function()
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this._pdt * _this.client_smooth);
                 */
-                //console.log(target[flag.id]);
+                console.log(target[flag.id]);
                 flag.x = pos.x;// target[flag.id].x;
                 flag.y = pos.y;//target[flag.id].y;
                 flag.type = target[flag.id].t;
                 flag.isHeld = target[flag.id].h;
                 flag.isPlanted = target[flag.id].p;
                 flag.heldBy = target[flag.id].b;
+                flag.visible = target[flag.id].v;
+                //flag.carryingFlag = JSON.parse(target[flag.id].c);
                 console.log('::', flag.type, flag.x);//, flag.y);
             }
         });
