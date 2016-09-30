@@ -22,7 +22,7 @@ function game_chest(game_instance, data, client)
   this.taken = false;
   this.opening = false;
 
-  console.log('chest constructor', data);
+  //console.log('chest constructor', data);
 
   this._ = require('./node_modules/lodash/lodash.min');
 }

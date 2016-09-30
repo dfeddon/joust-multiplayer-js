@@ -696,9 +696,9 @@ game_core.prototype.newPlayer = function(client)
 
 game_core.prototype.updateTerritory = function()
 {
-    console.log('updating bg...', this.flagObjects);
+    console.log('updating bg...', this.bg, this.flagObjects.length);
 
-    if (this.bg === null)
+    if (this.bg == null)
     {
         this.bg = document.createElement('canvas');
         this.bg.id = "bg";
@@ -1112,7 +1112,7 @@ game_core.prototype.tilemapper = function()
             console.log('flagArray', flagArray);
             _this._.forEach(flagArray, function(fo)
             {
-                console.log('fog', fo);
+                //console.log('fog', fo);
                 if (fo.type == "flag")
                 {
                     var flag = new game_flag(fo, _this.viewport.getContext('2d'));
@@ -1824,13 +1824,13 @@ game_core.prototype.check_collision = function( player )
     {
         if (
             //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
-            player.pos.x < (fo.x + fo.width) &&
-            (player.pos.x + player.size.hx) > fo.x &&
-            player.pos.y < (fo.y + fo.height) &&
-            (player.pos.y + player.size.hy) > fo.y
+            player.pos.x < (fo.x + (fo.width/2)) &&
+            (player.pos.x + (player.size.hx/2)) > fo.x &&
+            player.pos.y < (fo.y + (fo.height/2)) &&
+            (player.pos.y + (player.size.hy/2)) > fo.y
         )
         {
-            console.log('hit flag obj', fo.name);
+            //console.log('hit flag obj', fo.name);
 
             // player takes flag?
             if (fo.isHeld === false && fo.isActive && player.hasFlag === 0)
@@ -2495,7 +2495,33 @@ document.externalControlAction = function(data)
 {
     var game = document.getElementById('viewport').ownerDocument.defaultView.game;
 
-    if (data == "A" || data == "D")
+    switch(data)
+    {
+        case "A": // left down
+            game.keyboard._onKeyChange({keyCode:37}, true);
+        break;
+
+        case "B": // left up
+            game.keyboard._onKeyChange({keyCode:37}, false);
+        break;
+
+        case "D": // right down
+            game.keyboard._onKeyChange({keyCode:39}, true);
+        break;
+
+        case "E": // right up
+            game.keyboard._onKeyChange({keyCode:39}, false);
+        break;
+
+        case "u": // flap down
+            game.keyboard._onKeyChange({keyCode:38}, true);
+        break;
+
+        case "x": // flap up
+            game.keyboard._onKeyChange({keyCode:38}, false);
+        break;
+    }
+    /*if (data == "A" || data == "D")
     {
         game.client_handle_input(data);
     }
@@ -2505,7 +2531,7 @@ document.externalControlAction = function(data)
             game.keyboard._onKeyChange({keyCode:38}, true);
         else if (data == 'x')
             game.keyboard._onKeyChange({keyCode:38}, false);
-    }
+    }*/
     //return game.players.self.mp;
 };
 game_core.prototype.client_handle_input = function(key){

@@ -380,9 +380,19 @@ game_player.prototype.removeFlag = function(success, slot)
         this.carryingFlag.y = slot.y - (slot.height/2);
         this.carryingFlag.sourceSlot = slot.name;
         // note: targetSlot will be defined when flag is taken!
+
+        // revise territory
+        if (this.game.server)
+        {
+            console.log('emit territory change data');
+        }
+        else
+        {
+            this.game.updateTerritory();
+        }
     }
 
-    this.carryingFlag.reset(success, this.game.server_time);
+    this.carryingFlag.reset(success);//, this.game.server_time);
     this.hasFlag = 0;
     this.carryingFlag = null;
 };
@@ -886,7 +896,7 @@ game_player.prototype.draw = function()
     //     5);
 
     // nameplate
-    game.ctx.font = "small-caps lighter 12px arial";
+    game.ctx.font = "16px Mirza";
     game.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
     var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
@@ -1055,7 +1065,7 @@ game_player.prototype.draw = function()
         //game.ctx.save();
         game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
         // draw timer
-        game.ctx.font = "small-caps lighter 14px arial";
+        game.ctx.font = "18px Mirza";
         game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
         game.ctx.textAlign = 'center';
         game.ctx.fillText(

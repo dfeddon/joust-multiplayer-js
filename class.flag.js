@@ -32,6 +32,8 @@ function game_flag(data, context)
   this.heldBy = null;
   this.targetSlot = null;
   this.onCooldown = false;
+  this.onCooldownTimer = null;
+  this.onCooldownLength = 15;
   // set flags target slots
   switch(data.name)
   {
@@ -84,7 +86,7 @@ function game_flag(data, context)
     }
   }
 
-  console.log('construct', data.type, this);
+  //console.log('construct', data.type, this);
 }
 
 game_flag.prototype.setTargetSlot = function(slot)
@@ -94,9 +96,9 @@ game_flag.prototype.setTargetSlot = function(slot)
 
 game_flag.prototype.setter = function(obj)
 {
-  console.log('flag.setter');
+  //console.log('flag.setter');
   //var _this = this;
-  console.log('obj', obj);
+  //console.log('obj', obj);
   this.id = "flg" + obj.id;
   this.name = obj.name;
   //this.type = obj.type;
@@ -198,7 +200,7 @@ game_flag.prototype.slotFlag = function(player)
   }
 };
 
-game_flag.prototype.reset = function(success, server_time)
+game_flag.prototype.reset = function(success)//, server_time)
 {
   console.log('resetting flag', this.name);
   this.isHeld = false;
@@ -206,10 +208,26 @@ game_flag.prototype.reset = function(success, server_time)
   if (success)
   {
     this.isActive = false; // flag on cooldown
-    this.onCooldownAt = server_time;
+    //this.onCooldownLength = server_time;
     this.onCooldown = true;
+    this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
   }
   else this.isActive = true;
+};
+
+game_flag.prototype.timeoutCooldown = function()
+{
+  this.onCooldownLength -= 1;
+  if (this.onCooldownLength === 0)
+  {
+    clearTimeout(this.onCooldownTimer); // clear timeout
+    //this.onCooldownTimer = null;
+    this.onCooldownLength = 15; // reset counter
+    this.onCooldown = false; // turn off cooldown
+    this.isActive = true; // reactivate flag
+  }
+  else
+    this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
 };
 
 game_flag.prototype.setCtx = function(ctx)
@@ -241,13 +259,13 @@ game_flag.prototype.draw = function()
 
   if (this.onCooldown)
   {
-    console.log('cooldown', this.onCooldownAt);
+    //console.log('cooldown', this.onCooldownAt);
     // draw timer
-    game.ctx.font = "small-caps lighter 14px arial";
+    game.ctx.font = "18px Mirza";
     game.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
     game.ctx.textAlign = 'center';
     game.ctx.fillText(
-        '60',// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+        this.onCooldownLength,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
         this.x + 25,
         this.y + 30//txtOffset
         //100
