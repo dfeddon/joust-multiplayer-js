@@ -11,6 +11,7 @@ function game_flag(data, context)
   }
   else {
     this._.forEach = require('./node_modules/lodash/forEach');
+    stopwatch = require('./class.stopwatch');
     //this._.cloneDeep = require('./node_modules/lodash/cloneDeep');
   }
 
@@ -34,6 +35,7 @@ function game_flag(data, context)
   this.onCooldown = false;
   this.onCooldownTimer = null;
   this.onCooldownLength = 15;
+  this.stopwatch = new stopwatch();
   // set flags target slots
   switch(data.name)
   {
@@ -210,6 +212,7 @@ game_flag.prototype.reset = function(success)//, server_time)
     this.isActive = false; // flag on cooldown
     //this.onCooldownLength = server_time;
     this.onCooldown = true;
+    // start timer
     this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
   }
   else this.isActive = true;
@@ -217,17 +220,31 @@ game_flag.prototype.reset = function(success)//, server_time)
 
 game_flag.prototype.timeoutCooldown = function()
 {
-  this.onCooldownLength -= 1;
-  if (this.onCooldownLength === 0)
+  //this.onCooldownLength -= 1;
+  //if (this.onCooldownLength === 0)
+  /*if (this.stopwatch.getElapsedTime() == this.onCooldownLength)
   {
-    clearTimeout(this.onCooldownTimer); // clear timeout
+    //clearTimeout(this.onCooldownTimer); // clear timeout
+    this.stopwatch.stop();
     //this.onCooldownTimer = null;
     this.onCooldownLength = 15; // reset counter
     this.onCooldown = false; // turn off cooldown
     this.isActive = true; // reactivate flag
   }
   else
-    this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
+  {*/
+    //this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
+    this.stopwatch.start();
+  //}
+};
+
+game_flag.prototype.cooldownComplete = function()
+{
+  this.stopwatch.reset();
+  //this.onCooldownTimer = null;
+  this.onCooldownLength = 15; // reset counter
+  this.onCooldown = false; // turn off cooldown
+  this.isActive = true; // reactivate flag
 };
 
 game_flag.prototype.setCtx = function(ctx)
@@ -260,16 +277,24 @@ game_flag.prototype.draw = function()
   if (this.onCooldown)
   {
     //console.log('cooldown', this.onCooldownAt);
-    // draw timer
-    game.ctx.font = "18px Mirza";
-    game.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
-    game.ctx.textAlign = 'center';
-    game.ctx.fillText(
-        this.onCooldownLength,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
-        this.x + 25,
-        this.y + 30//txtOffset
-        //100
-    );
+    if (Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()) <= 0)
+    {
+      this.cooldownComplete();
+    }
+    else
+    {
+      // draw timer
+      game.ctx.font = "18px Mirza";
+      game.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
+      game.ctx.textAlign = 'center';
+      game.ctx.fillText(
+          //this.onCooldownLength -
+          Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()),//this.onCooldownLength,
+          this.x + 25,
+          this.y + 30//txtOffset
+          //100
+      );
+    }
   }
 };
 
