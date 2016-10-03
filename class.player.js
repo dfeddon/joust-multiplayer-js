@@ -369,6 +369,9 @@ game_player.prototype.takeFlag = function(flag, flagType)
             }
         break;
     }
+
+    if (!this.game.server)
+        new game_toast().show();
 };
 
 game_player.prototype.removeFlag = function(success, slot)

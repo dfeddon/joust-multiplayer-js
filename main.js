@@ -22,6 +22,7 @@ define(
     //'animation/sprite-anim',
     'class.spritesheet',
     'class.stopwatch',
+    'class.toast',
     'class.chest',
     'class.flag',
     'class.event',

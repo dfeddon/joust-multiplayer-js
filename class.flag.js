@@ -68,22 +68,58 @@ function game_flag(data, context)
 
       case "blueFlag":
         this.image = document.getElementById("flag-blue-r");
-        break;
+      break;
 
       case "slot1":
+        this.image = document.getElementById("flag-slot-1");
+      break;
+
       case "slot2":
+        this.image = document.getElementById("flag-slot-2");
+      break;
+
       case "slot3":
+        this.image = document.getElementById("flag-slot-3");
+      break;
+
       case "slot4":
+        this.image = document.getElementById("flag-slot-4");
+      break;
+
       case "slot5":
+        this.image = document.getElementById("flag-slot-5");
+      break;
+
       case "slot6":
+        this.image = document.getElementById("flag-slot-6");
+      break;
+
       case "slot7":
+        this.image = document.getElementById("flag-slot-7");
+      break;
+
       case "slot8":
+        this.image = document.getElementById("flag-slot-8");
+      break;
+
       case "slot9":
+        this.image = document.getElementById("flag-slot-9");
+      break;
+
       case "slot10":
-      case "midSlot":
+        this.image = document.getElementById("flag-slot-10");
+      break;
+
       case "slotBlue":
+        this.image = document.getElementById("flag-slot-blue");
+      break;
+
       case "slotRed":
-        this.image = document.getElementById("flag-slot");
+        this.image = document.getElementById("flag-slot-red");
+      break;
+
+      case "midSlot":
+        this.image = document.getElementById("flag-slot-mid");
         break;
     }
   }
@@ -253,7 +289,50 @@ game_flag.prototype.setCtx = function(ctx)
   if (this.type == "slot" && this.ctx)
   {
     //this.draw();
-    this.image = document.getElementById("flag-slot");
+    switch(this.name)
+    {
+      case "slot1":
+        this.image = document.getElementById("flag-slot-1");
+      break;
+
+      case "slot2":
+        this.image = document.getElementById("flag-slot-2");
+      break;
+
+      case "slot3":
+        this.image = document.getElementById("flag-slot-3");
+      break;
+
+      case "slot4":
+        this.image = document.getElementById("flag-slot-4");
+      break;
+
+      case "slot5":
+        this.image = document.getElementById("flag-slot-5");
+      break;
+
+      case "slot6":
+        this.image = document.getElementById("flag-slot-6");
+      break;
+
+      case "slot7":
+        this.image = document.getElementById("flag-slot-7");
+      break;
+
+      case "slot8":
+        this.image = document.getElementById("flag-slot-8");
+      break;
+
+      case "slot9":
+        this.image = document.getElementById("flag-slot-9");
+      break;
+
+      case "slot10":
+        this.image = document.getElementById("flag-slot-10");
+      break;
+
+    }
+    //this.image = document.getElementById("flag-slot");
   }
   if (this.ctx && this.type == "flag")
   {

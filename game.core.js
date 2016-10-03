@@ -185,7 +185,7 @@ var game_core = function(game_instance)
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
         CollisionSolver     = require('./class.collisionSolver');*/
-        this._                   = require('./node_modules/lodash/lodash.min'),
+        this._                   = require('./node_modules/lodash/lodash.min');
 
         //var co = collisionObject;
         // phy 2.0
