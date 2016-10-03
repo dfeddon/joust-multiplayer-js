@@ -355,7 +355,7 @@ game_server.startGame = function(game)
         console.log('nonhosts len', nonhosts.length);
         for (var j = 0; j < nonhosts.length; j++)
         {
-            this.log('@@', nonhosts[j].userid, nonhosts[j].mp);
+            this.log('@@', nonhosts[j].userid, nonhosts[j].mp, nonhosts.pos);
             // assign player to server instance
             //game_instance.gamecore.players.self.instance = nonhosts[j];
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
@@ -389,8 +389,10 @@ game_server.startGame = function(game)
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
             //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
             console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
+            var team = "1"; // 1 = red, 2 = blue
+            console.log('player team', team);
             // send user mp, game id, orbs array
-            nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(game_instance.gamecore.orbs));
+            nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(game_instance.gamecore.orbs) + "|" + team);
             nonhosts[j].game = game;
         }
     }
@@ -503,6 +505,7 @@ game_server.findGame = function(client)
                                 game_instance.gamecore.allplayers[i].instance = client;
                                 game_instance.gamecore.allplayers[i].id = client.userid;
                                 game_instance.gamecore.allplayers[i].isLocal = true;
+                                // player start position
                                 game_instance.gamecore.allplayers[i].pos = game_instance.gamecore.gridToPixel(2,2);
                                 // game_instance.gamecore.allplayers[i].playerName = this.nameGenerator();
                                 // console.log('playername', game_instance.gamecore.allplayers[i].playerName);
@@ -519,7 +522,8 @@ game_server.findGame = function(client)
                         }
                         else
                         {
-                            console.log('has instance!');continue;
+                            console.log('has instance!');
+                            continue;
                             //game_instance.gamecore.allplayers[i].instance = game_instance.player_clients[j];
                             //game_instance.gamecore.allplayers[i].id = game_instance.player_clients[j].userid;
                             //console.log('mp =', game_instance.gamecore.allplayers[i].mp);

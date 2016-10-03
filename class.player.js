@@ -16,7 +16,9 @@ function game_player( game_instance, player_instance, isHost )
     this.player_abilities_enabled = false;
 
     //Set up initial values for our state information
-    this.pos = { x:0, y:0 };
+    //this.pos = { x:0, y:0 };
+
+    this.lpos = this.pos;
     this.size = { x:64, y:64, hx:64, hy:64 };
     this.hitbox = {w:32,h:32};
     this.dir = 0; // 0 = right, 1 = left (derek added)
@@ -110,6 +112,9 @@ function game_player( game_instance, player_instance, isHost )
     //this.lastNamePlate = "YOU";
 } // end game_player constructor
 
+game_player.prototype.pos = {};
+game_player.prototype.pos.x = 0;
+game_player.prototype.pos.y = 0;
 game_player.prototype.dead = false;
 
 // game_player.prototype.update = function()
@@ -160,7 +165,23 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    //console.log('do land', this.vx);
+    console.log('do land', this.vy);
+
+    // if falling too fast...
+    if (this.vy > 6)
+    {
+        console.log('bounce up!');
+        // set length of vulnerability based on how hard player hits
+        var len = 1500 + ((this.vy - 6) * 1000);
+        // impact drag
+        this.vy = this.vy/2;
+        // bounce
+        this.vy *= -1;
+        // set vulnerability
+        this.isVuln(len);
+        //this.a *= -1;
+        return;
+    }
 
     // decelerate
     if (this.vx > 0)
@@ -371,7 +392,9 @@ game_player.prototype.takeFlag = function(flag, flagType)
     }
 
     if (!this.game.server)
+    {
         new game_toast().show();
+    }
 };
 
 game_player.prototype.removeFlag = function(success, slot)
@@ -410,8 +433,10 @@ game_player.prototype.update = function()
         //this.a = 0;
 
         // get out
+        //if (this.hitFrom==-1)
         return;
     }
+
 
     this.vy += this.game.world.gravity;//.fixed(2);///5;
     // 40 = slow, 30 = medium, 25 = fast
@@ -433,6 +458,8 @@ game_player.prototype.update = function()
                 this.vx *= -1;
                 this.a *= -1;
                 this.collision = false;
+                //if (!this.vuln)
+                    //this.isVuln();
                 //console.log('vx', this.vx);
             break;
             case 1: // from below
@@ -442,13 +469,16 @@ game_player.prototype.update = function()
                 this.collision = false;
                 //console.log('vx', this.vx);
             break;
-            case 0: // from the side
-                this.vx *= -1;
-                this.a *= -1;
+            /*case 2: // from above
+                //this.vx *= -1;
+                console.log('hit speed', this.vy);
+                this.vy = 0;
+                this.a =0;//*= -1;
                 this.collision = false;
                 //console.log('vx', this.vx);
-            break;
+            break;*/
         }
+        //this.hitfrom = -1;
     }
     else this.vx *= 1;
 };
@@ -491,7 +521,7 @@ game_player.prototype.doKill = function(victor)
 
     // store current position
     var waspos = this.pos;
-    this.pos = {x:Math.floor((Math.random() * this.game.world.width - 64) + 64), y:-1000};
+    this.pos = this.game.gridToPixel(2,2);
 
     // reset landed prop
     this.landed = 0;
@@ -750,19 +780,21 @@ game_player.prototype.isEngaged = function(len)
     this.engaged = true;
 
     // timer 10 sec
-    setTimeout(_this.timeoutEngaged, len);
+    setTimeout(_this.timeoutEngaged.bind(this), len);
 };
 
 game_player.prototype.timeoutEngaged = function()
 {
-    //console.log(self.mp, 'no longer engaged!');
+    console.log(this.mp, 'no longer engaged!');
     this.engaged = false;
 };
 
 game_player.prototype.isVuln = function(len)
 {
-    console.log('Im vulnerable!');
-    var _this = this;
+    if (this.vuln===true) return;
+
+    console.log('Im vulnerable!', len);
+    //var _this = this;
 
     this.vuln = true;
 
@@ -770,14 +802,14 @@ game_player.prototype.isVuln = function(len)
     if (this.isLocal)
         this.isEngaged(len);
 
-    var stun = setTimeout(this.timeoutVuln, len);
+    var stun = setTimeout(this.timeoutVuln.bind(this), len);
 };
 
 game_player.prototype.timeoutVuln = function()
 {
     this.vuln = false;
     console.log('...no longer vulnerable');
-}
+};
 
 game_player.prototype.getGrid = function()
 {

@@ -114,9 +114,9 @@ var game_core = function(game_instance)
     //this.entities = [];
     this.player_abilities_enabled = false;
 
-    this.platforms = [];
-    this.platformsData = [];
-    //*
+    //this.platforms = [];
+    //this.platformsData = [];
+    /*
     this.platformsData.push(
         {
             id:'plat1',
@@ -263,7 +263,7 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         // define platforms
         ///////////////////////////////////
-        var plat;
+        /*var plat;
         for (var m = 0; m < this.platformsData.length; m++)
         {
             plat = new platformClass(this);
@@ -286,7 +286,7 @@ var game_core = function(game_instance)
                 rndInterval();
             }
             this.platforms.push(plat);
-        }
+        }*/
 
         ///////////////////////////////////
         // create startup events
@@ -316,7 +316,7 @@ var game_core = function(game_instance)
         /*this.SpriteAnim = window.anim;
         console.log('animation sprite', this.SpriteAnim);*/
 
-        this.canvasPlatforms = null;
+        //this.canvasPlatforms = null;
         this.flashBang = 0;
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
@@ -383,6 +383,7 @@ var game_core = function(game_instance)
             console.log(this.allplayers[y].mp);
 
         // define platforms
+        /*
         var canvasPlatforms = document.createElement('canvas');
 
         canvasPlatforms.id = "canvasPlatforms";
@@ -410,6 +411,7 @@ var game_core = function(game_instance)
             //console.log('cplat',cplat);
             this.platforms.push(cplat);
         }
+        //*/
     }
 
     //The speed at which the clients move.
@@ -516,7 +518,7 @@ game_core.prototype.api = function()
             self.tilemap = xmlhttp.responseText;
             self.tilemapper();
             self.prerenderer();
-            self.buildPlatforms();
+            //self.buildPlatforms();
         }
     };
 };
@@ -534,11 +536,11 @@ game_core.prototype.buildPlatforms = function()
 
     this.canvasPlatforms = canvasPlatforms;*/
 
-    for (var i = 0; i < this.platforms.length; i++)
+    /*for (var i = 0; i < this.platforms.length; i++)
     {
         console.log('drawing platform', this.platforms[i]);
         this.platforms[i].draw();
-    }
+    }*/
 
 
 };
@@ -1528,12 +1530,18 @@ game_core.prototype.check_collision = function( player )
                 if (dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false)//player.pos.y === other.pos.y)
                 {
                     this.flashBang = 1;
-                    //console.log("TIE!", player.mp, other.mp);
+                    console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
                     if (player.pos.x < other.pos.x)
                     {
-                        player.pos.x -= 50;
-                        other.pos.x += 50;
-                        // console.log("BUMP")
+                        //player.pos.x -= 50;
+                        player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                        player.collision = true;
+
+                        //other.pos.x += 50;
+                        other.hitFrom = 0;
+                        //other.vx = player.vx / 2;
+                        other.collision = true;
+                        console.log("BUMP", player.pos, other.pos);
                         // player.pos = this.physics_movement_vector_from_direction(-50, 0);
                         // other.pos = this.physics_movement_vector_from_direction(50,0);
                         if (player.landed !== 0)
@@ -1544,7 +1552,13 @@ game_core.prototype.check_collision = function( player )
                     else
                     {
                         player.pos.x += 50;
+                        player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                        player.collision = true;
+
                         other.pos.x -= 50;
+                        other.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                        other.collision = true;
+
                         if (player.landed !== 0)
                             player.landed = 2;
                         if (other.landed !== 0)
@@ -1647,7 +1661,7 @@ game_core.prototype.check_collision = function( player )
     });
 
     // platform collisions
-    //*
+    /*
     //for (var j = 0; j < this.platforms.length; j++)
     this._.forEach(this.platforms, function(platform)
     {
@@ -1878,6 +1892,7 @@ game_core.prototype.check_collision = function( player )
 
             // set y
             player.pos.y = parseInt((h.sw.y * 64) - 64);
+            //player.hitFrom = 2;
 
             // process landing
             player.doLand();
@@ -2151,8 +2166,31 @@ game_core.prototype.process_input = function( player )
                 // }
             } //for all input values
 
-        } //for each input command
+        } //for each input commandd
     } //if we have inputs
+    else {
+        //if (player.mp == "cp1")// && !this.server)
+        //{
+        //console.log('difX', player.active, player.mp, player.pos.x - player.lpos.x,'difY', player.active, player.mp, player.pos.y - player.lpos.y);
+
+        //this.players.self.old_state.pos = this.pos(this.players.self.pos);
+        //this.players.self.pos = this.pos(this.players.self.pos);
+        //this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+        //console.log(player.old_state.pos, player.new_state);
+
+        // x_dir = (player.pos.x - player.lpos.x)*this._pdt;//player.vx;
+        //
+        // y_dir = (player.pos.y - player.lpos.y)*this._pdt;//player.vy;
+
+        //if (player.lpos.x)
+        //x_dir = player.pos.x - player.lpos.x;//player.vx;
+        //if (player.lpos.y)
+        //y_dir = player.pos.y - player.lpos.y;//player.vy;
+
+        // store last pos
+        player.lpos = player.pos;
+        //console.log(x_dir, y_dir, this._pdt);
+    }
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     //we have a direction vector now, so apply the same physics as the client
@@ -2211,7 +2249,7 @@ game_core.prototype.update_physics = function() {
     ////////////////////////////////////////////////////////
     // iterate platforms
     ////////////////////////////////////////////////////////
-    var jlen = this.platforms.length;
+    /*var jlen = this.platforms.length;
     for (var j = 0; j < jlen; j++)
     {
         //console.log(this.platforms[j].state);
@@ -2219,7 +2257,7 @@ game_core.prototype.update_physics = function() {
         {
             this.platforms[j].update();
         }
-    }
+    }*/
 
     if(this.server) this.server_update_physics();
     else this.client_update_physics();
@@ -2274,13 +2312,13 @@ game_core.prototype.server_update_physics = function() {
     }
 
     // platform collisions (minus player)
-    for (var j = 0; j < this.platforms.length; j++)
+    /*for (var j = 0; j < this.platforms.length; j++)
     {
         //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
             this.platforms[j].check_collision();
         //}
-    }
+    }*/
     /*this._.forEach(this.chests, function(chest)
     {
         chest.check_collision();
@@ -2351,7 +2389,7 @@ game_core.prototype.server_update = function()
     /////////////////////////////////
     //this.lastPlatformState = {};
     //for (var k = 0; k < this.platforms.length; k++)
-    this._.forEach(this.platforms, function(plat)
+    /*this._.forEach(this.platforms, function(plat)
     {
         //if (plat.state !== plat.STATE_INTACT) // 1 is fixed/dormant
         //{
@@ -2367,7 +2405,7 @@ game_core.prototype.server_update = function()
                 p: plat.triggerer
             };
         //}
-    });
+    });*/
 
     // process events
     //for (var l = 0; l < this.events.length; l++)
@@ -2895,12 +2933,13 @@ game_core.prototype.client_process_net_updates = function()
                 player.bubble = target[player.mp].b;
                 //console.log(this.allplayers[j].pos);
             }
+            //else console.log('MEMEMEMEMEMEME');
         });
         // console.log(other_server_pos2);
         //*/
-        var pos;
+        //var pos;
         //for (var k = 0; k < this.platforms.length; k++)
-        this._.forEach(this.platforms, function(plat)
+        /*this._.forEach(this.platforms, function(plat)
         {
             // if provided, omit local player (triggerer: .p/.mp) who 'triggered' the effect;
             // we'll manage the platform physics locally
@@ -2930,7 +2969,7 @@ game_core.prototype.client_process_net_updates = function()
                 plat.type = target[plat.id].t;
                 plat.triggerer = target[plat.id].p;
             }
-        });
+        });*/
 
         // process flags
         this._.forEach(this.flagObjects, function(flag)
@@ -2983,6 +3022,14 @@ game_core.prototype.client_process_net_updates = function()
                 console.log('* got event', evt);
             }
         });
+
+        // smoothly follow client's destination position
+        this.players.self.pos =
+            this.v_lerp(this.players.self.pos,
+            this.v_lerp(previous[this.players.self.mp], target[this.players.self.mp], this._pdt*this.client_smooth),
+            this._pdt*this.client_smooth
+        );
+
         //The other players positions in this timeline, behind us and in front of us
         /*var other_target_pos = this.players.self.host ? target.cp : target.hp;
         var other_past_pos = this.players.self.host ? previous.cp : previous.hp;*/
@@ -3175,13 +3222,13 @@ game_core.prototype.client_update_physics = function()
 
     // platform collisions (minus player)
     //for (var j = 0; j < this.platforms.length; j++)
-    this._.forEach(this.platforms, function(plat)
+    /*this._.forEach(this.platforms, function(plat)
     {
         //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
             plat.check_collision();
         //}
-    });
+    });*/
 }; //game_core.client_update_physics
 
 game_core.prototype.client_update = function()
@@ -3224,6 +3271,7 @@ game_core.prototype.client_update = function()
     {
         // TODO: break this up into smaller rects
         console.log('flashbang');
+        //*
         this.ctx.beginPath();
         if (this.flashBang === 1)
         this.ctx.fillStyle = 'white';
@@ -3231,6 +3279,7 @@ game_core.prototype.client_update = function()
         this.ctx.rect(-this.cam.x,-this.cam.y,this.viewport.width+128,this.viewport.height+128);
         this.ctx.fill();
         this.ctx.closePath();
+        //*/
         this.flashBang = 0;
     }
 
@@ -3248,7 +3297,7 @@ game_core.prototype.client_update = function()
     //this.ctx.drawImage(this.canvas2, 0,0); // orbs
     this.ctx.drawImage(this.barriers, 0, 0); // tiled barriers layer
     this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
-    this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
+    //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
     }
 
     //Capture inputs from the player
@@ -3284,11 +3333,11 @@ game_core.prototype.client_update = function()
 
     // platforms
     //for (var j = 0; j < this.platforms.length; j++)
-    this._.forEach(this.platforms, function(plat)
+    /*this._.forEach(this.platforms, function(plat)
     {
         if (plat.state !== plat.STATE_INTACT)
             plat.draw();
-    });
+    });*/
 
     // spritesheets
     //for (var k = 0; k < this.spritesheets.length; k++)
@@ -3617,6 +3666,8 @@ game_core.prototype.client_onjoingame = function(data)
     //console.log('2',alldata[1]);
     console.log(alldata[2]);
     this.orbs = JSON.parse(alldata[2]);
+    var team = alldata[3];
+    //console.log('# startpos', startpos);
 
     //console.log('3',alldata[2]);
 
@@ -3637,15 +3688,20 @@ game_core.prototype.client_onjoingame = function(data)
         //if (this.allplayers[i].mp == data.mp && data.me)//.instance && this.allplayers[i].instance.userid == data)
         if (this.allplayers[i].mp == alldata[0])//'cp1')
         {
-            console.log('## found player', alldata[0]);
+            console.log('## found player', alldata[0], this.allplayers[i]);
             //console.log(this.allplayers[i].instance.userid);
             //console.log(this.allplayers[i].instance.hosting);
             //this.players.self.md = this.allplayers[i].md;
             //this.players.self.mis = this.allplayers[i].mis;
             //if (data.me)
+            this.allplayers[i].team = parseInt(team);
+            // set start position
+            if (team == "1")
+                this.allplayers[i].pos = this.gridToPixel(2, 2);
+            else this.allplayers[i].pos = this.gridToPixel(5, 5);
             this.allplayers[i].active = true;
             this.allplayers[i].isLocal = true;
-            this.allplayers[i].playerName = "Jouster"
+            this.allplayers[i].playerName = "Jouster";
             this.players.self = this.allplayers[i];
             console.log(this.players.self);
         }
