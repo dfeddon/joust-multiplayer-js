@@ -109,6 +109,125 @@ function game_player( game_instance, player_instance, isHost )
     this.carryingFlag = null;
 
     this.playerName = "";
+    this.playerSprite = "roundRooster";
+
+    if (!this.game.server)
+    {
+        // function transparency(img)
+        // {
+        //     var len = img.data.length;
+        //     console.log('len',len);
+        //     for (var i = 3; i < len; i+=4)
+        //         img.data[i] = 0;
+        //     return img;
+        // }
+        var flipImage = function(image, ctx, flipH, flipV)
+        {
+            var scaleH = flipH ? -1 : 1, // Set horizontal scale to -1 if flip horizontal
+                scaleV = flipV ? -1 : 1, // Set verical scale to -1 if flip vertical
+                posX = flipH ? 64 * -1 : 0, // Set x position to -100% if flip horizontal
+                posY = flipV ? 64 * -1 : 0; // Set y position to -100% if flip vertical
+
+            ctx.save(); // Save the current state
+            ctx.scale(scaleH, scaleV); // Set scale to flip the image
+            ctx.drawImage(image, posX, posY, 64, 64); // draw the image
+            ctx.restore(); // Restore the last saved state
+            return ctx;
+        };
+        var src = document.getElementById('ss1');
+
+        var cvs = document.createElement('canvas');//('canvas_' + y.toString());
+        cvs.width = 2000;cvs.height = 2000;cvs.x=0;cvs.y=0;
+        var ctx = cvs.getContext('2d');
+        //ctx.scale(0.5,0.5);
+        ctx.drawImage(src, 0, 0);
+
+        var cv2 = document.createElement('canvas');
+        cv2.width = 62;
+        cv2.height = 57;
+        ctx2 = cv2.getContext('2d');
+
+        switch(this.playerSprite)
+        {
+            case "roundRooster":
+                console.log('rooster');
+
+                // glide right
+                var img2=ctx.getImageData(10,7,62,57);//35,13,128,128);
+                ctx2.putImageData(img2, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = cv2.toDataURL('image/png');//cvs.toDataURL('image/png');
+                //this.width = cv2.width;this.height=cv2.height;
+                //cv2 = null;
+
+                // glide left
+                this.glideLeft = new Image();
+                this.glideLeft = flipImage(this.glideRight, ctx2, true, false);
+                // ctx2.save();
+                // ctx2.clearRect(0, 0, cv2.width, cv2.height);
+                //
+                // //ctx2.drawImage(this.glideRight, 0, 0);
+                // /*ctx2.putImageData(img2, 0, 0);
+                // ctx2.translate(this.glideRight.width, 0);
+                // ctx2.scale(-1, 1);*/
+                // this.glideLeft = new Image();
+                // this.glideLeft.src = cv2.toDataURL('image/png');
+                //
+                // ctx2.restore();
+                //this.canvasContext.drawImage(image, 0, 0);
+
+
+                //var paddingW = 19;
+                //var paddingH =
+                //var img2=ctx.getImageData(10 + 62 + paddingW,7,62,57);//35,13,128,128);
+                /*ctx2.putImageData(this.glideLeft, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = cv2.toDataURL('image/png');//cvs.toDataURL('image/png');*/
+
+                //console.log('gright', this.glideRight.width, this.glideRight.height, cvs.width,cvs.height);//.width, this.glideRight.height);
+            break;
+        }
+        /*
+        // spritesheet
+        var playerSheet = document.getElementById('ss1');
+        // cells
+        var playerCells = [ { left:1013, top:7, width:128, height:131} ];
+
+        // behaviors
+        var glideRightBehavior = new CellSwitchBehavior
+        (
+            playerCells, // array of rectangles in the sheet
+            1000, // duriation in ms
+            function(sprite, now, fps, lastAnimationFrameTime) // trigger
+            {
+                return this.glideRight;
+            },
+            function(sprite, animator) // callback
+            {
+                return this.glideRight;
+            }
+        );
+
+        // animation
+        this.animation = new Sprite(
+            'player', // type
+            new SpriteSheetArtist( // artist
+                playerSheet, // spritesheet
+                playerCells // *all* cells
+            ),
+            [ // behaviors
+                glideRightBehavior,
+                // this.glideLeft,
+                // this.flapRight,
+                // this.flapLeft,
+                // this.stunRight,
+                // this.stunLeft,
+                // this.dieRight,
+                // this.disabledLeftTrackImage
+            ]
+        );
+        console.log('animate', this.animation);*/
+    }
     //this.lastNamePlate = "YOU";
 } // end game_player constructor
 
@@ -128,13 +247,22 @@ game_player.prototype.doFlap = function()
 
     // set flap flag
     this.flap = true;
+    // if (!this.game.server)
+    // this.glideRight = true;
 
     // clear landed flag
     this.landed = 0;
+    //console.log('a', this.a);
 
     //if (vy < -6)
+    console.log('vy1', this.vy);
+    // if (this.vy > 0)
+    // this.vy -= (this.thrust + this.thrustModifier) * 5;
+    // else
     this.vy = -(this.thrust + this.thrustModifier) * 5;
-    this.vx = (this.thrust + this.thrustModifier);///10;
+    console.log('vy2', this.vy);
+    if (this.a !== 0)
+        this.vx = (this.thrust + this.thrustModifier);///10;
     //console.log('vx', this.vx, 'vy', this.vy);
 
     /*this.ax = Math.cos(this.a) * this.thrust * 10;
@@ -167,7 +295,14 @@ game_player.prototype.doLand = function()
 {
     console.log('do land', this.vy);
 
-    // if falling too fast...
+    // if falling fataly fast...
+    if (this.vy > 10)
+    {
+        this.vy = 0;
+        this.doKill();
+        return;
+    }
+    // survivably fast
     if (this.vy > 6)
     {
         console.log('bounce up!');
@@ -180,6 +315,8 @@ game_player.prototype.doLand = function()
         // set vulnerability
         this.isVuln(len);
         //this.a *= -1;
+        if (this.carryingFlag)
+            this.removeFlag(false, this.carryingFlag.sourceSlot);
         return;
     }
 
@@ -201,6 +338,7 @@ game_player.prototype.doLand = function()
             this.vx = 0;
             //this.vy = 25;
             this.landed = 1;
+            this.a = 0;
         }
     }
     else if (this.vx < 0)
@@ -219,6 +357,7 @@ game_player.prototype.doLand = function()
         //this.vy = 25;
         // set landing flag (stationary)
         this.landed = 1;
+        this.a = 0;
     }
 };
 
@@ -430,7 +569,7 @@ game_player.prototype.update = function()
     if (this.landed === 1)
     {
         // reset angle
-        //this.a = 0;
+        this.a = 0;
 
         // get out
         //if (this.hitFrom==-1)
@@ -525,6 +664,9 @@ game_player.prototype.doKill = function(victor)
 
     // reset landed prop
     this.landed = 0;
+
+    if (this.carryingFlag)
+        this.removeFlag(false, this.carryingFlag.sourceSlot);
 
     // splatter "orbs of death"
     /*
@@ -906,6 +1048,7 @@ game_player.prototype.draw = function()
     // player nametags (temp)
     // mana bar bg
     var txtOffset = 20;
+    if (this.vuln) txtOffset = 10;
     //var abil;
     if (this.isLocal === true)
     {
@@ -1043,7 +1186,9 @@ game_player.prototype.draw = function()
     {
         if (this.dir === 1)
             img = document.getElementById("p2l");
+            //img = ctx.putImageData(imgData,10,70);
         else img = document.getElementById("p2r");
+        //else img = ctx.putImageData(imgData,10,70);
 
         imgW = 64;//40;
         imgH = 64;//40;
@@ -1115,8 +1260,14 @@ game_player.prototype.draw = function()
     }
 
     //game.ctx.beginPath();
+    //if (this.glideRight)
+        //console.log(this.glideRight);
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
-        game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+        //if (this.glideRight)
+            game.ctx.drawImage(this.glideLeft, this.pos.x, this.pos.y, this.glideLeft.width, this.glideLeft.height);//, imgW, imgH);
+        //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+
+        //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);
 
     if (this.bubble === true)
         game.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
