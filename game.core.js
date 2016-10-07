@@ -623,7 +623,7 @@ game_core.prototype.apiNode = function()
                             flag = new game_flag_server(objectgroupNode[j].object.$);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
-                            //console.log('flag', flag);
+                            console.log('-flag', flag);
                             _this.flagObjects.push(flag);
                         }
                         else
@@ -2005,6 +2005,78 @@ game_core.prototype.check_collision = function( player )
     }
 }; //game_core.check_collision
 
+game_core.prototype.client_onchestadd = function(data)
+{
+    console.log('client_onchestadd', data);
+};
+game_core.prototype.client_onchestremove = function(data)
+{
+    console.log('client_onchestremove', data);
+};
+game_core.prototype.client_onflagadd = function(data)
+{
+    console.log('client_onflagadd', data);
+};
+game_core.prototype.client_onflagremove = function(data)
+{
+    console.log('client_onflagremove', data);
+
+    var _this = this;
+
+    //data: player.mp|flag.name
+    var split = data.split("|");
+    var mp = split[0];
+    var flagName = split[1];
+    var playerSource, flagTaken;
+
+    /////////////////////////////////////
+    // get source player
+    /////////////////////////////////////
+    this._.forEach(this.allplayers, function(ply)
+    {
+        if (ply.mp == mp)
+        {
+            playerSource = ply;
+            return false; // break
+        }
+    });
+    console.log('source player', playerSource);
+
+    /////////////////////////////////////
+    // hide flag taken
+    /////////////////////////////////////
+    var targetSlot;
+    this._.forEach(this.flagObjects, function(flag)
+    {
+        console.log(flag.name, flagName);
+        if (flag.name == flagName)
+        {
+            flagTaken = flag;
+            flagTaken.targetSlot = flag.getTargetSlot(parseInt(playerSource.team), flag.sourceSlot);
+            console.log('tslot', flagTaken.targetSlot);
+            return false; // break
+        }
+    });
+    console.log('flag taken', flagTaken);
+    // disable taken flag
+    flagTaken.visible = false;
+    flagTaken.isHeld = true;
+    flagTaken.isActive = false;
+
+    /////////////////////////////////////
+    // show toast
+    /////////////////////////////////////
+    var msg =
+    {
+        action: "takeFlag",
+        playerName: playerSource.playerName,//"Jouster",
+        playerTeam: playerSource.team,//0,
+        flagName: flagTaken.name,//"Mid Flag",
+        targetSlot: flagTaken.targetSlot//"Placque #3"
+    };
+    new game_toast().show(msg);
+};
+
 game_core.prototype.client_on_orbremoval = function(data)
 {
     // data = orb id | player mp
@@ -2419,7 +2491,7 @@ game_core.prototype.server_update = function()
                 switch(evt.type)
                 {
                     case evt.TYPE_CHEST:
-                        console.log('adding chest', evt.spawn, 'with passive', evt.passive);
+                        console.log('adding chest');//, evt.spawn, 'with passive', evt.passive);
                         if (evt.id == 'ec') // chest event
                             _this.addChest({x:evt.spawn.x,y:evt.spawn.y,t:evt.passive.type,d:evt.passive.duration,m:evt.passive.modifier});
                         _this.laststate[evt.id] =
@@ -3103,7 +3175,7 @@ game_core.prototype.addChest = function(chest)
         this.chests.push(new game_chest_server(this, chest, false));
     }
     else this.chests.push(new game_chest(this, chest, true));
-    console.log(this.chests);
+    //console.log(this.chests);
 };
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
@@ -3870,12 +3942,26 @@ game_core.prototype.client_onnetmessage = function(data) {
 
             break;
 
-            case 'e': // events
+            case 'c': // chests
 
                 switch(subcommand)
                 {
-                    case 'c' : // remove chest
-                    break;
+                    // add
+                    case 'a' : this.client_onchestadd(commanddata); break;
+                    // remove
+                    case 'r' : this.client_onchestremove(commanddata); break;
+                }
+
+            break;
+
+            case 'f': // flags
+
+                switch(subcommand)
+                {
+                    // add
+                    case 'a' : this.client_onflagadd(commanddata); break;
+                    // remove
+                    case 'r' : this.client_onflagremove(commanddata); break;
                 }
 
             break;
@@ -3932,6 +4018,16 @@ game_core.prototype.client_connect_to_server = function()
     // orb removal
     //this.socket.on('orbremoval', this.client_on_orbremoval.bind(this));
     //this.socket.on('orbget', this.client_on_getorbs);
+
+    // addchest
+    this.socket.on('addchest', this.client_onchestadd.bind(this));
+    // removechest
+    this.socket.on('removechest', this.client_onchestremove.bind(this));
+
+    // addflag
+    this.socket.on('addflag', this.client_onflagadd.bind(this));
+    // removeflag
+    this.socket.on('removeflag', this.client_onflagremove.bind(this));
 
 }; //game_core.client_connect_to_server
 

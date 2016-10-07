@@ -110,7 +110,7 @@ function game_player( game_instance, player_instance, isHost )
 
     this.playerName = "";
     this.playerSprite = "roundRooster";
-
+    return;
     if (!this.game.server)
     {
         // function transparency(img)
@@ -121,72 +121,384 @@ function game_player( game_instance, player_instance, isHost )
         //         img.data[i] = 0;
         //     return img;
         // }
-        var flipImage = function(image, ctx, flipH, flipV)
+        // var flipImage = function(image, ctx, flipH, flipV)
+        // {
+        //     var scaleH = flipH ? -1 : 1, // Set horizontal scale to -1 if flip horizontal
+        //         scaleV = flipV ? -1 : 1, // Set verical scale to -1 if flip vertical
+        //         posX = flipH ? 64 * -1 : 0, // Set x position to -100% if flip horizontal
+        //         posY = flipV ? 64 * -1 : 0; // Set y position to -100% if flip vertical
+        //
+        //     ctx.save(); // Save the current state
+        //     ctx.scale(scaleH, scaleV); // Set scale to flip the image
+        //     ctx.drawImage(image, posX, posY, 64, 64); // draw the image
+        //     ctx.restore(); // Restore the last saved state
+        //     return ctx;
+        // };
+
+        function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight)
         {
-            var scaleH = flipH ? -1 : 1, // Set horizontal scale to -1 if flip horizontal
-                scaleV = flipV ? -1 : 1, // Set verical scale to -1 if flip vertical
-                posX = flipH ? 64 * -1 : 0, // Set x position to -100% if flip horizontal
-                posY = flipV ? 64 * -1 : 0; // Set y position to -100% if flip vertical
+            var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+            return ratio;
+        }
+        var src1 = document.getElementById('ss1');
+        var src2 = document.getElementById('ss2');
 
-            ctx.save(); // Save the current state
-            ctx.scale(scaleH, scaleV); // Set scale to flip the image
-            ctx.drawImage(image, posX, posY, 64, 64); // draw the image
-            ctx.restore(); // Restore the last saved state
-            return ctx;
-        };
-        var src = document.getElementById('ss1');
+        var cvs1 = document.createElement('canvas');//('canvas_' + y.toString());
+        cvs1.width = 2000;
+        cvs1.height = 2000;
+        cvs1.x=0;
+        cvs1.y=0;
+        var cvs2 = document.createElement('canvas');//('canvas_' + y.toString());
+        cvs2.width = 2000;
+        cvs2.height = 2000;
+        cvs2.x=0;
+        cvs2.y=0;
 
-        var cvs = document.createElement('canvas');//('canvas_' + y.toString());
-        cvs.width = 2000;cvs.height = 2000;cvs.x=0;cvs.y=0;
-        var ctx = cvs.getContext('2d');
+        var ctx1 = cvs1.getContext('2d');
         //ctx.scale(0.5,0.5);
-        ctx.drawImage(src, 0, 0);
+        ctx1.drawImage(src1, 0, 0);
+        var ctx2 = cvs2.getContext('2d');
+        ctx2.drawImage(src2, 0, 0);
 
-        var cv2 = document.createElement('canvas');
-        cv2.width = 62;
-        cv2.height = 57;
-        ctx2 = cv2.getContext('2d');
+        var imgCvs = document.createElement('canvas');
+        imgCvs.width = 62;
+        imgCvs.height = 57;
+        imgCvsCtx = imgCvs.getContext('2d');
 
+        var getImg;
+        this.playerSprite = "brownDragon";
         switch(this.playerSprite)
         {
             case "roundRooster":
-                console.log('rooster');
 
                 // glide right
-                var img2=ctx.getImageData(10,7,62,57);//35,13,128,128);
-                ctx2.putImageData(img2, 0, 0);
+                getImg=ctx1.getImageData(10,7,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
                 this.glideRight = new Image();
-                this.glideRight.src = cv2.toDataURL('image/png');//cvs.toDataURL('image/png');
-                //this.width = cv2.width;this.height=cv2.height;
-                //cv2 = null;
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
 
                 // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(926,7,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
                 this.glideLeft = new Image();
-                this.glideLeft = flipImage(this.glideRight, ctx2, true, false);
-                // ctx2.save();
-                // ctx2.clearRect(0, 0, cv2.width, cv2.height);
-                //
-                // //ctx2.drawImage(this.glideRight, 0, 0);
-                // /*ctx2.putImageData(img2, 0, 0);
-                // ctx2.translate(this.glideRight.width, 0);
-                // ctx2.scale(-1, 1);*/
-                // this.glideLeft = new Image();
-                // this.glideLeft.src = cv2.toDataURL('image/png');
-                //
-                // ctx2.restore();
-                //this.canvasContext.drawImage(image, 0, 0);
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
 
+                // flap right
+                getImg=ctx1.getImageData(926,7,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
 
-                //var paddingW = 19;
-                //var paddingH =
-                //var img2=ctx.getImageData(10 + 62 + paddingW,7,62,57);//35,13,128,128);
-                /*ctx2.putImageData(this.glideLeft, 0, 0);
+                // flap left
+                getImg = ctx2.getImageData(10,7,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(260,7,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(260,7,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(260,95,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(260,95,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+            break;
+
+            case "brownFishlike":
+
+                // glide right
+                getImg=ctx1.getImageData(10,173,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
                 this.glideRight = new Image();
-                this.glideRight.src = cv2.toDataURL('image/png');//cvs.toDataURL('image/png');*/
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
 
-                //console.log('gright', this.glideRight.width, this.glideRight.height, cvs.width,cvs.height);//.width, this.glideRight.height);
+                // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(926,173,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideLeft = new Image();
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
+
+                // flap right
+                getImg=ctx1.getImageData(926,173,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // flap left
+                getImg = ctx2.getImageData(10,173,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(260,173,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(260,173,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(260,266,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(260,266,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+            break;
+
+            case "greenRound":
+                // glide right
+                getImg=ctx1.getImageData(10,339,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(926,339,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideLeft = new Image();
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
+
+                // flap right
+                getImg=ctx1.getImageData(926,339,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // flap left
+                getImg = ctx2.getImageData(10,339,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(260,339,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(260,339,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(260,428,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(260,428,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+            break;
+
+            case "redScreamer":
+                // glide right
+                getImg=ctx1.getImageData(3,506,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+                /*var ratio = calculateAspectRatioFit(this.glideRight.width,this.glideRight.height,64,64);
+                console.log('ratio', ratio);
+                this.glideRight.width*=ratio;
+                this.glideRight.height*=ratio;*/
+
+                // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(919,506,77,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideLeft = new Image();
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
+
+                // flap right
+                getImg=ctx1.getImageData(502,506,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // flap left
+                getImg = ctx2.getImageData(420,506,77,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(252,506,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(252,506,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(252,607,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(252,607,77,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                this.size.hx = 77;
+                this.size.hy = 57;
+
+            break;
+
+            case "brownDragon":
+                // glide right
+                getImg=ctx1.getImageData(10,673,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(926,673,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideLeft = new Image();
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
+
+                // flap right
+                getImg=ctx1.getImageData(926,673,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // flap left
+                getImg = ctx2.getImageData(10,673,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(260,673,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(260,673,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(260,768,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(260,768,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+            break;
+
+            case "greenSpotter":
+                // glide right
+                getImg=ctx1.getImageData(10,840,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideRight = new Image();
+                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // glide left
+                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
+                getImg = ctx2.getImageData(926,840,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.glideLeft = new Image();
+                this.glideLeft.src = imgCvs.toDataURL('image/png');
+
+                // flap right
+                getImg=ctx1.getImageData(926,840,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapRight = new Image();
+                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // flap left
+                getImg = ctx2.getImageData(10,840,62,57);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.flapLeft = new Image();
+                this.flapLeft.src = imgCvs.toDataURL('image/png');
+
+                // stand right
+                getImg=ctx1.getImageData(260,840,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standRight = new Image();
+                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // stand left
+                getImg=ctx2.getImageData(260,840,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.standLeft = new Image();
+                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable right
+                getImg=ctx1.getImageData(260,943,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnRight = new Image();
+                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
+                // vulnerable left
+                getImg=ctx2.getImageData(260,943,62,57);//35,13,128,128);
+                imgCvsCtx.putImageData(getImg, 0, 0);
+                this.vulnLeft = new Image();
+                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
+
             break;
         }
+
+        // gc
+        cvs1 = null;
+        cvs2 = null;
+        imgCvs = null;
+        //src1.parentNode.removeChild(src1);
+        src1 = null;
+        src2 = null;
+        //console.log('::',src1);
         /*
         // spritesheet
         var playerSheet = document.getElementById('ss1');
@@ -255,12 +567,12 @@ game_player.prototype.doFlap = function()
     //console.log('a', this.a);
 
     //if (vy < -6)
-    console.log('vy1', this.vy);
+    //console.log('vy1', this.vy);
     // if (this.vy > 0)
     // this.vy -= (this.thrust + this.thrustModifier) * 5;
     // else
     this.vy = -(this.thrust + this.thrustModifier) * 5;
-    console.log('vy2', this.vy);
+    //console.log('vy2', this.vy);
     if (this.a !== 0)
         this.vx = (this.thrust + this.thrustModifier);///10;
     //console.log('vx', this.vx, 'vy', this.vy);
@@ -293,7 +605,7 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    console.log('do land', this.vy);
+    //console.log('do land', this.vy);
 
     // if falling fataly fast...
     if (this.vy > 10)
@@ -378,7 +690,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
     // if (this.team === 1 && flagType === 2) return;
     // if (this.team === 2 && flagType === 3) return;
 
-    console.log('player.takeFlag', flagType, flag.name, flag.sourceSlot);
+    console.log('player.takeFlag', flag.id, flagType, flag.name, flag.sourceSlot);
 
     this.hasFlag = flagType;
     this.flagTakenAt = this.game.server_time;
@@ -393,72 +705,72 @@ game_player.prototype.takeFlag = function(flag, flagType)
     switch(flag.sourceSlot)
     {
         case "midSlot":
-            if (this.team === 1) flag.setTargetSlot("slot6");
-            else flag.setTargetSlot("slot5");
+            if (this.team === 1) flag.targetSlot = "slot6";
+            else flag.targetSlot = "slot5";
         break;
 
         case "slotRed":
-            flag.setTargetSlot("slot1");
+            flag.targetSlot = "slot1";
         break;
 
         case "slotBlue":
-            flag.setTargetSlot("slot10");
+            flag.targetSlot = "slot10";
         break;
 
         case "slot1":
-            if (this.team === 1) flag.setTargetSlot("slotRed");
-            else flag.setTargetSlot("slot2");
+            if (this.team === 1) flag.targetSlot = "slotRed";
+            else flag.targetSlot = "slot2";
         break;
 
         case "slot2":
             if (flag.name == "redFlag")
             {
-                if (this.team === 1) flag.setTargetSlot("slot1");
-                else flag.setTargetSlot("slot3");
+                if (this.team === 1) flag.targetSlot = "slot1";
+                else flag.targetSlot = "slot3";
             }
             else // mid flag
             {
-                if (this.team === 1) flag.setTargetSlot("slot3");
-                else flag.setTargetSlot("slot1");
+                if (this.team === 1) flag.targetSlot = "slot3";
+                else flag.targetSlot = "slot1";
             }
         break;
 
         case "slot3":
             if (flag.name == "redFlag")
             {
-                if (this.team === 1) flag.setTargetSlot("slot2");
-                else flag.setTargetSlot("slot4");
+                if (this.team === 1) flag.targetSlot = "slot2";
+                else flag.targetSlot = "slot4";
             }
             else // mid flag
             {
-                if (this.team === 1) flag.setTargetSlot("slot4");
-                else flag.setTargetSlot("slot2");
+                if (this.team === 1) flag.targetSlot = "slot4";
+                else flag.targetSlot = "slot2";
             }
         break;
 
         case "slot4":
             if (flag.name == "redFlag")
             {
-                if (this.team === 1) flag.setTargetSlot("slot3");
-                else flag.setTargetSlot("slot5");
+                if (this.team === 1) flag.targetSlot = "slot3";
+                else flag.targetSlot = "slot5";
             }
             else // mid flag
             {
-                if (this.team === 1) flag.setTargetSlot("slot5");
-                else flag.setTargetSlot("slot3");
+                if (this.team === 1) flag.targetSlot = "slot5";
+                else flag.targetSlot = "slot3";
             }
         break;
 
         case "slot5":
             if (flag.name == "redFlag")
             {
-                if (this.team === 1) flag.setTargetSlot("slot4");
-                else flag.setTargetSlot("slot6");
+                if (this.team === 1) flag.targetSlot = "slot4";
+                else flag.targetSlot = "slot6";
             }
             else // mid flag
             {
-                if (this.team === 1) flag.setTargetSlot("midSlot");
-                else flag.setTargetSlot("slot4");
+                if (this.team === 1) flag.targetSlot = "midSlot";
+                else flag.targetSlot = "slot4";
             }
         break;
 
@@ -467,73 +779,92 @@ game_player.prototype.takeFlag = function(flag, flagType)
         case "slot6":
             if (flag.name == "blueFlag")
             {
-                if (this.team === 2) flag.setTargetSlot("slot7");
-                else flag.setTargetSlot("slot5");
+                if (this.team === 2) flag.targetSlot = "slot7";
+                else flag.targetSlot = "slot5";
             }
             else // mid flag
             {
-                if (this.team === 2) flag.setTargetSlot("midSlot");
-                else flag.setTargetSlot("slot7");
+                if (this.team === 2) flag.targetSlot = "midSlot";
+                else flag.targetSlot = "slot7";
             }
         break;
 
         case "slot7":
             if (flag.name == "blueFlag")
             {
-                if (this.team === 2) flag.setTargetSlot("slot8");
-                else flag.setTargetSlot("slot6");
+                if (this.team === 2) flag.targetSlot = "slot8";
+                else flag.targetSlot = "slot6";
             }
             else // mid flag
             {
-                if (this.team === 2) flag.setTargetSlot("slot6");
-                else flag.setTargetSlot("slot8");
+                if (this.team === 2) flag.targetSlot = "slot6";
+                else flag.targetSlot = "slot8";
             }
         break;
 
         case "slot8":
             if (flag.name == "blueFlag")
             {
-                if (this.team === 2) flag.setTargetSlot("slot9");
-                else flag.setTargetSlot("slot7");
+                if (this.team === 2) flag.targetSlot = "slot9";
+                else flag.targetSlot = "slot7";
             }
             else // mid flag
             {
-                if (this.team === 2) flag.setTargetSlot("slot7");
-                else flag.setTargetSlot("slot9");
+                if (this.team === 2) flag.targetSlot = "slot7";
+                else flag.targetSlot = "slot9";
             }
         break;
 
         case "slot9":
             if (flag.name == "blueFlag")
             {
-                if (this.team === 2) flag.setTargetSlot("slot10");
-                else flag.setTargetSlot("slot8");
+                if (this.team === 2) flag.targetSlot = "slot10";
+                else flag.targetSlot = "slot8";
             }
             else // mid flag
             {
-                if (this.team === 2) flag.setTargetSlot("slot8");
-                else flag.setTargetSlot("slot10");
+                if (this.team === 2) flag.targetSlot = "slot8";
+                else flag.targetSlot = "slot10";
             }
         break;
 
         case "slot10":
             if (flag.name == "blueFlag")
             {
-                if (this.team === 2) flag.setTargetSlot("slotBlue");
-                else flag.setTargetSlot("slot9");
+                if (this.team === 2) flag.targetSlot = "slotBlue";
+                else flag.targetSlot = "slot9";
             }
             else // mid flag
             {
-                if (this.team === 2) flag.setTargetSlot("slot9");
-                else flag.setTargetSlot("slotBlue");
+                if (this.team === 2) flag.targetSlot = "slot9";
+                else flag.targetSlot = "slotBlue";
             }
         break;
     }
+    // set target locally
+    console.log('targetSlot', flag.targetSlot);
+    //flag.targetSlot = flag.getTargetSlot
 
     if (!this.game.server)
     {
+        // show toast
         new game_toast().show();
     }
+    else
+    {
+        console.log('socket emit', flag.targetSlot);
+        // inform socket
+        for (var l = 0; l < this.game.allplayers.length; l++)
+        {
+            if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
+            {
+                console.log('flag sent', flag);
+                //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
+                this.game.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name);//_this.laststate);
+            }
+        }
+    }
+
 };
 
 game_player.prototype.removeFlag = function(success, slot)
@@ -1148,17 +1479,21 @@ game_player.prototype.draw = function()
     {
         if (this.dir === 1)
             img = document.getElementById("p1stun-l");
+            //this.vulnLeft;//document.getElementById("p1stun-l");
         else img = document.getElementById("p1stun-r");
 
-        imgW = 64;//40;
-        imgH = 64;//40;
+        imgW = 64;
+        imgH = 64;
     }
     else if (this.flap === true)
     {
+        //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
         this.flap = false;
-        if (this.dir === 1) img = document.getElementById("p1l");
+        if (this.dir === 1) document.getElementById("p1l");
+        //img = this.flapLeft;//document.getElementById("p1l");
         else img = document.getElementById("p1r");
+        //this.flapRight;//document.getElementById("p1r");
 
         imgW = 64;//40;
         imgH = 64;//40;
@@ -1166,9 +1501,10 @@ game_player.prototype.draw = function()
     else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1)
-            img = document.getElementById("p1stand-l");
-        else img = document.getElementById("p1stand-r");
+        if (this.dir === 1)img=document.getElementById("p1stand-l");
+            //img = this.standLeft;// document.getElementById("p1stand-l");
+        else img=document.getElementById("p1stand-r");
+        //img = this.standRight;//document.getElementById("p1stand-r");
 
         imgW = 64;//33;
         imgH = 64;//44;
@@ -1187,7 +1523,9 @@ game_player.prototype.draw = function()
         if (this.dir === 1)
             img = document.getElementById("p2l");
             //img = ctx.putImageData(imgData,10,70);
-        else img = document.getElementById("p2r");
+            //img = this.glideLeft;
+        else //img = this.glideRight;//
+        img = document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         imgW = 64;//40;
@@ -1198,7 +1536,7 @@ game_player.prototype.draw = function()
     if (this.hasFlag > 0)
     {
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.game.server_time - this.flagTakenAt));
-        var ct = Math.floor(this.game.server_time - this.flagTakenAt);
+        /*var ct = Math.floor(this.game.server_time - this.flagTakenAt);
         ct = 60 - ct;
         //console.log('carrying flag', this.carryingFlag.name);
         if (ct === 0)
@@ -1220,7 +1558,7 @@ game_player.prototype.draw = function()
             this.hasFlag = 0;
             // get out
             return;
-        }
+        }*/
         var flagImg;
         switch(this.hasFlag)
         {
@@ -1246,15 +1584,18 @@ game_player.prototype.draw = function()
         //game.ctx.save();
         game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
         // draw timer
+        /*
         game.ctx.font = "18px Mirza";
         game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
         game.ctx.textAlign = 'center';
+
         game.ctx.fillText(
             ct,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
             (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
             this.pos.y - 5//txtOffset
             //100
         );
+        */
         //game.ctx.restore();
 
     }
@@ -1264,7 +1605,7 @@ game_player.prototype.draw = function()
         //console.log(this.glideRight);
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         //if (this.glideRight)
-            game.ctx.drawImage(this.glideLeft, this.pos.x, this.pos.y, this.glideLeft.width, this.glideLeft.height);//, imgW, imgH);
+            game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
         //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);

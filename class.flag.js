@@ -31,7 +31,7 @@ function game_flag(data, context)
   this.isActive = (this.type == "flag") ? true : false;
   this.validHolder = undefined;
   this.heldBy = null;
-  this.targetSlot = null;
+  //this.targetSlot = null;
   this.onCooldown = false;
   this.onCooldownTimer = null;
   this.onCooldownLength = 15;
@@ -127,9 +127,160 @@ function game_flag(data, context)
   //console.log('construct', data.type, this);
 }
 
-game_flag.prototype.setTargetSlot = function(slot)
+game_flag.prototype.targetSlot = null;/*function(slot)
 {
   this.targetSlot = slot;
+};*/
+
+game_flag.prototype.getTargetSlot = function(team, sourceSlot)
+{
+  console.log('getTargetSlot', sourceSlot, team);
+
+  team = parseInt(team);
+
+  var targetSlot = null;
+
+  // set target slot
+  switch(sourceSlot)
+  {
+      case "midSlot":
+          if (team === 1) targetSlot = "slot6";
+          else targetSlot = "slot5";
+      break;
+
+      case "slotRed":
+          targetSlot = "slot1";
+      break;
+
+      case "slotBlue":
+          targetSlot = "slot10";
+      break;
+
+      case "slot1":
+          if (team === 1) targetSlot = "slotRed";
+          else targetSlot = "slot2";
+      break;
+
+      case "slot2":
+          if (flag.name == "redFlag")
+          {
+              if (team === 1) targetSlot = "slot1";
+              else targetSlot = "slot3";
+          }
+          else // mid flag
+          {
+              if (team === 1) targetSlot = "slot3";
+              else targetSlot = "slot1";
+          }
+      break;
+
+      case "slot3":
+          if (flag.name == "redFlag")
+          {
+              if (team === 1) targetSlot = "slot2";
+              else targetSlot = "slot4";
+          }
+          else // mid flag
+          {
+              if (team === 1) targetSlot = "slot4";
+              else targetSlot = "slot2";
+          }
+      break;
+
+      case "slot4":
+          if (flag.name == "redFlag")
+          {
+              if (team === 1) targetSlot = "slot3";
+              else targetSlot = "slot5";
+          }
+          else // mid flag
+          {
+              if (team === 1) targetSlot = "slot5";
+              else targetSlot = "slot3";
+          }
+      break;
+
+      case "slot5":
+          if (flag.name == "redFlag")
+          {
+              if (team === 1) targetSlot = "slot4";
+              else targetSlot = "slot6";
+          }
+          else // mid flag
+          {
+              if (team === 1) targetSlot = "midSlot";
+              else targetSlot = "slot4";
+          }
+      break;
+
+      // blue territory
+
+      case "slot6":
+          if (flag.name == "blueFlag")
+          {
+              if (team === 2) targetSlot = "slot7";
+              else targetSlot = "slot5";
+          }
+          else // mid flag
+          {
+              if (team === 2) targetSlot = "midSlot";
+              else targetSlot = "slot7";
+          }
+      break;
+
+      case "slot7":
+          if (flag.name == "blueFlag")
+          {
+              if (team === 2) targetSlot = "slot8";
+              else targetSlot = "slot6";
+          }
+          else // mid flag
+          {
+              if (team === 2) targetSlot = "slot6";
+              else targetSlot = "slot8";
+          }
+      break;
+
+      case "slot8":
+          if (flag.name == "blueFlag")
+          {
+              if (team === 2) targetSlot = "slot9";
+              else targetSlot = "slot7";
+          }
+          else // mid flag
+          {
+              if (team === 2) targetSlot = "slot7";
+              else targetSlot = "slot9";
+          }
+      break;
+
+      case "slot9":
+          if (flag.name == "blueFlag")
+          {
+              if (team === 2) targetSlot = "slot10";
+              else targetSlot = "slot8";
+          }
+          else // mid flag
+          {
+              if (team === 2) targetSlot = "slot8";
+              else targetSlot = "slot10";
+          }
+      break;
+
+      case "slot10":
+          if (flag.name == "blueFlag")
+          {
+              if (team === 2) targetSlot = "slotBlue";
+              else targetSlot = "slot9";
+          }
+          else // mid flag
+          {
+              if (team === 2) targetSlot = "slot9";
+              else targetSlot = "slotBlue";
+          }
+      break;
+  }
+  return targetSlot;
 };
 
 game_flag.prototype.setter = function(obj)
