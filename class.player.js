@@ -547,6 +547,12 @@ game_player.prototype.pos = {};
 game_player.prototype.pos.x = 0;
 game_player.prototype.pos.y = 0;
 game_player.prototype.dead = false;
+// game_player.prototype.setFlag = function(int) // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
+// {
+//     console.log('player.setFlag', int);
+//     this.hasFlag = int;
+// };
+
 
 // game_player.prototype.update = function()
 // {
@@ -692,9 +698,14 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
     console.log('player.takeFlag', flag.id, flagType, flag.name, flag.sourceSlot);
 
-    this.hasFlag = flagType;
+    /*var cooldown = this.game._.find(this.game.clientCooldowns, {"flag":flag.name});
+    cooldown.heldBy = this.mp;
+    cooldown.timer = NaN;*/
+
+    /*this.hasFlag = flagType;
     this.flagTakenAt = this.game.server_time;
-    this.carryingFlag = flag;
+    this.carryingFlag = flag;*/
+    this.hasFlag = flagType;
 
     // disable bubble
     if (this.bubble) this.bubble = false;
@@ -856,41 +867,72 @@ game_player.prototype.takeFlag = function(flag, flagType)
         // inform socket
         for (var l = 0; l < this.game.allplayers.length; l++)
         {
+            // dispatch flagremove socket event
             if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
             {
-                console.log('flag sent', flag);
+                console.log('flag sent', flag.name);
                 //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-                this.game.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name);//_this.laststate);
+                this.game.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name+"|"+this.flagTakenAt);//_this.laststate);
             }
         }
+        // update clientCooldowns objs
+        var cd = this.game._.find(this.game.clientCooldowns, {"name":flag.name});
+        console.log(this.game.clientCooldowns);
+        cd.heldBy = this.mp;
+        cd.src = flag.sourceSlot;
+        cd.target = flag.targetSlot;
+        console.log('cooldown obj');
+
+        // start cooldown
+        // get event by id "fc" (flag carried)
+        var evt = this.game._.find(this.game.events, {'id':"fc"});
+        evt.flag = flag;
+        console.log('got evt', evt);
+        evt.doStart();
+        // call event.doStart() to begin 60 second cooldown
     }
 
 };
 
-game_player.prototype.removeFlag = function(success, slot)
+game_player.prototype.removeFlag = function(success, slot, flag)
 {
-    console.log('removing flag from player', slot);
+    console.log('removing flag from player', flag);
     if (success)
     {
-        this.carryingFlag.x = slot.x - (slot.width/2);
-        this.carryingFlag.y = slot.y - (slot.height/2);
-        this.carryingFlag.sourceSlot = slot.name;
+        flag.x = slot.x - (slot.width/2);
+        flag.y = slot.y - (slot.height/2);
+        flag.sourceSlot = slot.name;
+        flag.isActive = false;
         // note: targetSlot will be defined when flag is taken!
 
+        console.log('socket emit', slot);
+        // inform socket
+        for (var l = 0; l < this.game.allplayers.length; l++)
+        {
+            if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
+            {
+                console.log('flag sent', slot);
+                //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
+                this.game.allplayers[l].instance.send('f.a.'+this.mp+"|"+slot.name+"|"+flag.name);//_this.laststate);
+            }
+        }
+
         // revise territory
+        /*
         if (this.game.server)
         {
             console.log('emit territory change data');
         }
-        else
+        */
+        if (!this.game.server)
         {
             this.game.updateTerritory();
         }
     }
-
-    this.carryingFlag.reset(success);//, this.game.server_time);
+    var flagObj = this.game._.find(this.game.flagObjects, {"name":flag.name});
+    flagObj.reset(success);//, this.game.server_time);
     this.hasFlag = 0;
-    this.carryingFlag = null;
+    //this.carryingFlag = null;
 };
 
 game_player.prototype.collision = false;
@@ -1490,7 +1532,7 @@ game_player.prototype.draw = function()
         //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
         this.flap = false;
-        if (this.dir === 1) document.getElementById("p1l");
+        if (this.dir === 1) img = document.getElementById("p1l");
         //img = this.flapLeft;//document.getElementById("p1l");
         else img = document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
@@ -1533,13 +1575,19 @@ game_player.prototype.draw = function()
     }
 
     // draw flag?
-    if (this.hasFlag > 0)
+    //console.log('this.hasFlag', this.hasFlag);
+    if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
+        var flag = this.game._.find(this.game.clientCooldowns, {'heldBy':this.mp});
+        console.log('gotflag', flag, this.game.clientCooldowns);
+
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.game.server_time - this.flagTakenAt));
-        /*var ct = Math.floor(this.game.server_time - this.flagTakenAt);
-        ct = 60 - ct;
+        //*
+        //var ct = Math.floor(this.game.server_time - this.flagTakenAt);
+        //ct = 60 - ct;
         //console.log('carrying flag', this.carryingFlag.name);
-        if (ct === 0)
+        //console.log('flag.timer', flag.timer);
+        if (flag && flag.timer === 0)
         {
             console.log('reset', this.hasFlag);
             // reset flag
@@ -1557,9 +1605,11 @@ game_player.prototype.draw = function()
 
             this.hasFlag = 0;
             // get out
-            return;
-        }*/
+            //return;
+        }
+        //*/
         var flagImg;
+        console.log('* this.hasFlag', this.hasFlag);
         switch(this.hasFlag)
         {
             case 1: // mid
@@ -1582,20 +1632,29 @@ game_player.prototype.draw = function()
         }
         // draw flag
         //game.ctx.save();
-        game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
-        // draw timer
-        /*
-        game.ctx.font = "18px Mirza";
-        game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
-        game.ctx.textAlign = 'center';
-
-        game.ctx.fillText(
-            ct,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
-            (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
-            this.pos.y - 5//txtOffset
-            //100
-        );
-        */
+        console.log('flagImg', flagImg, this.dir);
+        if (flagImg)
+        {
+            game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
+            // draw timer
+            //*
+            game.ctx.font = "18px Mirza";
+            game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
+            game.ctx.textAlign = 'center';
+            //if (this.carryingFlag)
+            if (flag)
+            game.ctx.fillText(
+                flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
+                (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
+                this.pos.y - 5//txtOffset
+                //100
+            );
+        }
+        else {
+            console.warn('attempting to draw flag when player "hasFlag" appears to be 0');
+            this.hasFlag = 0;
+        }
+        //*/
         //game.ctx.restore();
 
     }

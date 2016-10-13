@@ -18,7 +18,13 @@ function game_event(game_instance)
 	///////////////////////////
 	// types
   this.TYPE_CHEST = 1;
+  this.TYPE_FLAG_CARRIED_COOLDOWN = 2;
+  this.TYPE_FLAG_SLOTTED_COOLDOWN = 3;
   //this.TYPE_REPEATABLE = 2;
+
+  // cooldown lengths
+  this.COOLDOWN_FLAG_CARRIED = 60;
+  this.COOLDOWN_FLAG_SLOTTED = 15;
 
   // status
   this.STATE_RUNNING = 1;
@@ -37,6 +43,8 @@ function game_event(game_instance)
   this.state = this.STATE_AVAILABLE;
   //this.status = this.STATE_STOPPED;
   this.repeatable = true;
+  this.timer = NaN;
+  this.lastTimer = NaN;
 
   this.rangeMin = 0;
   this.rangeMax = 0;
@@ -49,20 +57,42 @@ function game_event(game_instance)
 
   this.spawn = null;
   this.passive = null;
+
+  this.flag = null;
 }
 
 game_event.prototype.update = function()
 {
+  //console.log('event.update');
   this.dif = Math.floor(this.game.server_time - this.triggerOn);
+  //console.log(this.dif);
   //console.log('triggered in', dif, 'seconds', this.triggeredAt, this.triggerOn);// at', this.triggerOn);
 
-  if (this.dif >= 0)
+  if (this.dif >= 1)
   {
     //console.log('TRIGGER EVENT!!!!', this.type);
 
     // prep data for the getEvent() fnc
     switch(this.type)
     {
+      case this.TYPE_FLAG_CARRIED_COOLDOWN:
+        console.log('cooldown complete!', this.flag);//flag_carried_cooldown_event_update');
+        var mp = this.flag.heldBy;
+        // server reset vars
+        this.flag.isHeld = false;
+        this.flag.isActive = true;
+        this.flag.heldBy = null;
+        // reset players vars (flag.heldBy)
+        console.log('mp=',mp);
+        var player = this.game._.find(this.game.allplayers, {"mp":mp});
+        console.log('player', player);
+        player.hasFlag = 0;
+        console.log('dtf', player);
+
+        // change state to complete
+        this.state = this.STATE_STOPPED;
+        // reset flag
+      break;
       case this.TYPE_CHEST:
 
         //console.log('prep chest', this.game.chestSpawnPoints.length);
@@ -102,6 +132,17 @@ game_event.prototype.update = function()
 
     return true;
   }
+  else if (this.type == this.TYPE_FLAG_CARRIED_COOLDOWN)
+  {
+    this.timer = Math.abs(Math.floor(this.game.server_time - this.triggerOn));
+    //console.log('timer', this.timer);
+    if (this.timer == this.lastTimer) return false;
+    else
+    {
+      this.lastTimer = this.timer;
+      return true;
+    }
+  }
   else return false;
 };
 
@@ -121,11 +162,33 @@ game_event.prototype.setRandomTriggerTime = function(min, max)
   //console.log('new event triggered at', this.triggerOn);
 };
 
+game_event.prototype.setCooldownTime = function()
+{
+  console.log('event.setCooldownTime', this);
+
+  // set start and end times (based on server_time)
+  var cd;
+  if (this.TYPE_FLAG_CARRIED_COOLDOWN)
+    cd = this.COOLDOWN_FLAG_CARRIED;
+  else if (this.TYPE_FLAG_SLOTTED_COOLDOWN)
+    cd = this.COOLDOWN_FLAG_SLOTTED;
+  this.triggeredAt = (this.game.server_time) ? Math.floor(this.game.server_time) : 0;
+  this.triggerOn = Math.floor(this.triggeredAt) + cd;
+};
+
 game_event.prototype.doStart = function()
 {
+  console.log('event.doStart', this.type);
+
+  switch(this.type)
+  {
+    case this.TYPE_FLAG_CARRIED_COOLDOWN:
+      this.setCooldownTime();
+    break;
+  }
   this.running = true;
-  this.triggeredAt = new Date();
-  this.status = this.STATE_COMPLETE;
+  //this.triggeredAt = new Date();
+  this.state = this.STATE_RUNNING;//COMPLETE;
 };
 
 game_event.prototype.doStop = function()

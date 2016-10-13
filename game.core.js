@@ -104,6 +104,11 @@ var game_core = function(game_instance)
     this.tilemapData = null;
     this.chestSpawnPoints = [];
     this.flagObjects = [];
+    this.clientCooldowns = [
+        {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
+        {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
+        {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
+    ];
 
     this.cam = {};
 
@@ -292,14 +297,36 @@ var game_core = function(game_instance)
         // create startup events
         ///////////////////////////////////
         //*
+        // create chest spawn event
         var evt = new game_event_server(this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
-        console.log('evt type', evt.type);
+        //console.log('evt type', evt.type);
         evt.setRandomTriggerTime(25, 45);
         this.events.push(evt);
-        console.log('evt',this.events);
-        //*/
+        //console.log('chest event',this.events);
+
+        // create flag carried cooldown event
+        evt = new game_event_server(this);
+        evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
+        evt.state = evt.STATE_STOPPED;
+        evt.id = "fc"; // event flag carried
+        evt.repeatable = false;
+        //console.log('evt type', evt.type);
+        //evt.setRandomTriggerTime(25, 45);
+        this.events.push(evt);
+
+        // create flag slotted cooldown event
+        // create flag carried cooldown event
+        evt = new game_event_server(this);
+        evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
+        evt.state = evt.STATE_STOPPED;
+        evt.id = "fs"; // event flag carried
+        evt.repeatable = false;
+        //console.log('evt type', evt.type);
+        //evt.setRandomTriggerTime(25, 45);
+        this.events.push(evt);
+        //console.log('startup events', this.events);
     }
     else // clients (browsers)
     {
@@ -608,14 +635,14 @@ game_core.prototype.apiNode = function()
                         {
                             for (var k = 0; k < objectgroupNode[j].object.length; k++)
                             {
-                                console.log('->',objectgroupNode[j].object[k].$);
+                                //console.log('->',objectgroupNode[j].object[k].$);
                                 _this.chestSpawnPoints.push(objectgroupNode[j].object[k].$);
                             }
                         }
                     break;
 
                     case "flagObjects":
-                        console.log('flagobjs', objectgroupNode[j].object.length);
+                        //console.log('flagobjs', objectgroupNode[j].object.length);
                         var game_flag_server = require('./class.flag');
                         var flag;
                         if (objectgroupNode[j].object.length === undefined)
@@ -623,14 +650,14 @@ game_core.prototype.apiNode = function()
                             flag = new game_flag_server(objectgroupNode[j].object.$);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
-                            console.log('-flag', flag);
+                            //console.log('-flag', flag);
                             _this.flagObjects.push(flag);
                         }
                         else
                         {
                             for (var l = 0; l < objectgroupNode[j].object.length; l++)
                             {
-                                console.log('->',objectgroupNode[j].object[l].$);
+                                //console.log('->',objectgroupNode[j].object[l].$);
                                 //_this.flagObjects.push(objectgroupNode[j].object[l].$);
 
                                 flag = new game_flag_server(objectgroupNode[j].object[l].$);
@@ -643,8 +670,8 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
-            console.log('chests:', _this.chestSpawnPoints);
-            console.log('flagObjects:', _this.flagObjects);
+            //console.log('chests:', _this.chestSpawnPoints);
+            //console.log('flagObjects:', _this.flagObjects);
         });
     });
 };
@@ -1844,7 +1871,7 @@ game_core.prototype.check_collision = function( player )
             (player.pos.y + (player.size.hy/2)) > fo.y
         )
         {
-            //console.log('hit flag obj', fo.name);
+            //console.log('hit flag obj', fo.name, fo.isHeld, fo.isActive, player.hasFlag);
 
             // player takes flag?
             if (fo.isHeld === false && fo.isActive && player.hasFlag === 0)
@@ -2016,6 +2043,66 @@ game_core.prototype.client_onchestremove = function(data)
 game_core.prototype.client_onflagadd = function(data)
 {
     console.log('client_onflagadd', data);
+
+    var _this = this;
+
+    //data: player.mp|flag.name
+    var split = data.split("|");
+    var mp = split[0];
+    var slotName = split[1];
+    var flagName = split[2];
+    var playerSource, slotUsed;
+
+    /////////////////////////////////////
+    // get source player
+    /////////////////////////////////////
+    this._.forEach(this.allplayers, function(ply)
+    {
+        if (ply.mp == mp)
+        {
+            playerSource = ply;
+            return false; // break
+        }
+    });
+    console.log('source player', playerSource);
+
+    /////////////////////////////////////
+    // show flag in slot
+    /////////////////////////////////////
+    var targetSlot, flagSlotted;
+    this._.forEach(this.flagObjects, function(fo)
+    {
+        //console.log(fo.name, slotName);
+        if (fo.name == slotName)
+        {
+            targetSlot = fo;
+            //targetSlot.targetSlot = flag.getTargetSlot(parseInt(playerSource.team), fo.sourceSlot);
+            console.log('tslot', fo);//flagTaken.targetSlot);
+            //return false; // break
+        }
+        else if (fo.name == flagName)
+        {
+            flagSlotted = fo;
+            console.log('tflag', fo);
+        }
+    });
+    flagSlotted.x = targetSlot.x - (targetSlot.width/2);
+    flagSlotted.y = targetSlot.y - (targetSlot.height/2);
+    flagSlotted.sourceSlot = targetSlot.name;
+    flagSlotted.visible = true;
+    flagSlotted.isActive = true;
+    flagSlotted.isPlanted = true;
+    flagSlotted.isHeld = false;
+
+    /////////////////////////////////////
+    // show toast
+    /////////////////////////////////////
+    new game_toast().show();
+
+    /////////////////////////////////////
+    // update territory
+    /////////////////////////////////////
+    this.updateTerritory();
 };
 game_core.prototype.client_onflagremove = function(data)
 {
@@ -2027,6 +2114,7 @@ game_core.prototype.client_onflagremove = function(data)
     var split = data.split("|");
     var mp = split[0];
     var flagName = split[1];
+    var flagTakenAt = split[2];
     var playerSource, flagTaken;
 
     /////////////////////////////////////
@@ -2062,6 +2150,17 @@ game_core.prototype.client_onflagremove = function(data)
     flagTaken.visible = false;
     flagTaken.isHeld = true;
     flagTaken.isActive = false;
+
+    // set player's has flag attribute // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
+    if (flagTaken.name == "midFlag")
+        playerSource.hasFlag = 1;
+    else if (flagTaken.name == "redFlag")
+        playerSource.hasFlag = 2;
+    else if (flagTaken.name == "blueFlag")
+        playerSource.hasFlag = 3;
+
+    console.log('playerSource hasFlag', playerSource.hasFlag);
+
 
     /////////////////////////////////////
     // show toast
@@ -2503,31 +2602,47 @@ game_core.prototype.server_update = function()
                             m: evt.passive.modifier
                         };
                     break;
+                    case evt.TYPE_FLAG_CARRIED_COOLDOWN:
+
+                        console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
+                        _this.laststate[evt.id] =
+                        {
+                            t: evt.timer,
+                            f: evt.flag.name,
+                            p: evt.flag.heldBy
+                        };
+                    break;
                 }
             }
         }
     });
 
     // process flags
+    /*
     this._.forEach(this.flagObjects, function(flag)
     {
-        if (flag.isHeld)
+        //if (flag.isHeld)
+        if (flag.type=="flag")
         {
             //console.log('flags', flag);
             _this.laststate[flag.id] =
             {
-                x: flag.x,
-                y: flag.y,
-                t: flag.type,
-                h: flag.isHeld,
-                p: flag.isPlanted,
-                b: flag.heldBy,
-                v: flag.visible,
+                //x: flag.x,
+                //y: flag.y,
+                //t: flag.type,
+                //h: flag.isHeld,
+                //p: flag.isPlanted,
+                b: flag.carrier, // mp
+                s: flag.slot, // num (int)
+                //v: flag.visible,
+                a: flag.active, // bool
+                c: flag.cooldown // int (if active is false)
                 //c: JSON.stringify(flag.carryingFlag)
             };
         }
         //else console.log(flag);
     });
+    //*/
 
     this.laststate.t = this.server_time;
     //console.log(this.laststate);
@@ -3044,6 +3159,7 @@ game_core.prototype.client_process_net_updates = function()
         });*/
 
         // process flags
+        /*
         this._.forEach(this.flagObjects, function(flag)
         {
             //console.log(target);
@@ -3059,7 +3175,7 @@ game_core.prototype.client_process_net_updates = function()
                 //console.log(previous[this.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this._pdt * _this.client_smooth);
-                */
+                *//*
                 console.log(target[flag.id]);
                 flag.x = pos.x;// target[flag.id].x;
                 flag.y = pos.y;//target[flag.id].y;
@@ -3072,28 +3188,65 @@ game_core.prototype.client_process_net_updates = function()
                 console.log('::', flag.type, flag.x);//, flag.y);
             }
         });
+        //*/
 
         // process events
-        //console.log(this._.has(target, 'ec'));//this.events.length);
+        //console.log('got evt flag', this._.has(target, 'fc'), this.events.length);
         // first, check for chest events (dynamic)
         if (this._.has(target, 'ec'))
         {
             // avoid reduncancy
             if (!target.ec) return false;
 
-            console.log('got chest event', this.events, target.ec);
+            //console.log('got chest event', this.events, target.ec);
             _this.addChest(target.ec);
             // clear it to avoid duplicate reads
             target.ec = null;
         }
-        this._.forEach(this.events, function(evt)
+        if (this._.has(target, 'fc'))
+        {
+            console.log('* fc evt', target.fc);
+
+            // get client flag (clientCooldown)
+            var cflag = _this._.find(_this.clientCooldowns, {'name':target.fc.f});
+            cflag.heldBy = target.fc.p;
+            cflag.timer = target.fc.t;
+
+            // get flag obj
+            var flag = _this._.find(_this.flagObjects, {'name':target.fc.f});
+
+            // set client flag target slot
+            cflag.target = flag.targetSlot;
+            cflag.src = flag.sourceSlot;
+            console.log(":::", cflag);
+            console.log('flag', flag);
+            //cflag.
+
+            // get player
+            var ply = _this._.find(_this.allplayers, {"mp":target.fc.p});
+            if (ply)
+            {
+                if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
+                else if (cflag.name == "redFlag") ply.hasFlag = 2; // red
+                else if (cflag.name == "blueFlag") ply.hasFlag = 3; // blue
+
+                console.log('ply hasFlag', ply.hasFlag);
+
+                console.log('* flg', flag);
+                console.log('* player', ply);
+            }
+            else console.warn("unable to retrieve player by flag held", target.fc);
+            //if (player)
+            //player.carryingFlag.timer = target.fc.t;
+        }
+        /*this._.forEach(this.events, function(evt)
         {
             console.log('targ', target[evt.id]);
             if (target[evt.id] == evt.id)
             {
                 console.log('* got event', evt);
             }
-        });
+        });*/
 
         // smoothly follow client's destination position
         this.players.self.pos =

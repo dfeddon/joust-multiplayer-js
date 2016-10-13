@@ -1,16 +1,18 @@
 function game_flag(data, context)
 {
-  console.log('flag data', data);
+  //console.log('flag data', data);
 
   this._ = {};
 
   if (context)
   {
     this._.forEach = _.forEach;
+    this._.find = _.find;
     //this._.cloneDeep = _.cloneDeep;
   }
   else {
     this._.forEach = require('./node_modules/lodash/forEach');
+    this._.find = require('./node_modules/lodash/find');
     stopwatch = require('./class.stopwatch');
     //this._.cloneDeep = require('./node_modules/lodash/cloneDeep');
   }
@@ -32,6 +34,7 @@ function game_flag(data, context)
   this.validHolder = undefined;
   this.heldBy = null;
   //this.targetSlot = null;
+  this.timer = NaN;
   this.onCooldown = false;
   this.onCooldownTimer = null;
   this.onCooldownLength = 15;
@@ -326,12 +329,12 @@ game_flag.prototype.setter = function(obj)
       this.image = document.getElementById("flag-blue-r");
   }
 
-  console.log('flag this', this, this.image);
+  console.log('flag image', this.image);
 };
 
 game_flag.prototype.doTake = function(player)
 {
-  console.log('doTake', this.name, 'by', player.mp);
+  console.log('doTake', this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag);
   if (this.isHeld === false)
     this.isHeld = true;
   else return;
@@ -367,25 +370,46 @@ game_flag.prototype.doTake = function(player)
     return;
   }
 
-  player.takeFlag(this, flagType);
-  //player.hasFlag = flagType;
-
   // set states
   this.visible = false;
   this.isActive = false;
+  this.isHeld = true;
+  this.heldBy = player.mp;
+
+  // notify player
+  player.takeFlag(this, flagType);
+  //player.hasFlag = flagType;
+
 };
 
+game_flag.prototype.typeToName = function(type)
+{
+  switch(type)
+  {
+    case 0: return null;
+    case 1: return "midFlag";
+    case 2: return "redFlag";
+    case 3: return "blueFlag";
+  }
+};
 game_flag.prototype.slotFlag = function(player)
 {
-  console.log('slotFlag', this.name, player.mp, player.carryingFlag.targetSlot);
-  if (this.name == player.carryingFlag.targetSlot)
+  console.log('slotFlag', this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
+  console.log('cooldowns', player.game.clientCooldowns);
+  var clientFlag = this._.find(player.game.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
+  console.log('clientFlag', clientFlag);
+  if (clientFlag === undefined) return;
+  console.log('->', this.name, clientFlag.target);
+  if (this.name == clientFlag.target)//player.carryingFlag.targetSlot)
   {
     console.log('slot flag!!!!');
     /*player.carryingFlag.x = this.x - (this.width/2);
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
     // also start flag cooldown
-    player.removeFlag(true, this);
+    this.isActive = true;
+    this.isHeld = false;
+    player.removeFlag(true, this, player.game._.find(player.game.flagObjects, {'name':clientFlag.name}));
   }
 };
 
@@ -400,7 +424,8 @@ game_flag.prototype.reset = function(success)//, server_time)
     //this.onCooldownLength = server_time;
     this.onCooldown = true;
     // start timer
-    this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
+    //this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
+    this.stopwatch.start();
   }
   else this.isActive = true;
 };
@@ -421,7 +446,7 @@ game_flag.prototype.timeoutCooldown = function()
   else
   {*/
     //this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
-    this.stopwatch.start();
+    // this.stopwatch.start();
   //}
 };
 
