@@ -39,6 +39,7 @@ function game_event(game_instance)
   this.game = game_instance;
 
   this.id = 'noid';
+  this.type = NaN;
   this.running = false;
   this.state = this.STATE_AVAILABLE;
   //this.status = this.STATE_STOPPED;
@@ -93,6 +94,17 @@ game_event.prototype.update = function()
         this.state = this.STATE_STOPPED;
         // reset flag
       break;
+
+      case this.TYPE_FLAG_SLOTTED_COOLDOWN:
+        console.log('evt update slotted cooldown');
+        //this.flag.isHeld = false;
+        this.flag.isActive = true;
+        this.flag.heldBy = null;
+        this.flag.targetSlot = this.flag.getTargetSlot(this.flag.sourceSlot);
+        console.log('this.flag', this.flag);
+
+      break;
+
       case this.TYPE_CHEST:
 
         //console.log('prep chest', this.game.chestSpawnPoints.length);
@@ -132,7 +144,7 @@ game_event.prototype.update = function()
 
     return true;
   }
-  else if (this.type == this.TYPE_FLAG_CARRIED_COOLDOWN)
+  else if (this.type === this.TYPE_FLAG_CARRIED_COOLDOWN || this.type === this.TYPE_FLAG_SLOTTED_COOLDOWN)
   {
     this.timer = Math.abs(Math.floor(this.game.server_time - this.triggerOn));
     //console.log('timer', this.timer);
@@ -164,16 +176,17 @@ game_event.prototype.setRandomTriggerTime = function(min, max)
 
 game_event.prototype.setCooldownTime = function()
 {
-  console.log('event.setCooldownTime', this);
+  console.log('event.setCooldownTime', this.type);
 
   // set start and end times (based on server_time)
   var cd;
-  if (this.TYPE_FLAG_CARRIED_COOLDOWN)
+  if (this.type === this.TYPE_FLAG_CARRIED_COOLDOWN)
     cd = this.COOLDOWN_FLAG_CARRIED;
-  else if (this.TYPE_FLAG_SLOTTED_COOLDOWN)
+  else if (this.type === this.TYPE_FLAG_SLOTTED_COOLDOWN)
     cd = this.COOLDOWN_FLAG_SLOTTED;
   this.triggeredAt = (this.game.server_time) ? Math.floor(this.game.server_time) : 0;
   this.triggerOn = Math.floor(this.triggeredAt) + cd;
+  console.log('triggeredAt', this.triggeredAt, 'triggerOn', this.triggerOn, cd);
 };
 
 game_event.prototype.doStart = function()
@@ -185,6 +198,9 @@ game_event.prototype.doStart = function()
     case this.TYPE_FLAG_CARRIED_COOLDOWN:
       this.setCooldownTime();
     break;
+
+    case this.TYPE_FLAG_SLOTTED_COOLDOWN:
+      this.setCooldownTime();
   }
   this.running = true;
   //this.triggeredAt = new Date();
@@ -193,6 +209,7 @@ game_event.prototype.doStart = function()
 
 game_event.prototype.doStop = function()
 {
+  console.log('event.doStop', this);
   this.running = false;
   this.state = this.STATE_STOPPED;
 };

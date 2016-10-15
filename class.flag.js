@@ -34,7 +34,7 @@ function game_flag(data, context)
   this.validHolder = undefined;
   this.heldBy = null;
   //this.targetSlot = null;
-  this.timer = NaN;
+  this.timer = '';
   this.onCooldown = false;
   this.onCooldownTimer = null;
   this.onCooldownLength = 15;
@@ -334,14 +334,16 @@ game_flag.prototype.setter = function(obj)
 
 game_flag.prototype.doTake = function(player)
 {
-  console.log('doTake', this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag);
+  console.log('doTake', this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
+  if (this.isActive === false || this.onCooldown === true) return;
+
   if (this.isHeld === false)
     this.isHeld = true;
   else return;
 
   if (player.hasFlag !== 0)
   {
-    console.log('player has flag already');
+    console.warn('player has flag already');
     this.isHeld = false;
     return;
   }
@@ -394,11 +396,15 @@ game_flag.prototype.typeToName = function(type)
 };
 game_flag.prototype.slotFlag = function(player)
 {
+  // TODO: Resolve issue with targetSlot and sourceSlot values, both
+  // of which exist in flag class (client) and clientCooldowns (server)
   console.log('slotFlag', this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
   console.log('cooldowns', player.game.clientCooldowns);
+
   var clientFlag = this._.find(player.game.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
   console.log('clientFlag', clientFlag);
   if (clientFlag === undefined) return;
+
   console.log('->', this.name, clientFlag.target);
   if (this.name == clientFlag.target)//player.carryingFlag.targetSlot)
   {
@@ -407,15 +413,38 @@ game_flag.prototype.slotFlag = function(player)
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
     // also start flag cooldown
-    this.isActive = true;
+    this.isActive = false;
+    this.onCooldown = true;
     this.isHeld = false;
+    //this.getTargetSlot(this.sourceSlot);
+    // stop cooldown (clientFlag)
+
+    // stop flag-carried event (server-side only)
+    if (player.game.server)
+    {
+      // stop flag-carried event
+      var evt = player.game._.find(player.game.events, {"id":"fc"});
+      console.log(player.game.events);
+      console.log('*evt', evt.type, evt.timer);
+      evt.doStop();
+
+      // ... and start flag slotted cooldown event
+      var cd = player.game._.find(player.game.events, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
+      console.log('*evt cd', cd);
+      var flg = player.game._.find(player.game.flagObjects, {"name":clientFlag.name});
+      cd.flag = flg;//clientFlag; // BUG: <- should be flag class NOT clientCooldown flag
+      cd.doStart();
+
+    }
+    //var evt = player.game._.find(player.game.clientCooldowns, {'name':this.name});
+    //console.log('slot evt', evt, player.game.clientCooldowns);
     player.removeFlag(true, this, player.game._.find(player.game.flagObjects, {'name':clientFlag.name}));
   }
 };
 
 game_flag.prototype.reset = function(success)//, server_time)
 {
-  console.log('resetting flag', this.name);
+  console.log('flag.reset', success, this.name);
   this.isHeld = false;
   this.visible = true;
   if (success)
@@ -425,7 +454,7 @@ game_flag.prototype.reset = function(success)//, server_time)
     this.onCooldown = true;
     // start timer
     //this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
-    this.stopwatch.start();
+    //this.stopwatch.start();
   }
   else this.isActive = true;
 };
@@ -452,6 +481,7 @@ game_flag.prototype.timeoutCooldown = function()
 
 game_flag.prototype.cooldownComplete = function()
 {
+  console.log('flag.cooldownComplete');
   this.stopwatch.reset();
   //this.onCooldownTimer = null;
   this.onCooldownLength = 15; // reset counter
@@ -532,7 +562,8 @@ game_flag.prototype.draw = function()
   if (this.onCooldown)
   {
     //console.log('cooldown', this.onCooldownAt);
-    if (Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()) <= 0)
+    //if (Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()) <= 0)
+    if (this.timer === 0)
     {
       this.cooldownComplete();
     }
@@ -544,7 +575,7 @@ game_flag.prototype.draw = function()
       game.ctx.textAlign = 'center';
       game.ctx.fillText(
           //this.onCooldownLength -
-          Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()),//this.onCooldownLength,
+          this.timer,//Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()),//this.onCooldownLength,
           this.x + 25,
           this.y + 30//txtOffset
           //100

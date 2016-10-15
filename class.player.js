@@ -897,12 +897,12 @@ game_player.prototype.takeFlag = function(flag, flagType)
 game_player.prototype.removeFlag = function(success, slot, flag)
 {
     console.log('removing flag from player', flag);
-    if (success)
+    if (success) // succesfully slotted flag in appropriate placque
     {
         flag.x = slot.x - (slot.width/2);
         flag.y = slot.y - (slot.height/2);
         flag.sourceSlot = slot.name;
-        flag.isActive = false;
+        //flag.isActive = false;
         // note: targetSlot will be defined when flag is taken!
 
         console.log('socket emit', slot);
@@ -927,6 +927,8 @@ game_player.prototype.removeFlag = function(success, slot, flag)
         if (!this.game.server)
         {
             this.game.updateTerritory();
+
+            // start flag-slotted cooldown event
         }
     }
     var flagObj = this.game._.find(this.game.flagObjects, {"name":flag.name});
@@ -1579,7 +1581,7 @@ game_player.prototype.draw = function()
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
         var flag = this.game._.find(this.game.clientCooldowns, {'heldBy':this.mp});
-        console.log('gotflag', flag, this.game.clientCooldowns);
+        //console.log('gotflag', flag, this.game.clientCooldowns);
 
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.game.server_time - this.flagTakenAt));
         //*
@@ -1609,7 +1611,7 @@ game_player.prototype.draw = function()
         }
         //*/
         var flagImg;
-        console.log('* this.hasFlag', this.hasFlag);
+        //console.log('* this.hasFlag', this.hasFlag);
         switch(this.hasFlag)
         {
             case 1: // mid
@@ -1632,7 +1634,7 @@ game_player.prototype.draw = function()
         }
         // draw flag
         //game.ctx.save();
-        console.log('flagImg', flagImg, this.dir);
+        //console.log('flagImg', flagImg, this.dir);
         if (flagImg)
         {
             game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
