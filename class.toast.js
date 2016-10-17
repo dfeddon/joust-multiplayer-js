@@ -1,3 +1,6 @@
+/*jslint
+    this
+*/
 function game_toast()
 {
   this.toast = document.getElementById('toast');

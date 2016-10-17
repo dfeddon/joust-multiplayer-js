@@ -1,3 +1,6 @@
+/*jslint
+    this
+*/
 
 /*  Copyright 2012-2016 Sven "underscorediscovery" Bergström
 
@@ -1527,14 +1530,13 @@ game_core.prototype.check_collision = function( player )
     //player.pos.y = player.pos.y.fixed(4);
 
     // player collision
-    //console.log(this._.forEach);
     //for (var i = 0; i < this.allplayers.length; i++)
     this._.forEach(this.allplayers, function(other)
     {
         //console.log('->', other.pos);
         //other.pos.x = other.pos.x.fixed(4);
         //other.pos.y = other.pos.y.fixed(4);
-        if (other.mp != player.mp)
+        if (other.mp != player.mp && other.team != player.team)
         {
             //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
             if ( player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
@@ -1874,7 +1876,7 @@ game_core.prototype.check_collision = function( player )
             //console.log('hit flag obj', fo.name, fo.isHeld, fo.isActive, player.hasFlag);
 
             // player takes flag?
-            console.log('fo.doTake', fo.type, fo.isHeld, fo.isActive, player.hasFlag);
+            //console.log('fo.doTake', fo.type, fo.name, fo.isHeld, fo.isActive, player.hasFlag);
             if (fo.type == "flag" && fo.isHeld === false && fo.isActive && player.hasFlag === 0)
             {
                 fo.doTake(player);
@@ -3266,9 +3268,16 @@ game_core.prototype.client_process_net_updates = function()
             console.log('cflag', cflag);*/
             var flg = _this._.find(_this.flagObjects, {'name':target.fs.f});
             flg.timer = target.fs.t;//cflag.timer;
-            //this.isActive = false;
-            //this.onCooldown = true;
-            //this.isHeld = false;
+
+            // add flg.isActive check to ensure it runs only once
+            if (target.fs.t === 0 && flg.isActive === false)
+            {
+                console.log('* fs evt = 0!');
+                
+                flg.isActive = true;
+                flg.onCooldown = false;
+                //this.isHeld = false;
+            }
             //console.log('flag', flg);
             //cflag.heldBy = target.fc.p;
 

@@ -1,3 +1,8 @@
+/*jslint
+    this
+*/
+"use strict";
+
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player( game_instance, player_instance, isHost )
 {
@@ -633,6 +638,7 @@ game_player.prototype.doLand = function()
         // set vulnerability
         this.isVuln(len);
         //this.a *= -1;
+        // TODO: Fix this (removeFlag moved to flag class)
         if (this.carryingFlag)
             this.removeFlag(false, this.carryingFlag.sourceSlot);
         return;
@@ -692,11 +698,11 @@ game_player.prototype.doWalk = function(dir)
 
 game_player.prototype.takeFlag = function(flag, flagType)
 {
-    // console.log('takeFlag', flag, this.team);
+    console.log('===player.takeFlag', flag.name, flagType, '===');//, flag, this.team);
     // if (this.team === 1 && flagType === 2) return;
     // if (this.team === 2 && flagType === 3) return;
 
-    console.log('player.takeFlag', flag.id, flagType, flag.name, flag.sourceSlot);
+    //console.log('player.takeFlag', flag.id, flagType, flag.name, flag.sourceSlot, flag.targetSlot);
 
     /*var cooldown = this.game._.find(this.game.clientCooldowns, {"flag":flag.name});
     cooldown.heldBy = this.mp;
@@ -705,7 +711,8 @@ game_player.prototype.takeFlag = function(flag, flagType)
     /*this.hasFlag = flagType;
     this.flagTakenAt = this.game.server_time;
     this.carryingFlag = flag;*/
-    this.hasFlag = flagType;
+    
+    //this.hasFlag = flagType;
 
     // disable bubble
     if (this.bubble) this.bubble = false;
@@ -713,7 +720,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
     // speed modifier (slow down)
 
     // set target slot
-    switch(flag.sourceSlot)
+    /*switch(flag.sourceSlot)
     {
         case "midSlot":
             if (this.team === 1) flag.targetSlot = "slot6";
@@ -853,89 +860,90 @@ game_player.prototype.takeFlag = function(flag, flagType)
         break;
     }
     // set target locally
-    console.log('targetSlot', flag.targetSlot);
+    console.log('* sourceSlot', flag.sourceSlot, 'targetSlot', flag.targetSlot);*/
     //flag.targetSlot = flag.getTargetSlot
 
-    if (!this.game.server)
-    {
-        // show toast
-        new game_toast().show();
-    }
-    else
-    {
-        console.log('socket emit', flag.targetSlot);
-        // inform socket
-        for (var l = 0; l < this.game.allplayers.length; l++)
-        {
-            // dispatch flagremove socket event
-            if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
-            {
-                console.log('flag sent', flag.name);
-                //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-                this.game.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name+"|"+this.flagTakenAt);//_this.laststate);
-            }
-        }
-        // update clientCooldowns objs
-        var cd = this.game._.find(this.game.clientCooldowns, {"name":flag.name});
-        console.log(this.game.clientCooldowns);
-        cd.heldBy = this.mp;
-        cd.src = flag.sourceSlot;
-        cd.target = flag.targetSlot;
-        console.log('cooldown obj');
+    // if (!this.game.server)
+    // {
+    //     // show toast
+    //     new game_toast().show();
+    // }
+    // else
+    // {
+    //     console.log('* socket emit', flag.targetSlot);
+    //     // inform socket
+    //     for (var l = 0; l < this.game.allplayers.length; l++)
+    //     {
+    //         // dispatch flagremove socket event
+    //         if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
+    //         {
+    //             //console.log('flag sent', flag.name);
+    //             //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
+    //             this.game.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name+"|"+this.flagTakenAt);//_this.laststate);
+    //         }
+    //     }
+    //     // update clientCooldowns objs
+    //     var cd = this.game._.find(this.game.clientCooldowns, {"name":flag.name});
+    //     //console.log(this.game.clientCooldowns);
+    //     cd.heldBy = this.mp;
+    //     cd.src = flag.sourceSlot;
+    //     cd.target = flag.targetSlot;
+    //     //console.log('cooldown obj');
 
-        // start cooldown
-        // get event by id "fc" (flag carried)
-        var evt = this.game._.find(this.game.events, {'id':"fc"});
-        evt.flag = flag;
-        console.log('got evt', evt);
-        evt.doStart();
-        // call event.doStart() to begin 60 second cooldown
-    }
-
+    //     // start cooldown
+    //     // get event by id "fc" (flag carried)
+    //     var evt = this.game._.find(this.game.events, {'id':"fc"});
+    //     evt.flag = flag;
+    //     //console.log('got evt', evt);
+    //     evt.doStart();
+    //     // call event.doStart() to begin 60 second cooldown
+    // }
 };
 
-game_player.prototype.removeFlag = function(success, slot, flag)
-{
-    console.log('removing flag from player', flag);
-    if (success) // succesfully slotted flag in appropriate placque
-    {
-        flag.x = slot.x - (slot.width/2);
-        flag.y = slot.y - (slot.height/2);
-        flag.sourceSlot = slot.name;
-        //flag.isActive = false;
-        // note: targetSlot will be defined when flag is taken!
+// game_player.prototype.removeFlag = function(success, slot, flag)
+// {
+//     console.log('===player.removeFlag', success, slot.name, flag.name);
 
-        console.log('socket emit', slot);
-        // inform socket
-        for (var l = 0; l < this.game.allplayers.length; l++)
-        {
-            if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
-            {
-                console.log('flag sent', slot);
-                //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-                this.game.allplayers[l].instance.send('f.a.'+this.mp+"|"+slot.name+"|"+flag.name);//_this.laststate);
-            }
-        }
+//     if (success) // succesfully slotted flag in appropriate placque
+//     {
+//         flag.x = slot.x - (slot.width/2);
+//         flag.y = slot.y - (slot.height/2);
+//         flag.sourceSlot = slot.name;
+//         console.log('* sourceSlot', flag.sourceSlot);
+//         //flag.isActive = false;
+//         // note: targetSlot will be defined when flag is taken!
 
-        // revise territory
-        /*
-        if (this.game.server)
-        {
-            console.log('emit territory change data');
-        }
-        */
-        if (!this.game.server)
-        {
-            this.game.updateTerritory();
+//         console.log('* socket emit', slot);
+//         // inform socket
+//         for (var l = 0; l < this.game.allplayers.length; l++)
+//         {
+//             if (this.game.allplayers[l].instance && this.game.allplayers[l].mp != this.mp)
+//             {
+//                 //console.log('flag sent', slot);
+//                 //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
+//                 this.game.allplayers[l].instance.send('f.a.'+this.mp+"|"+slot.name+"|"+flag.name);//_this.laststate);
+//             }
+//         }
 
-            // start flag-slotted cooldown event
-        }
-    }
-    var flagObj = this.game._.find(this.game.flagObjects, {"name":flag.name});
-    flagObj.reset(success);//, this.game.server_time);
-    this.hasFlag = 0;
-    //this.carryingFlag = null;
-};
+//         // revise territory
+//         /*
+//         if (this.game.server)
+//         {
+//             console.log('emit territory change data');
+//         }
+//         */
+//         if (!this.game.server)
+//         {
+//             this.game.updateTerritory();
+
+//             // start flag-slotted cooldown event
+//         }
+//     }
+//     var flagObj = this.game._.find(this.game.flagObjects, {"name":flag.name});
+//     flagObj.reset(success);//, this.game.server_time);
+//     this.hasFlag = 0;
+//     //this.carryingFlag = null;
+// };
 
 game_player.prototype.collision = false;
 game_player.prototype.hitFrom = 0;
@@ -1040,7 +1048,8 @@ game_player.prototype.doKill = function(victor)
     // reset landed prop
     this.landed = 0;
 
-    if (this.carryingFlag)
+    // TODO: Fix this (removeFlag moved to flag class)
+    if (this.carryingFlag) 
         this.removeFlag(false, this.carryingFlag.sourceSlot);
 
     // splatter "orbs of death"

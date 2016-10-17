@@ -1,3 +1,7 @@
+/*jslint
+    this
+*/
+
 /*
 var now = new Date();
 var e = new Date();
@@ -96,12 +100,16 @@ game_event.prototype.update = function()
       break;
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
-        console.log('evt update slotted cooldown');
+        console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
+        var mp = this.flag.heldBy;
+        var player = this.game._.find(this.game.allplayers, {"mp":mp});
+        
         this.flag.isActive = true;
         this.flag.heldBy = null;
-        this.flag.targetSlot = this.flag.getTargetSlot(this.flag.sourceSlot);
-        console.log('this.flag', this.flag);
+        this.flag.onCooldown = false;
+        this.flag.targetSlot = this.flag.getTargetSlot(player.team, this.flag.sourceSlot);
+        //console.log('this.flag', this.flag);
 
       break;
 
@@ -209,7 +217,7 @@ game_event.prototype.doStart = function()
 
 game_event.prototype.doStop = function()
 {
-  console.log('event.doStop', this);
+  console.log('event.doStop', this.type);
   this.running = false;
   this.state = this.STATE_STOPPED;
 };
