@@ -472,7 +472,7 @@ game_flag.prototype.slotFlag = function(player)
     // also start flag cooldown
     var flg = player.game._.find(player.game.flagObjects, {"name":clientFlag.name});
     console.log('* flag', flg);
-    
+
     player.hasFlag = 0;
 
     flg.isActive = false;

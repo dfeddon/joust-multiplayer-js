@@ -6,6 +6,8 @@ written for : http://buildnewgames.com/real-time-multiplayer/
 MIT Licensed.
 */
 
+const MAX_PLAYERS_PER_GAME = 30;
+
 var
     game_server = module.exports = { games : {}, game_count:0 },
     UUID        = require('node-uuid'),
@@ -392,7 +394,27 @@ game_server.startGame = function(game)
             var team = "1"; // 1 = red, 2 = blue
             console.log('player team', team);
             // send user mp, game id, orbs array
-            nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(game_instance.gamecore.orbs) + "|" + team);
+            // TODO: Replace orbs array with active chests (and player instance) array
+            //console.log('*chests', game_instance.gamecore.chests);
+            var chestsarray = [];
+            var chest;
+            var obj;
+            for (var k = 0; k < game_instance.gamecore.chests.length; k++)
+            {
+                chest = game_instance.gamecore.chests[k];
+                obj =
+                {
+                    i: chest.data.i,
+                    d: chest.data.d,
+                    m: chest.data.m,
+                    t: chest.data.t,
+                    x: chest.data.x,
+                    y: chest.data.y
+                };
+                chestsarray.push(obj);
+            }
+            
+            nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team);
             nonhosts[j].game = game;
         }
     }
@@ -465,9 +487,9 @@ game_server.findGame = function(client)
             var game_instance = this.games[gameid];
 
             //If the game is a player short
-            this.log('@@ player count', game_instance.player_count);
+            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME);
 
-            if(game_instance.player_count < 20)
+            if(game_instance.player_count < MAX_PLAYERS_PER_GAME)
             {
                 //someone wants us to join!
                 joined_a_game = true;

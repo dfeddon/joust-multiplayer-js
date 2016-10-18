@@ -708,6 +708,18 @@ game_core.prototype.gridToPixel = function(x, y)
 {
     return {x: x * 64, y: y * 64};
 };
+// UID
+game_core.prototype.getUID = function()
+{
+  function s4() 
+  {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+};
 
 /*
     The player class
@@ -2035,13 +2047,47 @@ game_core.prototype.check_collision = function( player )
     }
 }; //game_core.check_collision
 
-game_core.prototype.client_onchestadd = function(data)
+// game_core.prototype.client_on_chestadd = function(data)
+// {
+//     console.log('=== client_on_chestadd', data, '===');
+    
+// };
+
+game_core.prototype.client_on_chesttake = function(data)
 {
-    console.log('client_onchestadd', data);
+    console.log('client_on_chesttake', data);
+    var split = data.split("|");
+    var id = split[0];
+    var player = split[1];
+    this._.forEach(this.chests, function(chest)
+    {
+        console.log('chest id', chest.id);
+        if (chest.id == id)
+        {
+            // chest is opened
+            chest.opening = true;
+        }
+    });
 };
-game_core.prototype.client_onchestremove = function(data)
+game_core.prototype.client_on_chestremove = function(data)
 {
     console.log('client_onchestremove', data);
+    var _this = this;
+
+    var split = data.split("|");
+    var id = split[0];
+    var player = split[1];
+    
+    this._.forEach(this.chests, function(chest)
+    {
+        //console.log('chest id', chest.id);
+        if (chest.id == id)
+        {
+            // chest is opened
+            _this._.pull(_this.chests, chest);
+            return false; // break
+        }
+    });
 };
 
 // slot flag in placque
@@ -2598,11 +2644,21 @@ game_core.prototype.server_update = function()
                 switch(evt.type)
                 {
                     case evt.TYPE_CHEST:
-                        console.log('adding chest');//, evt.spawn, 'with passive', evt.passive);
+                        var id = _this.getUID();
+                        console.log('adding chest', id);//, evt.spawn, 'with passive', evt.passive);
                         if (evt.id == 'ec') // chest event
-                            _this.addChest({x:evt.spawn.x,y:evt.spawn.y,t:evt.passive.type,d:evt.passive.duration,m:evt.passive.modifier});
+                            _this.addChest(
+                                {
+                                    i:id,
+                                    x:evt.spawn.x,
+                                    y:evt.spawn.y,
+                                    t:evt.passive.type,
+                                    d:evt.passive.duration,
+                                    m:evt.passive.modifier
+                                });
                         _this.laststate[evt.id] =
                         {
+                            i: id,
                             x: evt.spawn.x,
                             y: evt.spawn.y,
                             t: evt.passive.type,
@@ -3368,11 +3424,21 @@ game_core.prototype.client_process_net_updates = function()
 game_core.prototype.addChest = function(chest)
 {
     console.log('adding chest...', chest);
-
+    
     if (this.server)
     {
         var game_chest_server = require('./class.chest');
         this.chests.push(new game_chest_server(this, chest, false));
+        //console.log('newChest id', newChest.id);
+        
+        // this._.forEach(this.allplayers, function(ply)
+        // {
+        //     if (ply.instance)
+        //     {
+        //         ply.instance.send('c.a.', newChest.id)
+        //     }
+        // });
+
     }
     else this.chests.push(new game_chest(this, chest, true));
     //console.log(this.chests);
@@ -3813,7 +3879,7 @@ game_core.prototype.client_reset_positions = function()
     //Host always spawns at the top left.
     player_host.pos = { x:20,y:20 };
     player_client.pos = { x:500, y:200 };*/
-    console.log(this.players.self.pos);
+    console.log(this.players.self.pos);d
     /*if (this.players.self.pos.x === 0 && this.players.self.pos.y === 0)
     {
         // spawn
@@ -3837,6 +3903,7 @@ game_core.prototype.client_reset_positions = function()
         this.players.self.old_state.pos = this.pos(this.players.self.pos);
         this.players.self.pos = this.pos(this.players.self.pos);
         this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+        this.players.self.draw();
     /*}
     console.log(this.players.self.pos);*/
 
@@ -3871,7 +3938,7 @@ game_core.prototype.client_onreadygame = function(data) {
     */
 
     this.players.self.state = 'YOU ' + this.players.self.state;
-
+    //this.players.self.draw();
     //console.log(this.players.self.game.orbs);
 
     //Make sure colors are synced up
@@ -3922,11 +3989,13 @@ game_core.prototype.resizeCanvas = function()
     this.viewport.style.width = this.viewport.width;
     this.viewport.style.height = this.viewport.height;
 };
-
+ 
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
     console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
+    
+    var _this = this;
 
     // console.log('derek', data);
 
@@ -3937,7 +4006,10 @@ game_core.prototype.client_onjoingame = function(data)
     //console.log('1',alldata[0]);
     //console.log('2',alldata[1]);
     console.log(alldata[2]);
-    this.orbs = JSON.parse(alldata[2]);
+    //this.orbs = JSON.parse(alldata[2]);
+    var chests = JSON.parse(alldata[2]);
+    //console.log('chestz',this.chests);
+    
     var team = alldata[3];
     //console.log('# startpos', startpos);
 
@@ -3985,6 +4057,11 @@ game_core.prototype.client_onjoingame = function(data)
         }
         // else if (this.allplayers[i].instance.hosting)
     }
+
+    this._.forEach(chests, function(chest)
+    {
+        _this.chests.push(new game_chest(_this, chest, true));
+    });
 
     // console.log('local player mp =', this.players.self.mp);
     // set mp val
@@ -4123,9 +4200,9 @@ game_core.prototype.client_onnetmessage = function(data) {
                 case 'p' : //server ping
                     this.client_onping(commanddata); break;
 
-                case 'c' : //other player changed colors
-                    //console.log('got color', commanddata);
-                    this.client_on_otherclientcolorchange(commanddata); break;
+                // case 'c' : //other player changed colors
+                //     //console.log('got color', commanddata);
+                //     this.client_on_otherclientcolorchange(commanddata); break;
             }
 
             break;
@@ -4146,10 +4223,10 @@ game_core.prototype.client_onnetmessage = function(data) {
 
                 switch(subcommand)
                 {
-                    // add
-                    case 'a' : this.client_onchestadd(commanddata); break;
+                    // take
+                    case 't' : this.client_on_chesttake(commanddata); break;
                     // remove
-                    case 'r' : this.client_onchestremove(commanddata); break;
+                    case 'r' : this.client_on_chestremove(commanddata); break;
                 }
 
             break;
@@ -4219,10 +4296,10 @@ game_core.prototype.client_connect_to_server = function()
     //this.socket.on('orbremoval', this.client_on_orbremoval.bind(this));
     //this.socket.on('orbget', this.client_on_getorbs);
 
-    // addchest
-    this.socket.on('addchest', this.client_onchestadd.bind(this));
+    // takechest
+    //this.socket.on('addchest', this.client_onchestadd.bind(this));
     // removechest
-    this.socket.on('removechest', this.client_onchestremove.bind(this));
+    //this.socket.on('removechest', this.client_onchestremove.bind(this));
 
     // addflag
     this.socket.on('addflag', this.client_onflagadd.bind(this));

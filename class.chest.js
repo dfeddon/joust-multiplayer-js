@@ -1,13 +1,19 @@
+/*jslint
+    this
+*/
+"use strict"
+
 function game_chest(game_instance, data, client)
 {
-  //if (game_instance)
-  //{
-    this.game = game_instance;
-    if (client)
-      this.ctx = this.game.viewport.getContext('2d');
-  //}
-  //else this.game = this;
+  var _this = this;
+  this.game = game_instance;
+  this.data = data;
 
+  if (client)
+    this.ctx = this.game.viewport.getContext('2d');
+
+  this.id = data.i;//game_instance.getUID();
+  
   this.x = parseInt(data.x);
   this.y = parseInt(data.y);
   this.type = data.t; // passive type
@@ -20,20 +26,55 @@ function game_chest(game_instance, data, client)
   this.height = 64;
 
   this.taken = false;
+  this.takenBy = null;
   this.opening = false;
 
   //console.log('chest constructor', data);
 
   this._ = require('./node_modules/lodash/lodash.min');
+
+  // if (this.game.server)
+  // {
+  //   this._.forEach(this.game.allplayers, function(ply)
+  //   {
+  //       if (ply.instance)
+  //       {
+  //         console.log('* id', _this.id);
+          
+  //         console.log('* ply.instance', ply.instance);
+
+  //         ply.instance.send('c.a.' + _this.id)
+  //       }
+  //   });
+  // }
+
 }
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('doTake by player', player.mp, this.taken);
+  console.log('=== chest.doTake', player.mp, this.taken, '===');
+
+  var _this = this;
   if (this.taken === true) return;
   else this.taken = true;
 
   var _this = this;
+  this.takenBy = player.mp;
+
+  // send to server
+  console.log('len', this.game.allplayers.length);
+  
+  this._.forEach(this.game.allplayers, function(ply)
+  {
+    console.log('* instance', ply.instance, ply.mp, player.mp);
+    
+    if (ply.instance && ply.mp != player.mp)
+    {
+      console.log('* send', _this.id, ply.mp);
+
+      ply.instance.send('c.t.' + _this.id + '|' + player.mp);//, k );
+    }
+  });
 
   // no double-takes!
 
@@ -73,10 +114,19 @@ game_chest.prototype.timeoutOpened = function()
   this.doRemove();
 };
 
-game_chest.prototype.doRemove = function()
+game_chest.prototype.doRemove = function(player)
 {
   console.log('removing chest');
+
+  var _this = this;
   this._.pull(this.game.chests, this);
+  this._.forEach(this.game.allplayers, function(ply)
+  {
+    if (ply.instance && ply.mp != _this.takenBy)
+    {
+        ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
+    }
+  });
 };
 
 game_chest.prototype.update = function()
