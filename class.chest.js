@@ -1,7 +1,7 @@
 /*jslint
     this
 */
-"use strict"
+//"use strict"
 
 function game_chest(game_instance, data, client)
 {
@@ -13,7 +13,7 @@ function game_chest(game_instance, data, client)
     this.ctx = this.game.viewport.getContext('2d');
 
   this.id = data.i;//game_instance.getUID();
-  
+
   this.x = parseInt(data.x);
   this.y = parseInt(data.y);
   this.type = data.t; // passive type
@@ -40,7 +40,7 @@ function game_chest(game_instance, data, client)
   //       if (ply.instance)
   //       {
   //         console.log('* id', _this.id);
-          
+
   //         console.log('* ply.instance', ply.instance);
 
   //         ply.instance.send('c.a.' + _this.id)
@@ -58,17 +58,16 @@ game_chest.prototype.doTake = function(player)//, chests)
   if (this.taken === true) return;
   else this.taken = true;
 
-  var _this = this;
   this.takenBy = player.mp;
 
   // send to server
   console.log('len', this.game.allplayers.length);
-  
+
   this._.forEach(this.game.allplayers, function(ply)
   {
     console.log('* instance', ply.instance, ply.mp, player.mp);
-    
-    if (ply.instance && ply.mp != player.mp)
+
+    if (ply.instance && ply.mp != player.mp && ply.mp != "hp")
     {
       console.log('* send', _this.id, ply.mp);
 
@@ -116,15 +115,16 @@ game_chest.prototype.timeoutOpened = function()
 
 game_chest.prototype.doRemove = function(player)
 {
-  console.log('removing chest');
+  console.log('=== chest.doRemove ===');//, player.mp, '===');
 
   var _this = this;
   this._.pull(this.game.chests, this);
   this._.forEach(this.game.allplayers, function(ply)
   {
-    if (ply.instance && ply.mp != _this.takenBy)
+    if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
     {
-        ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
+      console.log('* sending c.r. to', ply.mp);
+      ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
     }
   });
 };

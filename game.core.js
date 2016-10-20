@@ -711,7 +711,7 @@ game_core.prototype.gridToPixel = function(x, y)
 // UID
 game_core.prototype.getUID = function()
 {
-  function s4() 
+  function s4()
   {
     return Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)
@@ -1911,7 +1911,7 @@ game_core.prototype.check_collision = function( player )
         //if (player.landed === 1) return;
 
         //////////////////////////////
-        // collide from below
+        // collide from below (full)
         //////////////////////////////
         if (h.ne.t > 0 && h.nw.t > 0) // collide from below
         {
@@ -1924,7 +1924,7 @@ game_core.prototype.check_collision = function( player )
                 player.isVuln(500);*/
         }
         //////////////////////////////
-        // land
+        // land (full)
         //////////////////////////////
         else if (h.sw.t > 0 && h.se.t > 0) // land
         {
@@ -1940,9 +1940,9 @@ game_core.prototype.check_collision = function( player )
             player.doLand();
         }
         //////////////////////////////
-        // side collision
+        // side collision (full, left)
         //////////////////////////////
-        else if (h.nw.t > 0 || h.sw.t > 0) // hit side wall
+        else if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
             //console.log('hit w wall');
             player.pos.x += 15; // bounce
@@ -1951,16 +1951,83 @@ game_core.prototype.check_collision = function( player )
             //player.vx *= -1; // stop accel
             //console.log('vx', player.vx);
         }
-        else if (h.ne.t > 0 || h.se.t > 0)
+        //////////////////////////////
+        // side collision (full, right)
+        //////////////////////////////
+        else if (h.ne.t > 0 && h.se.t > 0)
         {
             player.pos.x -= 15; //bounce
             player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
             player.collision = true;
             //player.vx = 0; // stop accel
         }
+        //////////////////////////////
+        // side collision (full, right)
+        //////////////////////////////
+        else if (h.ne.t > 0 && h.se.t > 0)
+        {
+            player.pos.x -= 15; //bounce
+            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+            player.collision = true;
+            //player.vx = 0; // stop accel
+        }
+        //////////////////////////////
+        // slid off platform
+        //////////////////////////////
         else if (player.standing === 2)
         {
             console.log('player slid off barrier...');
+        }
+        //////////////////////////////
+        // edge cases
+        //////////////////////////////
+        else if (h.ne.t > 0 || h.se.t > 0) // hit from left
+        {
+            console.log('* edge left', h.n.t, h.s.t, h.e.t);
+            if (h.e.t > 0) // east (side collision)
+            {
+                player.pos.x -= 15; //bounce
+                player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+            }
+            else if (h.n.t > 0) // north (from below)
+            {
+                player.pos.y += b;
+                player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+            }
+            else // south (landing), determine direction
+            {
+                // set y
+                player.pos.y = parseInt((h.sw.y * 64) - 64);
+                // process landing
+                player.doLand();
+            }
+            //console.log(player.n, player.s, player.e, player.w);
+        }
+        else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
+        {
+            console.log('* edge right', h.n.t, h.s.t, h.w.t);
+            if (h.w.t > 0) // east (side collision)
+            {
+                player.pos.x += 15; //bounce
+                player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+            }
+            else if (h.n.t > 0) // north (from below)
+            {
+                player.pos.y += b;
+                player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+            }
+            else // south (landing), determine direction
+            {
+                // set y
+                player.pos.y = parseInt((h.sw.y * 64) - 64);
+                // process landing
+                player.doLand();
+            }
+            //console.log(player.n, player.s, player.e, player.w);
         }
         /*
         else if (h.sw.t > 0) // landing
@@ -2050,7 +2117,7 @@ game_core.prototype.check_collision = function( player )
 // game_core.prototype.client_on_chestadd = function(data)
 // {
 //     console.log('=== client_on_chestadd', data, '===');
-    
+
 // };
 
 game_core.prototype.client_on_chesttake = function(data)
@@ -2071,20 +2138,21 @@ game_core.prototype.client_on_chesttake = function(data)
 };
 game_core.prototype.client_on_chestremove = function(data)
 {
-    console.log('client_onchestremove', data);
+    console.log('=== client_on_chestremove', data, '===');
     var _this = this;
 
     var split = data.split("|");
     var id = split[0];
     var player = split[1];
-    
+
     this._.forEach(this.chests, function(chest)
     {
         //console.log('chest id', chest.id);
         if (chest.id == id)
         {
             // chest is opened
-            _this._.pull(_this.chests, chest);
+            _this._.remove(_this.chests, {id: chest.id});
+            console.log('* chest removed', id, _this.chests);
             return false; // break
         }
     });
@@ -2450,7 +2518,8 @@ game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
 
 }; //game_core.physics_movement_vector_from_direction
 
-game_core.prototype.update_physics = function() {
+game_core.prototype.update_physics = function()
+{
     if (glog)
     console.log('##+@@ update_physics');
 
@@ -3329,7 +3398,7 @@ game_core.prototype.client_process_net_updates = function()
             if (target.fs.t === 0 && flg.isActive === false)
             {
                 console.log('* fs evt = 0!');
-                
+
                 flg.isActive = true;
                 flg.onCooldown = false;
                 //this.isHeld = false;
@@ -3424,13 +3493,13 @@ game_core.prototype.client_process_net_updates = function()
 game_core.prototype.addChest = function(chest)
 {
     console.log('adding chest...', chest);
-    
+
     if (this.server)
     {
         var game_chest_server = require('./class.chest');
         this.chests.push(new game_chest_server(this, chest, false));
         //console.log('newChest id', newChest.id);
-        
+
         // this._.forEach(this.allplayers, function(ply)
         // {
         //     if (ply.instance)
@@ -3879,7 +3948,7 @@ game_core.prototype.client_reset_positions = function()
     //Host always spawns at the top left.
     player_host.pos = { x:20,y:20 };
     player_client.pos = { x:500, y:200 };*/
-    console.log(this.players.self.pos);d
+    console.log(this.players.self.pos);
     /*if (this.players.self.pos.x === 0 && this.players.self.pos.y === 0)
     {
         // spawn
@@ -3989,12 +4058,12 @@ game_core.prototype.resizeCanvas = function()
     this.viewport.style.width = this.viewport.width;
     this.viewport.style.height = this.viewport.height;
 };
- 
+
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
     console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
-    
+
     var _this = this;
 
     // console.log('derek', data);
@@ -4009,7 +4078,7 @@ game_core.prototype.client_onjoingame = function(data)
     //this.orbs = JSON.parse(alldata[2]);
     var chests = JSON.parse(alldata[2]);
     //console.log('chestz',this.chests);
-    
+
     var team = alldata[3];
     //console.log('# startpos', startpos);
 

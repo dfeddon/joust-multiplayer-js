@@ -1,7 +1,7 @@
 /*jslint
     this
 */
-"use strict";
+//"use strict";
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player( game_instance, player_instance, isHost )
@@ -46,6 +46,16 @@ function game_player( game_instance, player_instance, isHost )
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
     this.supportingPlatformId = "none"; // id of platform on which player is standing
+    this.tmd = null;
+    this.nw = 0;
+    this.sw = 0;
+    this.ne = 0;
+    this.se = 0;
+    this.e = 0;
+    this.w = 0;
+    this.n =0;
+    this.s = 0;
+    this.c = 0;
     this.visible = true;
     this.active = false;
     this.state = 'not-connected';
@@ -616,7 +626,7 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    //console.log('do land', this.vy);
+    console.log('=== player.doLand', this.mp, '===');//, this.vy);
 
     // if falling fataly fast...
     if (this.vy > 10)
@@ -628,7 +638,7 @@ game_player.prototype.doLand = function()
     // survivably fast
     if (this.vy > 6)
     {
-        console.log('bounce up!');
+        console.log('* bounce up!', this.vy);
         // set length of vulnerability based on how hard player hits
         var len = 1500 + ((this.vy - 6) * 1000);
         // impact drag
@@ -647,7 +657,7 @@ game_player.prototype.doLand = function()
     // decelerate
     if (this.vx > 0)
     {
-        //console.log('slowing', this.vx);
+        console.log('* slowing', this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
@@ -683,11 +693,12 @@ game_player.prototype.doLand = function()
         this.landed = 1;
         this.a = 0;
     }
+	console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
 };
 
 game_player.prototype.doWalk = function(dir)
 {
-    console.log('walking...', dir, this.ax, this.vx, this.a, this.vy);
+    //console.log('walking...', dir, this.ax, this.vx, this.a, this.vy);
     this.landed = 2; // walking
 
     /*if (dir === 0)
@@ -711,7 +722,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
     /*this.hasFlag = flagType;
     this.flagTakenAt = this.game.server_time;
     this.carryingFlag = flag;*/
-    
+
     //this.hasFlag = flagType;
 
     // disable bubble
@@ -949,6 +960,8 @@ game_player.prototype.collision = false;
 game_player.prototype.hitFrom = 0;
 game_player.prototype.update = function()
 {
+    // ensure tilemap data is loaded (locally)
+    if (!this.tmd) this.tmd = this.game.tilemapData;
     if (this.landed === 1)
     {
         // reset angle
@@ -1049,7 +1062,7 @@ game_player.prototype.doKill = function(victor)
     this.landed = 0;
 
     // TODO: Fix this (removeFlag moved to flag class)
-    if (this.carryingFlag) 
+    if (this.carryingFlag)
         this.removeFlag(false, this.carryingFlag.sourceSlot);
 
     // splatter "orbs of death"
@@ -1345,27 +1358,67 @@ game_player.prototype.getGrid = function()
 game_player.prototype.getCoord = function()
 {
     // direction-dependent, account for
-    var nw = { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
-    var ne = { x: Math.floor((this.pos.x + this.size.hx) / 64),y: Math.floor(this.pos.y / 64) };
-    var sw = { x: Math.floor(this.pos.x / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
-    var se = { x: Math.floor((this.pos.x + this.size.hx) / 64), y: Math.floor((this.pos.y + this.size.hy) / 64) };
-    return { nw:nw, ne:ne, sw:sw, se:se };
+    this.nw =
+    {
+        x: Math.floor(this.pos.x / 64),
+        y: Math.floor(this.pos.y / 64)
+    };
+    this.ne =
+    {
+        x: Math.floor((this.pos.x + this.size.hx) / 64),
+        y: Math.floor(this.pos.y / 64)
+    };
+    this.sw =
+    {
+        x: Math.floor(this.pos.x / 64),
+        y: Math.floor((this.pos.y + this.size.hy) / 64)
+    };
+    this.se =
+    {
+        x: Math.floor((this.pos.x + this.size.hx) / 64),
+        y: Math.floor((this.pos.y + this.size.hy) / 64)
+    };
+    this.n =
+    {
+        x: Math.floor((this.pos.x + (this.size.hx/2)) / 64),
+        y: Math.floor(this.pos.y / 64)
+    };
+    this.s =
+    {
+        x: Math.floor((this.pos.x + (this.size.hx/2)) / 64),
+        y: Math.floor((this.pos.y + this.size.hy) / 64)
+    };
+    this.e =
+    {
+        x: Math.floor((this.pos.x + this.size.hx) / 64),
+        y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
+    };
+    this.w =
+    {
+        x: Math.floor(this.pos.x / 64),
+        y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
+    };
+    return { nw:this.nw, ne:this.ne, sw:this.sw, se:this.se, n:this.n, s:this.s, e:this.e, w:this.w };
     //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
 };
 game_player.prototype.hitGrid = function()
 {
     // don't proceed unless tilemapData is loaded
     //if (this.game.tilemapData == undefined) return;
-    var tmd = this.game.tilemapData;
-    if (tmd == null) return;
+    //var tmd = this.game.tilemapData;
+    if (this.tmd === null) return;
 
-    var c = this.getCoord();
+    this.c = this.getCoord();
 
     return {
-        nw: (tmd[c.nw.y] && tmd[c.nw.y][c.nw.x]) ? {t:parseInt(tmd[c.nw.y][c.nw.x]),x:c.nw.x,y:c.nw.y} : 0,
-        ne: (tmd[c.ne.y] && tmd[c.ne.y][c.ne.x]) ? {t:parseInt(tmd[c.ne.y][c.ne.x]),x:c.ne.x,y:c.ne.y} : 0,
-        sw: (tmd[c.sw.y] && tmd[c.sw.y][c.sw.x]) ? {t:parseInt(tmd[c.sw.y][c.sw.x]),x:c.sw.x,y:c.sw.y} : 0,
-        se: (tmd[c.se.y] && tmd[c.se.y][c.se.x]) ? {t:parseInt(tmd[c.se.y][c.se.x]),x:c.se.x,y:c.se.y} : 0
+        nw: (this.tmd[this.c.nw.y] && this.tmd[this.c.nw.y][this.c.nw.x]) ? {t:parseInt(this.tmd[this.c.nw.y][this.c.nw.x]),x:this.c.nw.x,y:this.c.nw.y} : 0,
+        ne: (this.tmd[this.c.ne.y] && this.tmd[this.c.ne.y][this.c.ne.x]) ? {t:parseInt(this.tmd[this.c.ne.y][this.c.ne.x]),x:this.c.ne.x,y:this.c.ne.y} : 0,
+        sw: (this.tmd[this.c.sw.y] && this.tmd[this.c.sw.y][this.c.sw.x]) ? {t:parseInt(this.tmd[this.c.sw.y][this.c.sw.x]),x:this.c.sw.x,y:this.c.sw.y} : 0,
+        se: (this.tmd[this.c.se.y] && this.tmd[this.c.se.y][this.c.se.x]) ? {t:parseInt(this.tmd[this.c.se.y][this.c.se.x]),x:this.c.se.x,y:this.c.se.y} : 0,
+        e: (this.tmd[this.c.e.y] && this.tmd[this.c.e.y][this.c.e.x]) ? {t:parseInt(this.tmd[this.c.e.y][this.c.e.x]),x:this.c.e.x,y:this.c.e.y} : 0,
+        w: (this.tmd[this.c.w.y] && this.tmd[this.c.w.y][this.c.w.x]) ? {t:parseInt(this.tmd[this.c.w.y][this.c.w.x]),x:this.c.w.x,y:this.c.w.y} : 0,
+        n: (this.tmd[this.c.n.y] && this.tmd[this.c.n.y][this.c.n.x]) ? {t:parseInt(this.tmd[this.c.n.y][this.c.n.x]),x:this.c.n.x,y:this.c.n.y} : 0,
+        s: (this.tmd[this.c.s.y] && this.tmd[this.c.s.y][this.c.s.x]) ? {t:parseInt(this.tmd[this.c.s.y][this.c.s.x]),x:this.c.s.x,y:this.c.s.y} : 0
     };
 };
 
