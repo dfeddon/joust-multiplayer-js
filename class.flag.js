@@ -1,7 +1,7 @@
 /*jslint
     this
 */
-"use strict"
+//"use strict"
 
 function game_flag(data, context)
 {
@@ -455,14 +455,14 @@ game_flag.prototype.slotFlag = function(player)
 {
   // TODO: Resolve issue with targetSlot and sourceSlot values, both
   // of which exist in flag class (client) and clientCooldowns (server)
-  console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
+  // console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
   //console.log('cooldowns', player.game.clientCooldowns);
 
   var clientFlag = this._.find(player.game.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
   //console.log('clientFlag', clientFlag);
   if (clientFlag === undefined) return;
 
-  console.log('* slot.name', this.name, 'clientCooldown.target', clientFlag.target);
+  // console.log('* slot.name', this.name, 'clientCooldown.target', clientFlag.target);
   if (this.name == clientFlag.target)//player.carryingFlag.targetSlot)
   {
     console.log('* slot flag!!!!');

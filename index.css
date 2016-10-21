@@ -21,10 +21,120 @@ html , body {
     /*src: url('http://www.miketaylr.com/f/kulminoituva.ttf');*/
 }
 
+#splash
+{
+	display: none;
+	position: absolute;
+	/*margin: auto;*/
+	margin: 0px auto;
+	top: 12.5%;
+	left: 12.5%;
+	width: 75%;
+	height: 75%;
+	background-color: black;
+	opacity: 1.0;
+	z-index:1001;
+}
+#splash > div
+{
+    display: inline-block;
+    /*border: solid 5px #ff0000;*/
+	vertical-align: middle;
+	text-align: center;
+	/*width: 90%;*/
+
+	/*width: 50%;height:50%;*/
+}
+#nameContainer
+{
+	display: inline-block;
+	/*position: fixed;*/
+	width: 50%;
+	height: 100%;
+	/*vertical-align: middle;*/
+	background-color: #ccc
+}
+#adContainer
+{
+	display: inline-block;
+	width: 49%;
+	height: 100%;
+	background-color: #fff;
+}
+#name {
+	display: inline;
+    width: 50%;
+	/*left-margin: 50%;*/
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+	border: 2px solid;
+	border-radius: 5px
+}
+#teamRed
+{
+    background-color: #ff0000; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+	border: 2px solid;
+	border-radius: 5px
+}
+#teamBlue
+{
+    background-color: #0000ff; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+	border: 2px solid;
+	border-radius: 5px
+}
+#btnStart
+{
+    background-color: green; /* Green */
+    border: none;
+    color: white;
+	width: 75%;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+	border: 2px solid;
+	border-radius: 5px
+}
+
+/*
+.form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}*/
+
 #toast
 {
 	position: absolute;
 	width: 50%;
+	top: 32px;
 	padding-top: 15px;
 	padding-bottom: 5px;
 	/*padding-left: 5px;
@@ -58,6 +168,52 @@ html , body {
 
 	z-index: 5;
 	display: none; /* off by default */
+}
+
+#uiTopBar
+{
+	position: absolute;
+	/*display: none;*/
+	top: 0px;
+	height: 32px;
+	width: 100%;
+	background: rgba(0,0,0,0.65);
+	opacity: 0.85;
+	z-index: 500;
+}
+#uiScoreRed
+{
+	position: absolute;
+	/*display: none;*/
+	top: 0px;
+	height: 28px;
+	width: 75px;
+	background: rgba(255,0,0,0.9);
+	border: 2px solid;
+	border-color: gray;
+}
+#txtScoreRed
+{
+	font-size: 1.5em;
+	text-align: center;
+}
+#uiScoreBlue
+{
+	position: absolute;
+	/*display: none;*/
+	top: 0px;
+	height: 28px;
+	right: 0px;
+	width: 75px;
+	background: rgba(0,0,204,0.9);
+	border: 2px solid;
+	border-color: gray;
+	/*z-index: 500;*/
+}
+#txtScoreBlue
+{
+	font-size: 1.5em;
+	text-align: center;
 }
 
 #viewport {

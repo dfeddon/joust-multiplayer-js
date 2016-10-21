@@ -89,6 +89,7 @@ game_server._onMessage = function(client,message)
     if(message_type == 'i')
     {
         //Input handler will forward this
+        //this.log('@@ _onMessage', message, client);
         this.onInput(client, message_parts);
     }
     else if(message_type == 'p')
@@ -391,7 +392,7 @@ game_server.startGame = function(game)
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
             //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
             console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
-            var team = "1"; // 1 = red, 2 = blue
+            var team = "2"; // 1 = red, 2 = blue
             console.log('player team', team);
             // send user mp, game id, orbs array
             // TODO: Replace orbs array with active chests (and player instance) array
@@ -413,7 +414,7 @@ game_server.startGame = function(game)
                 };
                 chestsarray.push(obj);
             }
-            
+
             nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team);
             nonhosts[j].game = game;
         }
@@ -528,7 +529,7 @@ game_server.findGame = function(client)
                                 game_instance.gamecore.allplayers[i].id = client.userid;
                                 game_instance.gamecore.allplayers[i].isLocal = true;
                                 // player start position
-                                game_instance.gamecore.allplayers[i].pos = game_instance.gamecore.gridToPixel(2,2);
+                                game_instance.gamecore.allplayers[i].pos = game_instance.gamecore.gridToPixel(3,4);
                                 // game_instance.gamecore.allplayers[i].playerName = this.nameGenerator();
                                 // console.log('playername', game_instance.gamecore.allplayers[i].playerName);
                                 //game_instance.gamecore.allplayers[i].gameid = gameid;

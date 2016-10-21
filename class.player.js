@@ -102,7 +102,7 @@ function game_player( game_instance, player_instance, isHost )
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
 
-    this.team = 1; // 1 = red, 2 = blue
+    this.team = 2; // 1 = red, 2 = blue
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;
     this.pointsTotal = 0;
@@ -626,7 +626,7 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    console.log('=== player.doLand', this.mp, '===');//, this.vy);
+    //console.log('=== player.doLand', this.mp, '===');//, this.vy);
 
     // if falling fataly fast...
     if (this.vy > 10)
@@ -638,7 +638,7 @@ game_player.prototype.doLand = function()
     // survivably fast
     if (this.vy > 6)
     {
-        console.log('* bounce up!', this.vy);
+        //console.log('* bounce up!', this.vy);
         // set length of vulnerability based on how hard player hits
         var len = 1500 + ((this.vy - 6) * 1000);
         // impact drag
@@ -657,7 +657,7 @@ game_player.prototype.doLand = function()
     // decelerate
     if (this.vx > 0)
     {
-        console.log('* slowing', this.vx);
+        //console.log('* slowing', this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
@@ -693,7 +693,7 @@ game_player.prototype.doLand = function()
         this.landed = 1;
         this.a = 0;
     }
-	console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
+	//console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
 };
 
 game_player.prototype.doWalk = function(dir)
@@ -1499,9 +1499,17 @@ game_player.prototype.draw = function()
     // else
     // {
     // nameplate color
-    if (this.team === 1) // 0 = red, 1 = blue
+    game.ctx.save();
+    if (this.team === 1) // 1 = red, 2d = blue
+    {
         game.ctx.fillStyle = '#FF6961';
-    else game.ctx.fillStyle = '#6ebee6';
+        //game.ctx.save();
+    }
+    else
+    {
+        game.ctx.fillStyle = '#6ebee6';
+        //game.ctx.save();
+    }
     game.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
@@ -1521,6 +1529,7 @@ game_player.prototype.draw = function()
         this.pos.y - txtOffset
         //100
     );
+    game.ctx.restore();
     if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
         game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),

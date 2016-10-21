@@ -61,24 +61,25 @@ game_chest.prototype.doTake = function(player)//, chests)
   this.takenBy = player.mp;
 
   // send to server
-  console.log('len', this.game.allplayers.length);
+  // console.log('len', this.game.allplayers.length);
 
   this._.forEach(this.game.allplayers, function(ply)
   {
-    console.log('* instance', ply.instance, ply.mp, player.mp);
+    // console.log('* instance', ply.instance, ply.mp, player.mp);
 
     if (ply.instance && ply.mp != player.mp && ply.mp != "hp")
     {
-      console.log('* send', _this.id, ply.mp);
+      // console.log('* send', _this.id, ply.mp);
 
       ply.instance.send('c.t.' + _this.id + '|' + player.mp);//, k );
+      //_this.game.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
     }
   });
 
   // no double-takes!
 
   // assign passive to player
-  console.log('passive', this.data, this.type, this.duration, this.modifier);
+  // console.log('passive', this.data, this.type, this.duration, this.modifier);
   switch(this.type)
   {
     case 1: // acceleration boost
@@ -98,7 +99,7 @@ game_chest.prototype.doTake = function(player)//, chests)
     if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
     {
       spawn.active = false;
-      console.log('set spawn active to FALSE!');
+      // console.log('set spawn active to FALSE!');
       //return false;
     }
   });
@@ -123,8 +124,9 @@ game_chest.prototype.doRemove = function(player)
   {
     if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
     {
-      console.log('* sending c.r. to', ply.mp);
+      // console.log('* sending c.r. to', ply.mp);
       ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
+      //_this.game.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
     }
   });
 };

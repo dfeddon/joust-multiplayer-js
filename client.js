@@ -6,6 +6,16 @@
     MIT Licensed.
 */
 console.log('client loaded', window);
+console.log('user-agent header', navigator.userAgent);
+
+console.log("Browser CodeName: " + navigator.appCodeName);
+console.log("Browser Name: " + navigator.appName);
+console.log("Browser Version: " + navigator.appVersion);
+console.log("Cookies Enabled: " + navigator.cookieEnabled);
+console.log("Browser Language: " + navigator.language);
+console.log("Browser Online: " + navigator.onLine);
+console.log("Platform: " + navigator.platform);
+console.log("User-agent header: " + navigator.userAgent);
 
 //A window global for our game root variable.
 

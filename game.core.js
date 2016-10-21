@@ -1983,7 +1983,7 @@ game_core.prototype.check_collision = function( player )
         //////////////////////////////
         else if (h.ne.t > 0 || h.se.t > 0) // hit from left
         {
-            console.log('* edge left', h.n.t, h.s.t, h.e.t);
+            //console.log('* edge left', h.n.t, h.s.t, h.e.t);
             if (h.e.t > 0) // east (side collision)
             {
                 player.pos.x -= 15; //bounce
@@ -2007,7 +2007,7 @@ game_core.prototype.check_collision = function( player )
         }
         else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
         {
-            console.log('* edge right', h.n.t, h.s.t, h.w.t);
+            //console.log('* edge right', h.n.t, h.s.t, h.w.t);
             if (h.w.t > 0) // east (side collision)
             {
                 player.pos.x += 15; //bounce
@@ -2342,7 +2342,7 @@ game_core.prototype.client_on_orbremoval = function(data)
 
 game_core.prototype.process_input = function( player )
 {
-    // console.log('##+@@process_input');
+    //console.log('##+@@process_input');
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
@@ -2484,6 +2484,7 @@ game_core.prototype.process_input = function( player )
         player.lpos = player.pos;
         //console.log(x_dir, y_dir, this._pdt);
     }
+    this.players.self.cur_state.pos = this.pos(this.players.self.pos);
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     //we have a direction vector now, so apply the same physics as the client
@@ -2569,8 +2570,10 @@ game_core.prototype.update_physics = function()
 
 //Updated at 15ms , simulates the world state
 game_core.prototype.server_update_physics = function() {
-    if (glog)
-    console.log('##-@@ server_update_physics');
+    //if (glog)
+    //console.log('##-@@ server_update_physics');
+
+    var _this = this;
 
     /*
     //Handle player one
@@ -2592,18 +2595,19 @@ game_core.prototype.server_update_physics = function() {
     */
 
     // player collisions
-    for (var i = 0; i < this.allplayers.length; i++)
+    //for (var i = 0; i < this.allplayers.length; i++)
+    this._.forEach(this.allplayers, function(ply)
     {
-        this.allplayers[i].old_state.pos = this.pos( this.allplayers[i].pos );
-        var new_dir = this.process_input(this.allplayers[i]);
-        this.allplayers[i].pos = this.v_add( this.allplayers[i].old_state.pos, new_dir);
+        ply.old_state.pos = _this.pos( ply.pos );
+        var new_dir = _this.process_input(ply);
+        ply.pos = _this.v_add( ply.old_state.pos, new_dir);
 
         //Keep the physics position in the world
-        this.check_collision( this.allplayers[i] );
+        _this.check_collision( ply );
 
         //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
-        this.allplayers[i].inputs = []; //we have cleared the input buffer, so remove this
-    }
+        ply.inputs = []; //we have cleared the input buffer, so remove this
+    });
 
     // platform collisions (minus player)
     /*for (var j = 0; j < this.platforms.length; j++)
@@ -3492,7 +3496,7 @@ game_core.prototype.client_process_net_updates = function()
 
 game_core.prototype.addChest = function(chest)
 {
-    console.log('adding chest...', chest);
+    //console.log('adding chest...', chest);
 
     if (this.server)
     {
@@ -3591,17 +3595,22 @@ game_core.prototype.client_update_local_position = function()
      if (glog)
      console.log('## client_update_local_position');
 
-            //Work out the time we have since we updated the state
+        //Work out the time we have since we updated the state
         var t = (this.local_time - this.players.self.state_time) / this._pdt;
 
         //Then store the states for clarity,
         var old_state = this.players.self.old_state.pos;
+        //if ()
         var current_state = this.players.self.cur_state.pos;
-
+        //console.log("old", old_state, "current", current_state);
         //Make sure the visual position matches the states we have stored
         //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
         //console.log(current_state.d);
-        this.players.self.pos = current_state;
+
+        // TODO: Uncomment below if client pos mismatch
+        //*
+        //this.players.self.pos = current_state;
+        //*/
 
         //We handle collision on client if predicting.
         this.check_collision( this.players.self );
@@ -3932,7 +3941,8 @@ game_core.prototype.client_reset_positions = function()
 
     console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
-    /*for (var i = 0; i < this.allplayers.length; i++)
+    //*
+    for (var i = 0; i < this.allplayers.length; i++)
     {
         //console.log('pos:', this.allplayers[i].pos, this.allplayers[i].instance);
         // this.allplayers[i].pos = this.allplayers[i].pos;
@@ -3940,7 +3950,9 @@ game_core.prototype.client_reset_positions = function()
         this.allplayers[i].old_state.pos = this.pos(this.allplayers[i].pos);
         this.allplayers[i].pos = this.pos(this.allplayers[i].pos);
         this.allplayers[i].cur_state.pos = this.pos(this.allplayers[i].pos);
-    }*/
+        this.allplayers[i].draw();
+    }
+    //*/
 
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
@@ -4149,9 +4161,9 @@ game_core.prototype.client_onjoingame = function(data)
     // create prerenders
     //this.prerenderer();
 
-    this.resizeCanvas();
+    //this.resizeCanvas();
     //Make sure the positions match servers and other clients
-    this.client_reset_positions();
+    //this.client_reset_positions();
 }; //client_onjoingame
 
 game_core.prototype.client_onhostgame = function(data) {
