@@ -61,10 +61,10 @@
 		-->
 		<div id="uiTopBar">
 			<div id="uiScoreRed">
-				<p id="txtScoreRed">250</font>
+				<p id="txtScoreRed">+150</font>
 			</div>
 			<div id="uiScoreBlue">
-				<p id="txtScoreRed">175</p>
+				<p id="txtScoreRed">-175</p>
 			</div>
 		</div>
 
@@ -76,28 +76,47 @@
 			
 			<div id="nameContainer">
 				<!-- TITLE -->
-				<br><br>
-				<h1>winglings.io</h1>
+				<br>
+				<!--<h1>winglings.io</h1>-->
+				<img src="/assets/splash-header.png"/>
 				
 				<!-- NAME -->
 				<br>
 				<div>
-					<input id="name" type="text" placeholder="Nickname"/>
+					<input id="name" type="text" placeholder="Your Nickname"/>
 				</div>
 
 				<!-- TEAM -->
 				<br>
+				<h2>&#9753; Select a Team &#9753;</h2>
 				<div>
-					<button id="teamRed">Red Team</button>
-					<button id="teamBlue">Blue Team</button>
+					<button id="teamRed">Red</button>
+					<button id="teamBlue">Blue</button>
 				</div>
 
 				<!-- SKINS -->
-				<br><br>
-				<h2>Select a skin:</h2>
+				<br>
+				<h2>&#9753; Select a Wingling &#9753;</h2>
+				<div id="leftArrow" class="float">
+					<button class="btn">
+						<img src="/assets/arrowLeft.png"/>
+					</button>
+				</div>
+
+				<div id="skin" class="float">
+					<button class="btn">
+						<img src="/assets/skin1-fly-right.png"/>
+					</button>
+				</div>
+				
+				<div id="rightArrow" class="float">
+					<button class="btn">
+						<img src="/assets/arrowRight.png"/>
+					</button>
+				</div>
 				
 				<!-- START -->
-				<br>
+				<br><br><br>
 				<div>
 					<button id="btnStart">Join Game</button>
 				</div>
@@ -154,6 +173,7 @@
 
 			<img id="animate-explosion" src="assets/sheet-explosion.png" width="512" height="512">
 			<img id="animate-torches" src="assets/sheet-torches.png" width="256" height="64">
+			<img id="animate-gg" src="assets/EXPLOSIONS1.png" width="64" height="64">
 
 			<img id="plat-l" src="assets/plat-l.png" width="64" height="64">
 			<img id="plat-m" src="assets/plat-m.png" width="64" height="64">

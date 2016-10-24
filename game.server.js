@@ -392,7 +392,7 @@ game_server.startGame = function(game)
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
             //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
             console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
-            var team = "2"; // 1 = red, 2 = blue
+            var team = "1"; // 1 = red, 2 = blue
             console.log('player team', team);
             // send user mp, game id, orbs array
             // TODO: Replace orbs array with active chests (and player instance) array

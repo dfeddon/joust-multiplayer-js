@@ -121,7 +121,7 @@ function game_player( game_instance, player_instance, isHost )
     this.hasHelment = false;//true;
     this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     this.flagTakenAt = 0;
-    this.carryingFlag = null;
+    //this.carryingFlag = null;
 
     this.playerName = "";
     this.playerSprite = "roundRooster";
@@ -635,7 +635,7 @@ game_player.prototype.doLand = function()
         this.doKill();
         return;
     }
-    // survivably fast
+    // ...survivably fast
     if (this.vy > 6)
     {
         //console.log('* bounce up!', this.vy);
@@ -648,9 +648,6 @@ game_player.prototype.doLand = function()
         // set vulnerability
         this.isVuln(len);
         //this.a *= -1;
-        // TODO: Fix this (removeFlag moved to flag class)
-        if (this.carryingFlag)
-            this.removeFlag(false, this.carryingFlag.sourceSlot);
         return;
     }
 
@@ -1056,14 +1053,10 @@ game_player.prototype.doKill = function(victor)
 
     // store current position
     var waspos = this.pos;
-    this.pos = this.game.gridToPixel(2,2);
 
-    // reset landed prop
-    this.landed = 0;
-
-    // TODO: Fix this (removeFlag moved to flag class)
-    if (this.carryingFlag)
-        this.removeFlag(false, this.carryingFlag.sourceSlot);
+    // if carrying flag, drop it
+    if (this.hasFlag)
+        this.dropFlag();
 
     // splatter "orbs of death"
     /*
@@ -1087,11 +1080,37 @@ game_player.prototype.doKill = function(victor)
     //*/
 
     // show splatter locally
-    if (!this.game.server)
-        this.game.prerenderer();
+    /*if (!this.game.server)
+        this.game.prerenderer();*/
 
     // set timer to reset player dead state
+    setTimeout(this.timeoutRespawn.bind(this, victor), 2000);
+};
 
+game_player.prototype.timeoutRespawn = function(victor)
+{
+    console.log('player dead complete');
+    
+    this.visible = false;
+    this.dead = false;
+    this.vuln = true; // this disables input
+    this.pos = this.game.gridToPixel(3,4);
+    this.landed = 1;
+
+    if (victor)
+    {
+        console.log(this.mp, 'slain by', victor.mp);
+        
+        // temporarily have camera follow victor
+        this.game.players.self = victor;
+    }
+
+    // show respawn screen (ads)
+    if (!this.game.server)
+    {
+        var ui = document.getElementById('splash');
+        ui.style.display = "block";
+    }
 };
 
 game_player.prototype.setPassive = function(data)//type, duration, modifier)
@@ -1342,8 +1361,32 @@ game_player.prototype.isVuln = function(len)
         this.isEngaged(len);
 
     var stun = setTimeout(this.timeoutVuln.bind(this), len);
+
+    // if carrying flag, drop it
+    if (this.hasFlag)
+        this.dropFlag();
 };
 
+game_player.prototype.dropFlag = function()
+{
+    if (this.hasFlag)
+    {
+        // 1 = midFlag, 2 = redBase, 3 = blueBase
+        var flagName;
+        switch(this.hasFlag)
+        {
+            case 1: flagName = "midFlag"; break;
+            case 2: flagName = "redFlag"; break;
+            case 3: flagName = "blueFlag"; break;
+        }
+        // remove flag from player
+        this.hasFlag = 0;
+
+        // reset flag
+        var flag = this.game._.find(this.game.flagObjects, {"name":flagName});
+        flag.reset(false, this.game);
+    }
+}
 game_player.prototype.timeoutVuln = function()
 {
     this.vuln = false;
@@ -1480,6 +1523,8 @@ game_player.prototype.drawAbilities = function()
 game_player.prototype.draw = function()
 {
     //console.log(this.pos.x, this.pos.y);
+
+    if (this.visible === false) return;
     //this.pos.x = this.pos.x.fixed(1);
     //this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
@@ -1590,7 +1635,15 @@ game_player.prototype.draw = function()
     // {
     //     console.log('abil!', this.abil, this.mp);
     // }
-    if (this.vuln === true)
+    if (this.dead === true)
+    {
+        console.log('dead animation...');
+        
+        img = document.getElementById('animate-gg');
+        imgW = 64;//33;
+        imgH = 64;//44;
+    }
+    else if (this.vuln === true)
     {
         if (this.dir === 1)
             img = document.getElementById("p1stun-l");

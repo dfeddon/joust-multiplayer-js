@@ -544,7 +544,7 @@ game_flag.prototype.slotFlag = function(player)
   }
 };
 
-game_flag.prototype.reset = function(success)//, server_time)
+game_flag.prototype.reset = function(success, game)//, server_time)
 {
   console.log('===flag.reset', success, this.name, '===');
   this.isHeld = false;
@@ -558,7 +558,18 @@ game_flag.prototype.reset = function(success)//, server_time)
     //this.onCooldownTimer = setTimeout(this.timeoutCooldown.bind(this), 1000);
     //this.stopwatch.start();
   }
-  else this.isActive = true;
+  else
+  { 
+    this.isActive = true;
+    // clear flag-carried (fc) event
+    console.log('*', game.events);
+    
+    if (game.server)
+    {
+      var fcEvent = this._.find(game.events, {"type":2});
+      fcEvent.doStop();
+    }
+  }
   console.log('flag slotted and reset', this);
 };
 

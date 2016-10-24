@@ -2596,10 +2596,11 @@ game_core.prototype.server_update_physics = function() {
 
     // player collisions
     //for (var i = 0; i < this.allplayers.length; i++)
+    var new_dir;
     this._.forEach(this.allplayers, function(ply)
     {
         ply.old_state.pos = _this.pos( ply.pos );
-        var new_dir = _this.process_input(ply);
+        new_dir = _this.process_input(ply);
         ply.pos = _this.v_add( ply.old_state.pos, new_dir);
 
         //Keep the physics position in the world
@@ -3609,7 +3610,7 @@ game_core.prototype.client_update_local_position = function()
 
         // TODO: Uncomment below if client pos mismatch
         //*
-        //this.players.self.pos = current_state;
+        this.players.self.pos = current_state;
         //*/
 
         //We handle collision on client if predicting.
