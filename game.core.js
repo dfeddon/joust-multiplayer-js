@@ -2658,9 +2658,38 @@ game_core.prototype.server_update = function()
     this.laststate = {};
     //for (var i = 0; i < this.allplayers.length; i++)
     // add a, ax, ay, vx, vy
-    this._.forEach(this.allplayers, function(player)
+    //console.log('::',8*this.allplayers.length);
+    
+    var bufArr = new ArrayBuffer(128);//16 * this.allplayers.length); // 16 * numplayers
+    var bufView;
+    this._.forEach(this.allplayers, function(player, index)
     {
-        _this.laststate[player.mp] =
+        //console.log(index * 16);
+        // set player's bufferIndex
+        //player.bufferIndex = index;
+        bufView = new Float32Array(bufArr, (index*16), 16);
+        //, 0, Math.floor(bufArr.byteLength/2));
+        //*
+        bufView[0] = player.pos.x;
+        bufView[1] = player.pos.y;
+        bufView[2] = player.dir;
+        bufView[3] = player.flap;
+        bufView[4] = player.landed;
+        bufView[5] = player.vuln;
+        bufView[6] = player.a;
+        bufView[7] = player.vx;
+        bufView[8] = player.vy;
+        bufView[9] = player.hasFlag;
+        bufView[10] = player.bubble;
+        bufView[11] = index; // player's bufferIndex
+        //bufView[11] = new Date();
+        // if (player.mp == "cp1")
+            // console.log('->', bufView);
+        
+        _this.laststate[player.mp] = bufArr;
+        //*/
+        /*
+        _this.laststate[player.mp] = 
         {
             x:player.pos.x,
             y:player.pos.y,
@@ -2674,7 +2703,7 @@ game_core.prototype.server_update = function()
             vy:player.vy,
             g:player.hasFlag,
             b:player.bubble
-        };
+        };//*/
         _this.laststate[player.mis] = player.last_input_seq;
 
         // reset flap on server instance
@@ -2682,6 +2711,8 @@ game_core.prototype.server_update = function()
         // rest abil on server instance
         if (player.abil > 0) player.abil = 0;
     });
+    //console.log(':::', _this.laststate);
+    
 
     /////////////////////////////////
     // process platforms
@@ -2794,7 +2825,12 @@ game_core.prototype.server_update = function()
     //*/
 
     this.laststate.t = this.server_time;
-    //console.log(this.laststate);
+    //console.log(this.laststate.cp1);
+    // var view = new Float32Array(this.laststate.cp1, 0, 16);
+    // console.log('view', view);
+    //console.log('bufview', bufView);
+    
+    
     //console.log('len', this.allplayers.length);
     //for (var j = 0; j < this.allplayers.length; j++)
     this._.forEach(this.allplayers, function(ply)
@@ -3031,7 +3067,13 @@ game_core.prototype.client_process_net_prediction_correction = function()
 
     //Our latest server position
     //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
-    var my_server_pos = latest_server_data[this.players.self.mp];
+    //console.log('bufferIndex', this.players.self.bufferIndex);
+    
+    var self_sp = new Float32Array(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
+    //console.log('self_sp', self_sp);
+    
+    var my_server_pos = {x:self_sp[0], y:self_sp[1]};
+    //var my_server_pos = latest_server_data[this.players.self.mp];
 
     //Update the debug server position block TODO: removed line below
     //this.ghosts.server_pos_self.pos = this.pos(my_server_pos);
@@ -3185,15 +3227,21 @@ game_core.prototype.client_process_net_updates = function()
             break;
         }
     }
+    //console.log(':', this.server_updates);
+    
 
     //With no target we store the last known
     //server position and move to that instead
+    //console.log('sup', this.server_updates.length);
+    //console.log('targ', target);
+    
+    
     if(!target)
     {
         target = this.server_updates[0];
         previous = this.server_updates[0];
     }
-    //console.log('target', target);
+    //console.log('target', typeof(target), target);
     //console.log('previous', previous);
     //Now that we have a target and a previous destination,
     //We can interpolate between then based on 'how far in between' we are.
@@ -3201,7 +3249,21 @@ game_core.prototype.client_process_net_updates = function()
     //lerp requires the 0,1 value to lerp to? thats the one.
      //console.log(target);
       //if (target.cp2.f == 1)
-      //console.log(target.cp2);
+      //var test = new Int16Array(target.cp1, 0, Math.floor(target.cp1.byteLength/2));
+    //   var len = target.cp1.byteLength;
+    //   console.log('len',len);
+      
+      //console.log(target.cp1, 24, 1);
+      //console.log('len', target.cp1.byteLength);
+    //   for (var x=0; x < target.cp1.byteLength; x++)
+    //     console.log(':', target.cp1[x]);
+        
+      
+    //   var view = new Float32Array(target.cp1, 0, 12);//target.cp1.byteLength);//, len);//, Math.floor(target.cp1.byteLength/2));
+    //   console.log(view);
+      //console.log(view.getInt16(1, false));
+      
+    //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
      if(target && previous)
      {
 
@@ -3234,28 +3296,74 @@ game_core.prototype.client_process_net_updates = function()
         //var other_past_pos2 = [];
         //*
         var ghostStub;
+        //console.log('->:', target.cp1[0], this.players.self.x);
+        
         //console.log('len', this.allplayers.length, this.players.self.mp);
         //for (var j = 0; j < this.allplayers.length; j++)
-        this._.forEach(this.allplayers, function(player)
+        var vt; // view target
+        var vp; // view previous
+        var lerp_t = {x:0, y:0};
+        var lerp_p = {x:0, y:0};
+        var self_pp;
+        var self_tp;
+        this._.forEach(this.allplayers, function(player, index)
         {
             if (player != _this.players.self)// && previous[player.mp])
             {
-                //console.log('**', j, player.mp);
+                //console.log('**', target[player.mp]);
+                  vt = new Float32Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                  vp = new Float32Array(previous[player.mp], (index * 16), 16);
+                  //console.log(vt);
+                  //console.log(vp);
+                  
+                //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
+
                 // other_server_pos2=latest_server_data[player.mp];
                 // other_target_pos2=latest_server_data[player.mp];
                 // other_past_pos2=latest_server_data[player.mp];
                 // console.log('*', previous[player.mp]);
+                player.pos.x = vt[0];//target[player.mp].x;
+                player.pos.y = vt[1];//target[player.mp].y;
+
+                lerp_t.x = vt[0];
+                lerp_t.y = vt[1];
+
+                lerp_p.x = vp[0];
+                lerp_p.y = vp[1];
+
                 ghostStub = _this.v_lerp(
-                    previous[player.mp],//other_past_pos2,
-                    target[player.mp],//other_target_pos2,
+                    lerp_p,
+                    lerp_t,
                     time_point
                 );
-                player.pos.x = target[player.mp].x;
-                player.pos.y = target[player.mp].y;
+                //console.log(player.mp, player.pos);
+                
+                /*ghostStub = _this.v_lerp(
+                    previous[player.mp],
+                    target[player.mp],
+                    time_point
+                );*/
+                //console.log('pos', player.pos);
+                
                 //console.log(previous[player.mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 player.pos = _this.v_lerp(player.pos, ghostStub, _this._pdt * _this.client_smooth);
 
+                player.dir = vt[2];
+                player.flap = (vt[3] === 0) ? false : true;
+                player.landed = vt[4];
+                player.vuln = (vt[5] === 0) ? false : true;
+                player.a = vt[6];
+                player.vx = vt[7];
+                player.vy = vt[8];
+                player.hasFlag = vt[9];
+                player.bubble = (vt[10] === 0) ? false : true;
+                player.bufferIndex = index;//vt[11];
+                //console.log(Boolean(player.flap));
+                //console.log('set playerIndex', vt[11]);
+                
+
+                /*
                 // get direction
                 //if (target[player.mp])//.d == 1)
                 player.dir = target[player.mp].d;
@@ -3267,10 +3375,22 @@ game_core.prototype.client_process_net_updates = function()
                 player.vx = target[player.mp].vx;
                 player.vy = target[player.mp].vy;
                 player.bubble = target[player.mp].b;
+                //*/
                 //console.log(this.allplayers[j].pos);
             }
-            //else console.log('MEMEMEMEMEMEME');
+            else
+            {
+                var self_vt = new Float32Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                var self_vp = new Float32Array(previous[player.mp], (index * 16), 16);
+                self_tp = {x:self_vt[0], y:self_vt[1]};
+                self_pp = {x:self_vp[0], y:self_vp[1]};
+                player.bufferIndex = index;
+                //player.pos.x = self_vt[0];//target[player.mp].x;
+                //player.pos.y = self_vt[1];//target[player.mp].y;
+                //console.log('MEMEMEMEMEMEME', self_pp);
+            }
         });
+        
         // console.log(other_server_pos2);
         //*/
         //var pos;
@@ -3426,11 +3546,22 @@ game_core.prototype.client_process_net_updates = function()
         });*/
 
         // smoothly follow client's destination position
+        //console.log('self', this.players.self.pos);
+        
+        this.players.self.pos =
+            this.v_lerp(this.players.self.pos,
+            this.v_lerp(self_pp, self_tp, this._pdt*this.client_smooth),
+            this._pdt*this.client_smooth
+        );
+        //console.log('self2', this.players.self.pos);
+        
+        /*
         this.players.self.pos =
             this.v_lerp(this.players.self.pos,
             this.v_lerp(previous[this.players.self.mp], target[this.players.self.mp], this._pdt*this.client_smooth),
             this._pdt*this.client_smooth
         );
+        */
 
         //The other players positions in this timeline, behind us and in front of us
         /*var other_target_pos = this.players.self.host ? target.cp : target.hp;

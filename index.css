@@ -23,7 +23,7 @@ html , body {
 
 #splash
 {
-	display: block;
+	display: none;/*block;*/
 	position: absolute;
 	/*margin: auto;*/
 	margin: 0px auto;

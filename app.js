@@ -11,7 +11,11 @@
 var
     gameport        = process.env.PORT || 4004,
 
-    io              = require('socket.io'),
+    io              = require('socket.io')(
+        {
+            'transports': ['websocket']
+        }
+    ),
     clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
@@ -74,17 +78,27 @@ var sio = io.listen(server);
 
 //Configure the socket.io connection settings.
 //See http://socket.io/
-sio.configure(function ()
+/*sio.configure(function ()
 {
-    sio.set('log level', 0);
+    //sio.set('log level', 0);
     // force websocket transport (disable fallback to xhr-polling)
     sio.set('transports', ['websocket']);
 
-    sio.set('authorization', function (handshakeData, callback)
-    {
-      callback(null, true); // error first callback style
-    });
+    // sio.set('authorization', function (handshakeData, callback)
+    // {
+    //   callback(null, true); // error first callback style
+    // });
 
+});*/
+
+io.use(function(socket, next) 
+{
+  var handshakeData = socket.request;
+  // make sure the handshake data looks good as before
+  // if error do this:
+    // next(new Error('not authorized');
+  // else just call next
+  next();
 });
 
 //Enter the game server code. The game server handles

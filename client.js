@@ -17,6 +17,7 @@ console.log("Browser Online: " + navigator.onLine);
 console.log("Platform: " + navigator.platform);
 console.log("User-agent header: " + navigator.userAgent);
 
+//localStorage.debug = '*';
 //A window global for our game root variable.
 
 var game = {};

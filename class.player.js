@@ -68,6 +68,7 @@ function game_player( game_instance, player_instance, isHost )
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
+    this.bufferIndex = undefined;//0;
 
     if (isHost && player_instance)// && player_instance.host)
     {
@@ -1635,6 +1636,8 @@ game_player.prototype.draw = function()
     // {
     //     console.log('abil!', this.abil, this.mp);
     // }
+    //console.log('flap', this.flap, this.dead);
+    
     if (this.dead === true)
     {
         console.log('dead animation...');
@@ -1655,6 +1658,8 @@ game_player.prototype.draw = function()
     }
     else if (this.flap === true)
     {
+        //console.log('flap!');
+        
         //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
         this.flap = false;
