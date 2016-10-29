@@ -7,15 +7,11 @@
 
     Usage : node app.js
 */
-
+ 
 var
     gameport        = process.env.PORT || 4004,
 
-    io              = require('socket.io')(
-        {
-            'transports': ['websocket']
-        }
-    ),
+    io              = require('socket.io',{ 'transports': ['websocket'], upgrade:false } ),
     clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
@@ -78,7 +74,9 @@ var sio = io.listen(server);
 
 //Configure the socket.io connection settings.
 //See http://socket.io/
-/*sio.configure(function ()
+//sio.set('transports', ['websocket']);
+/*
+sio.configure(function ()
 {
     //sio.set('log level', 0);
     // force websocket transport (disable fallback to xhr-polling)
@@ -89,11 +87,22 @@ var sio = io.listen(server);
     //   callback(null, true); // error first callback style
     // });
 
-});*/
+});
+//*/
+//sio.set('log level', 0);
+// sio.set('transports', ['websocket']);
+// sio.set('authorization', function (handshakeData, callback)
+// {
+//     console.log('handshakeData', handshakeData);
+    
+//   callback(null, true); // error first callback style
+// });
 
-io.use(function(socket, next) 
+sio.use(function(socket, next) 
 {
   var handshakeData = socket.request;
+  console.log('handshakedata', socket.request);
+  
   // make sure the handshake data looks good as before
   // if error do this:
     // next(new Error('not authorized');
@@ -112,6 +121,8 @@ game_server = require('./game.server.js');
 //maintain the list if players.
 sio.sockets.on('connection', function (client)
 {
+    console.log('client.connection', client.conn.transport);
+    
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
@@ -159,8 +170,10 @@ sio.sockets.on('connection', function (client)
 //     console.log('client io connected...');
 // });
 // auto-create host game
-var host = clientIo.connect(UUID());
+var host = clientIo.connect(UUID(), {transports:['websocket']});
 host.userid = UUID();
 host.hosting = true;
-//console.log('host', host);
+console.log('host', host);
+console.log('host.io.opts.transports', host.io.opts.transports);
+
 game_server.createGame(host);

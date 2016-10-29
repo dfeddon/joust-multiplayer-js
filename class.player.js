@@ -24,8 +24,8 @@ function game_player( game_instance, player_instance, isHost )
     //this.pos = { x:0, y:0 };
 
     this.lpos = this.pos;
-    this.size = { x:64, y:64, hx:64, hy:64 };
-    this.hitbox = {w:32,h:32};
+    this.size = { x:64, y:64, hx:64, hy:64 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 };
+    this.hitbox = {w:64/2,h:64/2};
     this.dir = 0; // 0 = right, 1 = left (derek added)
 
     // velocity
@@ -65,6 +65,7 @@ function game_player( game_instance, player_instance, isHost )
     this.engaged = false;
     this.vuln = false;
     this.bubble = false;
+    this.dying = false;
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -559,7 +560,7 @@ function game_player( game_instance, player_instance, isHost )
     //this.lastNamePlate = "YOU";
 } // end game_player constructor
 
-game_player.prototype.pos = {};
+game_player.prototype.pos = { x: 0, y: 0 };
 game_player.prototype.pos.x = 0;
 game_player.prototype.pos.y = 0;
 game_player.prototype.dead = false;
@@ -1046,18 +1047,46 @@ game_player.prototype.doKill = function(victor)
     console.log('playerKill', this.dead);
 
     // avoid reduncancy
-    if (this.dead === true) return;
-    else this.dead = true;
+    if (this.dying === true) return;
+    else this.dying = true;
+
+    console.log('player dying', this.mp);
+
+    this.dead = true;
+
+    // if (victor && victor.mp == this.mp)
+    //     console.log('IHAVEDIED!!!!!!!!!!');
 
     // apply red flash fx
-    this.game.flashBang = 2;
+    //this.game.flashBang = 2;d
 
     // store current position
     var waspos = this.pos;
 
+    // stop movement
+    this.vx = 0;
+    this.vy = 0;
+    this.a = 0;
+
+    if (this.mp == this.game.players.self.mp)
+    {
+        this.game.players.self.vx = 0;
+        this.game.players.self.vy = 0;
+        this.game.players.self.a = 0;
+        this.game.players.self.dead = true;
+        this.game.players.self.vuln = true;
+    }
+
     // if carrying flag, drop it
     if (this.hasFlag)
+    {
         this.dropFlag();
+
+        if (this.mp == this.game.players.self.mp)
+            this.game.players.self.dropFlag();
+    }
+
+    //this.pos = this.game.gridToPixel(2, 2);
 
     // splatter "orbs of death"
     /*
@@ -1084,6 +1113,24 @@ game_player.prototype.doKill = function(victor)
     /*if (!this.game.server)
         this.game.prerenderer();*/
 
+    if (victor)
+    {
+        console.log(this.mp, 'slain by', victor.mp);
+
+        // var victim = this.mp.replace ( /[^\d.]/g, '' );
+        // this.killedBy = parseInt(victim);
+        // console.log(victor.mp, 'killed player', this.killedBy);
+        
+        // assign victor 50% of victim's speed
+
+        // toast or death log
+        
+        // temporarily have camera follow victor
+        //this.game.players.self = victor;
+    }
+
+    // dim game screen (alpha overlay)
+
     // set timer to reset player dead state
     setTimeout(this.timeoutRespawn.bind(this, victor), 2000);
 };
@@ -1093,21 +1140,21 @@ game_player.prototype.timeoutRespawn = function(victor)
     console.log('player dead complete');
     
     this.visible = false;
+    this.pos = this.game.gridToPixel(3,4);
     this.dead = false;
     this.vuln = true; // this disables input
-    this.pos = this.game.gridToPixel(3,4);
     this.landed = 1;
 
-    if (victor)
+    if (this.mp == this.game.players.self.mp)
     {
-        console.log(this.mp, 'slain by', victor.mp);
-        
-        // temporarily have camera follow victor
-        this.game.players.self = victor;
+        this.game.players.self.visible = false;
+        this.game.players.self.pos = this.game.gridToPixel(3,4);
+        this.game.players.self.dead = false;
+        this.game.players.self.landed = 1;
     }
 
     // show respawn screen (ads)
-    if (!this.game.server)
+    if (!this.game.server && victor.mp != this.game.players.self.mp)
     {
         var ui = document.getElementById('splash');
         ui.style.display = "block";
@@ -1782,7 +1829,7 @@ game_player.prototype.draw = function()
             );
         }
         else {
-            console.warn('attempting to draw flag when player "hasFlag" appears to be 0');
+            //console.warn('attempting to draw flag when player "hasFlag" appears to be 0');
             this.hasFlag = 0;
         }
         //*/

@@ -98,7 +98,7 @@ var game_core = function(game_instance)
 
     this.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.world.totalplayers = 5;//40;//4;
+    this.world.totalplayers = 30;//40;//4;
 
     this.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -113,7 +113,7 @@ var game_core = function(game_instance)
         {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
     ];
 
-    this.cam = {};
+    this.cam = {x:0,y:0};
 
     this.mp = null;
     this.gameid = null;
@@ -1470,11 +1470,13 @@ game_core.prototype.playerKill = function(victim, victor)
 game_core.prototype.check_collision = function( player )
 {
     //console.log('##+@@check_collision', player.mp);
-    if (player.mp === 'hp' || player.landed === 1)
+    if (player.mp == 'hp')// || player.landed === 1)
     {
         //console.log('standing', player.mp);
         return;
     }
+    //console.log('*',player.mp);
+    
 
     var _this = this;
 
@@ -1554,6 +1556,8 @@ game_core.prototype.check_collision = function( player )
             if ( player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
             )
             {
+                console.log('HIT!');
+                
                 // TODO: if vulnerable (stunned) then vuln user is victim
 
                 // set both players as 'engaged'
@@ -1634,13 +1638,18 @@ game_core.prototype.check_collision = function( player )
                 }
                 else // we have a victim
                 {
+                    console.log('VICTIM', player.mp);
+                    
                     //this.flashBang = 2;
                     //var splatteree, waspos;
                     if (player.pos.y < other.pos.y || other.vuln === true)
                     {
                         //this.playerKill(other, player);
-                        other.doKill(player);
-                        //console.log(player.mp, 'WINS!', other.mp);
+                        if (!other.dead)
+                        {
+                            other.doKill(player);
+                            console.log(other.mp, 'WINS!', player.mp);
+                        }
                         // waspos = other.pos;
                         // other.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
                         // //other.visible = false;
@@ -1650,8 +1659,11 @@ game_core.prototype.check_collision = function( player )
                     else
                     {
                         //this.playerKill(player, other);
-                        player.doKill(other);
-                        //console.log(this.allplayers[i].mp, 'WINS!');
+                        if (!player.dead)
+                        {
+                            player.doKill(other);
+                            console.log(player.mp, 'WINS!', other.mp);
+                        }
                         // waspos = player.pos;
                         // player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
                         // //player.visible = false;
@@ -1933,7 +1945,7 @@ game_core.prototype.check_collision = function( player )
             //player.pos.y -= b;
 
             // set y
-            player.pos.y = parseInt((h.sw.y * 64) - 64);
+            player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
             //player.hitFrom = 2;
 
             // process landing
@@ -2660,31 +2672,34 @@ game_core.prototype.server_update = function()
     // add a, ax, ay, vx, vy
     //console.log('::',8*this.allplayers.length);
     
-    var bufArr = new ArrayBuffer(128);//16 * this.allplayers.length); // 16 * numplayers
+    var bufArr = new ArrayBuffer(768);//16 * this.allplayers.length); // 16 * numplayers
     var bufView;
     this._.forEach(this.allplayers, function(player, index)
     {
         //console.log(index * 16);
         // set player's bufferIndex
         //player.bufferIndex = index;
-        bufView = new Float32Array(bufArr, (index*16), 16);
+        bufView = new Float32Array(bufArr, (index * 16), 16);
         //, 0, Math.floor(bufArr.byteLength/2));
         //*
-        bufView[0] = player.pos.x;
-        bufView[1] = player.pos.y;
+        bufView[0] = player.pos.x.fixed(2);
+        bufView[1] = player.pos.y.fixed(2);
         bufView[2] = player.dir;
         bufView[3] = player.flap;
         bufView[4] = player.landed;
         bufView[5] = player.vuln;
         bufView[6] = player.a;
-        bufView[7] = player.vx;
-        bufView[8] = player.vy;
+        bufView[7] = player.vx.fixed(2);
+        bufView[8] = player.vy.fixed(2);
         bufView[9] = player.hasFlag;
         bufView[10] = player.bubble;
-        bufView[11] = index; // player's bufferIndex
+        //bufView[11] = player.killedPlayer;
+        bufView[12] = index; // player's bufferIndex
+        bufView[13] = player.rank;
         //bufView[11] = new Date();
-        // if (player.mp == "cp1")
-            // console.log('->', bufView);
+        //if (player.mp == "cp1")
+            //console.log('->', bufView);
+        //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
         
         _this.laststate[player.mp] = bufArr;
         //*/
@@ -2710,6 +2725,8 @@ game_core.prototype.server_update = function()
         if (player.flap === true) player.flap = false;
         // rest abil on server instance
         if (player.abil > 0) player.abil = 0;
+        // reset killedBy
+        //if (player.killedBy > 0) player.killedBy = 0;
     });
     //console.log(':::', _this.laststate);
     
@@ -2958,7 +2975,7 @@ game_core.prototype.client_handle_input = function(key){
 
     if (this.players.self.vuln === true)
     {
-        console.log('player is vulnerable!');
+        //console.log('player is vulnerable!');
         return;
     }
     //if(this.lit > this.local_time) return;
@@ -3350,18 +3367,26 @@ game_core.prototype.client_process_net_updates = function()
                 player.pos = _this.v_lerp(player.pos, ghostStub, _this._pdt * _this.client_smooth);
 
                 player.dir = vt[2];
-                player.flap = (vt[3] === 0) ? false : true;
+                player.flap = (vt[3] === 1) ? true : false;
                 player.landed = vt[4];
-                player.vuln = (vt[5] === 0) ? false : true;
+                player.vuln = (vt[5] === 1) ? true : false;
                 player.a = vt[6];
                 player.vx = vt[7];
                 player.vy = vt[8];
                 player.hasFlag = vt[9];
-                player.bubble = (vt[10] === 0) ? false : true;
-                player.bufferIndex = index;//vt[11];
+                player.bubble = (vt[10] === 1) ? true : false;
+                //player.killedBy = vt[11];
+                player.bufferIndex = index;// -> vt[12]
+                player.rank = vt[13];
                 //console.log(Boolean(player.flap));
                 //console.log('set playerIndex', vt[11]);
-                
+
+                // if (player.killedBy > 0)
+                // {
+                //     console.log('**** killing player', vt[11]);
+                    
+                //     //player.doKill();
+                // }
 
                 /*
                 // get direction
@@ -3866,10 +3891,38 @@ game_core.prototype.client_update = function()
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
     //for (var i = 0; i < this.allplayers.length; i++)
+    // TODO: Only draw 'onscreen' players
+    // console.log('p', this.players.self.pos);
+    
+    //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);// this.players.self.pos.y + this.cam.y, (this.players.self.pos.y + this.cam.y)*2);//, this.players.self.pos.y)
     this._.forEach(this.allplayers, function(ply)
     {
         if (ply != _this.players.self)// && this.allplayers[i].active===true)
-            ply.draw();
+        {
+            // console.log(ply.pos);
+            //ply.draw();
+            if 
+            (
+                // ply is *above* local player
+                (ply.pos.y + _this.cam.y + ply.size.hy > 0)
+                &&
+                // ply is *below* local player
+                (ply.pos.y + _this.cam.y - ply.size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
+                /* || 
+                (
+                    _this.players.self.pos.y + _this.cam.y <= 
+                    ((_this.players.self.pos.y + _this.cam.y) * 2) 
+                    && 
+                    (_this.players.self.pos.y + _this.cam.y) > 0
+                ) */
+            )//<= _this.players.self.pos.y + _this.cam.y)
+            {
+                ply.draw();
+                //if (ply.mp == "cp1")console.log(ply.pos.y + _this.cam.y);
+            }
+            //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.y);//, _this.cam.y, _this.players.self.pos.y);
+            
+        }
     });
 
     //When we are doing client side prediction, we smooth out our position
