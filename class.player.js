@@ -1772,11 +1772,11 @@ game_player.prototype.draw = function()
             for (var f = 0; f < this.game.flagObjects.length; f++)
             {
                 if (this.game.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
-                    this.game.flagObjects[f].reset();
+                    this.game.flagObjects[f].reset(false, this.game);
                 else if (this.game.flagObjects[f].name == "redFlag" && this.hasFlag === 2)
-                    this.game.flagObjects[f].reset();
+                    this.game.flagObjects[f].reset(false, this.game);
                 else if (this.game.flagObjects[f].name == "blueFlag" && this.hasFlag === 3)
-                    this.game.flagObjects[f].reset();
+                    this.game.flagObjects[f].reset(false, this.game);
             }
             //console.log('resetting flag', this.flagType);
             //console.log('flags', this.game.flagObjects);

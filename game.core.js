@@ -3293,9 +3293,12 @@ game_core.prototype.client_process_net_updates = function()
         //Because we use the same target and previous in extreme cases
         //It is possible to get incorrect values due to division by 0 difference
         //and such. This is a safe guard and should probably not be here. lol.
-        if( isNaN(time_point) ) time_point = 0;
-        if(time_point == -Infinity) time_point = 0;
-        if(time_point == Infinity) time_point = 0;
+        // if( isNaN(time_point) ) time_point = 0;
+        // if(time_point == -Infinity) time_point = 0;
+        // if(time_point == Infinity) time_point = 0;
+
+        if (Number.isNaN(time_point) || Math.abs(time_point) === Number.POSITIVE_INFINITY)
+            time_point = 0;
 
         // store globally
         this.time_point = time_point;
@@ -3894,7 +3897,8 @@ game_core.prototype.client_update = function()
     // TODO: Only draw 'onscreen' players
     // console.log('p', this.players.self.pos);
     
-    //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);// this.players.self.pos.y + this.cam.y, (this.players.self.pos.y + this.cam.y)*2);//, this.players.self.pos.y)
+    //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
+    //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
     this._.forEach(this.allplayers, function(ply)
     {
         if (ply != _this.players.self)// && this.allplayers[i].active===true)
@@ -3907,7 +3911,7 @@ game_core.prototype.client_update = function()
                 (ply.pos.y + _this.cam.y + ply.size.hy > 0)
                 &&
                 // ply is *below* local player
-                (ply.pos.y + _this.cam.y - ply.size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
+                (ply.pos.y + _this.cam.y - ply.size.hy) <= _this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
                 /* || 
                 (
                     _this.players.self.pos.y + _this.cam.y <= 
@@ -3915,13 +3919,19 @@ game_core.prototype.client_update = function()
                     && 
                     (_this.players.self.pos.y + _this.cam.y) > 0
                 ) */
+                &&
+                // ply is visible left of local player
+                (ply.pos.x + _this.cam.x - ply.size.hx) <= _this.viewport.width
+                //ply.pos.x + (Math.abs(_this.cam.x) * 2) < _this.players.self.pos.x
+                &&
+                // ply is visible right of local player
+                (ply.pos.x + _this.cam.x + ply.size.hx > 0)
             )//<= _this.players.self.pos.y + _this.cam.y)
             {
                 ply.draw();
-                //if (ply.mp == "cp1")console.log(ply.pos.y + _this.cam.y);
+                //if (ply.mp == "cp1")console.log(ply.pos.x, _this.cam.x, _this.players.self.pos.x, _this.viewport.width);
             }
-            //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.y);//, _this.cam.y, _this.players.self.pos.y);
-            
+            //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
         }
     });
 

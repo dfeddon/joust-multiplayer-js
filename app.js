@@ -11,7 +11,7 @@
 var
     gameport        = process.env.PORT || 4004,
 
-    io              = require('socket.io',{ 'transports': ['websocket'], upgrade:false } ),
+    io              = require('socket.io'),
     clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
@@ -70,7 +70,9 @@ app.post( '/api/orbs' , function( req, res, next )
 //This way, when the client requests '/socket.io/' files, socket.io determines what the client needs.
 
 //Create a socket.io instance using our express server
-var sio = io.listen(server);
+console.log('server prot', server);
+
+var sio = io.listen(server);//, {transports:['websocket']});
 
 //Configure the socket.io connection settings.
 //See http://socket.io/
@@ -170,10 +172,17 @@ sio.sockets.on('connection', function (client)
 //     console.log('client io connected...');
 // });
 // auto-create host game
-var host = clientIo.connect(UUID(), {transports:['websocket']});
+var host = clientIo.connect(UUID()
+    // , 
+    // {
+    //     'transports':['websocket']
+    //     // 'force new connection': false,
+    //     // 'path': '/socket.io/socket.io.js'//-client/so'
+    // }
+);
 host.userid = UUID();
 host.hosting = true;
 console.log('host', host);
-console.log('host.io.opts.transports', host.io.opts.transports);
+console.log('host.io.engine.transport.name', host.io.opts.transports);
 
 game_server.createGame(host);
