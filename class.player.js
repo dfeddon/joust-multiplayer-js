@@ -570,12 +570,6 @@ game_player.prototype.dead = false;
 //     this.hasFlag = int;
 // };
 
-
-// game_player.prototype.update = function()
-// {
-//     console.log('update');
-// };
-
 game_player.prototype.doFlap = function()
 {
     //console.log('doFlap', this.dir);
@@ -633,6 +627,8 @@ game_player.prototype.doLand = function()
     // if falling fataly fast...
     if (this.vy > 10)
     {
+        console.log('fatal bounce!', this.vy);
+        
         this.vy = 0;
         this.doKill();
         return;
@@ -640,7 +636,7 @@ game_player.prototype.doLand = function()
     // ...survivably fast
     if (this.vy > 6)
     {
-        //console.log('* bounce up!', this.vy);
+        console.log('* bounce up!', this.vy);
         // set length of vulnerability based on how hard player hits
         var len = 1500 + ((this.vy - 6) * 1000);
         // impact drag
@@ -656,7 +652,7 @@ game_player.prototype.doLand = function()
     // decelerate
     if (this.vx > 0)
     {
-        //console.log('* slowing', this.vx);
+        //console.log('* slowing +', this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
@@ -664,7 +660,9 @@ game_player.prototype.doLand = function()
         // set landing flag (moving)
         this.landed = 2; // walking
         this.vy = -0.25; // prevents jolting falloff
-        this.vx -= 0.025; // friction
+        this.vx -= 0.025.toFixed(2); // friction
+        //console.log('* post', this.vx);
+        
 
         if (this.vx < 0)
         {
@@ -676,12 +674,19 @@ game_player.prototype.doLand = function()
     }
     else if (this.vx < 0)
     {
+        //console.log('* slowing -', this.vx);
+        
         //this.vx += 200;
         this.landed = 2; // walking
         this.vy = -0.25; // prevents jolting falloff
-        this.vx += 0.025; // friction
+        this.vx += 0.025.toFixed(2); // friction
 
-        if (this.vx > 0) this.vx = 0;
+        if (this.vx > 0)
+        { 
+            this.vx = 0;
+            this.landed = 1;
+            this.a = 0;
+        }
     }
     if (this.vx === 0)
     {
@@ -692,7 +697,11 @@ game_player.prototype.doLand = function()
         this.landed = 1;
         this.a = 0;
     }
-	//console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
+    //if (this.mp == this.game.players.self.mp)
+    //if (this.landed === 2)
+	    //console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
+    //else if (this.landed === 1 && this.mp == "cp1") console.log('landed', this.pos.x, this.pos.y);
+    
 };
 
 game_player.prototype.doWalk = function(dir)
@@ -965,6 +974,10 @@ game_player.prototype.update = function()
     {
         // reset angle
         this.a = 0;
+
+        // force stoppage
+        this.vx = 0;
+        this.vy = 0;
 
         // get out
         //if (this.hitFrom==-1)
