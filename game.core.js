@@ -3094,7 +3094,7 @@ game_core.prototype.client_handle_input = function(key){
         } //up
     
     // we are 'faking' input to ensure player is *always* updated
-    if (input.length === 0) input.push('0');
+    //if (input.length === 0) input.push('0');
 
     if(input.length) {
 
@@ -3283,7 +3283,7 @@ game_core.prototype.client_process_net_prediction_correction = function()
 
         } // if(lastinputseq_index != -1)
 
-        /*
+        //*
         else
         {
             if (this._.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
@@ -3295,7 +3295,7 @@ game_core.prototype.client_process_net_prediction_correction = function()
                 //if (this.players.self.landed===2)
                 //{
                     //console.log('landed...');
-                    console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
+                    //console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
                     
                     
                     this.players.self.cur_state.pos = this.pos(my_server_pos);
@@ -3952,7 +3952,7 @@ game_core.prototype.client_update_local_position = function()
         //console.log(current_state.d);
 
         // TODO: Uncomment below if client pos mismatch
-        //*
+        /*
         this.players.self.pos = current_state;
         //*/
 

@@ -1096,6 +1096,9 @@ game_player.prototype.doKill = function(victor)
     this.vy = 0;
     this.a = 0;
 
+    // remove bubble
+    this.bubble = false;
+
     if (this.mp == this.game.players.self.mp)
     {
         this.game.players.self.vx = 0;
@@ -1168,25 +1171,35 @@ game_player.prototype.timeoutRespawn = function(victor)
     console.log('player dead complete');
     
     this.visible = false;
-    this.pos = this.game.gridToPixel(3,4);
     this.dead = false;
+    this.dying = false;
     this.vuln = true; // this disables input
     this.landed = 1;
+    this.bubble = false;
+    this.pos = this.game.gridToPixel(3,4);
 
     if (this.mp == this.game.players.self.mp)
     {
-        this.game.players.self.visible = false;
-        this.game.players.self.pos = this.game.gridToPixel(3,4);
-        this.game.players.self.dead = false;
-        this.game.players.self.landed = 1;
+        this.game.players.self = this;
+        // this.game.players.self.visible = false;
+        // this.game.players.self.pos = this.game.gridToPixel(3,4);
+        // this.game.players.self.dead = false;
+        // this.game.players.self.landed = 1;
+
+        if (!this.game.server)
+        {
+            var ui = document.getElementById('splash');
+            ui.style.display = "block";
+        }
+
     }
 
-    // show respawn screen (ads)
-    if (!this.game.server && victor.mp != this.game.players.self.mp)
-    {
-        var ui = document.getElementById('splash');
-        ui.style.display = "block";
-    }
+    // // show respawn screen (ads)
+    // if (!this.game.server && victor.mp != this.game.players.self.mp)
+    // {
+    //     var ui = document.getElementById('splash');
+    //     ui.style.display = "block";
+    // }
 };
 
 game_player.prototype.setPassive = function(data)//type, duration, modifier)
