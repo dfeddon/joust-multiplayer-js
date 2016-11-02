@@ -98,7 +98,7 @@ var game_core = function(game_instance)
 
     this.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.world.totalplayers = 30;//40;//4;
+    this.world.totalplayers = 3;//30;//40;//4;
 
     this.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -1553,7 +1553,11 @@ game_core.prototype.check_collision = function( player )
         if (other.mp != player.mp && other.team != player.team)
         {
             //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
-            if ( player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
+            if ( 
+                player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) 
+                && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) 
+                && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) 
+                && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
             )
             {
                 console.log('HIT!');
@@ -1576,7 +1580,7 @@ game_core.prototype.check_collision = function( player )
                 {
                     this.flashBang = 1;
                     console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
-                    if (player.pos.x < other.pos.x)
+                    /*if (player.pos.x < other.pos.x)
                     {
                         //player.pos.x -= 50;
                         player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
@@ -1587,28 +1591,36 @@ game_core.prototype.check_collision = function( player )
                         //other.vx = player.vx / 2;
                         other.collision = true;
                         console.log("BUMP", player.pos, other.pos);
-                        // player.pos = this.physics_movement_vector_from_direction(-50, 0);
-                        // other.pos = this.physics_movement_vector_from_direction(50,0);
-                        if (player.landed !== 0)
-                            player.landed = 2;
-                        if (other.landed !== 0)
-                            other.landed = 2;
+                        // player.pos = _this.physics_movement_vector_from_direction(-50, 0);
+                        // other.pos = _this.physics_movement_vector_from_direction(50,0);
+                        // player.a *= -1;
+                        // player.vx *= -1;
+                        // if (player.landed !== 0)
+                        //     player.landed = 2;
+                        // if (other.landed !== 0)
+                        //     other.landed = 2;
                     }
                     else
-                    {
-                        player.pos.x += 50;
-                        player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                    {*/
+                        var bump = 100;
+                        //(player.pos.x > other.pos.x) ? player.pos.x += bump : player.pos.x -= bump;
+                        player.hitFrom = 3; // 0 = side, 1 = below, 2 = above;
                         player.collision = true;
+                        player.target = other;
+                        //player.update();
 
-                        other.pos.x -= 50;
-                        other.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                        //(other.pos.x > player.pos.x) ? other.pos.x += bump : other.pos.x -= bump;
+                        other.hitFrom = 3; // 0 = side, 1 = below, 2 = above;
                         other.collision = true;
+                        other.target = player;
+                        //other.update();
 
-                        if (player.landed !== 0)
-                            player.landed = 2;
-                        if (other.landed !== 0)
-                            other.landed = 2;
-                    }
+                        // if (player.landed !== 0)
+                        //     player.landed = 2;
+                        // if (other.landed !== 0)
+                        //     other.landed = 2;
+                    //}
+
                     // manage velocit and stop state
                     // if player and enemy are facing same direction
                     if (player.vx > 0 && player.dir !== other.dir)
@@ -1951,6 +1963,7 @@ game_core.prototype.check_collision = function( player )
             // process landing
             //if (this.server)
             player.doLand();
+            //if (!this.server) this.client_process_net_prediction_correction2();
         }
         //////////////////////////////
         // side collision (full, left)
@@ -2478,6 +2491,8 @@ game_core.prototype.process_input = function( player )
     } //if we have inputs
     else // we have NO INPUT
     {
+        //player.inputs.push({seq:"0",time:this.server_time);
+        //player.last_input_time = this.server_time;
         // if (player.landed === 1)
         //     player.doWalk(player.dir);
         // if (player.landed === 1)
@@ -2653,8 +2668,11 @@ game_core.prototype.server_update_physics = function() {
         new_dir = _this.process_input(ply);
         ply.pos = _this.v_add( ply.old_state.pos, new_dir);
 
+        //ply.update();
+
         //Keep the physics position in the world
         _this.check_collision( ply );
+        
 
         //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
         ply.inputs = []; //we have cleared the input buffer, so remove this
@@ -3074,6 +3092,9 @@ game_core.prototype.client_handle_input = function(key){
             input.push('sp');
 
         } //up
+    
+    // we are 'faking' input to ensure player is *always* updated
+    if (input.length === 0) input.push('0');
 
     if(input.length) {
 
@@ -3111,10 +3132,10 @@ game_core.prototype.client_handle_input = function(key){
 
 }; //game_core.client_handle_input
 
-game_core.prototype.client_process_net_prediction_correction = function()
+game_core.prototype.client_process_net_prediction_correction2 = function()
 {
     //if (glog)
-    //console.log('## client_process_net_prediction_correction', this.players.self.mp);
+    console.log('## client_process_net_prediction_correction2', this.players.self.mp);
     //No updates...
     if(!this.server_updates.length) return;
 
@@ -3194,6 +3215,103 @@ game_core.prototype.client_process_net_prediction_correction = function()
         } // if(lastinputseq_index != -1)
     } //if my_last_input_on_server
     //*/
+
+}; //game_core.client_process_net_prediction_correction
+
+game_core.prototype.client_process_net_prediction_correction = function()
+{
+    //if (glog)
+    //console.log('## client_process_net_prediction_correction', this.players.self.mp);
+    //No updates...
+    if(!this.server_updates.length) return;
+
+    //The most recent server update
+    var latest_server_data = this.server_updates[this.server_updates.length-1];
+
+    //Our latest server position
+    //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
+    //console.log('bufferIndex', this.players.self.bufferIndex);
+    
+    var self_sp = new Float32Array(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
+    //console.log('self_sp', self_sp);
+    
+    var my_server_pos = {x:self_sp[0], y:self_sp[1]};
+    //var my_server_pos = latest_server_data[this.players.self.mp];
+
+    //Update the debug server position block TODO: removed line below
+    //this.ghosts.server_pos_self.pos = this.pos(my_server_pos);
+
+    //here we handle our local input prediction ,
+    //by correcting it with the server and reconciling its differences
+    //var my_last_input_on_server = this.players.self.host ? latest_server_data.his : latest_server_data.cis;
+    var my_last_input_on_server = latest_server_data[this.players.self.mis];
+    if(my_last_input_on_server)
+    {
+        //console.log('mylastinputonserver');
+        
+        //The last input sequence index in my local input list
+        var lastinputseq_index = -1;
+        //Find this input in the list, and store the index
+        for(var i = 0; i < this.players.self.inputs.length; ++i)
+        {
+            if(this.players.self.inputs[i].seq == my_last_input_on_server)
+            {
+                lastinputseq_index = i;
+                //console.log('lastinputseq_index', lastinputseq_index);
+                
+                break;
+            }
+        }
+
+        //Now we can crop the list of any updates we have already processed
+        if(lastinputseq_index != -1)
+        {
+            //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
+            //and that we can predict from this known position instead
+
+            //remove the rest of the inputs we have confirmed on the server
+            var number_to_clear = Math.abs(lastinputseq_index - (-1));
+            this.players.self.inputs.splice(0, number_to_clear);
+            //The player is now located at the new server position, authoritive server
+            this.players.self.cur_state.pos = this.pos(my_server_pos);
+            this.players.self.last_input_seq = lastinputseq_index;
+            //Now we reapply all the inputs that we have locally that
+            //the server hasn't yet confirmed. This will 'keep' our position the same,
+            //but also confirm the server position at the same time.
+            this.client_update_physics();
+            this.client_update_local_position();
+
+        } // if(lastinputseq_index != -1)
+
+        /*
+        else
+        {
+            if (this._.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
+            {
+            //console.log('kkkk');
+            
+            //if (my_server_pos == this.players.self.cur_state.pos) return;
+            //if (this.players.self.landed === 1) return;
+                //if (this.players.self.landed===2)
+                //{
+                    //console.log('landed...');
+                    console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
+                    
+                    
+                    this.players.self.cur_state.pos = this.pos(my_server_pos);
+                    //this.players.self.last_input_seq = lastinputseq_index;
+                    //Now we reapply all the inputs that we have locally that
+                    //the server hasn't yet confirmed. This will 'keep' our position the same,
+                    //but also confirm the server position at the same time.
+                    this.client_update_physics();
+                    this.client_update_local_position();
+                //}
+            }
+            
+        }
+        //*/
+
+    } //if my_last_input_on_server
 
 }; //game_core.client_process_net_prediction_correction
 
@@ -3857,8 +3975,15 @@ game_core.prototype.client_update_physics = function()
 
         this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
         var nd = this.process_input(this.players.self);
+        //if (nd.x === 0 && nd.y == 0)
+            //this.players.self.update();
+        //else 
         this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, nd);
         this.players.self.state_time = this.local_time;
+        
+        //console.log('nd', nd);
+        
+        //this.players.self.update();
 
     //}
 

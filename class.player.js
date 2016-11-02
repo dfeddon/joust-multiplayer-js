@@ -697,6 +697,11 @@ game_player.prototype.doLand = function()
         this.landed = 1;
         this.a = 0;
     }
+
+    // if (this.isLocal && !this.game.server)
+    // {
+    //     this.game.client_process_net_prediction_correction2();
+    // }
     //if (this.mp == this.game.players.self.mp)
     //if (this.landed === 2)
 	    //console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
@@ -966,6 +971,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
 game_player.prototype.collision = false;
 game_player.prototype.hitFrom = 0;
+game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
     // ensure tilemap data is loaded (locally)
@@ -999,12 +1005,14 @@ game_player.prototype.update = function()
     //else
     if (this.collision === true)
     {
+        console.log('collision', this.hitFrom);
+        
         switch(this.hitFrom)
         {
             case 0: // from the side
                 this.vx *= -1;
                 this.a *= -1;
-                this.collision = false;
+                //this.collision = false;
                 //if (!this.vuln)
                     //this.isVuln();
                 //console.log('vx', this.vx);
@@ -1013,19 +1021,26 @@ game_player.prototype.update = function()
                 //this.vx *= -1;
                 //this.a *= -1;
                 this.vy *= -1;
-                this.collision = false;
+                //this.collision = false;
                 //console.log('vx', this.vx);
             break;
-            /*case 2: // from above
+            case 2: // from above
                 //this.vx *= -1;
                 console.log('hit speed', this.vy);
                 this.vy = 0;
                 this.a =0;//*= -1;
-                this.collision = false;
+                //this.collision = false;
                 //console.log('vx', this.vx);
-            break;*/
+            break;
+            case 3: // opponent
+                console.log('opponent', this.target.mp);
+                break;
+                
         }
-        //this.hitfrom = -1;
+        // reset vars
+        this.collision = false;
+        this.hitfrom = -1;
+        this.target = null;
     }
     else this.vx *= 1;
 };
