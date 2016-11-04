@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="50" height="37" tilewidth="64" tileheight="64" nextobjectid="37">
  <tileset firstgid="1" name="skin1-tileset" tilewidth="64" tileheight="64" tilecount="256" columns="16">
-  <image source="../tilesets/skin1-tileset.png" width="1024" height="1024"/>
+  <image source="../../tilesets/skin1-tileset.png" width="1024" height="1024"/>
  </tileset>
  <layer name="bg" width="50" height="37" visible="0">
   <data encoding="csv">

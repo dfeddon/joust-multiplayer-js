@@ -17,6 +17,7 @@ function game_player( game_instance, player_instance, isHost )
 
     this.instance = player_instance;
     this.game = game_instance;
+    this.isBot = false;
 
     this.player_abilities_enabled = false;
 
@@ -569,6 +570,20 @@ game_player.prototype.dead = false;
 //     console.log('player.setFlag', int);
 //     this.hasFlag = int;
 // };
+game_player.prototype.botAction = function()
+{
+    console.log('== botAction ==');
+    
+    // A: left down
+    // B: left up
+    // C: right down
+    // E: right up
+    // u: flap down
+    // x: flap up
+    if (this.game.keyboard)
+    this.game.keyboard._onKeyChange({keyCode:39}, false);
+    //document.externalControlAction(data);
+};
 
 game_player.prototype.doFlap = function()
 {
@@ -622,7 +637,7 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    //console.log('=== player.doLand', this.mp, '===');//, this.vy);
+    //console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
 
     // if falling fataly fast...
     if (this.vy > 10)
@@ -652,7 +667,7 @@ game_player.prototype.doLand = function()
     // decelerate
     if (this.vx > 0)
     {
-        //console.log('* slowing +', this.vx);
+        // console.log('* slowing +', this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
@@ -661,8 +676,6 @@ game_player.prototype.doLand = function()
         this.landed = 2; // walking
         this.vy = -0.25; // prevents jolting falloff
         this.vx -= 0.025.toFixed(2); // friction
-        //console.log('* post', this.vx);
-        
 
         if (this.vx < 0)
         {
@@ -974,6 +987,11 @@ game_player.prototype.hitFrom = 0;
 game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
+    //console.log('== player.update ==', this.game.server, this.isBot, this.mp);
+    // if (this.game.server && this.isBot)
+    // {
+    //     this.botAction();
+    // }
     // ensure tilemap data is loaded (locally)
     if (!this.tmd) this.tmd = this.game.tilemapData;
     if (this.landed === 1)
@@ -1568,7 +1586,7 @@ game_player.prototype.drawAbilities = function()
         game.ctx.beginPath();
         game.ctx.strokeStyle = 'gray';
         game.ctx.moveTo(this.pos.x, this.pos.y-10);
-        game.ctx.lineTo(this.pos.x + this.size.hx, this.pos.y-10);
+        game.ctx.lineTo(this.pos.x + 64, this.pos.y-10);
         game.ctx.lineWidth = 3;
         game.ctx.stroke();
         game.ctx.closePath();
@@ -1664,6 +1682,17 @@ game_player.prototype.draw = function()
         //100
     );
     game.ctx.restore();
+
+    // draw rank circle
+    /*
+    game.ctx.fillStyle = "gray";
+    game.ctx.beginPath();
+    game.ctx.arc (this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, this.pos.y - txtOffset - 5, 10, 0, Math.PI*2, true);
+    game.ctx.closePath();
+    game.ctx.fill();
+    //*/
+
+
     if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
         game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),

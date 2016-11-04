@@ -221,14 +221,17 @@ h2
 	top: 0px;
 	height: 29px;
 	width: 75px;
-	background: rgba(255,0,0,0.9);
+	background: rgba(155,0,0,0.9);
 	border: 1px solid;
 	border-color: gray;
+	font-size: 20px;
 }
 #txtScoreRed
 {
 	font-size: 1.5em;
 	text-align: center;
+	font-family: Mirza;
+	line-height: 40px;
 }
 #uiScoreBlue
 {
@@ -238,15 +241,69 @@ h2
 	height: 29px;
 	right: 0px;
 	width: 75px;
-	background: rgba(0,0,204,0.9);
+	background: rgba(70,142,229,0.9);
 	border: 1px solid;
 	border-color: gray;
+	font-size: 20px;
+	vertical-align: middle;
 	/*z-index: 500;*/
 }
 #txtScoreBlue
 {
 	font-size: 1.5em;
 	text-align: center;
+	font-family: Mirza;
+	line-height: 40px;
+}
+
+#flagData
+{
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
+	/*border: 1px solid;*/
+	text-align: center;
+}
+
+.flagContainer
+{
+	/*float: left; */
+	display: inline-block;
+	width: 32%;
+}
+.imgFlag
+{
+	width: 25;
+	height: 25;
+	display: inline-block;
+	padding-top: 3px;
+}
+#flagRedData
+{
+	padding-left: 10px;
+	color: #468EE5;
+}
+#flagMidRedData
+{
+	padding-right: 10px;
+	color: #9B0000;
+}
+#flagMidBlueData
+{
+	padding-left: 10px;
+	color: #468EE5;
+}
+#flagBlueData
+{
+	padding-right: 10px;
+	color: #9B0000;
+}
+h5
+{
+	display: inline-block;
+	vertical-align: middle;
+	font-family: Mirza;
+	font-size: 1.5em;
 }
 
 #viewport {

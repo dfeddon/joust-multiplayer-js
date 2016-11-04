@@ -87,8 +87,8 @@ var game_core = function(game_instance)
     // global delay flag for change ability input
     this.inputDelay = false;
 
-    var worldWidth = 3200;//420;
-    var worldHeight = 3200;//720;
+    var worldWidth = 50*64;//3200;//420;
+    var worldHeight = 37*64;//3200;//720;
 
     //Used in collision etc.
     this.world = {
@@ -213,6 +213,7 @@ var game_core = function(game_instance)
             other = new playerClass(this, null, false);
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             other.playerName = this.nameGenerator();
+            if (other.mp != "cp1") other.isBot = true;
             this.allplayers.push(other);
             // this.entities.push(other);
         }
@@ -233,6 +234,7 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         // orbs
         ///////////////////////////////////
+        /*
         console.log('##-@@ creating orbs on server', this.orbs.length);
         var size,c,ox,oy,id;
         var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
@@ -254,10 +256,12 @@ var game_core = function(game_instance)
             }
         }
         console.log("##-@@ orbs built", this.orbs.length);
+        //*/
 
         // setup collision detect/solve pattern (decorator)
         // this.collisionDetector = new CollisionDetector();
         // this.collisionSolver = new CollisionSolver();
+        /*
         var t = 0;
         function rndInterval()
         {
@@ -267,7 +271,7 @@ var game_core = function(game_instance)
             plat.doRotate();
             setTimeout(rndInterval, t);
         }
-
+        //*/
         ///////////////////////////////////
         // define platforms
         ///////////////////////////////////
@@ -788,7 +792,7 @@ game_core.prototype.updateTerritory = function()
     var mid = this._.find(this.flagObjects, {'name':'midFlag'});
     var blue = this._.find(this.flagObjects, {'name':'blueFlag'});
     //console.log(red, mid, blue);
-    //console.log('xs', red.x, mid.x, blue.x);
+    //console.log('territory', red, mid.x, blue.x);
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
     var midflagX = pixelToBrick( (mid.x + (mid.width/2)) );
     var blueflagX = pixelToBrick( (blue.x + (blue.width/2)) );
@@ -828,6 +832,299 @@ game_core.prototype.updateTerritory = function()
         }
     }
 
+    // update score
+    // first, get flag source slots...
+    var redSrc = red.sourceSlot;
+    var midSrc = mid.sourceSlot;
+    var blueSrc = blue.sourceSlot;
+    // now, adjust scores based on flag type
+    var score = {red:0, blue:0};
+
+    var score2 = this.flagToScore(red.name, redSrc);
+    var score3 = this.flagToScore(mid.name, midSrc);
+    var score4 = this.flagToScore(blue.name, blueSrc);
+
+    console.log('flagToScore', score2, score3, score4);
+    var redTotal = score2.red + score3.red + score4.red;
+    var blueTotal = score2.blue + score3.blue + score4.blue;
+    var pointsAllocated = redTotal + blueTotal;
+    var redScore = redTotal / pointsAllocated * 100;
+    var blueScore = blueTotal / pointsAllocated * 100;
+
+    console.log('red score', redScore);
+    console.log('blue score', blueScore);
+
+    var redTxt = document.getElementById('txtScoreRed');
+    var blueTxt = document.getElementById('txtScoreBlue');
+    
+    redTxt.innerHTML = redScore + "%";
+    blueTxt.innerHTML = blueScore + "%";
+};
+
+game_core.prototype.flagToScore = function(flag, slot)
+{
+    var red = 0;
+    var blue = 0;
+
+    switch(slot)
+    {
+        case "slotRed":
+
+            if (flag == "redFlag")
+            {
+                red = 0;
+                blue = 0;
+            }
+            else if (flag == "blueFlag")
+            {
+                // not possible
+            }
+            else if (flag == "midFlag")
+            {
+                // not possible
+            }
+
+        break;
+
+        case "slotBlue":
+
+            if (flag == "redFlag")
+            {
+                // not possible
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 0;
+                blue = 0;
+            }
+            else if (flag == "midFlag")
+            {
+                // not possible
+            }
+
+        break;
+        
+        case "midSlot":
+
+            if (flag == "redFlag")
+            {
+                red = -5;
+                blue = 5;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 5;
+                blue = -5;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 5;
+                blue = 5;
+            }
+
+        break;
+        
+        case "slot1":
+
+            if (flag == "redFlag")
+            {
+                red = -1;
+                blue = 1;
+            }
+            else if (flag == "blueFlag")
+            {
+                // not possible
+            }
+            else if (flag == "midFlag")
+            {
+                red = -4;
+                blue = 4;
+            }
+
+        break;
+        
+        case "slot2":
+
+            if (flag == "redFlag")
+            {
+                red = -2;
+                blue = 2;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 11;
+                blue = -11;
+            }
+            else if (flag == "midFlag")
+            {
+                red = -4;
+                blue = 4;
+            }
+
+        break;
+        
+        case "slot3":
+
+            if (flag == "redFlag")
+            {
+                red = -3;
+                blue = 3;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 10;
+                blue = -10;
+            }
+            else if (flag == "midFlag")
+            {
+                red = -3;
+                blue = 3;
+            }
+
+        break;
+        
+        case "slot4":
+
+            if (flag == "redFlag")
+            {
+                red = -3;
+                blue = 3;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 9;
+                blue = -9;
+            }
+            else if (flag == "midFlag")
+            {
+                red = -2;
+                blue = 2;
+            }
+
+        break;
+        
+        case "slot5":
+
+            if (flag == "redFlag")
+            {
+                red = -3;
+                blue = 3;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 8;
+                blue = -8;
+            }
+            else if (flag == "midFlag")
+            {
+                red = -1;
+                blue = 1;
+            }
+
+        break;
+        
+        case "slot6":
+
+            if (flag == "redFlag")
+            {
+                red = -7;
+                blue = 7;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 5;
+                blue = -5;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 1;
+                blue = -1;
+            }
+
+        break;
+        
+        case "slot7":
+
+            if (flag == "redFlag")
+            {
+                red = -8;
+                blue = 8;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 4;
+                blue = -4;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 2;
+                blue = -2;
+            }
+
+        break;
+        
+        case "slot8":
+
+            if (flag == "redFlag")
+            {
+                red = -9;
+                blue = 9;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 3;
+                blue = -3;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 3;
+                blue = -3;
+            }
+
+        break;
+        
+        case "slot9":
+
+            if (flag == "redFlag")
+            {
+                red = -10;
+                blue = 10;
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 2;
+                blue = -2;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 4;
+                blue = -4;
+            }
+
+        break;
+        
+        case "slot10":
+
+            if (flag == "redFlag")
+            {
+                // not possible
+            }
+            else if (flag == "blueFlag")
+            {
+                red = 1;
+                blue = -1;
+            }
+            else if (flag == "midFlag")
+            {
+                red = 5;
+                blue = -5;
+            }
+
+        break;
+        
+    }
+
+    return {red: red, blue:blue};
 };
 
 game_core.prototype.tilemapper = function()
@@ -2598,7 +2895,7 @@ game_core.prototype.update_physics = function()
         player.update();
 
         // degrade player angle
-        if (player.dir === 0 && player.a > 0)
+        if (player.a > 0)
             player.a-=0.5;
         else if (player.a < 0)
             player.a+=0.5;
@@ -4512,7 +4809,7 @@ game_core.prototype.client_onjoingame = function(data)
             else this.allplayers[i].pos = this.gridToPixel(5, 5);
             this.allplayers[i].active = true;
             this.allplayers[i].isLocal = true;
-            this.allplayers[i].playerName = "Jouster";
+            //this.allplayers[i].playerName = "Jouster";
             this.players.self = this.allplayers[i];
             console.log(this.players.self);
         }
