@@ -98,7 +98,7 @@ var game_core = function(game_instance)
 
     this.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.world.totalplayers = 3;//30;//40;//4;
+    this.world.totalplayers = 30;//40;//4;
 
     this.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -207,13 +207,14 @@ var game_core = function(game_instance)
 
         this.apiNode(); // load tilemap data
 
-        var o;
+        var other;
         for (var i = 1; i < this.world.totalplayers; i++)
         {
             other = new playerClass(this, null, false);
+            other.pos = this.gridToPixel(i * 64, 0);
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-            other.playerName = this.nameGenerator();
-            if (other.mp != "cp1") other.isBot = true;
+            //other.playerName = this.nameGenerator();
+            //if (other.mp != "cp1") other.isBot = true;
             this.allplayers.push(other);
             // this.entities.push(other);
         }
@@ -337,6 +338,25 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
+        // is mobile device?
+        this.isMobile = 'ontouchstart' in window;
+        var userAgent = window.navigator.userAgent.toLowerCase();
+        console.log('isMobile', this.isMobile, userAgent);
+
+        // show DOM controls for mobile devices
+        if (this.isMobile)
+        {
+            var safari = /safari/.test( userAgent ),
+            ios = /iphone|ipod|ipad/.test( userAgent );
+            if (ios && safari)
+            {
+                document.getElementById('mobile-controls-l').style.display = "block";
+                document.getElementById('mobile-controls-r').style.display = "block";
+                //this.addTouchHandlers();
+                new nativeControls();
+            }
+        }
+
         this._ = _;
         /*var collisionObject = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
@@ -578,6 +598,170 @@ game_core.prototype.buildPlatforms = function()
 
 
 };
+
+game_core.prototype.addTouchHandlers = function()
+{
+    console.log('== addTouchHandlers ==');
+
+    var cv = document.getElementById('viewport');
+    var dirL = document.getElementById('dirL');
+    var dirR = document.getElementById('dirR');
+    var dirF = document.getElementById('flap');
+
+    //*
+    function handleClick(e)
+    {
+        e.preventDefault();
+
+        console.log('click', e);
+        //alert('click');
+
+        switch(e.srcElement.id)
+        {
+            case "dirL":
+                //document.externalControlAction("A");
+            break;
+
+            case "dirR":
+            break;
+
+            case "flap":
+            break;
+        }
+    }
+    function handleStart(e)
+    {
+        console.log('start', e);//.srcElement.id);
+
+       // e.preventDefault();
+        //alert(e.srcElement.id);
+        //console.log(e.touches[0].clientX, dirL);
+        //*
+        switch(e)
+        {
+            case "dirL":
+                document.externalControlAction("A");
+            break;
+
+            case "dirR":
+                document.externalControlAction("D");
+            break;
+
+            case "flap":
+                document.externalControlAction("u");
+            break;
+        }
+        
+        //*/
+
+        //e.preventDefault();
+    }
+    function handleEnd(e)
+    {
+        console.log('end', e);//.srcElement.id);
+
+        //e.preventDefault();
+        switch(e)
+        {
+            case "dirL":
+                document.externalControlAction("B");
+            break;
+
+            case "dirR":
+                document.externalControlAction("E");
+            break;
+
+            case "flap":
+                document.externalControlAction("x");
+            break;
+        }
+    }
+    function handleCancel(e)
+    {
+        console.log('cancel', e);
+
+        e.preventDefault();
+    }
+    function handleMove(e)
+    {
+        console.log('move', e.changedTouches[0]);
+        //alert('move');
+        e.preventDefault();
+    }
+    //var cv = document.getElementById('viewport');
+    
+    //var dirL = document.getElementById('dirL');
+    //var dirR = document.getElementById('dirR');
+
+    //*
+    //var mc = new Hammer(cv);
+    var dl = new Hammer(dirL);
+    var dr = new Hammer(dirR);
+    var flap = new Hammer(dirF);
+    // mc.on('swipe', function(e)
+    // {
+    //     console.log('swipe', e.direction);
+    // });
+    /*
+    mc.on('press', function(e)
+    {
+        console.log('press',e.changedPointers[0].clientX);
+        if (e.changedPointers[0].clientX < 150)
+            handleStart('dirL');
+        else if (e.changedPointers[0].clientX > 350  && (e.changedPointers[0].clientX < 550))
+            handleStart('dirR');
+        else handleStart('flap');
+    });
+    mc.on('pressup', function(e)
+    {
+        console.log('pressup');
+        console.log('press',e.changedPointers[0].clientX);
+        if (e.changedPointers[0].clientX < 150)
+            handleEnd('dirL');
+        else if (e.changedPointers[0].clientX > 350 && (e.changedPointers[0].clientX < 550))
+            handleEnd('dirR');
+        else handleEnd('flap');
+    });
+    //*/
+    dl.on('press', function(e)
+    {
+        handleStart('dirL');
+    });
+    dl.on('pressup', function(e)
+    {
+        handleEnd('dirL');
+    });
+    dr.on('press', function(e)
+    {
+        handleStart('dirR');
+    });
+    dr.on('pressup', function(e)
+    {
+        handleEnd('dirR');
+    });
+    flap.on('press', function(e)
+    {
+        handleStart('flap');
+    });
+    flap.on('pressup', function(e)
+    {
+        handleEnd('flap');
+    });
+    //*/
+
+    
+    // dirL.addEventListener('mousedown', handleStart, false);
+    // dirL.addEventListener('mouseup', handleEnd, false);
+    // dirR.addEventListener('mousedown', handleStart, false);
+    // dirR.addEventListener('mouseup', handleEnd, false);
+
+    /*
+    cv.addEventListener('touchstart', handleStart, false);
+    cv.addEventListener('touchend', handleEnd, false);
+    cv.addEventListener('touchcancel', handleCancel, false);
+    cv.addEventListener('touchmove', handleMove, false);
+    //*/
+}
 
 game_core.prototype.apiNode = function()
 {
@@ -1478,6 +1662,7 @@ game_core.prototype.tilemapper = function()
             _this.updateTerritory();
         }; // end tilemap image loaded
 
+        // path: ../tilesets/skin1-tileset.png
         image.src = source.replace("..", "/assets");
         //console.log(image.src);
 
@@ -3351,6 +3536,7 @@ game_core.prototype.client_handle_input = function(key){
             // y_dir = this.players.self.vy;//0.5;//1;
             // x_dir = this.players.self.vx;
             input.push('l');
+                //alert('dirl start');
 
         } //left
 
@@ -4249,7 +4435,7 @@ game_core.prototype.client_update_local_position = function()
         //console.log(current_state.d);
 
         // TODO: Uncomment below if client pos mismatch
-        /*
+        //*
         this.players.self.pos = current_state;
         //*/
 

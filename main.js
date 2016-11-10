@@ -17,6 +17,8 @@ define(
   [
     'require',
     'domReady',
+    'hammer.min.js',
+    'hammer-time.min.js',
     'node_modules/lodash/lodash.min',
     'egyptian_set',
     //'animation/sprite-anim',
@@ -24,6 +26,7 @@ define(
     //'class.cellSwitch',
     //'class.CycleBehavior',
     'class.spritesheet',
+    'class.nativeControls',
     'class.stopwatch',
     'class.toast',
     'class.chest',
@@ -35,7 +38,7 @@ define(
     'class.physicsEntity',
     'class.collisionDetector',
     'class.collisionSolver'
-  ], function (require, domReady, player) {
+  ], function (require, domReady, Hammer) {
   domReady(function()
   {
     console.log('domReady');
@@ -44,6 +47,8 @@ define(
     {
       console.log('animation loaded', anim);
       this.anim = anim;*/
+
+      //window.Hammer = Hammer;
 
       require(['game.core'], function(game)
       {

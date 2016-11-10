@@ -20,7 +20,7 @@
 
 	<!-- Library code -->
 
-		 	<!-- Load socket.io client side contents. -->
+		<!-- Load socket.io client side contents. -->
 		<script src="/socket.io/socket.io.js"></script>
 		<!-- <script src="matter.js" type="text/javascript"></script> -->
 		<!-- <script data-main="class.player" src="node_modules/requirejs/require.js"></script> -->
@@ -28,10 +28,12 @@
 		<!-- svg.js -->
 		<!-- <script src="/svg.min.js"></script> -->
 
-	 		<!-- Load the GUI rendering library code. -->
-		<script type="text/javascript" src="lib/dat.gui.min.js"></script>
-			<!-- Load the keyboard specific code -->
+		<!-- Load the GUI rendering library code. -->
+		<!--<script type="text/javascript" src="lib/dat.gui.min.js"></script>-->
+
+		<!-- Load the keyboard specific code -->
 		<script type="text/javascript" src="lib/keyboard.js"></script>
+
 		<!-- Load font -->
 		<link href="https://fonts.googleapis.com/css?family=Mirza" rel="stylesheet">
 
@@ -40,7 +42,7 @@
 	 		<!-- Load the common game code. -->
 		<!-- <script type="text/javascript" src="game.core.js"></script> -->
 			<!-- Finally, Load the game client code. -->
-		<!-- <script type="text/javascript" src="client.js"></script> -->
+		<!--<script type="text/javascript" src="client.js"></script> -->
 		<script src="require.js"></script>
 		<script>require( ['main'], function(){});</script>
 		<!-- <script data-main="game.core" src="require.js"></script>
@@ -89,6 +91,18 @@
 
 			</div>
 
+		</div>
+
+		<!--
+		########################## MOBILE CONTROLS ###############################
+		-->
+
+		<div id="mobile-controls-l" oncontextmenu="return false">
+			<button id="dirL"></button>
+			<button id="dirR"></button>
+		</div>
+		<div id="mobile-controls-r">
+			<button id="flap"></button>
 		</div>
 
 		<!--
@@ -234,7 +248,7 @@
 			<!-- <img id="bg" src="assets/slither-io-bg.jpg" width="599" height="519"> -->
 			<!-- <xml id="tmx1" src="assets/tilemaps/joust-alpha-1.tmx"> -->
 		</div>
-		<div id="canvases" style="position:relative;">
+		<div id="canvases" oncontextmenu="return false;" style="position:relative;">
 			<canvas id="viewport"></canvas>
 		</div>
 		<!-- <canvas id="prerend"></canvas>

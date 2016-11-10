@@ -472,19 +472,21 @@ game_server.findGame = function(client)
 {
     this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
 
-        //so there are games active,
-        //lets see if one needs another player
+    //so there are games active,
+    //lets see if one needs another player
+
+    // set max number of games per server
     if(this.game_count)
     {
-
         var joined_a_game = false;
 
-            //Check the list of games for an open game
+        //Check the list of games for an open game
         for(var gameid in this.games)
         {
-                //only care about our own properties.
+            //only care about our own properties.
             if(!this.games.hasOwnProperty(gameid)) continue;
-                //get the game we are checking against
+
+            //get the game we are checking against
             var game_instance = this.games[gameid];
 
             //If the game is a player short
@@ -595,7 +597,7 @@ game_server.findGame = function(client)
                 //which will tell them to respawn/start
                 this.startGame(game_instance);
 
-            } //if less than 2 players
+            } //end if game has less than max players
         } //for all games
 
             //now if we didn't join a game,

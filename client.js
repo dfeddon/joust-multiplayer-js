@@ -5,32 +5,31 @@
 
     MIT Licensed.
 */
-console.log('client loaded', window);
-console.log('user-agent header', navigator.userAgent);
-
-console.log("Browser CodeName: " + navigator.appCodeName);
-console.log("Browser Name: " + navigator.appName);
-console.log("Browser Version: " + navigator.appVersion);
-console.log("Cookies Enabled: " + navigator.cookieEnabled);
-console.log("Browser Language: " + navigator.language);
-console.log("Browser Online: " + navigator.onLine);
-console.log("Platform: " + navigator.platform);
-console.log("User-agent header: " + navigator.userAgent);
-
-//localStorage.debug = '*';
 //A window global for our game root variable.
-
 var game = {};
 
-//function hi(){console.log("hi")};
-	//When loading, we store references to our
-	//drawing canvases, and initiate a game instance.
+//When loading, we store references to our
+//drawing canvases, and initiate a game instance.
 //window.onload = function()
 //{
-//function go(){
-	console.log('window onload');
+	//function go(){
+	//console.log('window onload');
 	//Create our game client instance.
 	game = new game_core();
+
+	console.log('client loaded', window);
+	console.log('user-agent header', navigator.userAgent);
+
+	console.log("Browser CodeName: " + navigator.appCodeName);
+	console.log("Browser Name: " + navigator.appName);
+	console.log("Browser Version: " + navigator.appVersion);
+	console.log("Cookies Enabled: " + navigator.cookieEnabled);
+	console.log("Browser Language: " + navigator.language);
+	console.log("Browser Online: " + navigator.onLine);
+	console.log("Platform: " + navigator.platform);
+	console.log("User-agent header: " + navigator.userAgent);
+
+	//localStorage.debug = '*';
 
 	//Fetch the viewport
 	game.viewport = document.getElementById('viewport');
@@ -52,5 +51,5 @@ var game = {};
 
 	//Finally, start the loop
 	game.update( new Date().getTime() );
-//}
+	//}
 //}; //window.onload
