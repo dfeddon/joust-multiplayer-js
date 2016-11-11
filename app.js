@@ -70,7 +70,7 @@ app.post( '/api/orbs' , function( req, res, next )
 //This way, when the client requests '/socket.io/' files, socket.io determines what the client needs.
 
 //Create a socket.io instance using our express server
-console.log('server prot', server);
+//console.log('server prot', server);
 
 var sio = io.listen(server);//, {transports:['websocket']});
 
@@ -103,7 +103,7 @@ sio.configure(function ()
 sio.use(function(socket, next) 
 {
   var handshakeData = socket.request;
-  console.log('handshakedata', socket.request);
+  //console.log('handshakedata', socket.request);
   
   // make sure the handshake data looks good as before
   // if error do this:
@@ -123,7 +123,7 @@ game_server = require('./game.server.js');
 //maintain the list if players.
 sio.sockets.on('connection', function (client)
 {
-    console.log('client.connection', client.conn.transport);
+    console.log('client.connection');//, client.conn.transport);
     
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
@@ -156,6 +156,15 @@ sio.sockets.on('connection', function (client)
         //Useful to know when soomeone disconnects
         console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game.id);
 
+        // remove player from allplayers array
+        //console.log('game', client.game.gamecore);
+        // for (var i = 0; i < client.game.gamecore.allplayers.length; i++)
+        // {
+        //     console.log('::', client.userid, (client.game.gamecore.allplayers[i].instance) ? client.game.gamecore.allplayers[i].instance.userid : "nope");
+            
+        // }
+        
+
         //If the client was in a game, set by game_server.findGame,
         //we can tell the game server to update that game state.
         if(client.game && client.game.id)
@@ -182,7 +191,7 @@ var host = clientIo.connect(UUID()
 );
 host.userid = UUID();
 host.hosting = true;
-console.log('host', host);
-console.log('host.io.engine.transport.name', host.io.opts.transports);
+//console.log('host', host);
+//console.log('host.io.engine.transport.name', host.io.opts.transports);
 
 game_server.createGame(host);

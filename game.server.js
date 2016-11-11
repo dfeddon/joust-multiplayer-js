@@ -230,6 +230,8 @@ game_server.endGame = function(gameid, userid)
                 {
                     console.log('@@ removing player', userid);
                     game_instance.gamecore.allplayers[j].instance = null;//.splice(j, 1);
+                    game_instance.gamecore.allplayers[j].active = false;
+                    game_instance.gamecore.allplayers[j].pos = {x:0, y:0};
                     game_instance.player_count--;
                 }
             }
@@ -391,8 +393,9 @@ game_server.startGame = function(game)
             //game_instance.gamecore.players.self.instance = host;
             //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
             //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
-            console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
-            var team = "1"; // 1 = red, 2 = blue
+            
+            //console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
+            var team = Math.floor(Math.random() * 2) + 1;; // 1 = red, 2 = blue
             console.log('player team', team);
             // send user mp, game id, orbs array
             // TODO: Replace orbs array with active chests (and player instance) array
