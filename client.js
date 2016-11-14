@@ -31,7 +31,7 @@ var game = {};
 
 	//localStorage.debug = '*';
 
-	//Fetch the viewport
+	//Fetch the viewport (primary game canvas)
 	game.viewport = document.getElementById('viewport');
 
 	//Adjust their size

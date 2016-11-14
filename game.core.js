@@ -346,7 +346,7 @@ var game_core = function(game_instance)
         // show DOM controls for mobile devices
         if (this.isMobile)
         {
-            var safari = /safari/.test( userAgent ),
+            /*var safari = /safari/.test( userAgent ),
             ios = /iphone|ipod|ipad/.test( userAgent );
             if (ios && safari)
             {
@@ -354,7 +354,7 @@ var game_core = function(game_instance)
                 document.getElementById('mobile-controls-r').style.display = "block";
                 //this.addTouchHandlers();
                 new nativeControls();
-            }
+            }*/
         }
 
         this._ = _;
@@ -3206,7 +3206,7 @@ game_core.prototype.server_update = function()
     /////////////////////////////////
     // process players
     /////////////////////////////////
-    this.laststate = {};
+    var laststate = {};
     //for (var i = 0; i < this.allplayers.length; i++)
     // add a, ax, ay, vx, vy
     //console.log('::',8*this.allplayers.length);
@@ -3240,7 +3240,7 @@ game_core.prototype.server_update = function()
             //console.log('->', bufView);
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
         
-        _this.laststate[player.mp] = bufArr;
+        laststate[player.mp] = bufArr;
         //*/
         /*
         _this.laststate[player.mp] = 
@@ -3258,7 +3258,7 @@ game_core.prototype.server_update = function()
             g:player.hasFlag,
             b:player.bubble
         };//*/
-        _this.laststate[player.mis] = player.last_input_seq;
+        laststate[player.mis] = player.last_input_seq;
 
         // reset flap on server instance
         if (player.flap === true) player.flap = false;
@@ -3317,7 +3317,7 @@ game_core.prototype.server_update = function()
                                     d:evt.passive.duration,
                                     m:evt.passive.modifier
                                 });
-                        _this.laststate[evt.id] =
+                        laststate[evt.id] =
                         {
                             i: id,
                             x: evt.spawn.x,
@@ -3331,7 +3331,7 @@ game_core.prototype.server_update = function()
                     case evt.TYPE_FLAG_CARRIED_COOLDOWN:
 
                         console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
-                        _this.laststate[evt.id] =
+                        laststate[evt.id] =
                         {
                             t: evt.timer,
                             f: evt.flag.name,
@@ -3342,7 +3342,7 @@ game_core.prototype.server_update = function()
                     case evt.TYPE_FLAG_SLOTTED_COOLDOWN:
 
                         console.log('evt active slotted cooldown', evt.id, evt.timer);
-                        _this.laststate[evt.id] =
+                        laststate[evt.id] =
                         {
                             t: evt.timer,
                             f: evt.flag.name
@@ -3380,7 +3380,7 @@ game_core.prototype.server_update = function()
     });
     //*/
 
-    this.laststate.t = this.server_time;
+    laststate.t = this.server_time;
     //console.log(this.laststate.cp1);
     // var view = new Float32Array(this.laststate.cp1, 0, 16);
     // console.log('view', view);
@@ -3394,9 +3394,13 @@ game_core.prototype.server_update = function()
         if (ply.instance)// && this.allplayers[j].instance != "host")
         {
             //console.log('inst', this.allplayers[j].instance);//.userid);
-            ply.instance.emit('onserverupdate', _this.laststate);
+            ply.instance.emit('onserverupdate', laststate);
         }
     });
+
+    laststate = null;
+    bufArr = null;
+    bufView = null;
 
     //Make a snapshot of the current state, for updating the clients
     // this.laststate = {

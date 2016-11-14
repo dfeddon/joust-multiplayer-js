@@ -20,7 +20,11 @@ var
     verbose         = false,
     http            = require('http'),
     app             = express(),
-    server          = http.createServer(app);
+    server          = http.createServer(app),
+    //throng          = require('throng'),
+    memwatch        = require('memwatch-next'),
+    heapdump        = require('heapdump'),
+    WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
 /* Express server set up. */
 
@@ -195,3 +199,52 @@ host.hosting = true;
 //console.log('host.io.engine.transport.name', host.io.opts.transports);
 
 game_server.createGame(host);
+
+setInterval(function(){
+  global.gc();
+  console.log('** GC done')
+}, 1000*30);
+
+////////////////////////////////////////
+// Memwatch
+////////////////////////////////////////
+memwatch.on('leak', function(info) 
+{
+    console.log('Memory Leak!!!:', info);
+    process.kill(process.pid, 'SIGUSR2'); 
+});
+
+memwatch.on('stats', function(stats)
+{
+    console.log('V8 GC stats', stats);
+})
+
+////////////////////////////////////////
+// concurrency via 
+// https://github.com/hunterloftis/throng
+////////////////////////////////////////
+
+function startWorker(id)
+{
+    console.log('app.startWorker id ${id} concurrency workers...');
+
+    process.on('SIGTERM', () => {
+        console.log(`Worker ${ id } exiting...`);
+        console.log('(cleanup would happen here)');
+        process.exit();
+    });
+}
+
+function startMaster()
+{
+    console.log('app.startMaster()');    
+}
+/*
+throng( 
+{
+    workers: WORKERS,
+    lifetime: Infinity,
+    master: startMaster,
+    start: startWorker
+});
+//*/
