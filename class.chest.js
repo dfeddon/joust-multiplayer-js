@@ -3,14 +3,21 @@
 */
 //"use strict"
 
-function game_chest(game_instance, data, client)
+var config = require('./class.globals');
+var _ = require('./node_modules/lodash/lodash.min');
+
+function game_chest(data, client)
 {
   var _this = this;
-  this.game = game_instance;
+  //this.game = game_instance;
   this.data = data;
 
   if (client)
-    this.ctx = this.game.viewport.getContext('2d');
+  {
+    var v = document.getElementById('viewport');
+    this.ctx = v.getContext('2d');
+    //this.ctx = this.game.viewport.getContext('2d');
+  }
 
   this.id = data.i;//game_instance.getUID();
 
@@ -33,9 +40,9 @@ function game_chest(game_instance, data, client)
 
   //this._ = require('./node_modules/lodash/lodash.min');
 
-  // if (this.game.server)
+  // if (config.server)
   // {
-  //   this._.forEach(this.game.allplayers, function(ply)
+  //   _.forEach(config.allplayers, function(ply)
   //   {
   //       if (ply.instance)
   //       {
@@ -61,9 +68,9 @@ game_chest.prototype.doTake = function(player)//, chests)
   this.takenBy = player.mp;
 
   // send to server
-  // console.log('len', this.game.allplayers.length);
+  // console.log('len', config.allplayers.length);
 
-  this._.forEach(this.game.allplayers, function(ply)
+  _.forEach(config.allplayers, function(ply)
   {
     // console.log('* instance', ply.instance, ply.mp, player.mp);
 
@@ -72,7 +79,7 @@ game_chest.prototype.doTake = function(player)//, chests)
       // console.log('* send', _this.id, ply.mp);
 
       ply.instance.send('c.t.' + _this.id + '|' + player.mp);//, k );
-      //_this.game.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
+      //_config.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
     }
   });
 
@@ -92,8 +99,8 @@ game_chest.prototype.doTake = function(player)//, chests)
   }
 
   // resset chestSpawnPoints.active to false
-  //console.log(this.game.chestSpawnPoints.length);
-  this._.forEach(this.game.chestSpawnPoints, function(spawn, key)
+  //console.log(config.chestSpawnPoints.length);
+  _.forEach(config.chestSpawnPoints, function(spawn, key)
   {
     //console.log('->', spawn.x, _this.x, spawn.y, _this.y);
     if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
@@ -119,14 +126,14 @@ game_chest.prototype.doRemove = function(player)
   console.log('=== chest.doRemove ===');//, player.mp, '===');
 
   var _this = this;
-  this._.pull(this.game.chests, this);
-  this._.forEach(this.game.allplayers, function(ply)
+  _.pull(config.chests, this);
+  _.forEach(config.allplayers, function(ply)
   {
     if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
     {
       // console.log('* sending c.r. to', ply.mp);
       ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
-      //_this.game.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
+      //_config.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
     }
   });
 };

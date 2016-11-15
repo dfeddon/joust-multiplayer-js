@@ -187,3 +187,5 @@ game_toast.prototype.getSlotLabel = function(slot)
 
   return label;
 };
+
+module.exports = game_toast;

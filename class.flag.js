@@ -3,6 +3,8 @@
 */
 //"use strict"
 
+var game_toast = require('./class.toast');
+
 function game_flag(data, context)
 {
   //console.log('flag data', data);
@@ -21,6 +23,8 @@ function game_flag(data, context)
     //var stopwatch = require('./class.stopwatch');
     //this._.cloneDeep = require('./node_modules/lodash/cloneDeep');
   }*/
+  this._.forEach = require('./node_modules/lodash/forEach');
+  this._.find = require('./node_modules/lodash/find');
 
   this.id = "flg" + data.id;
   this.name = data.name;
@@ -383,7 +387,7 @@ game_flag.prototype.doTake = function(player)
   console.log('flag.targetSlot', this.targetSlot);
 
   // update clientCooldown source and target
-  var cd = player.game._.find(player.game.clientCooldowns, {"name":this.name});
+  var cd = config._.find(config.clientCooldowns, {"name":this.name});
   cd.heldBy = player.mp;
   cd.src = this.sourceSlot;
   cd.target = this.targetSlot;
@@ -399,7 +403,7 @@ game_flag.prototype.doTake = function(player)
 
   if (player.bubble) player.bubble = false;
 
-  if (!player.game.server)
+  if (!config.server)
   {
       // show toast
       new game_toast().show();
@@ -408,18 +412,18 @@ game_flag.prototype.doTake = function(player)
   {
       console.log('* socket emit', this.targetSlot);
       // inform socket
-      for (var l = 0; l < player.game.allplayers.length; l++)
+      for (var l = 0; l < config.allplayers.length; l++)
       {
           // dispatch flagremove socket event
-          if (player.game.allplayers[l].instance && player.game.allplayers[l].mp != player.mp)
+          if (config.allplayers[l].instance && config.allplayers[l].mp != player.mp)
           {
               //console.log('flag sent', flag.name);
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-              player.game.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
+              config.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
           }
       }
       // update clientCooldowns objs
-      var cd = player.game._.find(player.game.clientCooldowns, {"name":this.name});
+      var cd = config._.find(config.clientCooldowns, {"name":this.name});
       //console.log(this.game.clientCooldowns);
       cd.heldBy = player.mp;
       cd.src = this.sourceSlot;
@@ -428,7 +432,7 @@ game_flag.prototype.doTake = function(player)
 
       // start cooldown
       // get event by id "fc" (flag carried)
-      var evt = player.game._.find(player.game.events, {'id':"fc"});
+      var evt = config._.find(config.events, {'id':"fc"});
       evt.flag = this;
       //console.log('got evt', evt);
       evt.doStart();
@@ -456,9 +460,9 @@ game_flag.prototype.slotFlag = function(player)
   // TODO: Resolve issue with targetSlot and sourceSlot values, both
   // of which exist in flag class (client) and clientCooldowns (server)
   // console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
-  //console.log('cooldowns', player.game.clientCooldowns);
+  //console.log('cooldowns', config.clientCooldowns);
 
-  var clientFlag = this._.find(player.game.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
+  var clientFlag = this._.find(config.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
   //console.log('clientFlag', clientFlag);
   if (clientFlag === undefined) return;
 
@@ -470,7 +474,7 @@ game_flag.prototype.slotFlag = function(player)
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
     // also start flag cooldown
-    var flg = player.game._.find(player.game.flagObjects, {"name":clientFlag.name});
+    var flg = config._.find(config.flagObjects, {"name":clientFlag.name});
     console.log('* flag', flg);
 
     player.hasFlag = 0;
@@ -484,27 +488,27 @@ game_flag.prototype.slotFlag = function(player)
     // stop cooldown (clientFlag)
 
     // stop flag-carried event (server-side only)
-    if (player.game.server)
+    if (config.server)
     {
       // stop flag-carried event
-      var evt = player.game._.find(player.game.events, {"id":"fc"});
-      //console.log(player.game.events);
+      var evt = config._.find(config.events, {"id":"fc"});
+      //console.log(config.events);
       //console.log('*evt', evt.type, evt.timer);
       evt.doStop();
 
       // ... and start flag slotted cooldown event
-      var cd = player.game._.find(player.game.events, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
+      var cd = config._.find(config.events, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
       //console.log('*evt cd', cd);
-      var flg = player.game._.find(player.game.flagObjects, {"name":clientFlag.name});
+      var flg = config._.find(config.flagObjects, {"name":clientFlag.name});
       cd.flag = flg;//clientFlag; // TODO: <- should be flag class NOT clientCooldown flag
       cd.doStart();
 
     }
-    //var evt = player.game._.find(player.game.clientCooldowns, {'name':this.name});
-    //console.log('slot evt', evt, player.game.clientCooldowns);
+    //var evt = config._.find(config.clientCooldowns, {'name':this.name});
+    //console.log('slot evt', evt, config.clientCooldowns);
 
-    //player.removeFlag(true, this, player.game._.find(player.game.flagObjects, {'name':clientFlag.name}));
-    //var slot = player.game._.find(player.game.flagObjects, {'name':clientFlag.name});
+    //player.removeFlag(true, this, config._.find(config.flagObjects, {'name':clientFlag.name}));
+    //var slot = config._.find(config.flagObjects, {'name':clientFlag.name});
 
     flg.x = this.x - (this.width/2);
     flg.y = this.y - (this.height/2);
@@ -515,31 +519,31 @@ game_flag.prototype.slotFlag = function(player)
 
     console.log('* socket emit', this);
     // inform socket
-    for (var l = 0; l < player.game.allplayers.length; l++)
+    for (var l = 0; l < config.allplayers.length; l++)
     {
-        if (player.game.allplayers[l].instance && player.game.allplayers[l].mp != player.mp)
+        if (config.allplayers[l].instance && config.allplayers[l].mp != player.mp)
         {
             //console.log('flag sent', slot);
             //player.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-            player.game.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
+            config.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
         }
     }
 
     // revise territory
     /*
-    if (player.game.server)
+    if (config.server)
     {
         console.log('emit territory change data');
     }
     */
-    if (!player.game.server)
+    if (!config.server)
     {
-        player.game.updateTerritory();
+        config.updateTerritory();
 
         // start flag-slotted cooldown event
     }
 
-    var flagObj = player.game._.find(player.game.flagObjects, {"name":clientFlag.name});//this.name});
+    var flagObj = config._.find(config.flagObjects, {"name":clientFlag.name});//this.name});
     flagObj.reset(true);//, this.game.server_time);
   }
 };
