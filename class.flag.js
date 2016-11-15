@@ -9,7 +9,7 @@ function game_flag(data, context)
 
   this._ = {};
 
-  if (context)
+  /*if (context)
   {
     this._.forEach = _.forEach;
     this._.find = _.find;
@@ -20,7 +20,7 @@ function game_flag(data, context)
     this._.find = require('./node_modules/lodash/find');
     //var stopwatch = require('./class.stopwatch');
     //this._.cloneDeep = require('./node_modules/lodash/cloneDeep');
-  }
+  }*/
 
   this.id = "flg" + data.id;
   this.name = data.name;

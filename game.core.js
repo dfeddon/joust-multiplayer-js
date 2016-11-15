@@ -17,6 +17,24 @@
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
+// include modules
+var 
+    _                   = require('./node_modules/lodash/lodash.min');
+    UUID                = require('node-uuid'),
+    egyptian_set            = require('./egyptian_set'),
+    game_player         = require('./class.player'),
+    game_flag           = require('./class.flag'),
+    platformClass       = require('./class.platform'),
+    //transformClass      = require('./class.transform'),
+    game_event_server   = require('./class.event'),
+    game_chest          = require('./class.chest');
+    /*collisionObject     = require('./class.collision'),
+    PhysicsEntity       = require('./class.physicsEntity'),
+    CollisionDetector   = require('./class.collisionDetector'),
+    CollisionSolver     = require('./class.collisionSolver');*/
+    // this._                   = require('./node_modules/lodash/lodash.min');
+
+
 console.log('game.core loaded');
 
 var glog = false; // global console logging
@@ -181,19 +199,19 @@ var game_core = function(game_instance)
 
     if(this.server) // only for server, not clients (browsers)
     {
-        // include modules
-        var UUID            = require('node-uuid'),
-        name_set            = require('./egyptian_set'),
-        playerClass         = require('./class.player'),
-        platformClass       = require('./class.platform'),
-        //transformClass      = require('./class.transform'),
-        game_event_server   = require('./class.event'),
-        game_chest          = require('./class.chest');
-        /*collisionObject     = require('./class.collision'),
-        PhysicsEntity       = require('./class.physicsEntity'),
-        CollisionDetector   = require('./class.collisionDetector'),
-        CollisionSolver     = require('./class.collisionSolver');*/
-        this._                   = require('./node_modules/lodash/lodash.min');
+        // // include modules
+        // var UUID            = require('node-uuid'),
+        // egyptian_set            = require('./egyptian_set'),
+        // game_player         = require('./class.player'),
+        // platformClass       = require('./class.platform'),
+        // //transformClass      = require('./class.transform'),
+        // game_event_server   = require('./class.event'),
+        // game_chest          = require('./class.chest');
+        // /*collisionObject     = require('./class.collision'),
+        // PhysicsEntity       = require('./class.physicsEntity'),
+        // CollisionDetector   = require('./class.collisionDetector'),
+        // CollisionSolver     = require('./class.collisionSolver');*/
+        // this._                   = require('./node_modules/lodash/lodash.min');
 
         //var co = collisionObject;
         // phy 2.0
@@ -210,7 +228,7 @@ var game_core = function(game_instance)
         var other;
         for (var i = 1; i < this.world.totalplayers; i++)
         {
-            other = new playerClass(this, null, false);
+            other = new game_player(this, null, false);
             other.pos = this.gridToPixel(i * 64, 0);
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
@@ -218,7 +236,7 @@ var game_core = function(game_instance)
             this.allplayers.push(other);
             // this.entities.push(other);
         }
-        var hp = new playerClass(this, this.instance.player_host, true);
+        var hp = new game_player(this, this.instance.player_host, true);
         // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
         this.allplayers.push(hp);
         // this.entities.push(hp);
@@ -357,7 +375,8 @@ var game_core = function(game_instance)
             }*/
         }
 
-        this._ = _;
+        //this._ = _;
+
         /*var collisionObject = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -536,11 +555,11 @@ if( 'undefined' != typeof global )
 game_core.prototype.nameGenerator = function()
 {
     // name generator
-    var name_set;
-    if (this.server)
-        name_set = require('./egyptian_set');
-    else name_set = egyptian_set;
-    var set = new name_set().getSet();
+    var egyptian_set;
+    //if (this.server)
+        egyptian_set = require('./egyptian_set');
+    //else egyptian_set = egyptian_set;
+    var set = new egyptian_set().getSet();
     var rnd = Math.floor(Math.random() * set.length);
     var pname = set[rnd];
     console.log('pname', pname);
@@ -834,11 +853,11 @@ game_core.prototype.apiNode = function()
 
                     case "flagObjects":
                         //console.log('flagobjs', objectgroupNode[j].object.length);
-                        var game_flag_server = require('./class.flag');
+                        //var game_flag_server = require('./class.flag');
                         var flag;
                         if (objectgroupNode[j].object.length === undefined)
                         {
-                            flag = new game_flag_server(objectgroupNode[j].object.$);
+                            flag = new game_flag(objectgroupNode[j].object.$);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
                             //console.log('-flag', flag);
@@ -851,7 +870,7 @@ game_core.prototype.apiNode = function()
                                 //console.log('->',objectgroupNode[j].object[l].$);
                                 //_this.flagObjects.push(objectgroupNode[j].object[l].$);
 
-                                flag = new game_flag_server(objectgroupNode[j].object[l].$);
+                                flag = new game_flag(objectgroupNode[j].object[l].$);
                                 //flag.setter(objectgroupNode[j].object[l].$);
                                 flag.id = "flg" + l.toString();
                                 //console.log('flag', flag);
@@ -972,9 +991,9 @@ game_core.prototype.updateTerritory = function()
     }*/
 
     // flags
-    var red = this._.find(this.flagObjects, {'name':'redFlag'});
-    var mid = this._.find(this.flagObjects, {'name':'midFlag'});
-    var blue = this._.find(this.flagObjects, {'name':'blueFlag'});
+    var red = _.find(this.flagObjects, {'name':'redFlag'});
+    var mid = _.find(this.flagObjects, {'name':'midFlag'});
+    var blue = _.find(this.flagObjects, {'name':'blueFlag'});
     //console.log(red, mid, blue);
     //console.log('territory', red, mid.x, blue.x);
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
@@ -1403,7 +1422,7 @@ game_core.prototype.tilemapper = function()
                 //for (var e = 0; e < nodes.length; e++)
                 var flagObjectsObj;
                 //var objsArray = [];
-                _this._.forEach(nodes, function(e)
+                _.forEach(nodes, function(e)
                 {
                     flagObjectsObj = {};
                     Array.prototype.slice.call(e).forEach(function(item)
@@ -1429,7 +1448,7 @@ game_core.prototype.tilemapper = function()
                     //_this.flagObjects.push(flg);
                 });
 
-                /*_this._.forEach(objsArray, function(i)
+                /*_.forEach(objsArray, function(i)
                 {
                     //console.log(i);
                     _this.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
@@ -1633,9 +1652,9 @@ game_core.prototype.tilemapper = function()
             _this.addSpriteSheets();
 
             // reassign ctx for slot objects
-            //console.log("_", this._.forEach());
+            //console.log("_", _.forEach());
             console.log('flagArray', flagArray);
-            _this._.forEach(flagArray, function(fo)
+            _.forEach(flagArray, function(fo)
             {
                 //console.log('fog', fo);
                 if (fo.type == "flag")
@@ -2027,7 +2046,7 @@ game_core.prototype.check_collision = function( player )
 
     // player collision
     //for (var i = 0; i < this.allplayers.length; i++)
-    this._.forEach(this.allplayers, function(other)
+    _.forEach(this.allplayers, function(other)
     {
         //console.log('->', other.pos);
         //other.pos.x = other.pos.x.fixed(4);
@@ -2210,7 +2229,7 @@ game_core.prototype.check_collision = function( player )
     // platform collisions
     /*
     //for (var j = 0; j < this.platforms.length; j++)
-    this._.forEach(this.platforms, function(platform)
+    _.forEach(this.platforms, function(platform)
     {
         //console.log('collision().platform:state', platform.state);
         // Note: hy + 10 below accounts for birds unseen legs.
@@ -2363,7 +2382,7 @@ game_core.prototype.check_collision = function( player )
     }
 
     //console.log('chests', this.chests.length, player.mp);
-    this._.forEach(this.chests, function(chest)
+    _.forEach(this.chests, function(chest)
     {
         //console.log('collision().chests', chest);
         // Note: hy + 10 below accounts for birds unseen legs.
@@ -2376,12 +2395,12 @@ game_core.prototype.check_collision = function( player )
         {
             console.log('chest hit');
             chest.doTake(player);//, _this.chests);
-            //_this._.pull(_this.chests, chest);
+            //_.pull(_this.chests, chest);
         }
     });
 
     // flagObjects (flags and slots)
-    this._.forEach(this.flagObjects, function(fo)
+    _.forEach(this.flagObjects, function(fo)
     {
         if (
             //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
@@ -2636,7 +2655,7 @@ game_core.prototype.client_on_chesttake = function(data)
     var split = data.split("|");
     var id = split[0];
     var player = split[1];
-    this._.forEach(this.chests, function(chest)
+    _.forEach(this.chests, function(chest)
     {
         console.log('chest id', chest.id);
         if (chest.id == id)
@@ -2655,13 +2674,13 @@ game_core.prototype.client_on_chestremove = function(data)
     var id = split[0];
     var player = split[1];
 
-    this._.forEach(this.chests, function(chest)
+    _.forEach(this.chests, function(chest)
     {
         //console.log('chest id', chest.id);
         if (chest.id == id)
         {
             // chest is opened
-            _this._.remove(_this.chests, {id: chest.id});
+            _.remove(_this.chests, {id: chest.id});
             console.log('* chest removed', id, _this.chests);
             return false; // break
         }
@@ -2685,7 +2704,7 @@ game_core.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    this._.forEach(this.allplayers, function(ply)
+    _.forEach(this.allplayers, function(ply)
     {
         if (ply.mp == mp)
         {
@@ -2700,7 +2719,7 @@ game_core.prototype.client_onflagadd = function(data)
     // show flag in slot
     /////////////////////////////////////
     var targetSlot, flagSlotted;
-    this._.forEach(this.flagObjects, function(fo)
+    _.forEach(this.flagObjects, function(fo)
     {
         //console.log(fo.name, slotName);
         if (fo.name == slotName)
@@ -2752,7 +2771,7 @@ game_core.prototype.client_onflagremove = function(data)
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    this._.forEach(this.allplayers, function(ply)
+    _.forEach(this.allplayers, function(ply)
     {
         if (ply.mp == mp)
         {
@@ -2766,7 +2785,7 @@ game_core.prototype.client_onflagremove = function(data)
     // hide flag taken
     /////////////////////////////////////
     var targetSlot;
-    this._.forEach(this.flagObjects, function(flag)
+    _.forEach(this.flagObjects, function(flag)
     {
         console.log(flag.name, flagName);
         if (flag.name == flagName)
@@ -3074,7 +3093,7 @@ game_core.prototype.update_physics = function()
     ////////////////////////////////////////////////////////
     // iterate players
     ////////////////////////////////////////////////////////
-    this._.forEach(this.allplayers, function(player)
+    _.forEach(this.allplayers, function(player)
     {
         //if (_this.players.self)
         player.update();
@@ -3142,7 +3161,7 @@ game_core.prototype.server_update_physics = function() {
     // player collisions
     //for (var i = 0; i < this.allplayers.length; i++)
     var new_dir;
-    this._.forEach(this.allplayers, function(ply)
+    _.forEach(this.allplayers, function(ply)
     {
         //if (ply.mp != "hp")//_this.players.self.mp)
         //{
@@ -3169,7 +3188,7 @@ game_core.prototype.server_update_physics = function() {
             this.platforms[j].check_collision();
         //}
     }*/
-    /*this._.forEach(this.chests, function(chest)
+    /*_.forEach(this.chests, function(chest)
     {
         chest.check_collision();
     });*/
@@ -3213,7 +3232,7 @@ game_core.prototype.server_update = function()
     
     var bufArr = new ArrayBuffer(768);//16 * this.allplayers.length); // 16 * numplayers
     var bufView;
-    this._.forEach(this.allplayers, function(player, index)
+    _.forEach(this.allplayers, function(player, index)
     {
         //console.log(index * 16);
         // set player's bufferIndex
@@ -3275,7 +3294,7 @@ game_core.prototype.server_update = function()
     /////////////////////////////////
     //this.lastPlatformState = {};
     //for (var k = 0; k < this.platforms.length; k++)
-    /*this._.forEach(this.platforms, function(plat)
+    /*_.forEach(this.platforms, function(plat)
     {
         //if (plat.state !== plat.STATE_INTACT) // 1 is fixed/dormant
         //{
@@ -3295,7 +3314,7 @@ game_core.prototype.server_update = function()
 
     // process events
     //for (var l = 0; l < this.events.length; l++)
-    this._.forEach(this.events, function(evt)
+    _.forEach(this.events, function(evt)
     {
         if (evt.state !== evt.STATE_STOPPED)
         {
@@ -3355,7 +3374,7 @@ game_core.prototype.server_update = function()
 
     // process flags
     /*
-    this._.forEach(this.flagObjects, function(flag)
+    _.forEach(this.flagObjects, function(flag)
     {
         //if (flag.isHeld)
         if (flag.type=="flag")
@@ -3389,7 +3408,7 @@ game_core.prototype.server_update = function()
     
     //console.log('len', this.allplayers.length);
     //for (var j = 0; j < this.allplayers.length; j++)
-    this._.forEach(this.allplayers, function(ply)
+    _.forEach(this.allplayers, function(ply)
     {
         if (ply.instance)// && this.allplayers[j].instance != "host")
         {
@@ -3443,7 +3462,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     else
     {
         //for (var i = 0; i < this.allplayers.length; i++)
-        this._.forEach(this.allplayers, function(player)
+        _.forEach(this.allplayers, function(player)
         {
             if (player.instance && player.instance.userid == client.userid)
             {
@@ -3641,7 +3660,7 @@ game_core.prototype.client_process_net_prediction_correction2 = function()
 
     //console.log(this.players.self.cur_state.pos, my_server_pos);
     //console.log(this.players.self.pos, my_server_pos);
-    if (this._.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
+    if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
     {
     //else console.log('kkkk');
     
@@ -3773,7 +3792,7 @@ game_core.prototype.client_process_net_prediction_correction = function()
         //*
         else
         {
-            if (this._.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
+            if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
             {
             //console.log('kkkk');
             
@@ -3992,7 +4011,7 @@ game_core.prototype.client_process_net_updates = function()
         var lerp_p = {x:0, y:0};
         var self_pp;
         var self_tp;
-        this._.forEach(this.allplayers, function(player, index)
+        _.forEach(this.allplayers, function(player, index)
         {
             if (player != _this.players.self)// && previous[player.mp])
             {
@@ -4089,7 +4108,7 @@ game_core.prototype.client_process_net_updates = function()
         //*/
         //var pos;
         //for (var k = 0; k < this.platforms.length; k++)
-        /*this._.forEach(this.platforms, function(plat)
+        /*_.forEach(this.platforms, function(plat)
         {
             // if provided, omit local player (triggerer: .p/.mp) who 'triggered' the effect;
             // we'll manage the platform physics locally
@@ -4123,7 +4142,7 @@ game_core.prototype.client_process_net_updates = function()
 
         // process flags
         /*
-        this._.forEach(this.flagObjects, function(flag)
+        _.forEach(this.flagObjects, function(flag)
         {
             //console.log(target);
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
@@ -4154,9 +4173,9 @@ game_core.prototype.client_process_net_updates = function()
         //*/
 
         // process events
-        //console.log('got evt flag', this._.has(target, 'fc'), this.events.length);
+        //console.log('got evt flag', _.has(target, 'fc'), this.events.length);
         // first, check for chest events (dynamic)
-        if (this._.has(target, 'ec'))
+        if (_.has(target, 'ec'))
         {
             // avoid reduncancy
             if (!target.ec) return false;
@@ -4166,17 +4185,17 @@ game_core.prototype.client_process_net_updates = function()
             // clear it to avoid duplicate reads
             target.ec = null;
         }
-        if (this._.has(target, 'fc'))
+        if (_.has(target, 'fc'))
         {
             console.log('* fc evt', target.fc);
 
             // get client flag (clientCooldown)
-            var cflag = _this._.find(_this.clientCooldowns, {'name':target.fc.f});
+            var cflag = _.find(_this.clientCooldowns, {'name':target.fc.f});
             cflag.heldBy = target.fc.p;
             cflag.timer = target.fc.t;
 
             // get flag obj
-            var flag = _this._.find(_this.flagObjects, {'name':target.fc.f});
+            var flag = _.find(_this.flagObjects, {'name':target.fc.f});
 
             // set client flag target slot
             cflag.target = flag.targetSlot;
@@ -4186,7 +4205,7 @@ game_core.prototype.client_process_net_updates = function()
             //cflag.
 
             // get player
-            var ply = _this._.find(_this.allplayers, {"mp":target.fc.p});
+            var ply = _.find(_this.allplayers, {"mp":target.fc.p});
             if (ply)
             {
                 if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
@@ -4202,15 +4221,15 @@ game_core.prototype.client_process_net_updates = function()
             //if (player)
             //player.carryingFlag.timer = target.fc.t;
         }
-        if (this._.has(target, 'fs'))
+        if (_.has(target, 'fs'))
         {
             //console.log('has flagslotted cd evt');
             console.log('* fs evt', target.fs);
             // get client flag (clientCooldown)
-            /*var cflag = _this._.find(_this.clientCooldowns, {'name':target.fs.f});
+            /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
             cflag.timer = target.fs.t;
             console.log('cflag', cflag);*/
-            var flg = _this._.find(_this.flagObjects, {'name':target.fs.f});
+            var flg = _.find(_this.flagObjects, {'name':target.fs.f});
             flg.timer = target.fs.t;//cflag.timer;
 
             // add flg.isActive check to ensure it runs only once
@@ -4230,7 +4249,7 @@ game_core.prototype.client_process_net_updates = function()
             //     flag.timer = NaN
             // }
         }
-        /*this._.forEach(this.events, function(evt)
+        /*_.forEach(this.events, function(evt)
         {
             console.log('targ', target[evt.id]);
             if (target[evt.id] == evt.id)
@@ -4330,7 +4349,7 @@ game_core.prototype.addChest = function(chest)
         this.chests.push(new game_chest_server(this, chest, false));
         //console.log('newChest id', newChest.id);
 
-        // this._.forEach(this.allplayers, function(ply)
+        // _.forEach(this.allplayers, function(ply)
         // {
         //     if (ply.instance)
         //     {
@@ -4476,7 +4495,7 @@ game_core.prototype.client_update_physics = function()
 
     // platform collisions (minus player)
     //for (var j = 0; j < this.platforms.length; j++)
-    /*this._.forEach(this.platforms, function(plat)
+    /*_.forEach(this.platforms, function(plat)
     {
         //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
         //{
@@ -4577,7 +4596,7 @@ game_core.prototype.client_update = function()
     
     //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
     //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
-    this._.forEach(this.allplayers, function(ply)
+    _.forEach(this.allplayers, function(ply)
     {
         if (ply != _this.players.self)// && this.allplayers[i].active===true)
         {
@@ -4622,7 +4641,7 @@ game_core.prototype.client_update = function()
 
     // platforms
     //for (var j = 0; j < this.platforms.length; j++)
-    /*this._.forEach(this.platforms, function(plat)
+    /*_.forEach(this.platforms, function(plat)
     {
         if (plat.state !== plat.STATE_INTACT)
             plat.draw();
@@ -4630,20 +4649,20 @@ game_core.prototype.client_update = function()
 
     // spritesheets
     //for (var k = 0; k < this.spritesheets.length; k++)
-    this._.forEach(this.spritesheets, function(ss)
+    _.forEach(this.spritesheets, function(ss)
     {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
         ss.update();
     });
 
     // chests
-    this._.forEach(this.chests, function(chest)
+    _.forEach(this.chests, function(chest)
     {
         chest.draw();
     });
 
     // flags
-    this._.forEach(this.flagObjects, function(flagObj)
+    _.forEach(this.flagObjects, function(flagObj)
     {
         //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
         if (flagObj.type == "flag")
@@ -5012,7 +5031,7 @@ game_core.prototype.client_onjoingame = function(data)
         // else if (this.allplayers[i].instance.hosting)
     }
 
-    this._.forEach(chests, function(chest)
+    _.forEach(chests, function(chest)
     {
         _this.chests.push(new game_chest(_this, chest, true));
     });

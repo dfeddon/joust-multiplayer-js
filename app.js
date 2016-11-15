@@ -200,9 +200,12 @@ host.hosting = true;
 
 game_server.createGame(host);
 
-setInterval(function(){
-  global.gc();
-  console.log('** GC done')
+/*
+setInterval(function()
+{
+    if (typeof(global.gc) == 'function')
+        global.gc();
+        console.log('** GC done')
 }, 1000*30);
 
 ////////////////////////////////////////
@@ -218,6 +221,7 @@ memwatch.on('stats', function(stats)
 {
     console.log('V8 GC stats', stats);
 })
+//*/
 
 ////////////////////////////////////////
 // concurrency via 

@@ -5,13 +5,29 @@
 
     MIT Licensed.
 */
-//A window global for our game root variable.
-var game = {};
+var game_core = require('./game.core');
+// var _ = require('./node_modules/lodash/lodash.min');
+/*
+var egyptian_set = require('./egyptian_set');
+var game_spritesheet = require('./class.spritesheet');
+var game_stopwatch = require('./class.stopwatch');
+var game_toast = require('./class.toast');
+var game_chest = require('./class.chest');
+var game_flag = require('./class.flag');
+var
+//*/ 
 
-//When loading, we store references to our
-//drawing canvases, and initiate a game instance.
-//window.onload = function()
-//{
+document.addEventListener('DOMContentLoaded', function()
+{
+	console.log('client DOM Loaded...');
+
+	//A window global for our game root variable.
+	var game = {};
+
+	//When loading, we store references to our
+	//drawing canvases, and initiate a game instance.
+	//window.onload = function()
+	//{
 	//function go(){
 	//console.log('window onload');
 	//Create our game client instance.
@@ -31,7 +47,7 @@ var game = {};
 
 	//localStorage.debug = '*';
 
-	//Fetch the viewport (primary game canvas)
+	//Fetch the viewport (primary game canvas )
 	game.viewport = document.getElementById('viewport');
 
 	//Adjust their size
@@ -52,4 +68,4 @@ var game = {};
 	//Finally, start the loop
 	game.update( new Date().getTime() );
 	//}
-//}; //window.onload
+}); //window.onload

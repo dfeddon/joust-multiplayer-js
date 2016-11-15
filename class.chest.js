@@ -31,7 +31,7 @@ function game_chest(game_instance, data, client)
 
   //console.log('chest constructor', data);
 
-  this._ = require('./node_modules/lodash/lodash.min');
+  //this._ = require('./node_modules/lodash/lodash.min');
 
   // if (this.game.server)
   // {

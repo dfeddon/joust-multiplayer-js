@@ -1583,13 +1583,13 @@ game_player.prototype.drawAbilities = function()
     //console.log('drawAbil', this.engaged);
     if (this.engaged === false)
     {
-        game.ctx.beginPath();
-        game.ctx.strokeStyle = 'gray';
-        game.ctx.moveTo(this.pos.x, this.pos.y-10);
-        game.ctx.lineTo(this.pos.x + 64, this.pos.y-10);
-        game.ctx.lineWidth = 3;
-        game.ctx.stroke();
-        game.ctx.closePath();
+        this.game.ctx.beginPath();
+        this.game.ctx.strokeStyle = 'gray';
+        this.game.ctx.moveTo(this.pos.x, this.pos.y-10);
+        this.game.ctx.lineTo(this.pos.x + 64, this.pos.y-10);
+        this.game.ctx.lineWidth = 3;
+        this.game.ctx.stroke();
+        this.game.ctx.closePath();
 
         // mana progression
         // calculate
@@ -1598,15 +1598,15 @@ game_player.prototype.drawAbilities = function()
         // 64 is the width of the progression bar
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
-        game.ctx.beginPath();
-        game.ctx.strokeStyle = 'yellow';
+        this.game.ctx.beginPath();
+        this.game.ctx.strokeStyle = 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-        game.ctx.moveTo(this.pos.x, this.pos.y-10);
-        game.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
-        game.ctx.lineWidth = 3;
-        game.ctx.stroke();
-        game.ctx.closePath();
+        this.game.ctx.moveTo(this.pos.x, this.pos.y-10);
+        this.game.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
+        this.game.ctx.lineWidth = 3;
+        this.game.ctx.stroke();
+        this.game.ctx.closePath();
 
         // buffs, potions, and boosters
         //console.log(this.pos.x, this.pos.y);
@@ -1651,18 +1651,18 @@ game_player.prototype.draw = function()
     // else
     // {
     // nameplate color
-    game.ctx.save();
+    this.game.ctx.save();
     if (this.team === 1) // 1 = red, 2d = blue
     {
-        game.ctx.fillStyle = '#FF6961';
+        this.game.ctx.fillStyle = '#FF6961';
         //game.ctx.save();
     }
     else
     {
-        game.ctx.fillStyle = '#6ebee6';
+        this.game.ctx.fillStyle = '#6ebee6';
         //game.ctx.save();
     }
-    game.ctx.font = "small-caps 15px serif";
+    this.game.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
     //     this.pos.x,
@@ -1671,17 +1671,17 @@ game_player.prototype.draw = function()
     //     5);
 
     // nameplate
-    game.ctx.font = "16px Mirza";
-    game.ctx.textAlign = 'center';
+    this.game.ctx.font = "16px Mirza";
+    this.game.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
     var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
-    game.ctx.fillText(
+    this.game.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
         this.pos.y - txtOffset
         //100
     );
-    game.ctx.restore();
+    this.game.ctx.restore();
 
     // draw rank circle
     /*
@@ -1695,7 +1695,7 @@ game_player.prototype.draw = function()
 
     if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
-        game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
+        this.game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
             //this.pos.x - 15,
             this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
             //this.pos.x + (this.size.hx/2) - 30,
@@ -1883,15 +1883,15 @@ game_player.prototype.draw = function()
         //console.log('flagImg', flagImg, this.dir);
         if (flagImg)
         {
-            game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
+            this.game.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
             // draw timer
             //*
-            game.ctx.font = "18px Mirza";
-            game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
-            game.ctx.textAlign = 'center';
+            this.game.ctx.font = "18px Mirza";
+            this.game.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
+            this.game.ctx.textAlign = 'center';
             //if (this.carryingFlag)
             if (flag)
-            game.ctx.fillText(
+            this.game.ctx.fillText(
                 flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + this.game.fps.fixed(1),
                 (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
                 this.pos.y - 5//txtOffset
@@ -1912,13 +1912,13 @@ game_player.prototype.draw = function()
         //console.log(this.glideRight);
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         //if (this.glideRight)
-            game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
+            this.game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
         //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);
 
     if (this.bubble === true)
-        game.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
+        this.game.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
 
 
 
