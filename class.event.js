@@ -10,7 +10,9 @@ console.log('now ' + now.getSeconds());
 console.log('then ' + e.getSeconds());
 console.log('diff ' + (e.getTime() - now.getTime())/1000);
 */
-function game_event(game_instance)
+var config = require('./class.globals');
+
+function game_event()//game_instance)
 {
   console.log('game event constructor');
 
@@ -40,7 +42,7 @@ function game_event(game_instance)
   this.STATE_EVENT_QUEUED = 7;
 
   // parameters
-  this.game = game_instance;
+  //this.game = game_instance;
 
   this.id = 'noid';
   this.type = NaN;
@@ -69,7 +71,7 @@ function game_event(game_instance)
 game_event.prototype.update = function()
 {
   //console.log('event.update');
-  this.dif = Math.floor(this.game.server_time - this.triggerOn);
+  this.dif = Math.floor(config.server_time - this.triggerOn);
   //console.log(this.dif);
   //console.log('triggered in', dif, 'seconds', this.triggeredAt, this.triggerOn);// at', this.triggerOn);
 
@@ -89,7 +91,7 @@ game_event.prototype.update = function()
         this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
         console.log('mp=',mp);
-        var player = this.game._.find(this.game.allplayers, {"mp":mp});
+        var player = config._.find(config.allplayers, {"mp":mp});
         console.log('player', player);
         player.hasFlag = 0;
         console.log('dtf', player);
@@ -103,7 +105,7 @@ game_event.prototype.update = function()
         console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
         var mp = this.flag.heldBy;
-        var player = this.game._.find(this.game.allplayers, {"mp":mp});
+        var player = config._.find(config.allplayers, {"mp":mp});
         
         this.flag.isActive = true;
         this.flag.heldBy = null;
@@ -115,21 +117,21 @@ game_event.prototype.update = function()
 
       case this.TYPE_CHEST:
 
-        //console.log('prep chest', this.game.chestSpawnPoints.length);
+        //console.log('prep chest', config.chestSpawnPoints.length);
 
         // 1. ensure a new chest is acceptable (max number?)
         var ct = 0;
         var availChests = [];
-        for (var i = 0; i < this.game.chestSpawnPoints.length; i++)
+        for (var i = 0; i < config.chestSpawnPoints.length; i++)
         {
-          if (this.game.chestSpawnPoints[i].active === true)
+          if (config.chestSpawnPoints[i].active === true)
             ct++;
-          else availChests.push(this.game.chestSpawnPoints[i]);
+          else availChests.push(config.chestSpawnPoints[i]);
         }
         //console.log('num active chests', ct);
         // no more than 3
         if (ct > 3) return false;
-        //if (this.game.chests.length > 3) return false;
+        //if (config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         // rng
         this.spawn = this.shuffle(availChests)[0];
@@ -137,7 +139,7 @@ game_event.prototype.update = function()
         this.spawn.active = true;
         console.log('selected spawn', this.spawn);
         // 3. rng chest content
-        this.passive = this.shuffle(this.game.passives)[0];
+        this.passive = this.shuffle(config.passives)[0];
         console.log('selected passive', this.passive);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
@@ -154,7 +156,7 @@ game_event.prototype.update = function()
   }
   else if (this.type === this.TYPE_FLAG_CARRIED_COOLDOWN || this.type === this.TYPE_FLAG_SLOTTED_COOLDOWN)
   {
-    this.timer = Math.abs(Math.floor(this.game.server_time - this.triggerOn));
+    this.timer = Math.abs(Math.floor(config.server_time - this.triggerOn));
     //console.log('timer', this.timer);
     if (this.timer == this.lastTimer) return false;
     else
@@ -176,7 +178,7 @@ game_event.prototype.setRandomTriggerTime = function(min, max)
   var rnd = Math.floor(Math.random() * (max - min + 1)) + min;
 
   // set start and end times (based on server_time)
-  this.triggeredAt = (this.game.server_time) ? Math.floor(this.game.server_time) : 0;
+  this.triggeredAt = (config.server_time) ? Math.floor(config.server_time) : 0;
   this.triggerOn = Math.floor(this.triggeredAt) + rnd;
 
   //console.log('new event triggered at', this.triggerOn);
@@ -192,7 +194,7 @@ game_event.prototype.setCooldownTime = function()
     cd = this.COOLDOWN_FLAG_CARRIED;
   else if (this.type === this.TYPE_FLAG_SLOTTED_COOLDOWN)
     cd = this.COOLDOWN_FLAG_SLOTTED;
-  this.triggeredAt = (this.game.server_time) ? Math.floor(this.game.server_time) : 0;
+  this.triggeredAt = (config.server_time) ? Math.floor(config.server_time) : 0;
   this.triggerOn = Math.floor(this.triggeredAt) + cd;
   console.log('triggeredAt', this.triggeredAt, 'triggerOn', this.triggerOn, cd);
 };

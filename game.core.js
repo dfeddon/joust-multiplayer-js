@@ -242,9 +242,9 @@ var game_core = function(game_instance)
         config.allplayers.push(hp);
         // this.entities.push(hp);
 
-        config.players = {};
+        this.players = {};
         this.players.self = hp;
-        this.players.hostGame = hp.game;
+        //this.players.hostGame = hp.game;
 
         // add player (host)
         console.log('len', config.allplayers.length);
@@ -325,7 +325,7 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         //*
         // create chest spawn event
-        var evt = new game_event_server(this);
+        var evt = new game_event_server();//this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
         //console.log('evt type', evt.type);
@@ -334,7 +334,7 @@ var game_core = function(game_instance)
         //console.log('chest event',this.events);
 
         // create flag carried cooldown event
-        evt = new game_event_server(this);
+        evt = new game_event_server();//this);
         evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fc"; // event flag carried
@@ -345,7 +345,7 @@ var game_core = function(game_instance)
 
         // create flag slotted cooldown event
         // create flag carried cooldown event
-        evt = new game_event_server(this);
+        evt = new game_event_server();//this);
         evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fs"; // event flag slotted
@@ -540,7 +540,7 @@ var game_core = function(game_instance)
     else
     { //if !server
 
-        this.server_time = 0;
+        config.server_time = 0;
         this.laststate = {};
 
     }
@@ -556,13 +556,16 @@ var game_core = function(game_instance)
     //config.world = config.world;
     config.server = (this.server) ? true : false;
     config.keyboard = this.keyboard;
+    config.updateTerritory = this.updateTerritory;
     //config.tilemapData = config.tilemapData;
-    //config.players = this.players;
+    config.players = this.players;
     config.events = this.events;
     config.clientCooldowns = this.clientCooldowns;
     config.chests = this.chests;
     config.chestSpawnPoints = this.chestSpawnPoints;
+    config.passives = this.passives;
     config._ = _;
+    config.gridToPixel = this.gridToPixel;
 
     console.log('config', config);
     
@@ -3019,8 +3022,8 @@ game_core.prototype.process_input = function( player )
     } //if we have inputs
     else // we have NO INPUT
     {
-        //player.inputs.push({seq:"0",time:this.server_time);
-        //player.last_input_time = this.server_time;
+        //player.inputs.push({seq:"0",time:config.server_time);
+        //player.last_input_time = config.server_time;
         // if (player.landed === 1)
         //     player.doWalk(player.dir);
         // if (player.landed === 1)
@@ -3244,7 +3247,7 @@ game_core.prototype.server_update = function()
 
     var _this = this;
     //Update the state of our local clock to match the timer
-    this.server_time = this.local_time;
+    config.server_time = this.local_time;
 
     //var host;
     //var others = [];
@@ -3426,7 +3429,7 @@ game_core.prototype.server_update = function()
     });
     //*/
 
-    laststate.t = this.server_time;
+    laststate.t = config.server_time;
     //console.log(this.laststate.cp1);
     // var view = new Float32Array(this.laststate.cp1, 0, 16);
     // console.log('view', view);
@@ -3454,7 +3457,7 @@ game_core.prototype.server_update = function()
     //     cp  : this.players.other.pos,               //'client position', the person that joined, their position
     //     his : this.players.self.last_input_seq,     //'host input sequence', the last input we processed for the host
     //     cis : this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
-    //     t   : this.server_time                      // our current local time on the server
+    //     t   : config.server_time                      // our current local time on the server
     // };
     //if (glog)
     //console.log('ins', this.players.other.instance);
@@ -3704,6 +3707,8 @@ game_core.prototype.client_process_net_prediction_correction2 = function()
             this.client_update_physics();
             this.client_update_local_position();
     }
+
+    self_sp = null;
     /*return;    
 
     //Update the debug server position block TODO: removed line below
@@ -3834,7 +3839,10 @@ game_core.prototype.client_process_net_prediction_correction = function()
                     //console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
                     
                     
-                    this.players.self.cur_state.pos = this.pos(my_server_pos);
+                    //this.players.self.cur_state.pos = this.pos(my_server_pos);
+
+                    this.players.self.cur_state.pos = 
+                        this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this._pdt * this.client_smooth);
                     //this.players.self.last_input_seq = lastinputseq_index;
                     //Now we reapply all the inputs that we have locally that
                     //the server hasn't yet confirmed. This will 'keep' our position the same,
@@ -3848,6 +3856,8 @@ game_core.prototype.client_process_net_prediction_correction = function()
         //*/
 
     } //if my_last_input_on_server
+
+    self_sp = null;
 
 }; //game_core.client_process_net_prediction_correction
 
@@ -4132,6 +4142,11 @@ game_core.prototype.client_process_net_updates = function()
                 //player.pos.y = self_vt[1];//target[player.mp].y;
                 //console.log('MEMEMEMEMEMEME', self_pp);
             }
+
+            vt = null;
+            vp = null;
+            self_vt = null;
+            self_vp = null;
         });
         
         // console.log(other_server_pos2);
@@ -4408,9 +4423,9 @@ game_core.prototype.client_onserverupdate_recieved = function(data)
     var this_player = this.players.self;*/
 
     //Store the server time (this is offset by the latency in the network, by the time we get it)
-    this.server_time = data.t;
+    config.server_time = data.t;
     //Update our local offset time from the last server update
-    this.client_time = this.server_time - (this.net_offset/1000);
+    this.client_time = config.server_time - (this.net_offset/1000);
 
     //One approach is to set the position directly as the server tells you.
     //This is a common mistake and causes somewhat playable results on a local LAN, for example,
@@ -4786,7 +4801,7 @@ game_core.prototype.client_create_configuration = function() {
     this.oldest_tick = 0.01;            //the last time tick we have available in the buffer
 
     this.client_time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
-    this.server_time = 0.01;            //The time the server reported it was at, last we heard from it
+    config.server_time = 0.01;            //The time the server reported it was at, last we heard from it
 
     this.dt = 0.016;                    //The time that the last frame took to run
     this.fps = 0;                       //The current instantaneous fps (1/this.dt)

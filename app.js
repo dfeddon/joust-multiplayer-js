@@ -23,7 +23,7 @@ var
     server          = http.createServer(app),
     //throng          = require('throng'),
     memwatch        = require('memwatch-next'),
-    heapdump        = require('heapdump'),
+    //heapdump        = require('heapdump'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
 /* Express server set up. */
@@ -200,7 +200,7 @@ host.hosting = true;
 
 game_server.createGame(host);
 
-/*
+//*
 setInterval(function()
 {
     if (typeof(global.gc) == 'function')
@@ -214,7 +214,7 @@ setInterval(function()
 memwatch.on('leak', function(info) 
 {
     console.log('Memory Leak!!!:', info);
-    process.kill(process.pid, 'SIGUSR2'); 
+    //process.kill(process.pid, 'SIGUSR2'); 
 });
 
 memwatch.on('stats', function(stats)

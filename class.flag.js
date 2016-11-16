@@ -566,11 +566,11 @@ game_flag.prototype.reset = function(success, game)//, server_time)
   { 
     this.isActive = true;
     // clear flag-carried (fc) event
-    console.log('*', game.events);
+    console.log('*', config.events);
     
-    if (game.server)
+    if (config.server)
     {
-      var fcEvent = this._.find(game.events, {"type":2});
+      var fcEvent = this._.find(config.events, {"type":2});
       fcEvent.doStop();
     }
   }
