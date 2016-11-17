@@ -17,11 +17,14 @@
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
+'use strict';
+
 // include modules
 var 
-    _                   = require('./node_modules/lodash/lodash.min');
+    _                   = require('./node_modules/lodash/lodash.min'),
     UUID                = require('node-uuid'),
     config              = require('./class.globals'),
+    getplayers          = require('./class.getplayers'),
     egyptian_set        = require('./egyptian_set'),
     game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
@@ -137,7 +140,7 @@ var game_core = function(game_instance)
     this.mp = null;
     this.gameid = null;
 
-    config.allplayers = []; // client/server players store
+    getplayers.allplayers = []; // client/server players store
     //this.entities = [];
     this.player_abilities_enabled = false;
 
@@ -229,17 +232,17 @@ var game_core = function(game_instance)
         var other;
         for (var i = 1; i < config.world.totalplayers; i++)
         {
-            other = new game_player(null, false);
+            other = new game_player(null, false, getplayers.allplayers.length+1);
             other.pos = this.gridToPixel(i * 64, 0);
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
             //if (other.mp != "cp1") other.isBot = true;
-            config.allplayers.push(other);
+            getplayers.allplayers.push(other);
             // this.entities.push(other);
         }
         var hp = new game_player(this.instance.player_host, true);
         // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        config.allplayers.push(hp);
+        getplayers.allplayers.push(hp);
         // this.entities.push(hp);
 
         this.players = {};
@@ -247,9 +250,9 @@ var game_core = function(game_instance)
         //this.players.hostGame = hp.game;
 
         // add player (host)
-        console.log('len', config.allplayers.length);
-        for (var j in config.allplayers)
-            console.log(config.allplayers[j].mp);
+        console.log('len', getplayers.allplayers.length);
+        for (var j in getplayers.allplayers)
+            console.log(getplayers.allplayers[j].mp);
 
         ///////////////////////////////////
         // orbs
@@ -394,7 +397,9 @@ var game_core = function(game_instance)
         this.flashBang = 0;
         // TODO: if mobile, orientation change
         window.addEventListener('orientationChange', this.resizeCanvas, false);
+        /*
         window.addEventListener('resize', this.resizeCanvas(), false);
+        */
         /*
         window.addEventListener('keydown', function(e)
         {
@@ -434,11 +439,11 @@ var game_core = function(game_instance)
         var p;
         for (var l = 1; l < config.world.totalplayers; l++)
         {
-            p = new game_player();
+            p = new game_player(null, false, getplayers.allplayers.length+1);
             // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
             p.playerName = this.nameGenerator() + " [" + p.mp + "]";
-            config.allplayers.push(p);//,null,false));
+            getplayers.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
         var chost = new game_player();//, true);
@@ -446,15 +451,15 @@ var game_core = function(game_instance)
         chost.mis = 'his';
         chost.host = true;
         // chost.ent = new physicsEntity(physicsEntity.ELASTIC);
-        config.allplayers.push(chost);
+        getplayers.allplayers.push(chost);
         // this.entities.push(chost);
 
         this.players.self = chost;//new game_player(this);
 
-        console.log('len', config.allplayers.length);
+        console.log('len', getplayers.allplayers.length);
 
-        for (var y in config.allplayers)
-            console.log(config.allplayers[y].mp);
+        for (var y in getplayers.allplayers)
+            console.log(getplayers.allplayers[y].mp);
 
         // define platforms
         /*
@@ -511,6 +516,7 @@ var game_core = function(game_instance)
     {
         //Create a keyboard handler
         this.keyboard = new THREEx.KeyboardState();
+        config.keyobard = new THREEx.KeyboardState();
 
         //Create the default configuration settings
         this.client_create_configuration();
@@ -552,7 +558,7 @@ var game_core = function(game_instance)
         config.ctx = v.getContext('2d');
     }
     //config.flagObjects = config.flagObjects;
-    //config.allplayers = config.allplayers;
+    //getplayers.allplayers = getplayers.allplayers;
     //config.world = config.world;
     config.server = (this.server) ? true : false;
     config.keyboard = this.keyboard;
@@ -597,7 +603,7 @@ game_core.prototype.api = function()
     var self = this;
 
     console.log('## api call');//, this.players.self.instance);//.instance.game);
-    xmlhttp = new XMLHttpRequest();
+    var xmlhttp = new XMLHttpRequest();
     //var url = "http://localhost:4004/api/orbs/";
     var url = "./assets/tilemaps/joust-alpha-1.tmx";
     xmlhttp.open("GET", url, true);
@@ -961,16 +967,16 @@ game_core.prototype.getUID = function()
         A simple class to maintain state of a player on screen,
         as well as to draw that state when required.
 */
-game_core.prototype.newPlayer = function(client)
-{
-  console.log('##-@@ proto-newplayer', client.userid);
+// game_core.prototype.newPlayer = function(client)
+// {
+//   console.log('##-@@ proto-newplayer', client.userid);
 
-  //var p = new game_player(this, this.instance.player_client, false);
-  var p = new game_player(client, false);
-  p.id = client.userid;
+//   //var p = new game_player(this, this.instance.player_client, false);
+//   var p = new game_player(client, false);
+//   p.id = client.userid;
 
-  return p;
-};
+//   return p;
+// };
 
 game_core.prototype.updateTerritory = function()
 {
@@ -999,7 +1005,7 @@ game_core.prototype.updateTerritory = function()
     var brickRowCount = config.world.height / (brickHeight + brickPadding);
 
     var bricks = [];
-    for(c=0; c<brickColumnCount; c++)
+    for(var c = 0; c<brickColumnCount; c++)
     {
         bricks[c] = [];
         for(r=0; r<brickRowCount; r++)
@@ -1030,9 +1036,9 @@ game_core.prototype.updateTerritory = function()
 
     // draw bricks
     var brickX, brickY;
-    for(c=0; c<brickColumnCount; c++)
+    for(var c=0; c<brickColumnCount; c++)
     {
-        for(r=0; r<brickRowCount; r++)
+        for(var r=0; r<brickRowCount; r++)
         {
             brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
             brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
@@ -1366,7 +1372,7 @@ game_core.prototype.tilemapper = function()
     canvas3.y = 0;
     canvas3.width = config.world.width;//v.width;
     canvas3.height = config.world.height;//v.height;
-    context3 = canvas3.getContext('2d');
+    var context3 = canvas3.getContext('2d');
     /////////////////////////////////////////
     // Tilemap
     /////////////////////////////////////////
@@ -1495,7 +1501,7 @@ game_core.prototype.tilemapper = function()
 
         var layerData = [];
         var base = [];
-        var layerName, data, encoding, dataNode;
+        var layerName, data, encoding, dataNode, layerWidth, layerHeight;
 
         ///////////////////////////////////
         // iterate layers
@@ -1589,7 +1595,7 @@ game_core.prototype.tilemapper = function()
             tilemap.width = width * tileWidth;
             tilemap.height = height * tileHeight;//v.height;
             console.log('tilemap w h', tilemap.width, tilemap.height);//, config.world.width, config.world.height);
-            tmContext = tilemap.getContext('2d');
+            var tmContext = tilemap.getContext('2d');
 
             ///////////////////////////////////
             // add tilemap to tile canvas context
@@ -2075,8 +2081,8 @@ game_core.prototype.check_collision = function( player )
     //player.pos.y = player.pos.y.fixed(4);
 
     // player collision
-    //for (var i = 0; i < config.allplayers.length; i++)
-    _.forEach(config.allplayers, function(other)
+    //for (var i = 0; i < getplayers.allplayers.length; i++)
+    _.forEach(getplayers.allplayers, function(other)
     {
         //console.log('->', other.pos);
         //other.pos.x = other.pos.x.fixed(4);
@@ -2109,7 +2115,7 @@ game_core.prototype.check_collision = function( player )
                 //console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
                 if (dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false)//player.pos.y === other.pos.y)
                 {
-                    this.flashBang = 1;
+                    _this.flashBang = 1;
                     console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
                     /*if (player.pos.x < other.pos.x)
                     {
@@ -2394,12 +2400,12 @@ game_core.prototype.check_collision = function( player )
             this.orbs.splice(k, 1);
 
             //console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
-            for (var l = 0; l < config.allplayers.length; l++)
+            for (var l = 0; l < getplayers.allplayers.length; l++)
             {
-                if (config.allplayers[l].instance && config.allplayers[l].mp != player.mp)
+                if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
                 {
                     //console.log('remote orb removal index', rid);//, this.players.self.mp);
-                    config.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
+                    getplayers.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
                 }
             }
 
@@ -2734,7 +2740,7 @@ game_core.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    _.forEach(config.allplayers, function(ply)
+    _.forEach(getplayers.allplayers, function(ply)
     {
         if (ply.mp == mp)
         {
@@ -2801,7 +2807,7 @@ game_core.prototype.client_onflagremove = function(data)
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    _.forEach(config.allplayers, function(ply)
+    _.forEach(getplayers.allplayers, function(ply)
     {
         if (ply.mp == mp)
         {
@@ -2976,6 +2982,7 @@ game_core.prototype.process_input = function( player )
                     //console.log('flap!');
 
                     player.doFlap();
+                    //document.externalControlAction('x');
                     // // set flag
                     // player.flap = true;
                     //
@@ -3123,7 +3130,7 @@ game_core.prototype.update_physics = function()
     ////////////////////////////////////////////////////////
     // iterate players
     ////////////////////////////////////////////////////////
-    _.forEach(config.allplayers, function(player)
+    _.forEach(getplayers.allplayers, function(player)
     {
         //if (_this.players.self)
         player.update();
@@ -3189,9 +3196,9 @@ game_core.prototype.server_update_physics = function() {
     */
 
     // player collisions
-    //for (var i = 0; i < config.allplayers.length; i++)
+    //for (var i = 0; i < getplayers.allplayers.length; i++)
     var new_dir;
-    _.forEach(config.allplayers, function(ply)
+    _.forEach(getplayers.allplayers, function(ply)
     {
         //if (ply.mp != "hp")//_this.players.self.mp)
         //{
@@ -3243,7 +3250,7 @@ game_core.prototype.server_update_physics = function() {
 game_core.prototype.server_update = function()
 {
     if (glog)
-    console.log('##-@@ server_update', config.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
+    console.log('##-@@ server_update', getplayers.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
 
     var _this = this;
     //Update the state of our local clock to match the timer
@@ -3256,13 +3263,13 @@ game_core.prototype.server_update = function()
     // process players
     /////////////////////////////////
     var laststate = {};
-    //for (var i = 0; i < config.allplayers.length; i++)
+    //for (var i = 0; i < getplayers.allplayers.length; i++)
     // add a, ax, ay, vx, vy
-    //console.log('::',8*config.allplayers.length);
+    //console.log('::',8*getplayers.allplayers.length);
     
-    var bufArr = new ArrayBuffer(768);//16 * config.allplayers.length); // 16 * numplayers
+    var bufArr = new ArrayBuffer(768);//16 * getplayers.allplayers.length); // 16 * numplayers
     var bufView;
-    _.forEach(config.allplayers, function(player, index)
+    _.forEach(getplayers.allplayers, function(player, index)
     {
         //console.log(index * 16);
         // set player's bufferIndex
@@ -3436,20 +3443,26 @@ game_core.prototype.server_update = function()
     //console.log('bufview', bufView);
     
     
-    //console.log('len', config.allplayers.length);
-    //for (var j = 0; j < config.allplayers.length; j++)
-    _.forEach(config.allplayers, function(ply)
+    //console.log('len', getplayers.allplayers.length);
+    //for (var j = 0; j < getplayers.allplayers.length; j++)
+    _.forEach(getplayers.allplayers, function(ply)
     {
-        if (ply.instance)// && config.allplayers[j].instance != "host")
+        if (ply.instance)// && getplayers.allplayers[j].instance != "host")
         {
-            //console.log('inst', config.allplayers[j].instance);//.userid);
+            //console.log('inst', getplayers.allplayers[j].instance);//.userid);
             ply.instance.emit('onserverupdate', laststate);
         }
     });
 
-    laststate = null;
-    bufArr = null;
-    bufView = null;
+    // clear laststate
+    for (var k in laststate) 
+    {
+        delete laststate[k];
+    }
+    laststate = null;    
+    bufArr.length = 0;
+    bufView = null;//.length = 0;
+    //console.log('laststate', laststate, bufArr, bufView);
 
     //Make a snapshot of the current state, for updating the clients
     // this.laststate = {
@@ -3491,8 +3504,8 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
         player_client = this.players.self;//.instance.userid);
     else
     {
-        //for (var i = 0; i < config.allplayers.length; i++)
-        _.forEach(config.allplayers, function(player)
+        //for (var i = 0; i < getplayers.allplayers.length; i++)
+        _.forEach(getplayers.allplayers, function(player)
         {
             if (player.instance && player.instance.userid == client.userid)
             {
@@ -3520,48 +3533,42 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 */
 document.externalControlAction = function(data)
 {
-    var game = document.getElementById('viewport').ownerDocument.defaultView.game;
-    //alert(game);
+    //var game = document.getElementById('viewport').ownerDocument.defaultView.game_core;
+    //console.log('kb', config.keyboard);
+    
+    //console.log('ext', document.getElementById('viewport').ownerDocument.defaultView);
+    
+    //if (!this.keyboard)
+    //this.keyboard = new THREEx.KeyboardState();
     switch(data)
     {
         case "A": // left down
-            game.keyboard._onKeyChange({keyCode:37}, true);
+            config.keyboard._onKeyChange({keyCode:37}, true);
         break;
 
         case "B": // left up
-            game.keyboard._onKeyChange({keyCode:37}, false);
+            config.keyboard._onKeyChange({keyCode:37}, false);
         break;
 
         case "D": // right down
-            game.keyboard._onKeyChange({keyCode:39}, true);
+            config.keyboard._onKeyChange({keyCode:39}, true);
         break;
 
         case "E": // right up
-            game.keyboard._onKeyChange({keyCode:39}, false);
+            config.keyboard._onKeyChange({keyCode:39}, false);
         break;
 
         case "u": // flap down
-            game.keyboard._onKeyChange({keyCode:38}, true);
+            config.keyboard._onKeyChange({keyCode:38}, true);
         break;
 
         case "x": // flap up
-            game.keyboard._onKeyChange({keyCode:38}, false);
+            config.keyboard._onKeyChange({keyCode:38}, false);
         break;
     }
-    
-    /*if (data == "A" || data == "D")
-    {
-        game.client_handle_input(data);
-    }
-    else // flap!
-    {
-        if (data == 'u')
-            game.keyboard._onKeyChange({keyCode:38}, true);
-        else if (data == 'x')
-            game.keyboard._onKeyChange({keyCode:38}, false);
-    }*/
-    //return game.players.self.mp;
 };
+//document.externalControlAction("u");
+//*/
 //console.log('docExtCtrl', document.externalControlAction, document.getElementById('viewport').ownerDocument.defaultView.game);
 
 game_core.prototype.client_handle_input = function(key){
@@ -3931,9 +3938,9 @@ game_core.prototype.client_process_net_updates = function()
 {
     if (glog)
     console.log('## client_process_net_updates');//, this.client_predict);
-    // for (var i = 0; i < config.allplayers.length; i++)
+    // for (var i = 0; i < getplayers.allplayers.length; i++)
     // {
-    //     console.log('::', config.allplayers[i].host, config.allplayers[i].id);
+    //     console.log('::', getplayers.allplayers[i].host, getplayers.allplayers[i].id);
     // }
 
     //No updates...
@@ -4043,15 +4050,15 @@ game_core.prototype.client_process_net_updates = function()
         var ghostStub;
         //console.log('->:', target.cp1[0], this.players.self.x);
         
-        //console.log('len', config.allplayers.length, this.players.self.mp);
-        //for (var j = 0; j < config.allplayers.length; j++)
+        //console.log('len', getplayers.allplayers.length, this.players.self.mp);
+        //for (var j = 0; j < getplayers.allplayers.length; j++)
         var vt; // view target
         var vp; // view previous
         var lerp_t = {x:0, y:0};
         var lerp_p = {x:0, y:0};
         var self_pp;
         var self_tp;
-        _.forEach(config.allplayers, function(player, index)
+        _.forEach(getplayers.allplayers, function(player, index)
         {
             if (player != _this.players.self)// && previous[player.mp])
             {
@@ -4129,7 +4136,7 @@ game_core.prototype.client_process_net_updates = function()
                 player.vy = target[player.mp].vy;
                 player.bubble = target[player.mp].b;
                 //*/
-                //console.log(config.allplayers[j].pos);
+                //console.log(getplayers.allplayers[j].pos);
             }
             else
             {
@@ -4142,6 +4149,11 @@ game_core.prototype.client_process_net_updates = function()
                 //player.pos.y = self_vt[1];//target[player.mp].y;
                 //console.log('MEMEMEMEMEMEME', self_pp);
             }
+
+            // for (var k in vt) 
+            // {
+            //     vt[k] = null;
+            // }
 
             vt = null;
             vp = null;
@@ -4172,7 +4184,7 @@ game_core.prototype.client_process_net_updates = function()
                     target[plat.id],//other_target_pos2,
                     time_point
                 );
-                //console.log(previous[config.allplayers[j].mp]);
+                //console.log(previous[getplayers.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:plat.x,y:plat.y}, ghostStub, _this._pdt * _this.client_smooth);
                 //console.log(target[plat.id]);
@@ -4199,7 +4211,7 @@ game_core.prototype.client_process_net_updates = function()
                     target[flag.id],
                     time_point
                 );
-                //console.log(previous[config.allplayers[j].mp]);
+                //console.log(previous[getplayers.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this._pdt * _this.client_smooth);
                 *//*
@@ -4250,7 +4262,7 @@ game_core.prototype.client_process_net_updates = function()
             //cflag.
 
             // get player
-            var ply = _.find(config.allplayers, {"mp":target.fc.p});
+            var ply = _.find(getplayers.allplayers, {"mp":target.fc.p});
             if (ply)
             {
                 if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
@@ -4394,7 +4406,7 @@ game_core.prototype.addChest = function(chest)
         this.chests.push(new game_chest_server(chest, false));
         //console.log('newChest id', newChest.id);
 
-        // _.forEach(config.allplayers, function(ply)
+        // _.forEach(getplayers.allplayers, function(ply)
         // {
         //     if (ply.instance)
         //     {
@@ -4635,15 +4647,15 @@ game_core.prototype.client_update = function()
     //////////////////////////////////////////
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
-    //for (var i = 0; i < config.allplayers.length; i++)
+    //for (var i = 0; i < getplayers.allplayers.length; i++)
     // TODO: Only draw 'onscreen' players
     // console.log('p', this.players.self.pos);
     
     //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
     //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
-    _.forEach(config.allplayers, function(ply)
+    _.forEach(getplayers.allplayers, function(ply)
     {
-        if (ply != _this.players.self)// && config.allplayers[i].active===true)
+        if (ply != _this.players.self)// && getplayers.allplayers[i].active===true)
         {
             // console.log(ply.pos);
             //ply.draw();
@@ -4876,18 +4888,18 @@ game_core.prototype.client_reset_positions = function()
 {
     console.log('## client_reset_positions');
 
-    console.log('Am I Host?', this.players.self.mp, this.players.self.host, config.allplayers.length);
+    console.log('Am I Host?', this.players.self.mp, this.players.self.host, getplayers.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
     //*
-    for (var i = 0; i < config.allplayers.length; i++)
+    for (var i = 0; i < getplayers.allplayers.length; i++)
     {
-        //console.log('pos:', config.allplayers[i].pos, config.allplayers[i].instance);
-        // config.allplayers[i].pos = config.allplayers[i].pos;
+        //console.log('pos:', getplayers.allplayers[i].pos, getplayers.allplayers[i].instance);
+        // getplayers.allplayers[i].pos = getplayers.allplayers[i].pos;
 
-        config.allplayers[i].old_state.pos = this.pos(config.allplayers[i].pos);
-        config.allplayers[i].pos = this.pos(config.allplayers[i].pos);
-        config.allplayers[i].cur_state.pos = this.pos(config.allplayers[i].pos);
-        config.allplayers[i].draw();
+        getplayers.allplayers[i].old_state.pos = this.pos(getplayers.allplayers[i].pos);
+        getplayers.allplayers[i].pos = this.pos(getplayers.allplayers[i].pos);
+        getplayers.allplayers[i].cur_state.pos = this.pos(getplayers.allplayers[i].pos);
+        getplayers.allplayers[i].draw();
     }
     //*/
 
@@ -5033,7 +5045,7 @@ game_core.prototype.client_onjoingame = function(data)
 
     //console.log('3',alldata[2]);
 
-    console.log('len', config.allplayers.length);
+    console.log('len', getplayers.allplayers.length);
     //console.log('vp', this.viewport);
 
     //We are not the host
@@ -5042,39 +5054,39 @@ game_core.prototype.client_onjoingame = function(data)
     this.players.self.state = 'connected.joined.waiting';
     this.players.self.info_color = '#00bb00';
 
-    for (var i = 0; i < config.allplayers.length; i++)
+    for (var i = 0; i < getplayers.allplayers.length; i++)
     {
-        console.log("----->", config.allplayers[i].mp, config.allplayers[i].id);//.instance);
-        console.log( (config.allplayers[i].instance) ? config.allplayers[i].instance.userid : 'no instance');
-        //, config.allplayers[i].instance.userid);//, data);
-        //if (config.allplayers[i].mp == data.mp && data.me)//.instance && config.allplayers[i].instance.userid == data)
-        if (config.allplayers[i].mp == alldata[0])//'cp1')
+        console.log("----->", getplayers.allplayers[i].mp, getplayers.allplayers[i].id);//.instance);
+        console.log( (getplayers.allplayers[i].instance) ? getplayers.allplayers[i].instance.userid : 'no instance');
+        //, getplayers.allplayers[i].instance.userid);//, data);
+        //if (getplayers.allplayers[i].mp == data.mp && data.me)//.instance && getplayers.allplayers[i].instance.userid == data)
+        if (getplayers.allplayers[i].mp == alldata[0])//'cp1')
         {
-            console.log('## found player', alldata[0], config.allplayers[i]);
-            //console.log(config.allplayers[i].instance.userid);
-            //console.log(config.allplayers[i].instance.hosting);
-            //this.players.self.md = config.allplayers[i].md;
-            //this.players.self.mis = config.allplayers[i].mis;
+            console.log('## found player', alldata[0], getplayers.allplayers[i]);
+            //console.log(getplayers.allplayers[i].instance.userid);
+            //console.log(getplayers.allplayers[i].instance.hosting);
+            //this.players.self.md = getplayers.allplayers[i].md;
+            //this.players.self.mis = getplayers.allplayers[i].mis;
             //if (data.me)
-            config.allplayers[i].team = parseInt(team);
+            getplayers.allplayers[i].team = parseInt(team);
             /*/ set start position
             if (team == 1)
-                config.allplayers[i].pos = this.gridToPixel(2, 2);
-            else config.allplayers[i].pos = this.gridToPixel(47, 25);
+                getplayers.allplayers[i].pos = this.gridToPixel(2, 2);
+            else getplayers.allplayers[i].pos = this.gridToPixel(47, 25);
             */
-            config.allplayers[i].active = true;
-            config.allplayers[i].isLocal = true;
-            //config.allplayers[i].playerName = "Jouster";
-            this.players.self = config.allplayers[i];
+            getplayers.allplayers[i].active = true;
+            getplayers.allplayers[i].isLocal = true;
+            //getplayers.allplayers[i].playerName = "Jouster";
+            this.players.self = getplayers.allplayers[i];
             console.log(this.players.self);
         }
-        else if (config.allplayers[i].mp == 'hp')
+        else if (getplayers.allplayers[i].mp == 'hp')
         {
-            //this.players.host = config.allplayers[i];
-            console.log('remove host', i, config.allplayers[i].host);
-            config.allplayers.splice(i, 1);
+            //this.players.host = getplayers.allplayers[i];
+            console.log('remove host', i, getplayers.allplayers[i].host);
+            getplayers.allplayers.splice(i, 1);
         }
-        // else if (config.allplayers[i].instance.hosting)
+        // else if (getplayers.allplayers[i].instance.hosting)
     }
 
     _.forEach(chests, function(chest)
@@ -5084,8 +5096,8 @@ game_core.prototype.client_onjoingame = function(data)
 
     // console.log('local player mp =', this.players.self.mp);
     // set mp val
-    // this.players.self.mp = 'cp' + config.allplayers.length;
-    // this.players.self.mis = 'cis' + config.allplayers.length;
+    // this.players.self.mp = 'cp' + getplayers.allplayers.length;
+    // this.players.self.mis = 'cis' + getplayers.allplayers.length;
     // TODO: Remove below
     // this.players.other.mp = 'hp';
     // this.players.other.mis = 'his';
@@ -5125,15 +5137,15 @@ game_core.prototype.client_onhostgame = function(data) {
     this.players.self.mp = "hp";
     this.players.self.mis = "his";
 
-    for (var i = 0; i < config.allplayers.length; i++)
+    for (var i = 0; i < getplayers.allplayers.length; i++)
     {
-        //console.log("##", config.allplayers[i]);//.mp, config.allplayers[i].id);
-        //if (config.allplayers[i].instance) console.log(config.allplayers[i].instance.userid);
-        if (config.allplayers[i].mp == 'hp')// == data)
+        //console.log("##", getplayers.allplayers[i]);//.mp, getplayers.allplayers[i].id);
+        //if (getplayers.allplayers[i].instance) console.log(getplayers.allplayers[i].instance.userid);
+        if (getplayers.allplayers[i].mp == 'hp')// == data)
         {
             console.log('## found host player', i);
-            this.players.self = config.allplayers[i];
-            //config.allplayers.splice(i, 1);
+            this.players.self = getplayers.allplayers[i];
+            //getplayers.allplayers.splice(i, 1);
 
         }
     }
@@ -5152,11 +5164,11 @@ game_core.prototype.client_onconnected = function(data) {
     console.log('## client_onconnected (self.id=' + data.id + ")");
     //console.log('data', data);
 
-    // for (var i = 0; i < config.allplayers.length; i++)
+    // for (var i = 0; i < getplayers.allplayers.length; i++)
     // {
-    //     if (!config.allplayers[i].instance) continue;
-    //     console.log(config.allplayers[i].instance.userid, data.id);
-    //     if (config.allplayers[i].id === data.id)
+    //     if (!getplayers.allplayers[i].instance) continue;
+    //     console.log(getplayers.allplayers[i].instance.userid, data.id);
+    //     if (getplayers.allplayers[i].id === data.id)
     //     {
     //         console.log('found me!');
     //         this.players.self.id = data.id;

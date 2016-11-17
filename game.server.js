@@ -6,6 +6,8 @@ written for : http://buildnewgames.com/real-time-multiplayer/
 MIT Licensed.
 */
 
+'use strict';
+
 const MAX_PLAYERS_PER_GAME = 30;
 
 var
@@ -14,6 +16,7 @@ var
     //namegen     = require('./name_generator'),
     name_set    = require('./egyptian_set'),
     config      = require('./class.globals'),
+    getplayers  = require('./class.getplayers'),
     verbose     = true;
 
 //Since we are sharing code with the browser, we
@@ -225,14 +228,14 @@ game_server.endGame = function(gameid, userid)
                     thegame.player_clients.splice(i, 1);
                 }
             }
-            for (var j = 0; j < config.allplayers.length; j++)
+            for (var j = 0; j < getplayers.allplayers.length; j++)
             {
-                if (config.allplayers[j].id == userid)
+                if (getplayers.allplayers[j].id == userid)
                 {
                     console.log('@@ removing player', userid);
-                    config.allplayers[j].instance = null;//.splice(j, 1);
-                    config.allplayers[j].active = false;
-                    config.allplayers[j].pos = {x:0, y:0};
+                    getplayers.allplayers[j].instance = null;//.splice(j, 1);
+                    getplayers.allplayers[j].active = false;
+                    getplayers.allplayers[j].pos = {x:0, y:0};
                     game_instance.player_count--;
                 }
             }
@@ -323,7 +326,7 @@ game_server.startGame = function(game)
         {
             host = game.player_clients[i];
 
-            //config.allplayers
+            //getplayers.allplayers
             //host.mp = "hp";
             //host.mis = "his";
         }
@@ -336,8 +339,8 @@ game_server.startGame = function(game)
     var game_instance = this.games[game.id];
     if (host && nonhosts.length > 0)
     {
-        this.log("%%%%%%%%%%%%", config.allplayers.length);
-        var p = config.allplayers;
+        this.log("%%%%%%%%%%%%", getplayers.allplayers.length);
+        var p = getplayers.allplayers;
         for (var x = 0; x < p.length; x++)
         {
             if (p[x].mp == "hp")
@@ -373,15 +376,15 @@ game_server.startGame = function(game)
             {
                 this.log("@@ found host, replacing with first available slot (cp1)");
                 // typically first player has joined, reassign self from host to nonhost[j].mp
-                for (var k = 0; k < config.allplayers.length; k++)
+                for (var k = 0; k < getplayers.allplayers.length; k++)
                 {
-                    if (config.allplayers[k].mp == nonhosts[j].mp)
+                    if (getplayers.allplayers[k].mp == nonhosts[j].mp)
                     {
-                        this.log("################", nonhosts[j].mp, config.allplayers[k].mp);
+                        this.log("################", nonhosts[j].mp, getplayers.allplayers[k].mp);
                         // assign socket to instance
-                        config.allplayers[k].instance = nonhosts[j];
+                        getplayers.allplayers[k].instance = nonhosts[j];
                         // assign player to self (replacing host)
-                        game_instance.gamecore.players.self = config.allplayers[k];
+                        game_instance.gamecore.players.self = getplayers.allplayers[k];
                         break;
                     }
                 }
@@ -506,7 +509,7 @@ game_server.findGame = function(client)
                 //game_instance.player_client = client; // <- remove this later
 
                 // add player to client AND/OR server
-                //config.allplayers.push(game_instance.gamecore.newPlayer(client, false));
+                //getplayers.allplayers.push(game_instance.gamecore.newPlayer(client, false));
 
                 // add client to player instance
                 this.log("@@ assigning client to MY (other, client-based) player instance!");
@@ -519,58 +522,58 @@ game_server.findGame = function(client)
                 {
                     //console.log('^', game_instance.player_clients[j].userid, game_instance.player_clients[j].hosting);
                 //}
-                    for (var i = 0; i < config.allplayers.length; i++)
+                    for (var i = 0; i < getplayers.allplayers.length; i++)
                     {
-                        //console.log('mp =', config.allplayers[i].mp);
+                        //console.log('mp =', getplayers.allplayers[i].mp);
                         // find null instance
-                        //console.log('derek', config.allplayers[i].instance);
-                        if (!config.allplayers[i].instance)
+                        //console.log('derek', getplayers.allplayers[i].instance);
+                        if (!getplayers.allplayers[i].instance)
                         {
-                            console.log('@@ evaluating players for instancing', config.allplayers[i].mp);
+                            console.log('@@ evaluating players for instancing', getplayers.allplayers[i].mp);
                             if (client_added === false)
                             {
                                 // use cp, as host's hp and his props are already defined
-                                console.log('*** found client', config.allplayers[i].mp, client.userid);//config.allplayers[i].id);
-                                config.allplayers[i].instance = client;
-                                config.allplayers[i].id = client.userid;
-                                config.allplayers[i].isLocal = true;
+                                console.log('*** found client', getplayers.allplayers[i].mp, client.userid);//getplayers.allplayers[i].id);
+                                getplayers.allplayers[i].instance = client;
+                                getplayers.allplayers[i].id = client.userid;
+                                getplayers.allplayers[i].isLocal = true;
                                 // player start position
                                 var teamRed_x = 6;
                                 var teamRed_y = 6;
                                 var sx = Math.floor(Math.random() * teamRed_x) + 1;
                                 var sy = Math.floor(Math.random() * teamRed_y) + 1;
                                 // TODO: set position based on team
-                                config.allplayers[i].pos = game_instance.gamecore.gridToPixel(sx, sy);//3,4);
-                                // config.allplayers[i].playerName = this.nameGenerator();
-                                // console.log('playername', config.allplayers[i].playerName);
-                                //config.allplayers[i].gameid = gameid;
-                                client.mp = config.allplayers[i].mp;
+                                getplayers.allplayers[i].pos = game_instance.gamecore.gridToPixel(sx, sy);//3,4);
+                                // getplayers.allplayers[i].playerName = this.nameGenerator();
+                                // console.log('playername', getplayers.allplayers[i].playerName);
+                                //getplayers.allplayers[i].gameid = gameid;
+                                client.mp = getplayers.allplayers[i].mp;
                                 //this.log(client);
                                 //client.me = true;
                                 client_added = true;
                                 //break;
                             }
                             //break;
-                            //config.allplayers[i].mp = 'cp'+config.allplayers.length-1;
-                            //config.allplayers[i].mis = 'cis'+config.allplayers.length-1;
+                            //getplayers.allplayers[i].mp = 'cp'+getplayers.allplayers.length-1;
+                            //getplayers.allplayers[i].mis = 'cis'+getplayers.allplayers.length-1;
                         }
                         else
                         {
                             console.log('has instance!');
                             continue;
-                            //config.allplayers[i].instance = game_instance.player_clients[j];
-                            //config.allplayers[i].id = game_instance.player_clients[j].userid;
-                            //console.log('mp =', config.allplayers[i].mp);
-                            if (game_instance.player_clients[j].hosting === true && config.allplayers[i].mp == 'hp')
+                            //getplayers.allplayers[i].instance = game_instance.player_clients[j];
+                            //getplayers.allplayers[i].id = game_instance.player_clients[j].userid;
+                            //console.log('mp =', getplayers.allplayers[i].mp);
+                            if (game_instance.player_clients[j].hosting === true && getplayers.allplayers[i].mp == 'hp')
                             {
-                                console.log('*** found host!', game_instance.player_clients[j].userid);//, config.allplayers[i].instance);
-                                config.allplayers[i].host = true;
-                                //client.mp = config.allplayers[i].mp;
+                                console.log('*** found host!', game_instance.player_clients[j].userid);//, getplayers.allplayers[i].instance);
+                                getplayers.allplayers[i].host = true;
+                                //client.mp = getplayers.allplayers[i].mp;
                                 host_added = true;
                                 //break;
-                                //config.allplayers[i].mp = 'hp';
-                                //config.allplayers[i].mis = 'his';
-                                config.allplayers[i].instance = game_instance.player_clients[j];
+                                //getplayers.allplayers[i].mp = 'hp';
+                                //getplayers.allplayers[i].mis = 'his';
+                                getplayers.allplayers[i].instance = game_instance.player_clients[j];
                                 host_added = true;
                             }
                         }
@@ -581,18 +584,18 @@ game_server.findGame = function(client)
                 // add instance to new player
                 // add new player to gamecore.allplayers array
                 // to to allplayers array
-                this.log('@@ allplayers num', config.allplayers.length);//.push(other); // TODO: is this correct?
-                /*for (var i = 0; i < config.allplayers.length; i++)
+                this.log('@@ allplayers num', getplayers.allplayers.length);//.push(other); // TODO: is this correct?
+                /*for (var i = 0; i < getplayers.allplayers.length; i++)
                 {
-                    //this.log(config.allplayers[i].instance);
-                    this.log('i', config.allplayers[i].host);
-                    for (var j = 0; j < config.allplayers[i].instance.length; j++)
+                    //this.log(getplayers.allplayers[i].instance);
+                    this.log('i', getplayers.allplayers[i].host);
+                    for (var j = 0; j < getplayers.allplayers[i].instance.length; j++)
                     {
-                        this.log('j', typeof(config.allplayers[i].instance[j]));
-                        if (config.allplayers[i].instance[j] === null)
+                        this.log('j', typeof(getplayers.allplayers[i].instance[j]));
+                        if (getplayers.allplayers[i].instance[j] === null)
                         {
                             this.log("ISNULLL");
-                            config.allplayers[i].instance[j] = client;
+                            getplayers.allplayers[i].instance[j] = client;
                         }
                     }
                 }*/

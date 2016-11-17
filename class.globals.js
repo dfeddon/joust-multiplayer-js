@@ -1,8 +1,10 @@
+'use strict';
+
 var config = function()
 {
     this.ctx = null;
     this.flagObjects = [];
-    this.allplayers = [];
+    //this.allplayers = [];
     this.world = {};
     this.server = true;
     this.keyboard = null;

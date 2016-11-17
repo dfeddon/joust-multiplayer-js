@@ -5,6 +5,10 @@
 
     MIT Licensed.
 */
+
+'use strict';
+
+var domready = require('domready');
 var game_core = require('./game.core');
 // var _ = require('./node_modules/lodash/lodash.min');
 /*
@@ -17,8 +21,10 @@ var game_flag = require('./class.flag');
 var
 //*/ 
 
-document.addEventListener('DOMContentLoaded', function()
+domready(function()
 {
+//document.addEventListener('DOMContentLoaded', function()
+//{
 	console.log('client DOM Loaded...');
 
 	//A window global for our game root variable.
@@ -64,6 +70,43 @@ document.addEventListener('DOMContentLoaded', function()
 	// All coordinates to the left of center canvas are negative
 	// All coordinates below center canvas are negative
 	//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
+
+	// document.externalControlAction = function(data)
+	// {
+	// 	var game = document.getElementById('viewport').ownerDocument.defaultView.game;
+	// 	alert("hi");
+	// 	switch(data)
+	// 	{
+	// 		case "A": // left down
+	// 			game.keyboard._onKeyChange({keyCode:37}, true);
+	// 		break;
+
+	// 		case "B": // left up
+	// 			game.keyboard._onKeyChange({keyCode:37}, false);
+	// 		break;
+
+	// 		case "D": // right down
+	// 			game.keyboard._onKeyChange({keyCode:39}, true);
+	// 		break;
+
+	// 		case "E": // right up
+	// 			game.keyboard._onKeyChange({keyCode:39}, false);
+	// 		break;
+
+	// 		case "u": // flap down
+	// 			game.keyboard._onKeyChange({keyCode:38}, true);
+	// 		break;
+
+	// 		case "x": // flap up
+	// 			game.keyboard._onKeyChange({keyCode:38}, false);
+	// 		break;
+	// 	}
+	// };
+
+	//console.log("eca", document, document.externalControlAction);
+	//alert('test');
+	//document.externalControlAction("A");
+
 
 	//Finally, start the loop
 	game.update( new Date().getTime() );

@@ -1,9 +1,12 @@
 /*jslint
     this
 */
-//"use strict"
+
+"use strict";
 
 var game_toast = require('./class.toast');
+var config = require('./class.globals');
+var getplayers = require('./class.getplayers');
 
 function game_flag(data, context)
 {
@@ -412,14 +415,14 @@ game_flag.prototype.doTake = function(player)
   {
       console.log('* socket emit', this.targetSlot);
       // inform socket
-      for (var l = 0; l < config.allplayers.length; l++)
+      for (var l = 0; l < getplayers.allplayers.length; l++)
       {
           // dispatch flagremove socket event
-          if (config.allplayers[l].instance && config.allplayers[l].mp != player.mp)
+          if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
           {
               //console.log('flag sent', flag.name);
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-              config.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
+              getplayers.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
           }
       }
       // update clientCooldowns objs
@@ -519,13 +522,13 @@ game_flag.prototype.slotFlag = function(player)
 
     console.log('* socket emit', this);
     // inform socket
-    for (var l = 0; l < config.allplayers.length; l++)
+    for (var l = 0; l < getplayers.allplayers.length; l++)
     {
-        if (config.allplayers[l].instance && config.allplayers[l].mp != player.mp)
+        if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
         {
             //console.log('flag sent', slot);
             //player.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-            config.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
+            getplayers.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
         }
     }
 

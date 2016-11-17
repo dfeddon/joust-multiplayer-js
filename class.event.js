@@ -2,6 +2,8 @@
     this
 */
 
+'use strict';
+
 /*
 var now = new Date();
 var e = new Date();
@@ -11,6 +13,7 @@ console.log('then ' + e.getSeconds());
 console.log('diff ' + (e.getTime() - now.getTime())/1000);
 */
 var config = require('./class.globals');
+var getplayers = require('./class.getplayers');
 
 function game_event()//game_instance)
 {
@@ -91,7 +94,7 @@ game_event.prototype.update = function()
         this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
         console.log('mp=',mp);
-        var player = config._.find(config.allplayers, {"mp":mp});
+        var player = config._.find(getplayers.allplayers, {"mp":mp});
         console.log('player', player);
         player.hasFlag = 0;
         console.log('dtf', player);
@@ -105,7 +108,7 @@ game_event.prototype.update = function()
         console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
         var mp = this.flag.heldBy;
-        var player = config._.find(config.allplayers, {"mp":mp});
+        var player = config._.find(getplayers.allplayers, {"mp":mp});
         
         this.flag.isActive = true;
         this.flag.heldBy = null;

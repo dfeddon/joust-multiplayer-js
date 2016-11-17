@@ -1,6 +1,9 @@
 /*jslint
     this
 */
+
+'use strict';
+
 function game_toast()
 {
   this.toast = document.getElementById('toast');

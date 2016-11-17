@@ -1,9 +1,11 @@
 /*jslint
     this
 */
-//"use strict"
+
+"use strict";
 
 var config = require('./class.globals');
+var getplayers = require('./class.getplayers');
 var _ = require('./node_modules/lodash/lodash.min');
 
 function game_chest(data, client)
@@ -42,7 +44,7 @@ function game_chest(data, client)
 
   // if (config.server)
   // {
-  //   _.forEach(config.allplayers, function(ply)
+  //   _.forEach(getplayers.allplayers, function(ply)
   //   {
   //       if (ply.instance)
   //       {
@@ -68,9 +70,9 @@ game_chest.prototype.doTake = function(player)//, chests)
   this.takenBy = player.mp;
 
   // send to server
-  // console.log('len', config.allplayers.length);
+  // console.log('len', getplayers.allplayers.length);
 
-  _.forEach(config.allplayers, function(ply)
+  _.forEach(getplayers.allplayers, function(ply)
   {
     // console.log('* instance', ply.instance, ply.mp, player.mp);
 
@@ -127,7 +129,7 @@ game_chest.prototype.doRemove = function(player)
 
   var _this = this;
   _.pull(config.chests, this);
-  _.forEach(config.allplayers, function(ply)
+  _.forEach(getplayers.allplayers, function(ply)
   {
     if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
     {

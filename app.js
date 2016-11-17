@@ -7,6 +7,8 @@
 
     Usage : node app.js
 */
+
+'use strict';
  
 var
     gameport        = process.env.PORT || 4004,
@@ -119,7 +121,7 @@ sio.use(function(socket, next)
 //Enter the game server code. The game server handles
 //client connections looking for a game, creating games,
 //leaving games, joining games and ending games when they leave.
-game_server = require('./game.server.js');
+var game_server = require('./game.server.js');
 
 //Socket.io will call this function when a client connects,
 //So we can send that client looking for a game to play,
@@ -201,12 +203,12 @@ host.hosting = true;
 game_server.createGame(host);
 
 //*
-setInterval(function()
-{
-    if (typeof(global.gc) == 'function')
-        global.gc();
-        console.log('** GC done')
-}, 1000*30);
+// setInterval(function()
+// {
+//     if (typeof(global.gc) == 'function')
+//         global.gc();
+//         console.log('** GC done')
+// }, 1000*30);
 
 ////////////////////////////////////////
 // Memwatch

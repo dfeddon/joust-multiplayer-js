@@ -1,12 +1,13 @@
 /*jslint
     this
 */
-//"use strict";
+
+"use strict";
 
 var config = require('./class.globals');
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
-function game_player(player_instance, isHost )
+function game_player(player_instance, isHost, pindex)
 {
     console.log('game_player');//, game_instance, player_instance);
     //Store the instance, if any
@@ -81,8 +82,9 @@ function game_player(player_instance, isHost )
         this.mis = 'his';
     }
     else {
-        this.mp = 'cp' + (config.allplayers.length + 1);
-        this.mis = 'cis' + (config.allplayers.length + 1);
+        this.mp = 'cp' + pindex;//(getplayers.allplayers.length + 1);
+        this.mis = 'cis' + pindex;//(getplayers.allplayers.length + 1);
+        //delete getplayers.allplayers;
     }
 
     // assign pos and input seq properties
@@ -911,14 +913,14 @@ game_player.prototype.takeFlag = function(flag, flagType)
     // {
     //     console.log('* socket emit', flag.targetSlot);
     //     // inform socket
-    //     for (var l = 0; l < config.allplayers.length; l++)
+    //     for (var l = 0; l < getplayers.allplayers.length; l++)
     //     {
     //         // dispatch flagremove socket event
-    //         if (config.allplayers[l].instance && config.allplayers[l].mp != this.mp)
+    //         if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != this.mp)
     //         {
     //             //console.log('flag sent', flag.name);
     //             //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-    //             config.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name+"|"+this.flagTakenAt);//_this.laststate);
+    //             getplayers.allplayers[l].instance.send('f.r.'+this.mp+"|"+flag.name+"|"+this.flagTakenAt);//_this.laststate);
     //         }
     //     }
     //     // update clientCooldowns objs
@@ -954,13 +956,13 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
 //         console.log('* socket emit', slot);
 //         // inform socket
-//         for (var l = 0; l < config.allplayers.length; l++)
+//         for (var l = 0; l < getplayers.allplayers.length; l++)
 //         {
-//             if (config.allplayers[l].instance && config.allplayers[l].mp != this.mp)
+//             if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != this.mp)
 //             {
 //                 //console.log('flag sent', slot);
 //                 //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-//                 config.allplayers[l].instance.send('f.a.'+this.mp+"|"+slot.name+"|"+flag.name);//_this.laststate);
+//                 getplayers.allplayers[l].instance.send('f.a.'+this.mp+"|"+slot.name+"|"+flag.name);//_this.laststate);
 //             }
 //         }
 
