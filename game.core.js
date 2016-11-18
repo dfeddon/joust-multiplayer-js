@@ -1480,6 +1480,8 @@ game_core.prototype.tilemapper = function()
                     //}
                     //config.flagObjects.push(flg);
                 });
+                for (var k in flagObjectsObj)
+                    delete flagObjectsObj[k];
 
                 /*_.forEach(objsArray, function(i)
                 {
