@@ -3550,6 +3550,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     and usually start with client_* to make things clearer.
 
 */
+/*
 document.externalControlAction = function(data)
 {
     //var game = document.getElementById('viewport').ownerDocument.defaultView.game_core;
@@ -3586,8 +3587,8 @@ document.externalControlAction = function(data)
         break;
     }
 };
-//document.externalControlAction("u");
 //*/
+//document.externalControlAction("u");
 //console.log('docExtCtrl', document.externalControlAction, document.getElementById('viewport').ownerDocument.defaultView.game);
 
 game_core.prototype.client_handle_input = function(key){
