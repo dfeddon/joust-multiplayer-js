@@ -17,6 +17,9 @@ var
     clientIo        = require('socket.io-client'),
     express         = require('express'),
     UUID            = require('node-uuid'),
+
+    debug           = require('debug'),
+    winston         = require('winston'),
     // xml2js          = require('xml2js'),
 
     verbose         = false,
@@ -202,13 +205,14 @@ host.hosting = true;
 
 game_server.createGame(host);
 
-//*
-// setInterval(function()
-// {
-//     if (typeof(global.gc) == 'function')
-//         global.gc();
-//         console.log('** GC done')
-// }, 1000*30);
+/*
+setInterval(function()
+{
+    if (typeof(global.gc) == 'function')
+        global.gc();
+    console.log('** GC done')
+}, 1000*60);
+//*/
 
 ////////////////////////////////////////
 // Memwatch
@@ -222,6 +226,7 @@ memwatch.on('leak', function(info)
 memwatch.on('stats', function(stats)
 {
     console.log('V8 GC stats', stats);
+    //process.kill(process.pid, 'SIGUSR2');
 })
 //*/
 

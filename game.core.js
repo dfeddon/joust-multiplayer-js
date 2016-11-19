@@ -368,6 +368,7 @@ var game_core = function(game_instance)
         // show DOM controls for mobile devices
         if (this.isMobile)
         {
+            require('./class.extControls');
             /*var safari = /safari/.test( userAgent ),
             ios = /iphone|ipod|ipad/.test( userAgent );
             if (ios && safari)
@@ -396,7 +397,7 @@ var game_core = function(game_instance)
         //this.canvasPlatforms = null;
         this.flashBang = 0;
         // TODO: if mobile, orientation change
-        window.addEventListener('orientationChange', this.resizeCanvas, false);
+        //window.addEventListener('orientationChange', this.resizeCanvas, false);
         /*
         window.addEventListener('resize', this.resizeCanvas(), false);
         */
@@ -3078,7 +3079,8 @@ game_core.prototype.process_input = function( player )
         
         //console.log(x_dir, y_dir, this._pdt);
     }
-    this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+    if (!this.server)
+        this.players.self.cur_state.pos = this.pos(this.players.self.pos);
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     /*if (player.mp == "cp1")
@@ -3264,19 +3266,20 @@ game_core.prototype.server_update = function()
     /////////////////////////////////
     // process players
     /////////////////////////////////
-    var laststate = {};
+    var laststate = new Object();
     //for (var i = 0; i < getplayers.allplayers.length; i++)
     // add a, ax, ay, vx, vy
     //console.log('::',8*getplayers.allplayers.length);
     
-    var bufArr = new ArrayBuffer(768);//16 * getplayers.allplayers.length); // 16 * numplayers
-    var bufView;
+    // var bufArr = new ArrayBuffer(768);//16 * getplayers.allplayers.length); // 16 * numplayers
+    //var bufView;
     _.forEach(getplayers.allplayers, function(player, index)
     {
         //console.log(index * 16);
         // set player's bufferIndex
         //player.bufferIndex = index;
-        bufView = new Float32Array(bufArr, (index * 16), 16);
+        var bufArr = new ArrayBuffer(768);//16 * getplayers.allplayers.length); // 16 * numplayers
+        var bufView = new Float32Array(bufArr, (index * 16), 16);
         //, 0, Math.floor(bufArr.byteLength/2));
         //*
         bufView[0] = player.pos.x.fixed(2);
@@ -3461,9 +3464,23 @@ game_core.prototype.server_update = function()
     {
         delete laststate[k];
     }
-    laststate = null;    
-    bufArr.length = 0;
-    bufView = null;//.length = 0;
+    laststate = null;
+    /*for (var l in bufArr)
+    {
+        delete bufArr[l];
+    }*/
+    //console.log(typeof(bufView));
+    /*
+    bufView.forEach (function(item, i, arr)
+    {
+        console.log('#',item, i, arr);
+        for (var m in arr)//.length = 0;
+            console.log(typeof arr[m], arr[m]);
+    });
+    //*/
+    //delete bufView[m];
+    //bufArr.length = 0;
+    //bufView = null;//.length = 0;
     //console.log('laststate', laststate, bufArr, bufView);
 
     //Make a snapshot of the current state, for updating the clients
@@ -3502,7 +3519,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     //var player_client;
     //console.log('1',client.userid);
     //console.log('2',this.players.self.instance.userid);
-    if (client.userid == this.players.self.instance.userid)
+    if (!this.server && client.userid == this.players.self.instance.userid)
         player_client = this.players.self;//.instance.userid);
     else
     {
