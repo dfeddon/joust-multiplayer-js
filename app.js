@@ -29,6 +29,7 @@ var
     //throng          = require('throng'),
     memwatch        = require('memwatch-next'),
     //heapdump        = require('heapdump'),
+    util            = require('util'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
 /* Express server set up. */
@@ -217,10 +218,21 @@ setInterval(function()
 ////////////////////////////////////////
 // Memwatch
 ////////////////////////////////////////
+var hd;
 memwatch.on('leak', function(info) 
 {
     console.log('Memory Leak!!!:', info);
-    //process.kill(process.pid, 'SIGUSR2'); 
+    if (!hd)
+    {
+        hd = new memwatch.HeapDiff();
+    }
+    else
+    {
+        var diff = hd.end();
+        console.error(util.inspect(diff, true, null));
+        hd = null;
+    }
+    process.kill(process.pid, 'SIGUSR2'); 
 });
 
 memwatch.on('stats', function(stats)

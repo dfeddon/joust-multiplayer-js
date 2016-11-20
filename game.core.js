@@ -3251,6 +3251,8 @@ game_core.prototype.server_update_physics = function() {
 
 //Makes sure things run smoothly and notifies clients of changes
 //on the server side
+//this.bufArr = new ArrayBuffer(768);
+//this.bufView = new Float32Array
 game_core.prototype.server_update = function()
 {
     if (glog)
@@ -3282,15 +3284,15 @@ game_core.prototype.server_update = function()
         var bufView = new Float32Array(bufArr, (index * 16), 16);
         //, 0, Math.floor(bufArr.byteLength/2));
         //*
-        bufView[0] = player.pos.x.fixed(2);
-        bufView[1] = player.pos.y.fixed(2);
+        bufView[0] = player.pos.x;//.fixed(2);
+        bufView[1] = player.pos.y;//.fixed(2);
         bufView[2] = player.dir;
         bufView[3] = player.flap;
         bufView[4] = player.landed;
         bufView[5] = player.vuln;
         bufView[6] = player.a;
-        bufView[7] = player.vx.fixed(2);
-        bufView[8] = player.vy.fixed(2);
+        bufView[7] = player.vx;//.fixed(2);
+        bufView[8] = player.vy;//.fixed(2);
         bufView[9] = player.hasFlag;
         bufView[10] = player.bubble;
         //bufView[11] = player.killedPlayer;
@@ -3454,17 +3456,24 @@ game_core.prototype.server_update = function()
     {
         if (ply.instance)// && getplayers.allplayers[j].instance != "host")
         {
-            //console.log('inst', getplayers.allplayers[j].instance);//.userid);
+            //console.log('inst', ply.instance);//.userid);
             ply.instance.emit('onserverupdate', laststate);
+            
+            // clear socket's send buffer
+            if (ply.instance.sendBuffer)
+                ply.instance.sendBuffer.length = 0;
         }
     });
 
     // clear laststate
+    //console.log('pre', laststate);
     for (var k in laststate) 
     {
         delete laststate[k];
     }
+    //console.log('post', laststate);
     laststate = null;
+    
     /*for (var l in bufArr)
     {
         delete bufArr[l];
@@ -3683,6 +3692,9 @@ game_core.prototype.client_handle_input = function(key){
 
             //Go
         this.socket.send(  server_packet  );
+
+        // release
+        server_packet = null;
 
             //Return the direction if needed
             y_dir = this.players.self.vy;//0.5;//1;

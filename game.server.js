@@ -353,8 +353,8 @@ game_server.startGame = function(game)
     }
 
     //this.log('host', host);//.userid);
-    this.log('others', nonhosts.length);
-    this.log('total orbs', game_instance.gamecore.orbs.length, this.games[game.id].id);
+    //this.log('others', nonhosts.length);
+    //this.log('total orbs', game_instance.gamecore.orbs.length, this.games[game.id].id);
     // player client(s) must join game hosted by HOST
     /*game.player_client.send('s.j.' + game.player_host.userid);
     game.player_client.game = game;*/
