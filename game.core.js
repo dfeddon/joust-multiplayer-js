@@ -3460,7 +3460,7 @@ game_core.prototype.server_update = function()
             ply.instance.emit('onserverupdate', laststate);
             
             // clear socket's send buffer
-            if (ply.instance.sendBuffer)
+            if (ply.instance && ply.instance.sendBuffer)
                 ply.instance.sendBuffer.length = 0;
         }
     });
