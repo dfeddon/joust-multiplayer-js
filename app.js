@@ -27,7 +27,7 @@ var
     app             = express(),
     server          = http.createServer(app),
     //throng          = require('throng'),
-    memwatch        = require('memwatch-next'),
+    //memwatch        = require('memwatch-next'),
     //heapdump        = require('heapdump'),
     util            = require('util'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
@@ -218,6 +218,7 @@ setInterval(function()
 ////////////////////////////////////////
 // Memwatch
 ////////////////////////////////////////
+/*
 var hd;
 memwatch.on('leak', function(info) 
 {
