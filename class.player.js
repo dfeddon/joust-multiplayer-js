@@ -157,11 +157,11 @@ function game_player(player_instance, isHost, pindex)
         //     return ctx;
         // };
 
-        function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight)
-        {
-            var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-            return ratio;
-        }
+        // function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight)
+        // {
+        //     var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+        //     return ratio;
+        // }
         var src1 = document.getElementById('ss1');
         var src2 = document.getElementById('ss2');
 
