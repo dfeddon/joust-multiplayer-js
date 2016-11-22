@@ -232,7 +232,7 @@ memwatch.on('leak', function(info)
         console.error(util.inspect(diff, true, null));
         hd = null;
     }
-    process.kill(process.pid, 'SIGUSR2'); 
+    //process.kill(process.pid, 'SIGUSR2'); 
 });
 
 memwatch.on('stats', function(stats)
@@ -246,7 +246,7 @@ memwatch.on('stats', function(stats)
 // concurrency via 
 // https://github.com/hunterloftis/throng
 ////////////////////////////////////////
-
+/*
 function startWorker(id)
 {
     console.log('app.startWorker id ${id} concurrency workers...');
@@ -262,6 +262,7 @@ function startMaster()
 {
     console.log('app.startMaster()');    
 }
+//*/
 /*
 throng( 
 {
