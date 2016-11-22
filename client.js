@@ -51,6 +51,19 @@ domready(function()
 	console.log("Platform: " + navigator.platform);
 	console.log("User-agent header: " + navigator.userAgent);
 
+	var isMobile = 'ontouchstart' in window;
+	var userAgent = window.navigator.userAgent.toLowerCase();
+	var safari = /safari/.test(userAgent);
+	var ios = /iphone|ipod|ipad/.test(userAgent);
+	var android = /android/.test(userAgent);
+	console.log('isMobile', isMobile);
+	console.log('userAgent', userAgent);
+	console.log('safari', safari);
+	console.log('ios', ios);
+	console.log('android', android);
+	
+	
+
 	//localStorage.debug = '*';
 
 	//Fetch the viewport (primary game canvas )
@@ -71,37 +84,52 @@ domready(function()
 	// All coordinates below center canvas are negative
 	//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
 
-	// document.externalControlAction = function(data)
-	// {
-	// 	var game = document.getElementById('viewport').ownerDocument.defaultView.game;
-	// 	alert("hi");
-	// 	switch(data)
-	// 	{
-	// 		case "A": // left down
-	// 			game.keyboard._onKeyChange({keyCode:37}, true);
-	// 		break;
+	if (ios || android)
+	{
+		console.log('mobile device', ios, android);
+		
+		// document.externalControlAction = function(data)
+		// {
+		// 	//var game = document.getElementById('viewport').ownerDocument.defaultView.game;
+		// 	console.log('extctrl-action', data);
+		// 	//alert("HI");
+			
+			
+		// 	var keyboard = new THREEx.KeyboardState();
+		// 	console.log('keyboard', keyboard);
+		// 	switch(data)
+		// 	{
+		// 	case "A": // left down
+		// 	keyboard._onKeyChange({keyCode:37}, true);
+		// 	break;
 
-	// 		case "B": // left up
-	// 			game.keyboard._onKeyChange({keyCode:37}, false);
-	// 		break;
+		// 	case "B": // left up
+		// 	keyboard._onKeyChange({keyCode:37}, false);
+		// 	break;
 
-	// 		case "D": // right down
-	// 			game.keyboard._onKeyChange({keyCode:39}, true);
-	// 		break;
+		// 	case "D": // right down
+		// 	keyboard._onKeyChange({keyCode:39}, true);
+		// 	break;
 
-	// 		case "E": // right up
-	// 			game.keyboard._onKeyChange({keyCode:39}, false);
-	// 		break;
+		// 	case "E": // right up
+		// 	keyboard._onKeyChange({keyCode:39}, false);
+		// 	break;
 
-	// 		case "u": // flap down
-	// 			game.keyboard._onKeyChange({keyCode:38}, true);
-	// 		break;
+		// 	case "u": // flap down
+		// 	keyboard._onKeyChange({keyCode:38}, true);
+		// 	break;
 
-	// 		case "x": // flap up
-	// 			game.keyboard._onKeyChange({keyCode:38}, false);
-	// 		break;
-	// 	}
-	// };
+		// 	case "x": // flap up
+		// 	keyboard._onKeyChange({keyCode:38}, false);
+		// 	break;
+		// 	}
+		// };
+	}
+	else console.log('...not mobile device...');
+
+	console.log('doc', document);
+	
+	//document.externalControlAction("x");
 
 	//console.log("eca", document, document.externalControlAction);
 	//alert('test');
@@ -111,4 +139,42 @@ domready(function()
 	//Finally, start the loop
 	game.update( new Date().getTime() );
 	//}
+	//document.externalControlAction("u");
 }); //window.onload
+
+		// document.externalControlAction = function(data)
+		// {
+		// 	//var game = document.getElementById('viewport').ownerDocument.defaultView.game;
+		// 	console.log('extctrl-action', data);
+		// 	//alert("HI");
+			
+			
+		// 	var keyboard = new THREEx.KeyboardState();
+		// 	console.log('keyboard', keyboard);
+		// 	switch(data)
+		// 	{
+		// 	case "A": // left down
+		// 	keyboard._onKeyChange({keyCode:37}, true);
+		// 	break;
+
+		// 	case "B": // left up
+		// 	keyboard._onKeyChange({keyCode:37}, false);
+		// 	break;
+
+		// 	case "D": // right down
+		// 	keyboard._onKeyChange({keyCode:39}, true);
+		// 	break;
+
+		// 	case "E": // right up
+		// 	keyboard._onKeyChange({keyCode:39}, false);
+		// 	break;
+
+		// 	case "u": // flap down
+		// 	keyboard._onKeyChange({keyCode:38}, true);
+		// 	break;
+
+		// 	case "x": // flap up
+		// 	keyboard._onKeyChange({keyCode:38}, false);
+		// 	break;
+		// 	}
+		// };
