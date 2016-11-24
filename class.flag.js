@@ -693,10 +693,10 @@ game_flag.prototype.draw = function()
     // draw timer
     if (this.timer > 0)
     {
-      game.ctx.font = "18px Mirza";
-      game.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
-      game.ctx.textAlign = 'center';
-      game.ctx.fillText(
+      this.ctx.font = "18px Mirza";
+      this.ctx.fillStyle = (this.name == "midFlag") ? "#000" : "#fff";
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(
           //this.onCooldownLength -
           this.timer,//Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()),//this.onCooldownLength,
           this.x + 25,

@@ -564,6 +564,7 @@ var game_core = function(game_instance)
     config.server = (this.server) ? true : false;
     config.keyboard = this.keyboard;
     config.updateTerritory = this.updateTerritory;
+    config.flagToScore = this.flagToScore;
     //config.tilemapData = config.tilemapData;
     config.players = this.players;
     config.events = this.events;
