@@ -11,7 +11,13 @@ function game_toast()
 
 game_toast.prototype.show = function(data)
 {
-  console.log('show toast', data);
+  console.log('== toast.show', data, '==');
+
+  /*if (data == undefined)
+  {
+    console.log('* no toast data to display!');
+    return;
+  }*/
   /*
     data:
       action:
@@ -28,45 +34,45 @@ game_toast.prototype.show = function(data)
         playerGotDiamond - PLAYER has won the Diamond! The field is flipped.
   */
   if (!data)
-  data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
+    data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
+
+    if (data.playerTeam === 0) data.playerTeam = "red";
+    else data.playerTeam = "blue";
+
+    var dir = "over";
+    switch(data.targetSlot)
+    {
+        case "slot1":
+        case "slot3":
+        case "slot5":
+        case "slot7":
+        case "slot9":
+            dir = "down";
+        break;
+
+        case "slot2":
+        case "slot4":
+        case "slot6":
+        case "slot8":
+        case "slot10":
+          dir = "up";
+        break;
+
+        case "midSlot":
+        case "slotRed":
+        case "slotBlue":
+          dir = "over";
+        break;
+    }
+
   switch(data.action)
   {
     case "takeFlag":
-
-      if (data.playerTeam === 0) data.playerTeam = "red";
-      else data.playerTeam = "blue";
-
-      var dir = "over";
-      switch(data.targetSlot)
-      {
-          case "slot1":
-          case "slot3":
-          case "slot5":
-          case "slot7":
-          case "slot9":
-              dir = "down";
-          break;
-
-          case "slot2":
-          case "slot4":
-          case "slot6":
-          case "slot8":
-          case "slot10":
-            dir = "up";
-          break;
-
-          case "midSlot":
-          case "slotRed":
-          case "slotBlue":
-            dir = "over";
-          break;
-      }
-
       this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> siezed the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!<br>Rally " + dir + " to <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
-
     break;
 
     case "slotFlag":
+      this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> planted the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!<br> " + dir + " at <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
     break;
 
     case "carrierDied":

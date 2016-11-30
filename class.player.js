@@ -1480,6 +1480,7 @@ game_player.prototype.isVuln = function(len)
 
 game_player.prototype.dropFlag = function()
 {
+    console.log("== player.dropFlag ==", this.hasFlag);
     if (this.hasFlag)
     {
         // 1 = midFlag, 2 = redBase, 3 = blueBase
@@ -1495,6 +1496,7 @@ game_player.prototype.dropFlag = function()
 
         // reset flag
         var flag = config._.find(config.flagObjects, {"name":flagName});
+        //flag.slotFlag(this);
         flag.reset(false, this.game);
     }
 }
@@ -1656,16 +1658,17 @@ game_player.prototype.draw = function()
     // {
     // nameplate color
     config.ctx.save();
-    if (this.team === 1) // 1 = red, 2d = blue
+    if (this.team == 1) // 1 = red, 2d = blue
     {
         config.ctx.fillStyle = '#FF6961';
         //game.ctx.save();
     }
-    else
+    else if (this.team == 2)
     {
         config.ctx.fillStyle = '#6ebee6';
         //game.ctx.save();
     }
+    else config.ctx.fillStyle = 'white';
     config.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
@@ -1841,7 +1844,7 @@ game_player.prototype.draw = function()
         //console.log('flag.timer', flag.timer);
         if (flag && flag.timer === 0)
         {
-            console.log('reset', this.hasFlag);
+            console.log('* player.draw: flag reset', this.hasFlag);
             // reset flag
             for (var f = 0; f < config.flagObjects.length; f++)
             {

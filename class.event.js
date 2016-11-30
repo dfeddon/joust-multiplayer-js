@@ -95,9 +95,8 @@ game_event.prototype.update = function()
         // reset players vars (flag.heldBy)
         console.log('mp=',mp);
         var player = config._.find(getplayers.allplayers, {"mp":mp});
-        console.log('player', player);
+        console.log('player', player.mp);
         player.hasFlag = 0;
-        console.log('dtf', player);
 
         // change state to complete
         this.state = this.STATE_STOPPED;

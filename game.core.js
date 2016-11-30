@@ -31,7 +31,8 @@ var
     platformClass       = require('./class.platform'),
     //transformClass      = require('./class.transform'),
     game_event_server   = require('./class.event'),
-    game_chest          = require('./class.chest');
+    game_chest          = require('./class.chest'),
+    game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
     CollisionDetector   = require('./class.collisionDetector'),
@@ -120,7 +121,7 @@ var game_core = function(game_instance)
 
     config.world.gravity = 0.05;//.25;//2;//3.5;
 
-    config.world.totalplayers = 3;//30;//40;//4;
+    config.world.totalplayers = 5;//30;//40;//4;
 
     config.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -233,7 +234,8 @@ var game_core = function(game_instance)
         for (var i = 1; i < config.world.totalplayers; i++)
         {
             other = new game_player(null, false, getplayers.allplayers.length+1);
-            other.pos = this.gridToPixel(i * 64, 0);
+            other.pos = this.gridToPixel(i, 0);
+            other.playerName = this.nameGenerator() + " [" + other.mp + "]";            
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
             //if (other.mp != "cp1") other.isBot = true;
@@ -252,7 +254,7 @@ var game_core = function(game_instance)
         // add player (host)
         console.log('len', getplayers.allplayers.length);
         for (var j in getplayers.allplayers)
-            console.log(getplayers.allplayers[j].mp);
+            console.log(getplayers.allplayers[j].mp, getplayers.allplayers[j].pos);
 
         ///////////////////////////////////
         // orbs
@@ -443,7 +445,8 @@ var game_core = function(game_instance)
             p = new game_player(null, false, getplayers.allplayers.length+1);
             // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
-            p.playerName = this.nameGenerator() + " [" + p.mp + "]";
+            p.pos = this.gridToPixel(l, 0);
+            //p.playerName = this.nameGenerator() + " [" + p.mp + "/" + p.team + "]";
             getplayers.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
@@ -575,7 +578,7 @@ var game_core = function(game_instance)
     config._ = _;
     config.gridToPixel = this.gridToPixel;
 
-    console.log('config', config);
+    //console.log('config', config);
     
 
 }; //game_core.constructor
@@ -835,7 +838,7 @@ game_core.prototype.apiNode = function()
             var split = data.split('\\n');
             //split = split.shift();
             var base = [];
-            console.log(split.length);
+            //console.log(split.length);
             // ignore first and last rows
             var split2;
             var len = split.length;
@@ -845,7 +848,7 @@ game_core.prototype.apiNode = function()
                 split2.pop(); // remove last item (undefined)
                 base.push(split2);
             }
-            console.log(base[0].length, base[0]);
+            //console.log(base[0].length, base[0]);
             //config.tilemapData = base;
             config.tilemapData = base;
 
@@ -859,7 +862,7 @@ game_core.prototype.apiNode = function()
             var splits = groups.split('\\n');
             console.log('spl', splits[0].length, splits[0]);*/
             var objectgroupNode = result.map.objectgroup;
-            console.log(objectgroupNode.length);//, JSON.stringify(objectgroupNode));
+            //console.log(objectgroupNode.length);//, JSON.stringify(objectgroupNode));
             var node;
             for (var j = 0; j < objectgroupNode.length; j++)
             {
@@ -982,10 +985,13 @@ game_core.prototype.getUID = function()
 
 game_core.prototype.updateTerritory = function()
 {
-    console.log('updating bg...', this.bg, config.flagObjects.length);
+    console.log('== game_core.updateTerrotiroy', this.bg, config.flagObjects.length, "==");
 
-    if (this.bg == null)
+    if (config.bg == null)
+    //if (this.bg == null)
     {
+        console.log('bg is null, creating...', this);
+        
         this.bg = document.createElement('canvas');
         this.bg.id = "bg";
         this.bg.x = 0;
@@ -993,8 +999,18 @@ game_core.prototype.updateTerritory = function()
         this.bg.width = config.world.width;//v.width;
         this.bg.height = config.world.height;//v.height;
         //context3 = this.bg.getContext('2d');
+        config.bg = this.bg;
     }
+    //console.log('pre', config.ctx);
+    
+    //if (!config.ctx) config.ctx = config.bg.getContext('2d');
+    console.log('ctx', config.ctx);
+    console.log('bg', config.bg);
+
     var ctx = this.bg.getContext('2d');
+    
+    
+    //var ctx = this.bg.getContext('2d');
 
     // build bricks
     var brickWidth = 30;
@@ -1034,7 +1050,8 @@ game_core.prototype.updateTerritory = function()
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
     var midflagX = pixelToBrick( (mid.x + (mid.width/2)) );
     var blueflagX = pixelToBrick( (blue.x + (blue.width/2)) );
-    //console.log('xs2', redflagX, midflagX, blueflagX);
+    console.log('xs2', redflagX, midflagX, blueflagX);
+    console.log('brickColumns', brickColumnCount, "rows", brickRowCount);
 
     // draw bricks
     var brickX, brickY;
@@ -1083,11 +1100,27 @@ game_core.prototype.updateTerritory = function()
     var score4 = this.flagToScore(blue.name, blueSrc);
 
     console.log('flagToScore', score2, score3, score4);
-    var redTotal = score2.red + score3.red + score4.red;
-    var blueTotal = score2.blue + score3.blue + score4.blue;
-    var pointsAllocated = redTotal + blueTotal;
-    var redScore = redTotal / pointsAllocated * 100;
-    var blueScore = blueTotal / pointsAllocated * 100;
+    var redRaw = score2.red + score3.red + score4.red;
+    var blueRaw = score2.blue + score3.blue + score4.blue;
+
+    var redTotal = Math.abs(score2.red) + Math.abs(score3.red) + Math.abs(score4.red);
+    var blueTotal = Math.abs(score2.blue) + Math.abs(score3.blue) + Math.abs(score4.blue);
+    
+    var pointsAllocated = 10;//12;//redTotal + blueTotal;
+    console.log('redTotal', redTotal);
+    console.log('blueTotal', blueTotal);
+    console.log('pointsAllocated', pointsAllocated);
+    
+    var redScore = parseInt(redTotal / pointsAllocated * 100);
+    var blueScore = parseInt(blueTotal / pointsAllocated * 100);
+
+    if (redRaw < 0)
+        redScore = -redScore;
+    else if (blueRaw < 0)
+        blueScore = -blueScore;
+
+    blueScore = blueScore + 50;
+    redScore = redScore + 50;
 
     console.log('red score', redScore);
     console.log('blue score', blueScore);
@@ -2787,6 +2820,14 @@ game_core.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
+    var msg =
+    {
+        action: "slotFlag",
+        playerName: playerSource.playerName,//"Jouster",
+        playerTeam: playerSource.team,//0,
+        flagName: flagSlotted.name,//"Mid Flag",
+        targetSlot: flagSlotted.targetSlot//"Placque #3"
+    };
     new game_toast().show();
 
     /////////////////////////////////////
@@ -3297,9 +3338,9 @@ game_core.prototype.server_update = function()
         bufView[8] = player.vy;//.fixed(2);//.fixed(2);
         bufView[9] = player.hasFlag;
         bufView[10] = player.bubble;
-        //bufView[11] = player.killedPlayer;
+        bufView[11] = player.visible;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
-        bufView[13] = player.rank;
+        //bufView[13] = player.team;
         //bufView[11] = new Date();
         // if (player.mp == "cp1")
         //     console.log('->', bufView);
@@ -4100,13 +4141,17 @@ game_core.prototype.client_process_net_updates = function()
             if (player != _this.players.self)// && previous[player.mp])
             {
                 //console.log('**', target[player.mp]);
-                  vt = new Float32Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
-                  vp = new Float32Array(previous[player.mp], (index * 16), 16);
+                // check for bad objects
+                if (target[player.mp] == undefined || previous[player.mp] == undefined) return false;
+                //try{
+                vt = new Float32Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                //}catch(err){console.log(err, index, target[player.mp]);}
+                vp = new Float32Array(previous[player.mp], (index * 16), 16);
                   //console.log(vt);
                   //console.log(vp);
 
                   // check for invalid values (bad socket?)
-                  if (!(vt[0]>0)) return;
+                  //if (!(vt[0]>0)) return;
                   
                 //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
 
@@ -4145,14 +4190,14 @@ game_core.prototype.client_process_net_updates = function()
                 //console.log(p.pos);
 
                 //if (ghostStub.x > 0 && ghostStub.y > 0)
-                if (p.pos.x > 0 && p.pos.y > 0)
-                    player.pos = p.pos;
-                    //player.pos = _this.v_lerp(p.pos, ghostStub, _this._pdt * _this.client_smooth);
-                else
-                { 
+                //if (p.pos.x > 0 && p.pos.y > 0)
+                    //player.pos = p.pos;
+                    player.pos = _this.v_lerp(p.pos, ghostStub, _this._pdt * _this.client_smooth);
+                //else
+                //{ 
                     //window.alert(p.pos);
                     //return;
-                }
+                //}
                 //player.pos = _this.v_lerp(p.pos, ghostStub, _this._pdt * _this.client_smooth);
 
                 player.dir = vt[2];
@@ -4164,9 +4209,9 @@ game_core.prototype.client_process_net_updates = function()
                 player.vy = vt[8];
                 player.hasFlag = vt[9];
                 player.bubble = (vt[10] === 1) ? true : false;
-                //player.killedBy = vt[11];
+                player.visible = (vt[11] === 1) ? true : false;
                 player.bufferIndex = index;// -> vt[12]
-                player.rank = vt[13];
+                //player.team = vt[13];
                 //console.log(Boolean(player.flap));
                 //console.log('set playerIndex', vt[11]);
 
@@ -4383,21 +4428,25 @@ game_core.prototype.client_process_net_updates = function()
         //console.log('self', this.players.self.pos);
         
         // check for invalid values (bad socket?)
-        if (!(self_tp.x > 0))
-            this.players.self.playerName = "x: " + self_tp.x;
-        else if (!(self_tp.y > 0))
-            this.players.self.playerName = "y: " + self_tp.y;
+        // if (!(self_tp.x > 0))
+        //     this.players.self.playerName = "x: " + self_tp.x;
+        // else if (!(self_tp.y > 0))
+        //     this.players.self.playerName = "y: " + self_tp.y;
         //console.log(self_tp);
         
-        if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
-        {
+        //if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
+        //{
+            // TODO: bug below - "self_pp" is undefined
+            if (self_pp && self_tp)
+            {
             this.players.self.pos =
                 this.v_lerp(this.players.self.pos,
                 this.v_lerp(self_pp, self_tp, this._pdt*this.client_smooth),
                 this._pdt*this.client_smooth
             );
-        }
-        else this.players.self.pos = this.players.self.old_state;
+            }
+        //}
+        //else this.players.self.pos = this.players.self.old_state;
         //console.log('self2', this.players.self.pos);
         
         /*
@@ -4651,7 +4700,7 @@ game_core.prototype.client_update = function()
     // Clear the screen area (just client's viewport, not world)
     // if player stopped, use last camera pos
     // TODO: lerp camera movement for extra smoothness
-    if (this.players.self.landed !== 1)
+    if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
     {
         var pad = 0;
         this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(config.world.width - this.viewport.width) - pad, pad);//this.config.world.width);
@@ -5022,7 +5071,7 @@ game_core.prototype.client_reset_positions = function()
 
 game_core.prototype.client_onreadygame = function(data) {
     //if (glog)
-    console.log('## client_onreadygame');//, data);
+    console.log('## client_onreadygame', data);
 
     var server_time = parseFloat(data.replace('-','.'));
 
@@ -5095,6 +5144,25 @@ game_core.prototype.resizeCanvas = function()
     this.viewport.style.height = this.viewport.height;
 };
 
+game_core.prototype.client_onplayernames = function(data)
+{
+    var data = JSON.parse(data);
+    // console.log("GOT PLAYER NAMES", data);
+    // console.log('len', data.length);
+    var p;
+    for (var i = 0; i < data.length; i++)
+    {
+        p = _.find(getplayers.allplayers, {'mp':data[i].mp});
+        if (p)
+        {
+            if (data[i].name != "")
+                p.playerName = data[i].name;
+            if (data[i].team > 0)
+                p.team = parseInt(data[i].team);
+        }
+        // console.log('p', p);
+    }
+}
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
@@ -5115,7 +5183,8 @@ game_core.prototype.client_onjoingame = function(data)
     var chests = JSON.parse(alldata[2]);
     //console.log('chestz',this.chests);
 
-    var team = alldata[3];
+    var team = parseInt(alldata[3]);
+    var playerName = alldata[4];
     //console.log('# startpos', startpos);
 
     //console.log('3',alldata[2]);
@@ -5144,21 +5213,56 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.mis = getplayers.allplayers[i].mis;
             //if (data.me)
             getplayers.allplayers[i].team = parseInt(team);
+            getplayers.allplayers[i].playerName = playerName;
             /*/ set start position
             if (team == 1)
                 getplayers.allplayers[i].pos = this.gridToPixel(2, 2);
             else getplayers.allplayers[i].pos = this.gridToPixel(47, 25);
             */
             getplayers.allplayers[i].active = true;
-            getplayers.allplayers[i].isLocal = true;
             //getplayers.allplayers[i].playerName = "Jouster";
-            this.players.self = getplayers.allplayers[i];
-            console.log(this.players.self);
+            // if self.mp == "hp", player is the NEW player!
+            if (this.players.self.mp == "hp")
+            {
+                console.log("assinging new client to players.self", this.players.self.mp)
+                getplayers.allplayers[i].isLocal = true;
+                this.players.self = getplayers.allplayers[i];
+                // get other players' names
+                //this.socket.emit('message', {data:"n.hello!"});
+                this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid);
+                /*
+                var url = "http://localhost:4004/api/playernames/";
+                console.log('* api call');//, this.players.self.instance);//.instance.game);
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", url, true);
+                xmlhttp.setRequestHeader("Content-type", "application/json");
+                //xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
+                //xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
+                xmlhttp.send('');//{gameId:this.players.self.});
+
+                xmlhttp.onreadystatechange = function ()
+                { //Call a function when the state changes.
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
+                    {
+                        //alert(xmlhttp.responseText);
+                        //console.log('data', xmlhttp.responseText);
+                        //return xmlhttp.responseText;
+                        self.tilemap = xmlhttp.responseText;
+                        self.tilemapper();
+                        self.prerenderer();
+                        //self.buildPlatforms();
+                    }
+                };
+                
+                //*/
+                //console.log(this.players.self);
+            }
+            //else console.log("SELF:", this.players.self);
         }
         else if (getplayers.allplayers[i].mp == 'hp')
         {
             //this.players.host = getplayers.allplayers[i];
-            console.log('remove host', i, getplayers.allplayers[i].host);
+            console.log('remove host client', i, getplayers.allplayers[i].host);
             getplayers.allplayers.splice(i, 1);
         }
         // else if (getplayers.allplayers[i].instance.hosting)
@@ -5306,6 +5410,9 @@ game_core.prototype.client_onnetmessage = function(data) {
                 case 'p' : //server ping
                     this.client_onping(commanddata); break;
 
+                case 'n' : // get player names
+                    this.client_onplayernames(commanddata); break;
+
                 // case 'c' : //other player changed colors
                 //     //console.log('got color', commanddata);
                 //     this.client_on_otherclientcolorchange(commanddata); break;
@@ -5360,12 +5467,28 @@ game_core.prototype.client_ondisconnect = function(data) {
     //if (glog)
     console.log('client_ondisconnect', data);
 
+    // remove player from client (data is disconnected player.mp)
+    for (var i = 0; i < getplayers.allplayers.length; i++)
+    {
+        //console.log(getplayers.allplayers[i]);
+        if (getplayers.allplayers[i].mp == data)
+        {
+            console.log('* removing player', getplayers.allplayers[i].mp, data);
+            getplayers.allplayers[i].doKill();//active = false;
+            //getplayers.allplayers[i].visible = false;
+            //getplayers.allplayers[i].pos = {x:0, y:0};
+            //getplayers.allplayers.splice(i, 1);
+            //break;
+        }
+    }
+
     //When we disconnect, we don't know if the other player is
     //connected or not, and since we aren't, everything goes to offline
-
+    /*
     this.players.self.info_color = 'rgba(255,255,255,0.1)';
     this.players.self.state = 'not-connected';
     this.players.self.online = false;
+    */
 
     // TODO: Resolve below lines
     //this.players.other.info_color = 'rgba(255,255,255,0.1)';

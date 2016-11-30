@@ -73,6 +73,10 @@ app.post( '/api/orbs' , function( req, res, next )
     console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
     return res.send('hi', game_server.games.length);//[0]);
 });
+app.post( '/api/playernames', function(req, res, next)
+{
+    console.log('api POST - app get player names', game_server[0]);
+})
 
 /* Socket.IO server set up. */
 
@@ -155,6 +159,7 @@ sio.sockets.on('connection', function (client)
     //They send messages here, and we send them to the game_server to handle.
     client.on('message', function(m)
     {
+        //console.log('client-to-server message', m);
         game_server.onMessage(client, m);
     }); //client.on message
 

@@ -346,7 +346,7 @@ game_flag.prototype.setter = function(obj)
 
 game_flag.prototype.doTake = function(player)
 {
-  console.log('===flag.doTake', this.name, 'p', player.mp, player.hasFlag, this.isHeld, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
+  console.log('===flag.doTake', this.name, 'p', player.mp, 'hasFlag', player.hasFlag, 'isheld', this.isHeld, 'team', player.team, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
   if (this.isActive === false || this.onCooldown === true) return;
 
   if (this.isHeld === false)
@@ -362,11 +362,13 @@ game_flag.prototype.doTake = function(player)
 
   if (player.team === 1 && this.name == "redFlag")
   {
+    console.log("red team cannot get red flag");
     this.isHeld = false;
     return;
   }
   else if (player.team === 2 && this.name == "blueFlag")
   {
+    console.log("blue team cannot take blue flag");
     this.isHeld = false;
     return;
   }
@@ -408,8 +410,16 @@ game_flag.prototype.doTake = function(player)
 
   if (!config.server)
   {
-      // show toast
-      new game_toast().show();
+    // data
+    var data = {};
+    data.action = "takeFlag";
+    data.targetSlot = cd.target;
+    data.flagName = this.name;
+    data.playerName = player.playerName;
+    data.playerTeam = player.team;
+
+    // show toast
+    new game_toast().show(data);
   }
   else
   {
@@ -420,7 +430,7 @@ game_flag.prototype.doTake = function(player)
           // dispatch flagremove socket event
           if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
           {
-              //console.log('flag sent', flag.name);
+              console.log('flag sent', player.mp, this.name);
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
               getplayers.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
           }
@@ -460,19 +470,20 @@ game_flag.prototype.typeToName = function(type)
 
 game_flag.prototype.slotFlag = function(player)
 {
+  console.log("== flag.slotFlag", player.mp, this.name, player.hasFlag, "==");
   // TODO: Resolve issue with targetSlot and sourceSlot values, both
   // of which exist in flag class (client) and clientCooldowns (server)
   // console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
   //console.log('cooldowns', config.clientCooldowns);
 
   var clientFlag = this._.find(config.clientCooldowns, {'name':this.typeToName(player.hasFlag)});
-  //console.log('clientFlag', clientFlag);
+  console.log('* clientFlag', clientFlag, this.name);
   if (clientFlag === undefined) return;
 
   // console.log('* slot.name', this.name, 'clientCooldown.target', clientFlag.target);
   if (this.name == clientFlag.target)//player.carryingFlag.targetSlot)
   {
-    console.log('* slot flag!!!!');
+    console.log('* found slot flag!!!!', this.name);
     /*player.carryingFlag.x = this.x - (this.width/2);
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
@@ -487,7 +498,7 @@ game_flag.prototype.slotFlag = function(player)
     flg.isHeld = false;
     //this.sourceSlot = this.name;
     flg.sourceSlot = this.name;
-    flg.targetSlot = this.getTargetSlot(this.sourceSlot);
+    flg.targetSlot = this.getTargetSlot(player.team, this.sourceSlot);
     // stop cooldown (clientFlag)
 
     // stop flag-carried event (server-side only)
@@ -541,9 +552,10 @@ game_flag.prototype.slotFlag = function(player)
     */
     if (!config.server)
     {
-        config.updateTerritory();
-
-        // start flag-slotted cooldown event
+      console.log('* calling updateTerritory');
+      
+      config.updateTerritory();
+      // start flag-slotted cooldown event
     }
 
     var flagObj = config._.find(config.flagObjects, {"name":clientFlag.name});//this.name});
@@ -553,7 +565,7 @@ game_flag.prototype.slotFlag = function(player)
 
 game_flag.prototype.reset = function(success, game)//, server_time)
 {
-  console.log('===flag.reset', success, this.name, '===');
+  console.log('=== flag.reset', success, this.name, '===');
   this.isHeld = false;
   this.visible = true;
   if (success)
@@ -566,11 +578,11 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     //this.stopwatch.start();
   }
   else
-  { 
+  {
     this.isActive = true;
     // clear flag-carried (fc) event
     console.log('*', config.events);
-    
+
     if (config.server)
     {
       var fcEvent = this._.find(config.events, {"type":2});
