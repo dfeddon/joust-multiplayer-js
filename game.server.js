@@ -72,7 +72,7 @@ game_server.onMessage = function(client,message)
 
 game_server._onMessage = function(client,message)
 {
-    //this.log('@@ _onMessage', message);//, client);
+    //this.log('@@ _onMessage', message, client.mp);
 
     //Cut the message up into sub components
     var message_parts = message.split('.');
@@ -82,13 +82,6 @@ game_server._onMessage = function(client,message)
     /*var other_client =
         (client.game.player_host.userid == client.userid) ?
             client.game.player_client : client.game.player_host;*/
-
-    var other_clients = [];
-    for (var i = 0; i < client.game.player_clients.length; i++)
-    {
-        if (client.game.player_clients[i].userid != client.userid)
-            other_clients.push(client.game.player_clients[i]);
-    }
 
     if(message_type == 'i')
     {
@@ -103,6 +96,14 @@ game_server._onMessage = function(client,message)
     else if(message_type == 'c')
     {    //Client changed their color!
         //if(other_client)
+        var other_clients = [];
+
+        for (var i = 0; i < client.game.player_clients.length; i++)
+        {
+            if (client.game.player_clients[i].userid != client.userid)
+                other_clients.push(client.game.player_clients[i]);
+        }
+
         if (other_clients.length > 0)
         {
             for (var j = 0; j < other_clients.length; j++)
@@ -364,71 +365,66 @@ game_server.startGame = function(game, newplayer)
 
     var newplayerInstance, playerName, playerMP, team;
     var p = getplayers.allplayers;
+    // get host client and all non-hosting clients
+    var host;
+    var nonhosts = [];
     for (var x = 0; x < p.length; x++)
     {
+        // asign game id to *all* users
+        // p[x].gameid = game.id;
         if (p[x].mp == newplayer.mp)
         {
             //this.log("found HOST");//this.log("p:", p[x].mp);
-            this.log("* found server player instance", p[x].playerName);
+            this.log("* found server newplayer instance", p[x].playerName);
+            p[x].instance.gameid = game.id;
+            p[x].active = true;
+            p[x].visible = true;
+            p[x].dead = false;
+            p[x].vuln = false;
+            p[x].landed = 0;
             newplayerInstance = p[x];
             playerName = p[x].playerName;
             playerMP = p[x].mp;
             team = Math.floor(Math.random() * 2) + 1;; // 1 = red, 2 = blue
             // only assign team if team has not yet been assigned
-            if (p[x].playerTeam == 0)
+            if (p[x].team == 0)
             {
-                newplayerInstance.playerTeam = team;
+                newplayerInstance.team = team;
             }
-            //console.log('player', nonhosts[j].mp, 'team', team);
-            //game_instance.gamecore.players.self =
+            nonhosts.push(p[x].instance);
+            console.log('* player', newplayerInstance.mp, 'assigned to team', team);
         }
-        else this.log(x, p[x].mp, p[x].playerName, p[x].instance);
+        else if (p[x].instance && p[x].instance.hosting)//this.log(x, p[x].mp, p[x].playerName, p[x].instance);
+        {
+            this.log("* found host", p[x].mp);
+            host = p[x].instance;
+        }
+        else if (p[x].instance)// nonhosts
+        {
+            nonhosts.push(p[x].instance);
+        }
     }
 
-    // get host client and all non-hosting clients
-    var host;
-    var nonhosts = [];
-    this.log('player_clients', game.player_clients.length);
-    for (var i = 0; i < game.player_clients.length; i++)
-    {
-        if (game.player_clients[i].hosting)
-        {
-            host = game.player_clients[i];
-            this.log("host client", host.mp, host.userid);
-
-            //getplayers.allplayers
-            //host.mp = "hp";
-            //host.mis = "his";
-        }
-        else
-        {
-            this.log("nonhost client", game.player_clients[i].mp, game.player_clients[i].userid);
-            nonhosts.push(game.player_clients[i]);
-        }
-    }
+    // // get host client and all non-hosting clients
+    // var host;
+    // var nonhosts = [];
+    // this.log('player_clients', game.player_clients.length);
+    // for (var i = 0; i < game.player_clients.length; i++)
+    // {
+    //     if (game.player_clients[i].hosting)
+    //     {
+    //         host = game.player_clients[i];
+    //         this.log("host client", host.mp, host.userid);
+    //     }
+    //     else
+    //     {
+    //         this.log("nonhost client", game.player_clients[i].mp, game.player_clients[i].userid);
+    //         nonhosts.push(game.player_clients[i]);
+    //     }
+    // }
 
     var game_instance = this.games[game.id];
-    if (host && nonhosts.length > 0)
-    {
-        this.log("%%%%%%%%%%%%", getplayers.allplayers.length);
-        /*var p = getplayers.allplayers;
-        for (var x = 0; x < p.length; x++)
-        {
-            if (p[x].mp == "hp")
-            {
-                this.log("found HOST");//this.log("p:", p[x].mp);
-                //game_instance.gamecore.players.self =
-            }
-            else this.log(x, p[x].mp, p[x].playerName);
-        }*/
-    }
 
-    //this.log('host', host);//.userid);
-    //this.log('others', nonhosts.length);
-    //this.log('total orbs', game_instance.gamecore.orbs.length, this.games[game.id].id);
-    // player client(s) must join game hosted by HOST
-    /*game.player_client.send('s.j.' + game.player_host.userid);
-    game.player_client.game = game;*/
     if (host)
     {
         //host.send('s.j.', host.userid);
@@ -436,32 +432,6 @@ game_server.startGame = function(game, newplayer)
         for (var j = 0; j < nonhosts.length; j++)
         {
             this.log('@@', nonhosts[j].userid, nonhosts[j].mp, nonhosts.pos);
-            // assign player to server instance
-            //game_instance.gamecore.players.self.instance = nonhosts[j];
-            //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
-            //var hosted = this.hasHost();
-            //if (hosted)
-                //this.log('@@ hosted by', hosted);
-            // if current player is host...
-            /*
-            if (game_instance.gamecore.players.self.mp == "hp")
-            {
-                this.log("@@ found host, assigning team");
-                // typically first player has joined, reassign self from host to nonhost[j].mp
-                for (var k = 0; k < getplayers.allplayers.length; k++)
-                {
-                    if (getplayers.allplayers[k].mp == nonhosts[j].mp)
-                    {
-                        this.log("################", nonhosts[j].mp, getplayers.allplayers[k].mp);
-                        // assign socket to instance
-                        getplayers.allplayers[k].instance = nonhosts[j];
-                        // assign player to self (replacing host)
-                        game_instance.gamecore.players.self = getplayers.allplayers[k];
-                        break;
-                    }
-                }
-            }
-            //*/
             var playerName, playerMP;
             var p = getplayers.allplayers;
             for (var x = 0; x < p.length; x++)
@@ -477,20 +447,6 @@ game_server.startGame = function(game, newplayer)
                 }
                 else this.log(x, p[x].mp, p[x].playerName);
             }
-            //game_instance.gamecore.players.self = null;
-            //game_instance.gamecore.players.self = nonhosts[j];
-            //var clientInstance = nonhosts[j];
-            //break;
-            // assign client to player instance
-            //game_instance.gamecore.players.self.instance = host;
-            //game_instance.gamecore.players.self.mp = nonhosts[j].mp;
-            //game_instance.gamecore.players.self.mis = nonhosts[j].mis;
-            
-            //console.log('sjn', game_instance.gamecore.players.self.mp, nonhosts[j].mp);
-            //nonhosts[j].visible = true;
-            //nonhosts[j].vuln = false;
-            // update player team on server
-            // send user mp, game id, orbs array
             // TODO: Replace orbs array with active chests (and player instance) array
             //console.log('*chests', game_instance.gamecore.chests);
             var chestsarray = [];
@@ -510,7 +466,7 @@ game_server.startGame = function(game, newplayer)
                 };
                 chestsarray.push(obj);
             }
-            this.log('* sending joingame event to', nonhosts[j].mp);
+            this.log('* sending joingame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
             this.log("* data:", playerMP, playerName);
             
             //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
@@ -519,13 +475,6 @@ game_server.startGame = function(game, newplayer)
         }
     }
 
-    //console.log('dfed', new namegen().generate_name(set));//, name_set);
-    //var pname = namegen.generate_name('egyptian');
-    //console.log('pname', pname);
-    //now we tell both that the game is ready to start
-    //clients will reset their positions in this case.
-    // game.player_client.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
-    // game.player_host.send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     for (var k = 0; k < nonhosts.length; k++)
     {
         this.log("readyup!", nonhosts[k].userid);
@@ -638,7 +587,7 @@ game_server.findGame = function(client)
                                 getplayers.allplayers[i].pos = game_instance.gamecore.gridToPixel(sx, sy);//3,4);
                                 // getplayers.allplayers[i].playerName = this.nameGenerator();
                                 // console.log('playername', getplayers.allplayers[i].playerName);
-                                //getplayers.allplayers[i].gameid = gameid;
+                                getplayers.allplayers[i].gameid = gameid;
                                 client.mp = getplayers.allplayers[i].mp;
                                 //this.log(client);
                                 //client.me = true;

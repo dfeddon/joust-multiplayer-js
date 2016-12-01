@@ -169,7 +169,7 @@ sio.sockets.on('connection', function (client)
     client.on('disconnect', function ()
     {
         //Useful to know when soomeone disconnects
-        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game.id);
+        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.gameid);//client.game.id);
 
         // remove player from allplayers array
         //console.log('game', client.game.gamecore);
@@ -185,7 +185,8 @@ sio.sockets.on('connection', function (client)
         if(client.game && client.game.id)
         {
             //player leaving a game should destroy that game
-            game_server.endGame(client.game.id, client.userid);
+            //game_server.endGame(client.game.id, client.userid);
+            game_server.endGame(client.gameid, client.userid);
         } //client.game_id
 
     }); //client.on disconnect

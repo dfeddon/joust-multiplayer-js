@@ -109,7 +109,7 @@ function game_player(player_instance, isHost, pindex)
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
 
-    this.team = 2; // 1 = red, 2 = blue
+    this.team = 0; // 1 = red, 2 = blue
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;
     this.pointsTotal = 0;
@@ -1094,7 +1094,9 @@ game_player.prototype.doStand = function(id)
 
 game_player.prototype.doKill = function(victor)
 {
-    console.log('playerKill', this.dead);
+    console.log('playerKill', this.mp);
+    if (victor) console.log('by', victor.mp, 'dead?', this.dead);
+    this.active = false;
 
     // avoid reduncancy
     if (this.dying === true) return;

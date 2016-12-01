@@ -139,10 +139,10 @@ game_event.prototype.update = function()
         this.spawn = this.shuffle(availChests)[0];
         // set active
         this.spawn.active = true;
-        console.log('selected spawn', this.spawn);
+        //console.log('selected spawn', this.spawn);
         // 3. rng chest content
         this.passive = this.shuffle(config.passives)[0];
-        console.log('selected passive', this.passive);
+        //console.log('selected passive', this.passive);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
 
