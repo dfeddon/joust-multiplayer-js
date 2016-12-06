@@ -2744,16 +2744,20 @@ game_player.prototype.update = function()
     if (!this.tmd) this.tmd = config.tilemapData;
     if (this.landed === 1)
     {
-        // reset angle
-        this.a = 0;
+        if (this.collision === false)
+        {
+            // reset angle
+            this.a = 0;
 
-        // force stoppage
-        this.vx = 0;
-        this.vy = 0;
+            // force stoppage
+            this.vx = 0;
+            this.vy = 0;
 
-        // get out
-        //if (this.hitFrom==-1)
-        return;
+            // get out
+            //if (this.hitFrom==-1)
+            return;
+        }
+        else this.landed = 2;
     }
 
 
@@ -2787,6 +2791,7 @@ game_player.prototype.update = function()
                 //this.vx *= -1;
                 //this.a *= -1;
                 this.vy *= -1;
+                this.isVuln(750);
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
@@ -2794,12 +2799,34 @@ game_player.prototype.update = function()
                 //this.vx *= -1;
                 console.log('hit speed', this.vy);
                 this.vy = 0;
-                this.a =0;//*= -1;
+                //this.vx *= -1;
+                this.a = 0;//*= -1;
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
             case 3: // opponent
                 console.log('opponent', this.target.mp);
+                //this.target.vx *= -1;
+                console.log('pre', this.vx, this.a);
+                
+                this.vx *= -1;
+                this.vy *= -1;
+                this.a *= -1;
+
+                // if opponent is stationary, move him
+                if (this.target.landed === 1)
+                    this.target.landed = 2;//this.target.update();
+
+                // bump
+                if (this.pos.x > this.target.pos.x)
+                    this.pos.x += this.size.hx/2;
+                else this.pos.x -= this.size.hx/2;
+                //this.vuln = true;
+                console.log('post', this.vx, this.a);
+
+                //this.isVuln(500);
+                //this.target.isVuln(500);
+                
                 break;
                 
         }
@@ -2809,6 +2836,10 @@ game_player.prototype.update = function()
         this.target = null;
     }
     else this.vx *= 1;
+
+    this.pos.x = this.pos.x.fixed(2);
+    this.pos.y = this.pos.y.fixed(2);
+    this.vx = this.vx.fixed(2);
 };
 
 game_player.prototype.setAngle = function(a)
@@ -2938,10 +2969,10 @@ game_player.prototype.timeoutRespawn = function(victor)
 {
     console.log('player dead complete');
     
-    this.visible = false;
     this.dead = false;
     this.dying = false;
-    this.vuln = true; // this disables input
+    //this.vuln = true; // this disables input
+    this.active = true;
     this.landed = 1;
     this.bubble = false;
     this.pos = config.gridToPixel(3,4);
@@ -2956,10 +2987,20 @@ game_player.prototype.timeoutRespawn = function(victor)
 
         if (!config.server)
         {
+            config.players.self.visible = false;
+            config.players.self.active = false;
+            config.players.self.pos = config.gridToPixel(3,4);
+            config.players.self.dead = false;
+            config.players.self.landed = 1;
+
             var ui = document.getElementById('splash');
             ui.style.display = "block";
         }
 
+    }
+    else // not self
+    {
+        //this.visible = false;
     }
 
     // // show respawn screen (ads)
@@ -3404,7 +3445,7 @@ game_player.prototype.draw = function()
     // {
     // nameplate color
     config.ctx.save();
-    if (this.team == 1) // 1 = red, 2d = blue
+    if (this.team == 1) // 1 = red, 2 = blue
     {
         config.ctx.fillStyle = '#FF6961';
         //game.ctx.save();
@@ -3415,7 +3456,7 @@ game_player.prototype.draw = function()
         //game.ctx.save();
     }
     else config.ctx.fillStyle = 'white';
-    config.ctx.font = "small-caps 15px serif";
+    //config.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
     //     this.pos.x,
@@ -3427,7 +3468,7 @@ game_player.prototype.draw = function()
     config.ctx.font = "16px Mirza";
     config.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
-    var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
+    var txt = this.playerName + this.team.toString();//+ "(" + this.mana.toString() + ")";
     config.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + config.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
@@ -3902,6 +3943,7 @@ module.exports = game_toast;
 'use strict';
 
 var domready = require('domready');
+var config = require('./class.globals');
 var game_core = require('./game.core');
 // var _ = require('./node_modules/lodash/lodash.min');
 /*
@@ -3922,6 +3964,7 @@ domready(function()
 
 	//A window global for our game root variable.
 	var game = {};
+	config.device = {};
 
 	//When loading, we store references to our
 	//drawing canvases, and initiate a game instance.
@@ -3929,8 +3972,6 @@ domready(function()
 	//{
 	//function go(){
 	//console.log('window onload');
-	//Create our game client instance.
-	game = new game_core();
 
 	console.log('client loaded', window);
 	console.log('user-agent header', navigator.userAgent);
@@ -3944,42 +3985,161 @@ domready(function()
 	console.log("Platform: " + navigator.platform);
 	console.log("User-agent header: " + navigator.userAgent);
 
-	var isMobile = 'ontouchstart' in window;
+	config.device.isMobile = 'ontouchstart' in window;
 	var userAgent = window.navigator.userAgent.toLowerCase();
-	var safari = /safari/.test(userAgent);
-	var ios = /iphone|ipod|ipad/.test(userAgent);
-	var android = /android/.test(userAgent);
-	console.log('isMobile', isMobile);
+	config.device.safari = /safari/.test(userAgent);
+	config.device.ios = /iphone|ipod|ipad/.test(userAgent);
+	config.device.android = /android/.test(userAgent);
+	console.log('isMobile', config.device.isMobile);
 	console.log('userAgent', userAgent);
-	console.log('safari', safari);
-	console.log('ios', ios);
-	console.log('android', android);
+	console.log('safari', config.device.safari);
+	console.log('ios', config.device.ios);
+	console.log('android', config.device.android);
 	
-	
+	// is mobile device?
+	//this.isMobile = 'ontouchstart' in window;
+	var splash = true;
+	var userAgent = window.navigator.userAgent.toLowerCase();
+	var ui = document.getElementById('uiTopBar');
+	console.log('isMobile', config.device.isMobile, userAgent);
 
+	// show DOM controls for mobile devices
+	if (config.device.isMobile)
+	{
+		//require('./class.extControls');
+		//*
+		config.device.standalone = window.navigator.standalone; // (fullscreen)
+		config.device.ios = /iphone|ipod|ipad/.test(userAgent);
+		config.device.android = /android/.test(userAgent);
+
+		console.log('standalone', config.device.standalone);
+		
+		
+		// if ios browser (not webview)
+		if (config.device.ios)// && safari)
+		{
+			console.log('iOS!');
+			
+			config.device.safari = /safari/.test( userAgent );
+			config.device.iphone = /iphone/.test(userAgent);
+			config.device.ipad = /ipad/.test(userAgent);
+			config.device.ipod = /ipod/.test(userAgent);
+			console.log('ios', config.device.ios, 'safari', config.device.safari, config.device.iphone, config.device.ipad, config.device.ipod);
+
+			if (config.device.safari)
+			{
+				// browser, suggest app
+				splash = false;
+				var apprec = document.getElementById('apprec');
+				apprec.style.display = "block";
+				apprec.addEventListener("click", function(e)
+				{
+					window.location = "http://www.google.com";
+				});
+				//var ui = document.getElementById('uiTopBar');
+				ui.style.display = "none";
+				return;
+			}
+			else
+			{
+				// using app
+			}
+			
+			// show native controls
+			/*
+			document.getElementById('mobile-controls-l').style.display = "block";
+			document.getElementById('mobile-controls-r').style.display = "block";                
+			//this.addTouchHandlers();
+			new nativeControls();
+			*/
+		}
+		else if (config.device.android)
+		{
+			console.log('android!');
+			config.device.webview = /AppName\/[0-9\.]+$/.test(navigator.userAgent);
+			console.log('android webview?', config.device.webview);
+			if (config.device.webview)
+			{
+				// using app
+			}
+			else
+			{
+				// browser, suggest app
+				splash = false;
+				var apprec = document.getElementById('apprec');
+				apprec.style.display = "block";
+				apprec.addEventListener("click", function(e)
+				{
+					window.location = "http://www.google.com";
+				});
+				//var ui = document.getElementById('uiTopBar');
+				ui.style.display = "none";
+				return;
+			}
+			
+		}
+		//*/
+	}
+	//else // website (or app)
+	if (splash)
+	{
+		var splash, nickname, btnStart, adContainer;
+		if (config.device.iphone || config.device.ipod)
+		{
+			splash = document.getElementById('splash-phone');
+			nickname = document.getElementById('nickname-phone');
+			btnStart = document.getElementById('btnStart-phone');
+
+			/*if (iphone)
+			{
+				var v = document.getElementById("viewport"); 
+				var c = v.getContext('2d');
+				c.scale(0.5, 0.5);
+			}*/
+		}
+		else
+		{
+			splash = document.getElementById('splash');
+			nickname = document.getElementById('nickname');
+			adContainer = document.getElementById('adContainer');
+			btnStart = document.getElementById('btnStart');
+		}
+		splash.style.display = "block";
+		if (config.device.ipad) 
+		{
+			//adContainer.style.width = "0px";
+			adContainer.style.display = "none";
+		}
+
+		nickname.addEventListener("change", function(e)
+		{
+			console.log('nickname changed', e.target.value, e);
+			game.players.self.playerName = e.target.value;
+		});
+		btnStart.addEventListener("click", function(e)
+		{
+			console.log('start game clicked');
+			// activate player
+			game.players.self.active = true;
+			game.players.self.visible = true;
+			game.players.self.vuln = false;
+			// hide splash
+			splash.style.display = "none";
+			
+			// force flap (to reveal player)
+			//config.keyboard._onKeyChange({keyCode:38}, false);
+			//_this.players.self.doFlap();
+			//_this.players.self.update();
+			//_this.client_update();
+			//_this.players.self.visible = true;
+		});
+	}
 	//localStorage.debug = '*';
 
-	//Fetch the viewport (primary game canvas )
-	game.viewport = document.getElementById('viewport');
 
-	//Adjust their size
-	game.viewport.width = window.innerWidth;//game.world.width;
-	game.viewport.height = window.innerHeight;//game.world.height;
-
-	//Fetch the rendering contexts
-	game.ctx = game.viewport.getContext('2d');
-
-	//Set the draw style for the font
-	game.ctx.font = '11px "Helvetica"';
-
-	// set the canvas origin (0,0) to center canvas
-	// All coordinates to the left of center canvas are negative
-	// All coordinates below center canvas are negative
-	//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
-
-	if (ios || android)
+	if (config.device.ios || config.device.android)
 	{
-		console.log('mobile device', ios, android);
+		console.log('mobile device', config.device.ios, config.device.android);
 		
 		// document.externalControlAction = function(data)
 		// {
@@ -4028,6 +4188,26 @@ domready(function()
 	//alert('test');
 	//document.externalControlAction("A");
 
+	//Create our game client instance.
+	game = new game_core();
+
+	//Fetch the viewport (primary game canvas )
+	game.viewport = document.getElementById('viewport');
+
+	//Adjust their size
+	game.viewport.width = window.innerWidth;//game.world.width;
+	game.viewport.height = window.innerHeight;//game.world.height;
+
+	//Fetch the rendering contexts
+	game.ctx = game.viewport.getContext('2d');
+
+	//Set the draw style for the font
+	game.ctx.font = '11px "Helvetica"';
+
+	// set the canvas origin (0,0) to center canvas
+	// All coordinates to the left of center canvas are negative
+	// All coordinates below center canvas are negative
+	//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
 
 	//Finally, start the loop
 	game.update( new Date().getTime() );
@@ -4072,7 +4252,7 @@ domready(function()
 		// 	}
 		// };
 
-},{"./game.core":11,"domready":12}],10:[function(require,module,exports){
+},{"./class.globals":5,"./game.core":11,"domready":12}],10:[function(require,module,exports){
 (function (global){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // egyptian_set.js
@@ -4885,25 +5065,6 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
-        // is mobile device?
-        this.isMobile = 'ontouchstart' in window;
-        var userAgent = window.navigator.userAgent.toLowerCase();
-        console.log('isMobile', this.isMobile, userAgent);
-
-        // show DOM controls for mobile devices
-        if (this.isMobile)
-        {
-            //require('./class.extControls');
-            /*var safari = /safari/.test( userAgent ),
-            ios = /iphone|ipod|ipad/.test( userAgent );
-            if (ios && safari)
-            {
-                document.getElementById('mobile-controls-l').style.display = "block";
-                document.getElementById('mobile-controls-r').style.display = "block";
-                //this.addTouchHandlers();
-                new nativeControls();
-            }*/
-        }
 
         //this._ = _;
 
@@ -6568,6 +6729,8 @@ game_core.prototype.playerKill = function(victim, victor)
 game_core.prototype.pk = function(victor, victim)
 {
     console.log('== pk', victor.mp, victim.mp, '==');
+
+    // first, check if player has bubble...
     
     victim.active = false;
 
@@ -6695,10 +6858,11 @@ game_core.prototype.check_collision = function( player )
                     // otherwise, positioning counts
                     var dif = player.pos.y - other.pos.y;
                     //console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
-                    if (dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false)//player.pos.y === other.pos.y)
+                    if ((dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
+                        //player.vx *= -1;
                         /*if (player.pos.x < other.pos.x)
                         {
                             //player.pos.x -= 50;
@@ -6742,19 +6906,21 @@ game_core.prototype.check_collision = function( player )
 
                         // manage velocit and stop state
                         // if player and enemy are facing same direction
-                        if (player.vx > 0 && player.dir !== other.dir)
+                        /*if (player.vx > 0 && player.dir !== other.dir)
                         {
                             //console.log('slowing', player.vx);
 
                             // slow horizontal velocity
-                            player.vx = 0;//-= 1;
+                            //player.vx = 0;//-= 1;
+                            //player.vx *= -1;
                             // set landing flag (moving)
-                            if (player.landed !== 0)
-                                player.landed = 2; // TODO: only if on platform
+                            //if (player.landed !== 0)
+                                //player.landed = 2; // TODO: only if on platform
                         }
                         else if (player.vx < 0 && player.dir !== other.dir)
                         {
-                            player.vx = 0;
+                            //player.vx = 0;
+                            //player.vx *= -1;
                             if (player.landed !== 0)
                                 player.landed = 2;
                         }
@@ -6765,7 +6931,7 @@ game_core.prototype.check_collision = function( player )
                             // set landing flag (stationary)
                             if (player.landed !== 0)
                                 player.landed = 1; // TODO: only if on platform
-                        }
+                        }*/
                     }
                     else // we have a victim
                     {
@@ -6780,7 +6946,12 @@ game_core.prototype.check_collision = function( player )
                             if (!other.dead)
                             {
                                 //other.doKill(player);
-                                _this.pk(player, other);
+                                //if (player.vuln === false)
+                                    _this.pk(player, other);
+                                // else
+                                // {
+
+                                // }
                                 //console.log(other.mp, 'WINS!', player.mp);
                             }
                             // waspos = other.pos;
@@ -6796,7 +6967,12 @@ game_core.prototype.check_collision = function( player )
                             if (!player.dead)
                             {
                                 //player.doKill(other);
-                                _this.pk(other, player);
+                                // if (other.vuln === false)
+                                    _this.pk(other, player);
+                                // else
+                                // {
+
+                                // }
                                 //console.log(player.mp, 'WINS!', other.mp);
                             }
                             // waspos = player.pos;
@@ -7623,6 +7799,8 @@ game_core.prototype.process_input = function( player )
     } //if we have inputs
     else // we have NO INPUT
     {
+        //console.log('* no input...');
+        
         //player.inputs.push({seq:"0",time:config.server_time);
         //player.last_input_time = config.server_time;
         // if (player.landed === 1)
@@ -7632,7 +7810,16 @@ game_core.prototype.process_input = function( player )
         // else 
         //console.log('no input...');
         //this.players.self.old_state.pos = this.pos(this.players.self.pos);
-        //player.update();
+        /*
+        if (config.server && player.active)
+        {
+            //console.log('* updating', player.mp);
+            
+            player.update();
+        }
+        //*/
+        //this.client_update();
+        
         //this.players.self.cur_state.pos = this.pos(this.players.self.pos);
         //var input = player.inputs[j].inputs;
         //var c = input.length;
@@ -7876,23 +8063,24 @@ game_core.prototype.server_update = function()
         //, 0, Math.floor(bufArr.byteLength/2));
         //*
         if (player.pos.x === 0 && player.pos.y === 0) return;
-        bufView[0] = player.pos.x;//.toFixed(2);
-        bufView[1] = player.pos.y;//.toFixed(2);
+        //player.pos.x = player.pox.x.toFixed(2);
+        bufView[0] = player.pos.x;//.fixed(2);
+        bufView[1] = player.pos.y;//.fixed(2);
         bufView[2] = player.dir;
-        bufView[3] = player.flap;
+        bufView[3] = (player.flap) ? 1 : 0;
         bufView[4] = player.landed;
-        bufView[5] = player.vuln;
+        bufView[5] = (player.vuln) ? 1 : 0;
         bufView[6] = player.a;//.fixed(2);
         bufView[7] = player.vx;//.fixed(2);//.fixed(2);
         bufView[8] = player.vy;//.fixed(2);//.fixed(2);
         bufView[9] = player.hasFlag;
-        bufView[10] = player.bubble;
-        bufView[11] = player.visible;//killedPlayer;
+        bufView[10] = (player.bubble) ? 1 : 0;
+        bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
-        //bufView[13] = player.team;
+        bufView[13] = player.team;
         //bufView[11] = new Date();
-        // if (player.mp == "cp1")
-        //     console.log('->', bufView);
+        // if (player.mp == "cp2")
+        //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
         
         laststate[player.mp] = bufArr;
@@ -8199,7 +8387,7 @@ game_core.prototype.client_handle_input = function(key){
     //if (glog)
     //console.log('## client_handle_input', this.keyboard.pressed('up'));
 
-    if (this.players.self.vuln === true)
+    if (this.players.self.vuln === true || this.players.self.active === false)
     {
         //console.log('player is vulnerable!');
         return;
@@ -8625,7 +8813,7 @@ game_core.prototype.client_process_net_updates = function()
     //lerp requires the 0,1 value to lerp to? thats the one.
      //console.log(target);
       //if (target.cp2.f == 1)
-      //var test = new Int16Array(target.cp1, 0, Math.floor(target.cp1.byteLength/2));
+      //var test = new Float32Array(target.cp1, 0, Math.floor(target.cp1.byteLength/2));
     //   var len = target.cp1.byteLength;
     //   console.log('len',len);
       
@@ -8793,6 +8981,25 @@ game_core.prototype.client_process_net_updates = function()
                 self_tp = {x:parseFloat(self_vt[0]), y:parseFloat(self_vt[1])};
                 self_pp = {x:parseFloat(self_vp[0]), y:parseFloat(self_vp[1])};
                 player.bufferIndex = index;
+                //console.log('vt', self_vt);
+                
+
+                //*
+                //player.dir = vt[2];
+                //player.flap = (vt[3] === 1) ? true : false;
+                //if (this.players){
+                // _this.players.self.landed = self_vt[4];
+                _this.players.self.vuln = (self_vt[5] === 1) ? true : false;
+                //player.a = vt[6];
+                //player.vx = vt[7];
+                //player.vy = vt[8];
+                _this.players.self.hasFlag = self_vt[9];
+                _this.players.self.bubble = (self_vt[10] === 1) ? true : false;
+                _this.players.self.visible = (self_vt[11] === 1) ? true : false;
+                _this.players.self.bufferIndex = index;// -> vt[12]
+                _this.players.self.team = self_vt[13];
+                //}
+                //*/
 
                 // check for invalid values (bad socket?)
                 // if (!(self_vt[0] > 0)) 
@@ -8813,10 +9020,10 @@ game_core.prototype.client_process_net_updates = function()
             //     vt[k] = null;
             // }
 
-            vt = null;
+            /*vt = null;
             vp = null;
             self_vt = null;
-            self_vp = null;
+            self_vp = null;*/
         });
         
         // console.log(other_server_pos2);
@@ -9696,7 +9903,7 @@ game_core.prototype.resizeCanvas = function()
 game_core.prototype.client_onplayernames = function(data)
 {
     var data = JSON.parse(data);
-    // console.log("GOT PLAYER NAMES", data);
+    console.log("== client_onplayernames", data, "==");
     // console.log('len', data.length);
     var p;
     for (var i = 0; i < data.length; i++)
@@ -9704,6 +9911,7 @@ game_core.prototype.client_onplayernames = function(data)
         p = _.find(getplayers.allplayers, {'mp':data[i].mp});
         if (p)
         {
+            console.log('* settings player', data[i].name, data[i].team);
             if (data[i].name != "")
                 p.playerName = data[i].name;
             if (data[i].team > 0)
@@ -9776,7 +9984,7 @@ game_core.prototype.client_onjoingame = function(data)
                 console.log("assinging new client to players.self", this.players.self.mp)
                 getplayers.allplayers[i].isLocal = true;
                 this.players.self = getplayers.allplayers[i];
-                this.players.self.active = true;
+                this.players.self.active = false;
                 this.players.self.visible = true;
                 this.players.self.dead = false;
                 this.players.self.vuln = false;

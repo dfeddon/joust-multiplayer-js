@@ -1000,16 +1000,20 @@ game_player.prototype.update = function()
     if (!this.tmd) this.tmd = config.tilemapData;
     if (this.landed === 1)
     {
-        // reset angle
-        this.a = 0;
+        if (this.collision === false)
+        {
+            // reset angle
+            this.a = 0;
 
-        // force stoppage
-        this.vx = 0;
-        this.vy = 0;
+            // force stoppage
+            this.vx = 0;
+            this.vy = 0;
 
-        // get out
-        //if (this.hitFrom==-1)
-        return;
+            // get out
+            //if (this.hitFrom==-1)
+            return;
+        }
+        else this.landed = 2;
     }
 
 
@@ -1043,6 +1047,7 @@ game_player.prototype.update = function()
                 //this.vx *= -1;
                 //this.a *= -1;
                 this.vy *= -1;
+                this.isVuln(750);
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
@@ -1050,12 +1055,34 @@ game_player.prototype.update = function()
                 //this.vx *= -1;
                 console.log('hit speed', this.vy);
                 this.vy = 0;
-                this.a =0;//*= -1;
+                //this.vx *= -1;
+                this.a = 0;//*= -1;
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
             case 3: // opponent
                 console.log('opponent', this.target.mp);
+                //this.target.vx *= -1;
+                console.log('pre', this.vx, this.a);
+                
+                this.vx *= -1;
+                this.vy *= -1;
+                this.a *= -1;
+
+                // if opponent is stationary, move him
+                if (this.target.landed === 1)
+                    this.target.landed = 2;//this.target.update();
+
+                // bump
+                if (this.pos.x > this.target.pos.x)
+                    this.pos.x += this.size.hx/2;
+                else this.pos.x -= this.size.hx/2;
+                //this.vuln = true;
+                console.log('post', this.vx, this.a);
+
+                //this.isVuln(500);
+                //this.target.isVuln(500);
+                
                 break;
                 
         }
@@ -1065,6 +1092,10 @@ game_player.prototype.update = function()
         this.target = null;
     }
     else this.vx *= 1;
+
+    this.pos.x = this.pos.x.fixed(2);
+    this.pos.y = this.pos.y.fixed(2);
+    this.vx = this.vx.fixed(2);
 };
 
 game_player.prototype.setAngle = function(a)
@@ -1194,10 +1225,10 @@ game_player.prototype.timeoutRespawn = function(victor)
 {
     console.log('player dead complete');
     
-    this.visible = false;
     this.dead = false;
     this.dying = false;
-    this.vuln = true; // this disables input
+    //this.vuln = true; // this disables input
+    this.active = true;
     this.landed = 1;
     this.bubble = false;
     this.pos = config.gridToPixel(3,4);
@@ -1212,10 +1243,20 @@ game_player.prototype.timeoutRespawn = function(victor)
 
         if (!config.server)
         {
+            config.players.self.visible = false;
+            config.players.self.active = false;
+            config.players.self.pos = config.gridToPixel(3,4);
+            config.players.self.dead = false;
+            config.players.self.landed = 1;
+
             var ui = document.getElementById('splash');
             ui.style.display = "block";
         }
 
+    }
+    else // not self
+    {
+        //this.visible = false;
     }
 
     // // show respawn screen (ads)
@@ -1660,7 +1701,7 @@ game_player.prototype.draw = function()
     // {
     // nameplate color
     config.ctx.save();
-    if (this.team == 1) // 1 = red, 2d = blue
+    if (this.team == 1) // 1 = red, 2 = blue
     {
         config.ctx.fillStyle = '#FF6961';
         //game.ctx.save();
@@ -1671,7 +1712,7 @@ game_player.prototype.draw = function()
         //game.ctx.save();
     }
     else config.ctx.fillStyle = 'white';
-    config.ctx.font = "small-caps 15px serif";
+    //config.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
     //     this.pos.x,
@@ -1683,7 +1724,7 @@ game_player.prototype.draw = function()
     config.ctx.font = "16px Mirza";
     config.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
-    var txt = this.playerName;//+ "(" + this.mana.toString() + ")";
+    var txt = this.playerName + this.team.toString();//+ "(" + this.mana.toString() + ")";
     config.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + config.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),

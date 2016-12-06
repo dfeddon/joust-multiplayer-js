@@ -135,6 +135,8 @@ game_server._onMessage = function(client,message)
         var thegame = this.games[message_parts[2]];
         for (var i = 0; i < thegame.player_clients.length; i++)
         {
+            console.log('dtf-dtf', i);
+            
             if (thegame.player_clients[i].mp == message_parts[1])
             {
                 // tell client game is ended
