@@ -77,7 +77,7 @@ function game_player(player_instance, isHost, pindex)
 
     if (isHost && player_instance)// && player_instance.host)
     {
-        console.log('WE GOT SERVER HOST!');
+        console.log('WE GOT SERVER HOST!', player_instance.userid);
         this.mp = 'hp';
         this.mis = 'his';
     }

@@ -13,11 +13,13 @@ console.log('then ' + e.getSeconds());
 console.log('diff ' + (e.getTime() - now.getTime())/1000);
 */
 var config = require('./class.globals');
-var getplayers = require('./class.getplayers');
+//var getplayers = require('./class.getplayers');
 
-function game_event()//game_instance)
+function game_event(getplayers)//game_instance)
 {
   console.log('game event constructor');
+
+  this.getplayers = getplayers;
 
   //if (game_instance.server)
   this.shuffle = require('./node_modules/lodash/shuffle');
@@ -73,6 +75,7 @@ function game_event()//game_instance)
 
 game_event.prototype.update = function()
 {
+  var _this = this;
   //console.log('event.update');
   this.dif = Math.floor(config.server_time - this.triggerOn);
   //console.log(this.dif);
@@ -94,7 +97,7 @@ game_event.prototype.update = function()
         this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
         console.log('mp=',mp);
-        var player = config._.find(getplayers.allplayers, {"mp":mp});
+        var player = config._.find(_this.getplayers.allplayers, {"mp":mp});
         console.log('player', player.mp);
         player.hasFlag = 0;
 
@@ -107,7 +110,7 @@ game_event.prototype.update = function()
         console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
         var mp = this.flag.heldBy;
-        var player = config._.find(getplayers.allplayers, {"mp":mp});
+        var player = config._.find(_this.getplayers.allplayers, {"mp":mp});
         
         this.flag.isActive = true;
         this.flag.heldBy = null;

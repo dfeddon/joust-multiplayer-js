@@ -6,14 +6,16 @@
 
 var game_toast = require('./class.toast');
 var config = require('./class.globals');
-var getplayers = require('./class.getplayers');
+//var getplayers = require('./class.getplayers');
 var _ = require('lodash');
 
-function game_flag(data, context)
+function game_flag(data, context, getplayers)
 {
   //console.log('flag data', data);
 
   this._ = {};
+
+  this.getplayers = getplayers;
 
   /*if (context)
   {
@@ -426,14 +428,14 @@ game_flag.prototype.doTake = function(player)
   {
       console.log('* socket emit', this.targetSlot);
       // inform socket
-      for (var l = 0; l < getplayers.allplayers.length; l++)
+      for (var l = 0; l < this.getplayers.allplayers.length; l++)
       {
           // dispatch flagremove socket event
-          if (getplayers.allplayers[l].instance)// && getplayers.allplayers[l].mp != player.mp)
+          if (this.getplayers.allplayers[l].instance)// && this.getplayers.allplayers[l].mp != player.mp)
           {
               console.log('flag sent', player.mp, this.name);
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-              getplayers.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
+              this.getplayers.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
           }
       }
       // update clientCooldowns objs
@@ -534,13 +536,13 @@ game_flag.prototype.slotFlag = function(player)
 
     console.log('* socket emit', this);
     // inform socket
-    for (var l = 0; l < getplayers.allplayers.length; l++)
+    for (var l = 0; l < this.getplayers.allplayers.length; l++)
     {
-        if (getplayers.allplayers[l].instance)// && getplayers.allplayers[l].mp != player.mp)
+        if (this.getplayers.allplayers[l].instance)// && this.getplayers.allplayers[l].mp != player.mp)
         {
             //console.log('flag sent', slot);
             //player.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-            getplayers.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
+            this.getplayers.allplayers[l].instance.send('f.a.'+player.mp+"|"+this.name+"|"+flg.name);//_player.laststate);
         }
     }
 
@@ -581,7 +583,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     msg = {};
 
     // carrier
-    var playerSource = config._.find(getplayers.allplayers, {'mp':_this.heldBy});
+    var playerSource = config._.find(_this.getplayers.allplayers, {'mp':_this.heldBy});
     console.log('playerSource', playerSource);
     
     msg.playerName = playerSource.playerName;
@@ -590,7 +592,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     var opponent;
     if (playerSource.killedBy)
     {
-      opponent = config._.find(getplayers.allplayers, {'mp': playerSource.killedBy});
+      opponent = config._.find(_this.getplayers.allplayers, {'mp': playerSource.killedBy});
       opponentName = opponent.playerName;
     }
     
@@ -635,7 +637,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
       var fcEvent = this._.find(config.events, {"type":2});
       fcEvent.doStop();
 
-      _.forEach(getplayers.allplayers, function(ply)
+      _.forEach(_this.getplayers.allplayers, function(ply)
       {
         // TODO: omit self if self was failed carrier
         if (ply.instance)
