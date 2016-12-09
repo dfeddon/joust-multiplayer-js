@@ -128,6 +128,7 @@ function game_player(player_instance, isHost, pindex)
     this.hasHelment = false;//true;
     this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     this.flagTakenAt = 0;
+    this.disconnected = false;
     //this.carryingFlag = null;
 
     this.playerName = "";
@@ -1223,7 +1224,28 @@ game_player.prototype.doKill = function(victor)
 
 game_player.prototype.timeoutRespawn = function(victor)
 {
-    console.log('player dead complete');
+    console.log('player dead complete', this.disconnected);
+
+    if (this.disconnected)
+    {
+        this.dead = false;
+        this.dying = false;
+        //this.vuln = true; // this disables input
+        // this.active = true;
+        this.landed = 1;
+        this.bubble = false;
+        this.pos = config.gridToPixel(0,0);
+
+        if (this.mp == config.players.self.mp)
+        {
+            var ui = document.getElementById('splash');
+            ui.style.display = "block";
+        }
+
+        return;
+    }
+
+    // ...otherwise, not disconnected. Player can respawn...
     
     this.dead = false;
     this.dying = false;
@@ -1517,7 +1539,7 @@ game_player.prototype.isVuln = function(len)
     var stun = setTimeout(this.timeoutVuln.bind(this), len);
 
     // if carrying flag, drop it
-    if (this.hasFlag)
+    if (config.server && this.hasFlag)
         this.dropFlag();
 };
 

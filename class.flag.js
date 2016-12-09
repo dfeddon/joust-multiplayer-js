@@ -7,6 +7,7 @@
 var game_toast = require('./class.toast');
 var config = require('./class.globals');
 var getplayers = require('./class.getplayers');
+var _ = require('lodash');
 
 function game_flag(data, context)
 {
@@ -428,7 +429,7 @@ game_flag.prototype.doTake = function(player)
       for (var l = 0; l < getplayers.allplayers.length; l++)
       {
           // dispatch flagremove socket event
-          if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
+          if (getplayers.allplayers[l].instance)// && getplayers.allplayers[l].mp != player.mp)
           {
               console.log('flag sent', player.mp, this.name);
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
@@ -535,7 +536,7 @@ game_flag.prototype.slotFlag = function(player)
     // inform socket
     for (var l = 0; l < getplayers.allplayers.length; l++)
     {
-        if (getplayers.allplayers[l].instance && getplayers.allplayers[l].mp != player.mp)
+        if (getplayers.allplayers[l].instance)// && getplayers.allplayers[l].mp != player.mp)
         {
             //console.log('flag sent', slot);
             //player.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
@@ -565,7 +566,53 @@ game_flag.prototype.slotFlag = function(player)
 
 game_flag.prototype.reset = function(success, game)//, server_time)
 {
-  console.log('=== flag.reset', success, this.name, '===');
+  console.log('=== flag.reset', success, this.name, this, '===');
+  var _this = this;
+  var msg = undefined;
+
+  if (this.isHeld && success === false)
+  {
+    // Carrier failed, build toast msg
+    // flag was dropped because...
+    // * player stunned (playerSource.vuln), 
+    // * flag timed-out (this.timer), 
+    // * player killed (playerSource.killedBy).
+
+    msg = {};
+
+    // carrier
+    var playerSource = config._.find(getplayers.allplayers, {'mp':_this.heldBy});
+    console.log('playerSource', playerSource);
+    
+    msg.playerName = playerSource.playerName;
+
+    // opponent
+    var opponent;
+    if (playerSource.killedBy)
+    {
+      opponent = config._.find(getplayers.allplayers, {'mp': playerSource.killedBy});
+      opponentName = opponent.playerName;
+    }
+    
+    // action
+    if (playerSource.vuln)
+      msg.action = "carrierStunned";
+    else if (playerSource.killedBy)
+      msg.action = "carrierDied";
+    else if (playerSource.dying)
+      msg.action = "carrierSuicide";
+    else if (this.timer == '' || this.timer <= 0)
+      msg.action = "flagTimeout";
+
+    msg.playerTeam = playerSource.team;
+    msg.sourceSlot = this.sourceSlot;
+    msg.targetSlot = this.targetSlot;
+    msg.flagName = this.name;
+  }
+
+  if (msg != undefined)
+    msg = JSON.stringify(msg);
+
   this.isHeld = false;
   this.visible = true;
   if (success)
@@ -587,6 +634,15 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     {
       var fcEvent = this._.find(config.events, {"type":2});
       fcEvent.doStop();
+
+      _.forEach(getplayers.allplayers, function(ply)
+      {
+        // TODO: omit self if self was failed carrier
+        if (ply.instance)
+        {
+          ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
+        }
+      });
     }
   }
   console.log('flag slotted and reset', this);

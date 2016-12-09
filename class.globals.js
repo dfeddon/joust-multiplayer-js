@@ -2,6 +2,7 @@
 
 var config = function()
 {
+    this.preflags = null; // temp array to set flag visibility on "joingame" event
     this.ctx = null;
     this.flagObjects = [];
     //this.allplayers = [];
