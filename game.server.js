@@ -15,7 +15,7 @@ var
     UUID        = require('node-uuid'),
     //namegen     = require('./name_generator'),
     name_set    = require('./egyptian_set'),
-    config      = require('./class.globals'),
+    //config      = require('./class.globals'),
     //getplayers  = require('./class.getplayers'),
     verbose     = true;
 
@@ -475,7 +475,7 @@ game_server.startGame = function(game, newplayer)
             }
             var flagsArray = [];
             var flag;
-            var fo = config.flagObjects;
+            var fo = game_instance.gamecore.config.flagObjects;
             // if (fo)
             // {
             for (var l = 0; l < fo.length; l++)

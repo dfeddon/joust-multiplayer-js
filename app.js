@@ -85,8 +85,18 @@ app.post( '/api/playernames', function(req, res, next)
 
 //Create a socket.io instance using our express server
 //console.log('server prot', server);
-
 var sio = io.listen(server);//, {transports:['websocket']});
+
+// using uws module
+// https://github.com/uWebSockets/uWebSockets
+//*
+//console.log('engine', sio.engine);
+sio.engine.ws = new (require('uws').Server)(
+{
+    noServer: true,
+    perMessageDeflate: false
+});
+//*/
 
 //Configure the socket.io connection settings.
 //See http://socket.io/

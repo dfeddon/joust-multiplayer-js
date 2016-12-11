@@ -102,6 +102,7 @@ var game_core = function(game_instance)
     this.server = this.instance !== undefined;
     
     this.getplayers = new getplayers();
+    this.config = new config();
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
     
 
@@ -1759,7 +1760,12 @@ game_core.prototype.tilemapper = function()
         }; // end tilemap image loaded
 
         // path: ../tilesets/skin1-tileset.png
+        console.log('* tileset image source', source);
+        
+        //var split = source.split("/");
+        //var filename = split[2];
         image.src = source.replace("..", "/assets");
+        //image.src = "http://s3.amazonaws.com/com.dfeddon.wingdom/" + filename;
         //console.log(image.src);
 
     }
