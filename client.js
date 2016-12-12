@@ -5,7 +5,7 @@
 
     MIT Licensed.
 */
-
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */ /*global define */
 'use strict';
 
 var domready = require('domready');
@@ -20,7 +20,7 @@ var game_toast = require('./class.toast');
 var game_chest = require('./class.chest');
 var game_flag = require('./class.flag');
 var
-//*/ 
+//*/
 
 domready(function()
 {
@@ -234,7 +234,11 @@ domready(function()
 
 	//Finally, start the loop
 	game.update( new Date().getTime() );
-	//}
+
+	/////////////////////////////////////////
+	// external controls (from apps)
+	/////////////////////////////////////////
+	
 	if (config.device.ios || config.device.android)
 	{
 		console.log('* mobile device', config.device.ios, config.device.android);
