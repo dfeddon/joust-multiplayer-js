@@ -4,16 +4,17 @@
 
 "use strict";
 
-var config = require('./class.globals');
+//var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
 var _ = require('./node_modules/lodash/lodash.min');
 
-function game_chest(data, client, getplayers)
+function game_chest(data, client, getplayers, config)
 {
   var _this = this;
   //this.game = game_instance;
   this.data = data;
   this.getplayers = getplayers;
+  this.config = config;
 
   if (client)
   {
@@ -43,7 +44,7 @@ function game_chest(data, client, getplayers)
 
   //this._ = require('./node_modules/lodash/lodash.min');
 
-  // if (config.server)
+  // if (this.config.server)
   // {
   //   _.forEach(getplayers.allplayers, function(ply)
   //   {
@@ -82,7 +83,7 @@ game_chest.prototype.doTake = function(player)//, chests)
       // console.log('* send', _this.id, ply.mp);
 
       ply.instance.send('c.t.' + _this.id + '|' + player.mp);//, k );
-      //_config.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
+      //_this.config.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
     }
   });
 
@@ -102,8 +103,8 @@ game_chest.prototype.doTake = function(player)//, chests)
   }
 
   // resset chestSpawnPoints.active to false
-  //console.log(config.chestSpawnPoints.length);
-  _.forEach(config.chestSpawnPoints, function(spawn, key)
+  //console.log(this.config.chestSpawnPoints.length);
+  _.forEach(this.config.chestSpawnPoints, function(spawn, key)
   {
     //console.log('->', spawn.x, _this.x, spawn.y, _this.y);
     if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
@@ -129,14 +130,14 @@ game_chest.prototype.doRemove = function(player)
   console.log('=== chest.doRemove ===');//, player.mp, '===');
 
   var _this = this;
-  _.pull(config.chests, this);
+  _.pull(this.config.chests, this);
   _.forEach(_this.getplayers.allplayers, function(ply)
   {
     if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
     {
       // console.log('* sending c.r. to', ply.mp);
       ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
-      //_config.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
+      //_this.config.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
     }
   });
 };

@@ -4,10 +4,10 @@
 
 "use strict";
 
-var config = require('./class.globals');
+//var config = require('./class.globals');
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
-function game_player(player_instance, isHost, pindex)
+function game_player(player_instance, isHost, pindex, config)
 {
     console.log('game_player');//, game_instance, player_instance);
     //Store the instance, if any
@@ -19,6 +19,7 @@ function game_player(player_instance, isHost, pindex)
     var self = this;
 
     this.instance = player_instance;
+    this.config = config;
     //this.game = game_instance;
     this.isBot = false;
 
@@ -94,15 +95,15 @@ function game_player(player_instance, isHost, pindex)
     //The world bounds we are confined to
     this.pos_limits = {
         x_min: 0,//this.size.hx,
-        x_max: config.world.width - this.size.hx,
+        x_max: this.config.world.width - this.size.hx,
         y_min: 0,//this.size.hy,
-        y_max: config.world.height - this.size.hy
+        y_max: this.config.world.height - this.size.hy
     };
 
     //The 'host' of a game gets created with a player instance since
     //the server already knows who they are. If the server starts a game
     //with only a host, the other player is set up in the 'else' below
-    //this.pos = { x:Math.floor((Math.random() * config.world.width - 64) + 64), y:128};//config.world.height-this.size.hy };
+    //this.pos = { x:Math.floor((Math.random() * this.config.world.width - 64) + 64), y:128};//this.config.world.height-this.size.hy };
     this.pos = {x: 0, y: 0};
     //These are used in moving us around later
     this.old_state = {pos:this.pos};
@@ -134,7 +135,7 @@ function game_player(player_instance, isHost, pindex)
     this.playerName = "";
     this.playerSprite = "roundRooster";
     return;
-    if (!config.server)
+    if (!this.config.server)
     {
         // function transparency(img)
         // {
@@ -585,8 +586,8 @@ game_player.prototype.botAction = function()
     // E: right up
     // u: flap down
     // x: flap up
-    if (config.keyboard)
-    config.keyboard._onKeyChange({keyCode:39}, false);
+    if (this.config.keyboard)
+    this.config.keyboard._onKeyChange({keyCode:39}, false);
     //document.externalControlAction(data);
 };
 
@@ -596,7 +597,7 @@ game_player.prototype.doFlap = function()
 
     // set flap flag
     this.flap = true;
-    // if (!config.server)
+    // if (!this.config.server)
     // this.glideRight = true;
 
     // clear landed flag
@@ -716,11 +717,11 @@ game_player.prototype.doLand = function()
         this.a = 0;
     }
 
-    // if (this.isLocal && !config.server)
+    // if (this.isLocal && !this.config.server)
     // {
-    //     config.client_process_net_prediction_correction2();
+    //     this.config.client_process_net_prediction_correction2();
     // }
-    //if (this.mp == config.players.self.mp)
+    //if (this.mp == this.config.players.self.mp)
     //if (this.landed === 2)
 	    //console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
     //else if (this.landed === 1 && this.mp == "cp1") console.log('landed', this.pos.x, this.pos.y);
@@ -746,12 +747,12 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
     //console.log('player.takeFlag', flag.id, flagType, flag.name, flag.sourceSlot, flag.targetSlot);
 
-    /*var cooldown = config._.find(config.clientCooldowns, {"flag":flag.name});
+    /*var cooldown = this.config._.find(this.config.clientCooldowns, {"flag":flag.name});
     cooldown.heldBy = this.mp;
     cooldown.timer = NaN;*/
 
     /*this.hasFlag = flagType;
-    this.flagTakenAt = config.server_time;
+    this.flagTakenAt = this.config.server_time;
     this.carryingFlag = flag;*/
 
     //this.hasFlag = flagType;
@@ -905,7 +906,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
     console.log('* sourceSlot', flag.sourceSlot, 'targetSlot', flag.targetSlot);*/
     //flag.targetSlot = flag.getTargetSlot
 
-    // if (!config.server)
+    // if (!this.config.server)
     // {
     //     // show toast
     //     new game_toast().show();
@@ -925,8 +926,8 @@ game_player.prototype.takeFlag = function(flag, flagType)
     //         }
     //     }
     //     // update clientCooldowns objs
-    //     var cd = config._.find(config.clientCooldowns, {"name":flag.name});
-    //     //console.log(config.clientCooldowns);
+    //     var cd = this.config._.find(this.config.clientCooldowns, {"name":flag.name});
+    //     //console.log(this.config.clientCooldowns);
     //     cd.heldBy = this.mp;
     //     cd.src = flag.sourceSlot;
     //     cd.target = flag.targetSlot;
@@ -934,7 +935,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
     //     // start cooldown
     //     // get event by id "fc" (flag carried)
-    //     var evt = config._.find(config.events, {'id':"fc"});
+    //     var evt = this.config._.find(this.config.events, {'id':"fc"});
     //     evt.flag = flag;
     //     //console.log('got evt', evt);
     //     evt.doStart();
@@ -969,20 +970,20 @@ game_player.prototype.takeFlag = function(flag, flagType)
 
 //         // revise territory
 //         /*
-//         if (config.server)
+//         if (this.config.server)
 //         {
 //             console.log('emit territory change data');
 //         }
 //         */
-//         if (!config.server)
+//         if (!this.config.server)
 //         {
-//             config.updateTerritory();
+//             this.config.updateTerritory();
 
 //             // start flag-slotted cooldown event
 //         }
 //     }
-//     var flagObj = config._.find(config.flagObjects, {"name":flag.name});
-//     flagObj.reset(success);//, config.server_time);
+//     var flagObj = this.config._.find(this.config.flagObjects, {"name":flag.name});
+//     flagObj.reset(success);//, this.config.server_time);
 //     this.hasFlag = 0;
 //     //this.carryingFlag = null;
 // };
@@ -992,13 +993,13 @@ game_player.prototype.hitFrom = 0;
 game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
-    //console.log('== player.update ==', config.server, this.isBot, this.mp);
-    // if (config.server && this.isBot)
+    //console.log('== player.update ==', this.config.server, this.isBot, this.mp);
+    // if (this.config.server && this.isBot)
     // {
     //     this.botAction();
     // }
     // ensure tilemap data is loaded (locally)
-    if (!this.tmd) this.tmd = config.tilemapData;
+    if (!this.tmd) this.tmd = this.config.tilemapData;
     if (this.landed === 1)
     {
         if (this.collision === false)
@@ -1018,7 +1019,7 @@ game_player.prototype.update = function()
     }
 
 
-    this.vy += config.world.gravity;//.fixed(2);///5;
+    this.vy += this.config.world.gravity;//.fixed(2);///5;
     // 40 = slow, 30 = medium, 25 = fast
     this.vx = ((this.a/40) * Math.cos(this.thrust + this.thrustModifier));//.fixed(2);
 
@@ -1142,7 +1143,7 @@ game_player.prototype.doKill = function(victor)
     //     console.log('IHAVEDIED!!!!!!!!!!');
 
     // apply red flash fx
-    //config.flashBang = 2;d
+    //this.config.flashBang = 2;d
 
     // store current position
     var waspos = this.pos;
@@ -1155,13 +1156,13 @@ game_player.prototype.doKill = function(victor)
     // remove bubble
     this.bubble = false;
 
-    if (this.mp == config.players.self.mp)
+    if (this.mp == this.config.players.self.mp)
     {
-        config.players.self.vx = 0;
-        config.players.self.vy = 0;
-        config.players.self.a = 0;
-        config.players.self.dead = true;
-        config.players.self.vuln = true;
+        this.config.players.self.vx = 0;
+        this.config.players.self.vy = 0;
+        this.config.players.self.a = 0;
+        this.config.players.self.dead = true;
+        this.config.players.self.vuln = true;
     }
 
     // if carrying flag, drop it
@@ -1169,11 +1170,11 @@ game_player.prototype.doKill = function(victor)
     {
         this.dropFlag();
 
-        if (this.mp == config.players.self.mp)
-            config.players.self.dropFlag();
+        if (this.mp == this.config.players.self.mp)
+            this.config.players.self.dropFlag();
     }
 
-    //this.pos = config.gridToPixel(2, 2);
+    //this.pos = this.config.gridToPixel(2, 2);
 
     // splatter "orbs of death"
     /*
@@ -1191,14 +1192,14 @@ game_player.prototype.doKill = function(victor)
         id = Math.floor(Math.random() * 5000) + 1;
 
         neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
-        config.orbs.push( neworb );
+        this.config.orbs.push( neworb );
     }
-    console.log('total orbs', config.orbs.length);//, this.orbs);
+    console.log('total orbs', this.config.orbs.length);//, this.orbs);
     //*/
 
     // show splatter locally
-    /*if (!config.server)
-        config.prerenderer();*/
+    /*if (!this.config.server)
+        this.config.prerenderer();*/
 
     if (victor)
     {
@@ -1213,7 +1214,7 @@ game_player.prototype.doKill = function(victor)
         // toast or death log
         
         // temporarily have camera follow victor
-        //config.players.self = victor;
+        //this.config.players.self = victor;
     }
 
     // dim game screen (alpha overlay)
@@ -1234,9 +1235,9 @@ game_player.prototype.timeoutRespawn = function(victor)
         // this.active = true;
         this.landed = 1;
         this.bubble = false;
-        this.pos = config.gridToPixel(0,0);
+        this.pos = this.config.gridToPixel(0,0);
 
-        if (this.mp == config.players.self.mp)
+        if (this.mp == this.config.players.self.mp)
         {
             var ui = document.getElementById('splash');
             ui.style.display = "block";
@@ -1253,23 +1254,23 @@ game_player.prototype.timeoutRespawn = function(victor)
     this.active = true;
     this.landed = 1;
     this.bubble = false;
-    this.pos = config.gridToPixel(3,4);
+    this.pos = this.config.gridToPixel(3,4);
 
-    if (this.mp == config.players.self.mp)
+    if (this.mp == this.config.players.self.mp)
     {
-        config.players.self = this;
-        // config.players.self.visible = false;
-        // config.players.self.pos = config.gridToPixel(3,4);
-        // config.players.self.dead = false;
-        // config.players.self.landed = 1;
+        this.config.players.self = this;
+        // this.config.players.self.visible = false;
+        // this.config.players.self.pos = this.config.gridToPixel(3,4);
+        // this.config.players.self.dead = false;
+        // this.config.players.self.landed = 1;
 
-        if (!config.server)
+        if (!this.config.server)
         {
-            config.players.self.visible = false;
-            config.players.self.active = false;
-            config.players.self.pos = config.gridToPixel(3,4);
-            config.players.self.dead = false;
-            config.players.self.landed = 1;
+            this.config.players.self.visible = false;
+            this.config.players.self.active = false;
+            this.config.players.self.pos = this.config.gridToPixel(3,4);
+            this.config.players.self.dead = false;
+            this.config.players.self.landed = 1;
 
             var ui = document.getElementById('splash');
             ui.style.display = "block";
@@ -1282,7 +1283,7 @@ game_player.prototype.timeoutRespawn = function(victor)
     }
 
     // // show respawn screen (ads)
-    // if (!config.server && victor.mp != config.players.self.mp)
+    // if (!this.config.server && victor.mp != this.config.players.self.mp)
     // {
     //     var ui = document.getElementById('splash');
     //     ui.style.display = "block";
@@ -1353,14 +1354,14 @@ game_player.prototype.doAbility = function()
     {
         case "burst":
             //this.abil = 1;
-            console.log('bursting!!', this.x_dir, this.mp, config.playerspeed);
+            console.log('bursting!!', this.x_dir, this.mp, this.config.playerspeed);
             //if (this.dir === 0)
                 //this.x_dir += 500;//this.pos.x += this.size.hx + 150;
             //else this.ax -= 100;//this.pos.x -= 150;
             this.vx += 500;
-            console.log('post!!', this.x_dir, this.mp, config.playerspeed);
+            console.log('post!!', this.x_dir, this.mp, this.config.playerspeed);
 
-            //if (this.isLocal) config.players.self.pos.x = this.pos.x;
+            //if (this.isLocal) this.config.players.self.pos.x = this.pos.x;
             // start cooldown
         break;
 
@@ -1539,7 +1540,7 @@ game_player.prototype.isVuln = function(len)
     var stun = setTimeout(this.timeoutVuln.bind(this), len);
 
     // if carrying flag, drop it
-    if (config.server && this.hasFlag)
+    if (this.config.server && this.hasFlag)
         this.dropFlag();
 };
 
@@ -1560,7 +1561,7 @@ game_player.prototype.dropFlag = function()
         this.hasFlag = 0;
 
         // reset flag
-        var flag = config._.find(config.flagObjects, {"name":flagName});
+        var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
         //flag.slotFlag(this);
         flag.reset(false, this.game);
     }
@@ -1625,8 +1626,8 @@ game_player.prototype.getCoord = function()
 game_player.prototype.hitGrid = function()
 {
     // don't proceed unless tilemapData is loaded
-    //if (config.tilemapData == undefined) return;
-    //var tmd = config.tilemapData;
+    //if (this.config.tilemapData == undefined) return;
+    //var tmd = this.config.tilemapData;
     if (this.tmd === null) return;
 
     this.c = this.getCoord();
@@ -1654,13 +1655,13 @@ game_player.prototype.drawAbilities = function()
     //console.log('drawAbil', this.engaged);
     if (this.engaged === false)
     {
-        config.ctx.beginPath();
-        config.ctx.strokeStyle = 'gray';
-        config.ctx.moveTo(this.pos.x, this.pos.y-10);
-        config.ctx.lineTo(this.pos.x + 64, this.pos.y-10);
-        config.ctx.lineWidth = 3;
-        config.ctx.stroke();
-        config.ctx.closePath();
+        this.config.ctx.beginPath();
+        this.config.ctx.strokeStyle = 'gray';
+        this.config.ctx.moveTo(this.pos.x, this.pos.y-10);
+        this.config.ctx.lineTo(this.pos.x + 64, this.pos.y-10);
+        this.config.ctx.lineWidth = 3;
+        this.config.ctx.stroke();
+        this.config.ctx.closePath();
 
         // mana progression
         // calculate
@@ -1669,15 +1670,15 @@ game_player.prototype.drawAbilities = function()
         // 64 is the width of the progression bar
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
-        config.ctx.beginPath();
-        config.ctx.strokeStyle = 'yellow';
+        this.config.ctx.beginPath();
+        this.config.ctx.strokeStyle = 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-        config.ctx.moveTo(this.pos.x, this.pos.y-10);
-        config.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
-        config.ctx.lineWidth = 3;
-        config.ctx.stroke();
-        config.ctx.closePath();
+        this.config.ctx.moveTo(this.pos.x, this.pos.y-10);
+        this.config.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
+        this.config.ctx.lineWidth = 3;
+        this.config.ctx.stroke();
+        this.config.ctx.closePath();
 
         // buffs, potions, and boosters
         //console.log(this.pos.x, this.pos.y);
@@ -1722,19 +1723,19 @@ game_player.prototype.draw = function()
     // else
     // {
     // nameplate color
-    config.ctx.save();
+    this.config.ctx.save();
     if (this.team == 1) // 1 = red, 2 = blue
     {
-        config.ctx.fillStyle = '#FF6961';
+        this.config.ctx.fillStyle = '#FF6961';
         //game.ctx.save();
     }
     else if (this.team == 2)
     {
-        config.ctx.fillStyle = '#6ebee6';
+        this.config.ctx.fillStyle = '#6ebee6';
         //game.ctx.save();
     }
-    else config.ctx.fillStyle = 'white';
-    //config.ctx.font = "small-caps 15px serif";
+    else this.config.ctx.fillStyle = 'white';
+    //this.config.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
     //     this.pos.x,
@@ -1743,17 +1744,17 @@ game_player.prototype.draw = function()
     //     5);
 
     // nameplate
-    config.ctx.font = "16px Mirza";
-    config.ctx.textAlign = 'center';
+    this.config.ctx.font = "16px Mirza";
+    this.config.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
     var txt = this.playerName + this.team.toString();//+ "(" + this.mana.toString() + ")";
-    config.ctx.fillText(
-        txt,// + " (" + this.level + ") " + this.mana.toString(),// + config.fps.fixed(1),
+    this.config.ctx.fillText(
+        txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
         this.pos.y - txtOffset
         //100
     );
-    config.ctx.restore();
+    this.config.ctx.restore();
 
     // draw rank circle
     /*
@@ -1767,7 +1768,7 @@ game_player.prototype.draw = function()
 
     if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
-        config.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
+        this.config.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
             //this.pos.x - 15,
             this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
             //this.pos.x + (this.size.hx/2) - 30,
@@ -1898,12 +1899,12 @@ game_player.prototype.draw = function()
     //console.log('this.hasFlag', this.hasFlag);
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
-        var flag = config._.find(config.clientCooldowns, {'heldBy':this.mp});
-        //console.log('gotflag', flag, config.clientCooldowns);
+        var flag = this.config._.find(this.config.clientCooldowns, {'heldBy':this.mp});
+        //console.log('gotflag', flag, this.config.clientCooldowns);
 
-        //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(config.server_time - this.flagTakenAt));
+        //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.config.server_time - this.flagTakenAt));
         //*
-        //var ct = Math.floor(config.server_time - this.flagTakenAt);
+        //var ct = Math.floor(this.config.server_time - this.flagTakenAt);
         //ct = 60 - ct;
         //console.log('carrying flag', this.carryingFlag.name);
         //console.log('flag.timer', flag.timer);
@@ -1911,17 +1912,17 @@ game_player.prototype.draw = function()
         {
             console.log('* player.draw: flag reset', this.hasFlag);
             // reset flag
-            for (var f = 0; f < config.flagObjects.length; f++)
+            for (var f = 0; f < this.config.flagObjects.length; f++)
             {
-                if (config.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
-                    config.flagObjects[f].reset(false, this.game);
-                else if (config.flagObjects[f].name == "redFlag" && this.hasFlag === 2)
-                    config.flagObjects[f].reset(false, this.game);
-                else if (config.flagObjects[f].name == "blueFlag" && this.hasFlag === 3)
-                    config.flagObjects[f].reset(false, this.game);
+                if (this.config.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
+                    this.config.flagObjects[f].reset(false, this.game);
+                else if (this.config.flagObjects[f].name == "redFlag" && this.hasFlag === 2)
+                    this.config.flagObjects[f].reset(false, this.game);
+                else if (this.config.flagObjects[f].name == "blueFlag" && this.hasFlag === 3)
+                    this.config.flagObjects[f].reset(false, this.game);
             }
             //console.log('resetting flag', this.flagType);
-            //console.log('flags', config.flagObjects);
+            //console.log('flags', this.config.flagObjects);
 
             this.hasFlag = 0;
             // get out
@@ -1955,16 +1956,16 @@ game_player.prototype.draw = function()
         //console.log('flagImg', flagImg, this.dir);
         if (flagImg)
         {
-            config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
+            this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
             // draw timer
             //*
-            config.ctx.font = "18px Mirza";
-            config.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
-            config.ctx.textAlign = 'center';
+            this.config.ctx.font = "18px Mirza";
+            this.config.ctx.fillStyle = (this.hasFlag === 1) ? "#000" : "#fff";
+            this.config.ctx.textAlign = 'center';
             //if (this.carryingFlag)
             if (flag)
-            config.ctx.fillText(
-                flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + config.fps.fixed(1),
+            this.config.ctx.fillText(
+                flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
                 (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
                 this.pos.y - 5//txtOffset
                 //100
@@ -1984,13 +1985,13 @@ game_player.prototype.draw = function()
         //console.log(this.glideRight);
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         //if (this.glideRight)
-            config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
+            this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
         //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);
 
     if (this.bubble === true)
-        config.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
+        this.config.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
 
 
 

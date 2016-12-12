@@ -119,22 +119,22 @@ var game_core = function(game_instance)
     var worldHeight = 37*64;//3200;//720;
 
     //Used in collision etc.
-    config.world = {
+    this.config.world = {
         width : worldWidth,//720,
         height : worldHeight//480
     };
 
-    config.world.gravity = 0.05;//.25;//2;//3.5;
+    this.config.world.gravity = 0.05;//.25;//2;//3.5;
 
-    config.world.totalplayers = 10;//30;//40;//4;
+    this.config.world.totalplayers = 10;//30;//40;//4;
 
-    config.world.maxOrbs = 0;//150;
+    this.config.world.maxOrbs = 0;//150;
     this.orbs = [];
 
     this.tilemap = null;
-    config.tilemapData = null;
+    this.config.tilemapData = null;
     this.chestSpawnPoints = [];
-    config.flagObjects = [];
+    this.config.flagObjects = [];
     this.clientCooldowns = [
         {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
         {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
@@ -156,8 +156,8 @@ var game_core = function(game_instance)
     this.platformsData.push(
         {
             id:'plat1',
-            x:(config.world.width/2) + (64 * 4),
-            y:(config.world.height/2) - (64 * 4),
+            x:(this.config.world.width/2) + (64 * 4),
+            y:(this.config.world.height/2) - (64 * 4),
             w:256,
             h:64,
             t:1,
@@ -167,7 +167,7 @@ var game_core = function(game_instance)
     this.platformsData.push(
         {
             id:'plat2',
-            x:(config.world.width/2) + (5 * 64),
+            x:(this.config.world.width/2) + (5 * 64),
             y:15 * 64,
             w:256,
             h:64,
@@ -178,7 +178,7 @@ var game_core = function(game_instance)
     this.platformsData.push(
         {
             id:'plat3',
-            x:(config.world.width/2) + (12 * 64),
+            x:(this.config.world.width/2) + (12 * 64),
             y:8 * 64,
             w:64*6,
             h:64,
@@ -187,8 +187,8 @@ var game_core = function(game_instance)
         }
     );
     //*/
-    // this.platforms.push({x:config.world.width/4,y:300,w:256,h:64});
-    // this.platforms.push({x:config.world.width -100,y:500,w:128,h:64});
+    // this.platforms.push({x:this.config.world.width/4,y:300,w:256,h:64});
+    // this.platforms.push({x:this.config.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
 
     this.spritesheets = [];
@@ -236,9 +236,9 @@ var game_core = function(game_instance)
         this.apiNode(); // load tilemap data
 
         var other;
-        for (var i = 1; i < config.world.totalplayers; i++)
+        for (var i = 1; i < this.config.world.totalplayers; i++)
         {
-            other = new game_player(null, false, this.getplayers.allplayers.length+1);
+            other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
             other.playerName = this.nameGenerator() + " [" + other.mp + "]";            
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
@@ -247,7 +247,7 @@ var game_core = function(game_instance)
             this.getplayers.allplayers.push(other);
             // this.entities.push(other);
         }
-        var hp = new game_player(this.instance.player_host, true);
+        var hp = new game_player(this.instance.player_host, true, NaN, this.config);
         console.log('server host player (hp)', this.instance.player_host.userid);
         
         // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
@@ -270,13 +270,13 @@ var game_core = function(game_instance)
         console.log('##-@@ creating orbs on server', this.orbs.length);
         var size,c,ox,oy,id;
         var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
-        for (var k = 0; k < config.world.maxOrbs; k++)
+        for (var k = 0; k < this.config.world.maxOrbs; k++)
         {
             size = Math.floor(Math.random() * 4) + 2;
             c = colors[Math.floor(Math.random() * colors.length)];
             // TODO: Avoid barriers
-            ox = Math.floor(Math.random() * config.world.width) + 1;
-            oy = Math.floor(Math.random() * config.world.height) + 1;
+            ox = Math.floor(Math.random() * this.config.world.width) + 1;
+            oy = Math.floor(Math.random() * this.config.world.height) + 1;
             id = UUID();
 
             // create new orb if undefined
@@ -316,8 +316,8 @@ var game_core = function(game_instance)
             plat.setter(
             {
                 //id:this.platformsData[m].id,
-                x:this.platformsData[m].x,//(config.world.width/2) + (64 * 5),
-                y:this.platformsData[m].y,//(config.world.height/2) - (64 * 5),
+                x:this.platformsData[m].x,//(this.config.world.width/2) + (64 * 5),
+                y:this.platformsData[m].y,//(this.config.world.height/2) - (64 * 5),
                 w:this.platformsData[m].w,//512,
                 h:this.platformsData[m].h//64
             });
@@ -337,7 +337,7 @@ var game_core = function(game_instance)
         ///////////////////////////////////
         //*
         // create chest spawn event
-        var evt = new game_event_server(this.getplayers);//this);
+        var evt = new game_event_server(this.getplayers, this.config);//this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
         //console.log('evt type', evt.type);
@@ -346,7 +346,7 @@ var game_core = function(game_instance)
         //console.log('chest event',this.events);
 
         // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers);//this);
+        evt = new game_event_server(this.getplayers, this.config);//this);
         evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fc"; // event flag carried
@@ -357,7 +357,7 @@ var game_core = function(game_instance)
 
         // create flag slotted cooldown event
         // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers);//this);
+        evt = new game_event_server(this.getplayers, this.config);//this);
         evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fs"; // event flag slotted
@@ -424,13 +424,13 @@ var game_core = function(game_instance)
         // tilemap
         this.api(); // load and build tilemap
 
-        console.log("## adding client players...", config.world.totalplayers);
+        console.log("## adding client players...", this.config.world.totalplayers);
 
         this.players = {};
         var p;
-        for (var l = 1; l < config.world.totalplayers; l++)
+        for (var l = 1; l < this.config.world.totalplayers; l++)
         {
-            p = new game_player(null, false, this.getplayers.allplayers.length+1);
+            p = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             // p.ent = new physicsEntity(physicsEntity.ELASTIC);
             console.log(l, p.mp);
             p.pos = this.gridToPixel(l, 0);
@@ -438,7 +438,7 @@ var game_core = function(game_instance)
             this.getplayers.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
-        var chost = new game_player();//, true);
+        var chost = new game_player(null, false, NaN, this.config);//, true);
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
@@ -458,8 +458,8 @@ var game_core = function(game_instance)
         var canvasPlatforms = document.createElement('canvas');
 
         canvasPlatforms.id = "canvasPlatforms";
-        canvasPlatforms.width = config.world.width;
-        canvasPlatforms.height = config.world.height;
+        canvasPlatforms.width = this.config.world.width;
+        canvasPlatforms.height = this.config.world.height;
         //canvasPlatforms = canvasPlatforms.getContext('2d');
 
         this.canvasPlatforms = canvasPlatforms;
@@ -474,8 +474,8 @@ var game_core = function(game_instance)
             cplat.setter(
             {
                 //id:this.platformsData[n].id,
-                x:this.platformsData[n].x,//(config.world.width/2) + (64 * 5),
-                y:this.platformsData[n].y,//(config.world.height/2) - (64 * 5),
+                x:this.platformsData[n].x,//(this.config.world.width/2) + (64 * 5),
+                y:this.platformsData[n].y,//(this.config.world.height/2) - (64 * 5),
                 w:this.platformsData[n].w,//512,
                 h:this.platformsData[n].h//64
             });
@@ -508,7 +508,8 @@ var game_core = function(game_instance)
     {
         //Create a keyboard handler
         this.keyboard = new THREEx.KeyboardState();
-        config.keyobard = new THREEx.KeyboardState();
+        console.log("* this.keyboard", this.keyboard);
+        this.config.keyboard = new THREEx.KeyboardState();
 
         //Create the default configuration settings
         this.client_create_configuration();
@@ -538,7 +539,7 @@ var game_core = function(game_instance)
     else
     { //if !server
 
-        config.server_time = 0;
+        this.config.server_time = 0;
         this.laststate = {};
 
     }
@@ -547,24 +548,24 @@ var game_core = function(game_instance)
     if (!this.server)
     {
         var v = document.getElementById("viewport");
-        config.ctx = v.getContext('2d');
+        this.config.ctx = v.getContext('2d');
     }
-    //config.flagObjects = config.flagObjects;
+    //this.config.flagObjects = this.config.flagObjects;
     //this.getplayers.allplayers = this.getplayers.allplayers;
-    //config.world = config.world;
-    config.server = (this.server) ? true : false;
-    config.keyboard = this.keyboard;
-    config.updateTerritory = this.updateTerritory;
-    config.flagToScore = this.flagToScore;
-    //config.tilemapData = config.tilemapData;
-    config.players = this.players;
-    config.events = this.events;
-    config.clientCooldowns = this.clientCooldowns;
-    config.chests = this.chests;
-    config.chestSpawnPoints = this.chestSpawnPoints;
-    config.passives = this.passives;
-    config._ = _;
-    config.gridToPixel = this.gridToPixel;
+    //this.config.world = this.config.world;
+    this.config.server = (this.server) ? true : false;
+    this.config.keyboard = this.keyboard;
+    this.config.updateTerritory = this.updateTerritory;
+    this.config.flagToScore = this.flagToScore;
+    //this.config.tilemapData = this.config.tilemapData;
+    this.config.players = this.players;
+    this.config.events = this.events;
+    this.config.clientCooldowns = this.clientCooldowns;
+    this.config.chests = this.chests;
+    this.config.chestSpawnPoints = this.chestSpawnPoints;
+    this.config.passives = this.passives;
+    this.config._ = _;
+    this.config.gridToPixel = this.gridToPixel;
 
     //console.log('config', config);
     
@@ -577,6 +578,7 @@ if( 'undefined' != typeof global )
     module.exports = global.game_core = game_core;
 }
 
+game_core.prototype.getKeyboard = function() { return this.keyboard };
 game_core.prototype.nameGenerator = function()
 {
     // name generator
@@ -628,8 +630,8 @@ game_core.prototype.buildPlatforms = function()
     /*var canvasPlatforms = document.createElement('canvas');
 
     canvasPlatforms.id = "canvasPlatforms";
-    canvasPlatforms.width = config.world.width;
-    canvasPlatforms.height = config.world.height;
+    canvasPlatforms.width = this.config.world.width;
+    canvasPlatforms.height = this.config.world.height;
     //canvasPlatforms = canvasPlatforms.getContext('2d');
 
     this.canvasPlatforms = canvasPlatforms;*/
@@ -837,8 +839,8 @@ game_core.prototype.apiNode = function()
                 base.push(split2);
             }
             //console.log(base[0].length, base[0]);
-            //config.tilemapData = base;
-            config.tilemapData = base;
+            //this.config.tilemapData = base;
+            _this.config.tilemapData = base;
 
             // objectgroups
             var builder = new xml2js.Builder();
@@ -883,31 +885,31 @@ game_core.prototype.apiNode = function()
                         var flag;
                         if (objectgroupNode[j].object.length === undefined)
                         {
-                            flag = new game_flag(objectgroupNode[j].object.$, null, this.getplayers);
+                            flag = new game_flag(objectgroupNode[j].object.$, null, this.getplayers, this.config);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
                             //console.log('-flag', flag);
-                            config.flagObjects.push(flag);
+                            this.config.flagObjects.push(flag);
                         }
                         else
                         {
                             for (var l = 0; l < objectgroupNode[j].object.length; l++)
                             {
                                 //console.log('->',objectgroupNode[j].object[l].$);
-                                //config.flagObjects.push(objectgroupNode[j].object[l].$);
+                                //this.config.flagObjects.push(objectgroupNode[j].object[l].$);
 
-                                flag = new game_flag(objectgroupNode[j].object[l].$, null, _this.getplayers);
+                                flag = new game_flag(objectgroupNode[j].object[l].$, null, _this.getplayers, _this.config);
                                 //flag.setter(objectgroupNode[j].object[l].$);
                                 flag.id = "flg" + l.toString();
                                 //console.log('flag', flag);
-                                config.flagObjects.push(flag);
+                                _this.config.flagObjects.push(flag);
                             }
                         }
                     break;
                 }
             }
             //console.log('chests:', _this.chestSpawnPoints);
-            //console.log('flagObjects:', config.flagObjects);
+            //console.log('flagObjects:', this.config.flagObjects);
         });
     });
 };
@@ -973,9 +975,9 @@ game_core.prototype.getUID = function()
 
 game_core.prototype.updateTerritory = function()
 {
-    console.log('== game_core.updateTerrotiroy', this.bg, config.flagObjects.length, "==");
+    console.log('== game_core.updateTerrotiroy', this.bg, this.config.flagObjects.length, "==");
 
-    if (config.bg == null)
+    if (this.config.bg == null)
     //if (this.bg == null)
     {
         console.log('bg is null, creating...', this);
@@ -984,16 +986,16 @@ game_core.prototype.updateTerritory = function()
         this.bg.id = "bg";
         this.bg.x = 0;
         this.bg.y = 0;
-        this.bg.width = config.world.width;//v.width;
-        this.bg.height = config.world.height;//v.height;
+        this.bg.width = this.config.world.width;//v.width;
+        this.bg.height = this.config.world.height;//v.height;
         //context3 = this.bg.getContext('2d');
-        config.bg = this.bg;
+        this.config.bg = this.bg;
     }
-    //console.log('pre', config.ctx);
+    //console.log('pre', this.config.ctx);
     
-    //if (!config.ctx) config.ctx = config.bg.getContext('2d');
-    console.log('ctx', config.ctx);
-    console.log('bg', config.bg);
+    //if (!this.config.ctx) this.config.ctx = this.config.bg.getContext('2d');
+    console.log('ctx', this.config.ctx);
+    console.log('bg', this.config.bg);
 
     var ctx = this.bg.getContext('2d');
     
@@ -1007,8 +1009,8 @@ game_core.prototype.updateTerritory = function()
     var brickOffsetTop = 0;//30;
     var brickOffsetLeft = 0;//30;
 
-    var brickColumnCount = config.world.width / (brickWidth + brickPadding);
-    var brickRowCount = config.world.height / (brickHeight + brickPadding);
+    var brickColumnCount = this.config.world.width / (brickWidth + brickPadding);
+    var brickRowCount = this.config.world.height / (brickHeight + brickPadding);
 
     var bricks = [];
     for(var c = 0; c<brickColumnCount; c++)
@@ -1030,9 +1032,9 @@ game_core.prototype.updateTerritory = function()
     }*/
 
     // flags
-    var red = _.find(config.flagObjects, {'name':'redFlag'});
-    var mid = _.find(config.flagObjects, {'name':'midFlag'});
-    var blue = _.find(config.flagObjects, {'name':'blueFlag'});
+    var red = _.find(this.config.flagObjects, {'name':'redFlag'});
+    var mid = _.find(this.config.flagObjects, {'name':'midFlag'});
+    var blue = _.find(this.config.flagObjects, {'name':'blueFlag'});
     //console.log(red, mid, blue);
     //console.log('territory', red, mid.x, blue.x);
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
@@ -1393,8 +1395,8 @@ game_core.prototype.tilemapper = function()
     canvas3.id = "canvas3";
     canvas3.x = 0;
     canvas3.y = 0;
-    canvas3.width = config.world.width;//v.width;
-    canvas3.height = config.world.height;//v.height;
+    canvas3.width = this.config.world.width;//v.width;
+    canvas3.height = this.config.world.height;//v.height;
     var context3 = canvas3.getContext('2d');
     /////////////////////////////////////////
     // Tilemap
@@ -1494,14 +1496,14 @@ game_core.prototype.tilemapper = function()
                     //if (flagObjectsObj.type == "flag")
                     //{
                         //flg = new game_flag(flagObjectsObj.type, _this.viewport.getContext('2d'));
-                        //config.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
+                        //this.config.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
                         //flg.setter(flagObjectsObj);
                     //}
                     //else {
                     //    flg = new game_flag(flagObjectsObj.type, null);
                         //flg.setter(flagObjectsObj);
                     //}
-                    //config.flagObjects.push(flg);
+                    //this.config.flagObjects.push(flg);
                 });
                 for (var k in flagObjectsObj)
                     delete flagObjectsObj[k];
@@ -1509,13 +1511,13 @@ game_core.prototype.tilemapper = function()
                 /*_.forEach(objsArray, function(i)
                 {
                     //console.log(i);
-                    config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
+                    this.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
                 });*/
                 break;
             }
         }
         //console.log('chests', this.chestSpawnPoints);
-        //console.log('players', config.flagObjects);
+        //console.log('players', this.config.flagObjects);
 
         ///////////////////////////////////
         // layers
@@ -1582,8 +1584,8 @@ game_core.prototype.tilemapper = function()
             console.log('layerName', layerName);
             if (layerName == "barriers")
             {
-                config.tilemapData = base;
-                //config.tilemapData = base;
+                this.config.tilemapData = base;
+                //this.config.tilemapData = base;
             }
             //console.log(base);
             layerData.push(base);
@@ -1619,7 +1621,7 @@ game_core.prototype.tilemapper = function()
             tilemap.id = "tilemap";
             tilemap.width = width * tileWidth;
             tilemap.height = height * tileHeight;//v.height;
-            console.log('tilemap w h', tilemap.width, tilemap.height);//, config.world.width, config.world.height);
+            console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
             var tmContext = tilemap.getContext('2d');
 
             ///////////////////////////////////
@@ -1648,7 +1650,7 @@ game_core.prototype.tilemapper = function()
                 c.id = n;
                 c.width = width * tileWidth;
                 c.height = height * tileHeight;//v.height;
-                //console.log('tilemap w h', tilemap.width, tilemap.height);//, config.world.width, config.world.height);
+                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
                 cContext = c.getContext('2d');
 
                 // add tilemap to tile canvas context
@@ -1716,11 +1718,11 @@ game_core.prototype.tilemapper = function()
             //console.log("_", _.forEach());
             //console.log('flagArray', flagArray);
             var pre = {midFlag: undefined, redFlag: undefined, blueFlag: undefined};
-            if (config.preflags)
+            if (_this.config.preflags)
             {
-                for (var x = 0; x < config.preflags.length; x++)
+                for (var x = 0; x < _this.config.preflags.length; x++)
                 {
-                    pre[config.preflags[x].name] = config.preflags[x];//.visible;
+                    pre[_this.config.preflags[x].name] = _this.config.preflags[x];//.visible;
                 }
             }
             //console.log('preflags', pre);
@@ -1730,26 +1732,26 @@ game_core.prototype.tilemapper = function()
                 //console.log('fog', fo);
                 if (fo.type == "flag")
                 {
-                    var flag = new game_flag(fo, _this.viewport.getContext('2d'), _this.getplayers);
+                    var flag = new game_flag(fo, _this.viewport.getContext('2d'), _this.getplayers, _this.config);
                     //console.log('vis name', vis[fo.name]);
-                    if (config.preflags)
+                    if (_this.config.preflags)
                     {
                         flag.visible = pre[fo.name].visible; // set default visibility
                         flag.x = pre[fo.name].x;
                         flag.y = pre[fo.name].y;
                     }
-                    config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
+                    _this.config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
                 }
                 else if (fo.type == "slot")
                 {
-                    var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.getplayers);
+                    var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.getplayers, _this.config);
                     //slot.setter(fo);
-                    config.flagObjects.push(slot);
+                    _this.config.flagObjects.push(slot);
                     slot.draw();
 
                     /*console.log('revising ctx');
                     //fo.setCtx(_this.fg.getContext('2d'));
-                    config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
+                    this.config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
                     //fo.draw();
                 }
                 //else fo.draw();
@@ -1807,25 +1809,25 @@ game_core.prototype.prerenderer = function()
         //var v = document.getElementById("viewport");
         canvas2 = document.createElement('canvas');
         canvas2.id = "canvas2";
-        canvas2.width = config.world.width;//v.width;
-        canvas2.height = config.world.height;//v.height;
+        canvas2.width = this.config.world.width;//v.width;
+        canvas2.height = this.config.world.height;//v.height;
         context2 = canvas2.getContext('2d');
-        //max = config.world.maxOrbs;
+        //max = this.config.world.maxOrbs;
     }
     else
     {
         //max = this.orbs.length;
         context2 = this.canvas2.getContext('2d');
         // clear existing canvas
-        context2.clearRect(0,0, config.world.width, config.world.height);
+        context2.clearRect(0,0, this.config.world.width, this.config.world.height);
     }
     //*/
     //console.log(context2);
     //var prerendCanvas = document.getElementById('prerend');
-    //prerendCanvas.width = config.world.width;//v.width;
-    //prerendCanvas.height = config.world.height;//v.height;
+    //prerendCanvas.width = this.config.world.width;//v.width;
+    //prerendCanvas.height = this.config.world.height;//v.height;
     /*context2 = this.prerendCanvas.getContext('2d');
-    context2.clearRect(0,0, config.world.width, config.world.height);*/
+    context2.clearRect(0,0, this.config.world.width, this.config.world.height);*/
 
     /////////////////////////////////////////
     // Orbs
@@ -1845,8 +1847,8 @@ game_core.prototype.prerenderer = function()
         size = Math.floor(Math.random() * 4) + 2;
         c = colors[Math.floor(Math.random() * colors.length)];
         // TODO: Avoid foreground tiles
-        x = Math.floor(Math.random() * config.world.width) + 1;
-        y = Math.floor(Math.random() * config.world.height) + 1;
+        x = Math.floor(Math.random() * this.config.world.width) + 1;
+        y = Math.floor(Math.random() * this.config.world.height) + 1;
 
         // create new orb if undefined
         /*if (orbs[k]===undefined)
@@ -1892,7 +1894,7 @@ game_core.prototype.prerenderer = function()
     // center circle
     /////////////////////////////////////////
     /*context2.beginPath();
-	context2.arc(config.world.width/2,config.world.height/2,50,0*Math.PI,2*Math.PI);
+	context2.arc(this.config.world.width/2,this.config.world.height/2,50,0*Math.PI,2*Math.PI);
     context2.fillStyle = "red";
     //context2.shadowBlur = 10;
     //context2.shadowColor = 'red';
@@ -1905,18 +1907,18 @@ game_core.prototype.prerenderer = function()
     /*
     context2.beginPath();
     // bottom
-    context2.moveTo(0, config.world.height);
-    context2.lineTo(config.world.width, config.world.height);
+    context2.moveTo(0, this.config.world.height);
+    context2.lineTo(this.config.world.width, this.config.world.height);
     context2.strokeStyle = 'black';
     // top
     context2.moveTo(0, 0);
-    context2.lineTo(config.world.width, 0);
+    context2.lineTo(this.config.world.width, 0);
     // left
-    context2.moveTo(0, config.world.height);
+    context2.moveTo(0, this.config.world.height);
     context2.lineTo(0, 0);
     // right
-    context2.moveTo(config.world.width, config.world.height);
-    context2.lineTo(config.world.width, 0);
+    context2.moveTo(this.config.world.width, this.config.world.height);
+    context2.lineTo(this.config.world.width, 0);
     // styles
     context2.closePath();
     context2.lineWidth = 10;
@@ -2149,7 +2151,7 @@ game_core.prototype.check_collision = function( player )
 
         // player collision (server managed)
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    if (config.server)
+    if (this.config.server)
     {
         _.forEach(this.getplayers.allplayers, function(other)
         {
@@ -2316,7 +2318,7 @@ game_core.prototype.check_collision = function( player )
                         // get diffs
                         // var spreadX = 100;
                         // var spreadY = 100;
-                        // if (config.world.height - waspos.y > spreadX)
+                        // if (this.config.world.height - waspos.y > spreadX)
                         //     spreadX = 100 -
                         // var size, c, ox, oy, id, neworb;
                         // var colors = ['white'];
@@ -2365,7 +2367,7 @@ game_core.prototype.check_collision = function( player )
         )
         {
             //console.log('hit platform!');
-            if (player.pos.y > (platform.y))// + platform.h))//config.world.height - 200)
+            if (player.pos.y > (platform.y))// + platform.h))//this.config.world.height - 200)
             {
                 // bounce off
                 player.pos.y = platform.y + platform.h + 5;
@@ -2405,7 +2407,7 @@ game_core.prototype.check_collision = function( player )
             } // end player hit from below
             else //if (player.pos.y + player.size.hx > this.platforms.y) // from top (TODO: add friction)
             {
-                player.pos.y = platform.y - player.size.hy;// - 10;// -= 1;// config.world.height-200;
+                player.pos.y = platform.y - player.size.hy;// - 10;// -= 1;// this.config.world.height-200;
                 //console.log('--->',player.pos.y);
                 // decelerate
                 if (player.vx > 0)
@@ -2524,9 +2526,9 @@ game_core.prototype.check_collision = function( player )
     });
 
     // flagObjects (flags and slots)
-    if (config.server)
+    if (this.config.server)
     {
-        _.forEach(config.flagObjects, function(fo)
+        _.forEach(this.config.flagObjects, function(fo)
         {
             if (
                 //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
@@ -2846,7 +2848,7 @@ game_core.prototype.client_onflagadd = function(data)
     // show flag in slot
     /////////////////////////////////////
     var targetSlot, flagSlotted;
-    _.forEach(config.flagObjects, function(fo)
+    _.forEach(this.config.flagObjects, function(fo)
     {
         //console.log(fo.name, slotName);
         if (fo.name == slotName)
@@ -2922,7 +2924,7 @@ game_core.prototype.client_onflagremove = function(data)
     // hide flag taken
     /////////////////////////////////////
     var targetSlot;
-    _.forEach(config.flagObjects, function(flag)
+    _.forEach(this.config.flagObjects, function(flag)
     {
         console.log(flag.name, flagName);
         if (flag.name == flagName)
@@ -2975,7 +2977,7 @@ game_core.prototype.client_onflagchange = function(data)
     var flagName = split[0];
     var flagVisible = (split[1] == 'true');
     var toastMsg = JSON.parse(split[2]);
-    var flagObj = config._.find(config.flagObjects, {"name":flagName});//this.name});
+    var flagObj = this.config._.find(this.config.flagObjects, {"name":flagName});//this.name});
     flagObj.visible = flagVisible;
     //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
 
@@ -3156,8 +3158,8 @@ game_core.prototype.process_input = function( player )
     {
         //console.log('* no input...');
         
-        //player.inputs.push({seq:"0",time:config.server_time);
-        //player.last_input_time = config.server_time;
+        //player.inputs.push({seq:"0",time:this.config.server_time);
+        //player.last_input_time = this.config.server_time;
         // if (player.landed === 1)
         //     player.doWalk(player.dir);
         // if (player.landed === 1)
@@ -3166,7 +3168,7 @@ game_core.prototype.process_input = function( player )
         //console.log('no input...');
         //this.players.self.old_state.pos = this.pos(this.players.self.pos);
         /*
-        if (config.server && player.active)
+        if (this.config.server && player.active)
         {
             //console.log('* updating', player.mp);
             
@@ -3393,7 +3395,7 @@ game_core.prototype.server_update = function()
 
     var _this = this;
     //Update the state of our local clock to match the timer
-    config.server_time = this.local_time;
+    this.config.server_time = this.local_time;
 
     //var host;
     //var others = [];
@@ -3553,7 +3555,7 @@ game_core.prototype.server_update = function()
 
     // process flags
     /*
-    _.forEach(config.flagObjects, function(flag)
+    _.forEach(this.config.flagObjects, function(flag)
     {
         //if (flag.isHeld)
         if (flag.type=="flag")
@@ -3578,7 +3580,7 @@ game_core.prototype.server_update = function()
     });
     //*/
 
-    laststate.t = config.server_time;
+    laststate.t = this.config.server_time;
     //console.log(this.laststate.cp1);
     // var view = new Int16Array(this.laststate.cp1, 0, 16);
     // console.log('view', view);
@@ -3633,7 +3635,7 @@ game_core.prototype.server_update = function()
     //     cp  : this.players.other.pos,               //'client position', the person that joined, their position
     //     his : this.players.self.last_input_seq,     //'host input sequence', the last input we processed for the host
     //     cis : this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
-    //     t   : config.server_time                      // our current local time on the server
+    //     t   : this.config.server_time                      // our current local time on the server
     // };
     //if (glog)
     //console.log('ins', this.players.other.instance);
@@ -3694,13 +3696,13 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     and usually start with client_* to make things clearer.
 
 */
-//*
+/*
 if (!this.server)
 {
 document.externalControlAction = function(data)
 {
-    //var game = document.getElementById('viewport').ownerDocument.defaultView.game_core;
-    //console.log('kb', config.keyboard);
+    var game = document.getElementById('viewport').ownerDocument.defaultView.game_core;
+    console.log('* keyboard', game.config.keyboard);
     
     //console.log('ext', document.getElementById('viewport').ownerDocument.defaultView);
     
@@ -3709,27 +3711,27 @@ document.externalControlAction = function(data)
     switch(data)
     {
         case "A": // left down
-            config.keyboard._onKeyChange({keyCode:37}, true);
+            this.config.keyboard._onKeyChange({keyCode:37}, true);
         break;
 
         case "B": // left up
-            config.keyboard._onKeyChange({keyCode:37}, false);
+            this.config.keyboard._onKeyChange({keyCode:37}, false);
         break;
 
         case "D": // right down
-            config.keyboard._onKeyChange({keyCode:39}, true);
+            this.config.keyboard._onKeyChange({keyCode:39}, true);
         break;
 
         case "E": // right up
-            config.keyboard._onKeyChange({keyCode:39}, false);
+            this.config.keyboard._onKeyChange({keyCode:39}, false);
         break;
 
         case "u": // flap down
-            config.keyboard._onKeyChange({keyCode:38}, true);
+            this.config.keyboard._onKeyChange({keyCode:38}, true);
         break;
 
         case "x": // flap up
-            config.keyboard._onKeyChange({keyCode:38}, false);
+            game.config.keyboard._onKeyChange({keyCode:38}, false);
         break;
     }
 };
@@ -4421,7 +4423,7 @@ game_core.prototype.client_process_net_updates = function()
 
         // process flags
         /*
-        _.forEach(config.flagObjects, function(flag)
+        _.forEach(this.config.flagObjects, function(flag)
         {
             //console.log(target);
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
@@ -4466,7 +4468,7 @@ game_core.prototype.client_process_net_updates = function()
         }
         if (_.has(target, 'fc'))
         {
-            console.log('* fc evt', target.fc);
+            //console.log('* fc evt', target.fc);
 
             // get client flag (clientCooldown)
             var cflag = _.find(_this.clientCooldowns, {'name':target.fc.f});
@@ -4474,7 +4476,7 @@ game_core.prototype.client_process_net_updates = function()
             cflag.timer = target.fc.t;
 
             // get flag obj
-            var flag = _.find(config.flagObjects, {'name':target.fc.f});
+            var flag = _.find(this.config.flagObjects, {'name':target.fc.f});
 
             // set client flag target slot
             cflag.target = flag.targetSlot;
@@ -4508,7 +4510,7 @@ game_core.prototype.client_process_net_updates = function()
             /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
             cflag.timer = target.fs.t;
             console.log('cflag', cflag);*/
-            var flg = _.find(config.flagObjects, {'name':target.fs.f});
+            var flg = _.find(this.config.flagObjects, {'name':target.fs.f});
             flg.timer = target.fs.t;//cflag.timer;
 
             // add flg.isActive check to ensure it runs only once
@@ -4640,7 +4642,7 @@ game_core.prototype.addChest = function(chest)
     if (this.server)
     {
         var game_chest_server = require('./class.chest');
-        this.chests.push(new game_chest_server(chest, false, this.getplayers));
+        this.chests.push(new game_chest_server(chest, false, this.getplayers, this.config));
         //console.log('newChest id', newChest.id);
 
         // _.forEach(this.getplayers.allplayers, function(ply)
@@ -4652,7 +4654,7 @@ game_core.prototype.addChest = function(chest)
         // });
 
     }
-    else this.chests.push(new game_chest(chest, true, this.getplayers));
+    else this.chests.push(new game_chest(chest, true, this.getplayers, this.config));
     //console.log(this.chests);
 };
 
@@ -4672,9 +4674,9 @@ game_core.prototype.client_onserverupdate_recieved = function(data)
     var this_player = this.players.self;*/
 
     //Store the server time (this is offset by the latency in the network, by the time we get it)
-    config.server_time = data.t;
+    this.config.server_time = data.t;
     //Update our local offset time from the last server update
-    this.client_time = config.server_time - (this.net_offset/1000);
+    this.client_time = this.config.server_time - (this.net_offset/1000);
 
     //One approach is to set the position directly as the server tells you.
     //This is a common mistake and causes somewhat playable results on a local LAN, for example,
@@ -4816,8 +4818,8 @@ game_core.prototype.client_update = function()
     if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
     {
         var pad = 0;
-        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(config.world.width - this.viewport.width) - pad, pad);//this.config.world.width);
-        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
+        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
+        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
     }
@@ -4956,7 +4958,7 @@ game_core.prototype.client_update = function()
     });
 
     // flags
-    _.forEach(config.flagObjects, function(flagObj)
+    _.forEach(this.config.flagObjects, function(flagObj)
     {
         //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
         if (flagObj.type == "flag")
@@ -4969,8 +4971,8 @@ game_core.prototype.client_update = function()
     //this.ctx.clearRect(0, 0, this.this.viewport.width, this.this.viewport.height);//clear the viewport AFTER the matrix is reset
 
     //Clamp the camera position to the world bounds while centering the camera around the player
-    //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(config.world.width - this.viewport.width) - 50, 50);//this.config.world.width);
-    //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(config.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
+    //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - 50, 50);//this.this.config.world.width);
+    //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
     //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
     this.ctx.translate( this.cam.x, this.cam.y );
     //console.log(camX,camY);
@@ -5050,7 +5052,7 @@ game_core.prototype.client_create_configuration = function() {
     this.oldest_tick = 0.01;            //the last time tick we have available in the buffer
 
     this.client_time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
-    config.server_time = 0.01;            //The time the server reported it was at, last we heard from it
+    this.config.server_time = 0.01;            //The time the server reported it was at, last we heard from it
 
     this.dt = 0.016;                    //The time that the last frame took to run
     this.fps = 0;                       //The current instantaneous fps (1/this.dt)
@@ -5390,19 +5392,19 @@ game_core.prototype.client_onjoingame = function(data)
 
     _.forEach(chests, function(chest)
     {
-        _this.chests.push(new game_chest(chest, true, _this.getplayers));
+        _this.chests.push(new game_chest(chest, true, _this.getplayers, _this.config));
     });
 
     var cflag;
-    //console.log('flags', flags, config.flagObjects);
-    config.preflags = [];
+    //console.log('flags', flags, this.config.flagObjects);
+    this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
-        cflag = _.find(config.flagObjects, {'name': flag.name});
+        cflag = _.find(_this.config.flagObjects, {'name': flag.name});
         //console.log('cflag', cflag);
         if (cflag)
             cflag.visible = flag.visible;
-        else config.preflags.push(flag);
+        else _this.config.preflags.push(flag);
     });
 
     // console.log('local player mp =', this.players.self.mp);
@@ -5538,19 +5540,19 @@ game_core.prototype.client_onhostgame = function(data)
 
     _.forEach(chests, function(chest)
     {
-        _this.chests.push(new game_chest(chest, true, _this.getplayers));
+        _this.chests.push(new game_chest(chest, true, _this.getplayers, _this.config));
     });
 
     var cflag;
-    //console.log('flags', flags, config.flagObjects);
-    config.preflags = [];
+    //console.log('flags', flags, this.config.flagObjects);
+    this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
-        cflag = _.find(config.flagObjects, {'name': flag.name});
+        cflag = _.find(_this.config.flagObjects, {'name': flag.name});
         //console.log('cflag', cflag);
         if (cflag)
             cflag.visible = flag.visible;
-        else config.preflags.push(flag);
+        else _this.config.preflags.push(flag);
     });
 }
 
