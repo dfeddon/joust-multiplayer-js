@@ -3434,11 +3434,12 @@ game_core.prototype.server_update = function()
         bufView[10] = (player.bubble) ? 1 : 0;
         bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
-        bufView[13] = player.team;
+        //bufView[13] = player.team;
         //bufView[11] = new Date();
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
+        //console.log('bufView', bufView);
         
         laststate[player.mp] = bufArr;
         //*/
@@ -4256,14 +4257,14 @@ game_core.prototype.client_process_net_updates = function()
                 var p = {}; // temp player obj
                 p.pos = {}; // temp pos
                 
-                p.pos.x = vt[0];//target[player.mp].x;
-                p.pos.y = vt[1];//target[player.mp].y;
+                p.pos.x = parseInt(vt[0]);//target[player.mp].x;
+                p.pos.y = parseInt(vt[1]);//target[player.mp].y;
 
-                lerp_t.x = vt[0];
-                lerp_t.y = vt[1];
+                lerp_t.x = parseInt(vt[0]);
+                lerp_t.y = parseInt(vt[1]);
 
-                lerp_p.x = vp[0];
-                lerp_p.y = vp[1];
+                lerp_p.x = parseInt(vp[0]);
+                lerp_p.y = parseInt(vp[1]);
 
                 ghostStub = _this.v_lerp(
                     lerp_p,
@@ -4335,10 +4336,10 @@ game_core.prototype.client_process_net_updates = function()
             {
                 var self_vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.mp], (index * 16), 16);
-                console.log('vt.len', self_vt, self_vp);
+                //console.log('vt.len', self_vt, self_vp);
 
-                self_tp = {x:parseFloat(self_vt[0]), y:parseFloat(self_vt[1])};
-                self_pp = {x:parseFloat(self_vp[0]), y:parseFloat(self_vp[1])};
+                self_tp = {x:parseInt(self_vt[0]), y:parseInt(self_vt[1])};
+                self_pp = {x:parseInt(self_vp[0]), y:parseInt(self_vp[1])};
                 player.bufferIndex = index;
                 //console.log('vt', self_vt);
                 
