@@ -240,7 +240,7 @@ var game_core = function(game_instance)
         {
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
-            other.playerName = this.nameGenerator() + " [" + other.mp + "]";            
+            other.playerName = this.nameGenerator();// + " [" + other.mp + "]";            
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
             //if (other.mp != "cp1") other.isBot = true;

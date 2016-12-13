@@ -1835,7 +1835,7 @@ game_player.prototype.draw = function()
     {
         console.log('dead animation...');
         
-        img = assets.animate.gg;//document.getElementById('animate-gg');
+        img = assets.animate_gg;//document.getElementById('animate-gg');
         imgW = 64;//33;
         imgH = 64;//44;
     }
