@@ -36,7 +36,7 @@ game_toast.prototype.show = function(data)
   if (!data)
     data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
 
-    if (data.playerTeam === 0) 
+    if (data.playerTeam === 1) 
     {
       data.playerTeam = "red";
       data.otherTeam = 'blue';
