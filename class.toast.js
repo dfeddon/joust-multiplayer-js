@@ -88,14 +88,15 @@ game_toast.prototype.show = function(data)
     break;
 
     case "carrierSuicide":
-      this.toast.innerHTML = "The flag-carrier <font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> has perished, failing spectacularly to advance the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!";
+      this.toast.innerHTML = "The flag-carrier <font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> has perished, failing to advance the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!";
     break;
 
     case "carrierStunned":
-      this.toast.innerHTML = "A <font color='" + data.otherTeam + "'<b>faulty flight pattern</b></font> derailed <font color='" + data.playerTeam + "'<b>" + data.playerName + "'s</b></font> advancement of the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>...";
+      this.toast.innerHTML = "The <font color='" + data.otherTeam + "'<b>flag carrier</b></font> dropped the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>...";
     break;
 
     case "flagTimeout":
+      this.toast.innerHTML = "The <font color='" + data.otherTeam + "'<b>flag carrier</b></font> failed to advance the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font> in time.";
     break;
 
     case "flagReset":

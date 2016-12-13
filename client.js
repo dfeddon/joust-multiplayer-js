@@ -298,6 +298,7 @@ domready(function()
 		game.update( new Date().getTime() );		
 	});
 
+	console.log('device:', device);
 	loader.start();
 
 	/////////////////////////////////////////
