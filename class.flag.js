@@ -14,7 +14,7 @@ function game_flag(data, context, getplayers, config)
 {
   //console.log('flag data', data);
 
-  this._ = {};
+  //this._ = {};
 
   this.getplayers = getplayers;
   this.config = config;
@@ -31,8 +31,8 @@ function game_flag(data, context, getplayers, config)
     //var stopwatch = require('./class.stopwatch');
     //this._.cloneDeep = require('./node_modules/lodash/cloneDeep');
   }*/
-  this._.forEach = require('./node_modules/lodash/forEach');
-  this._.find = require('./node_modules/lodash/find');
+  //this._.forEach = require('./node_modules/lodash/forEach');
+  //this._.find = require('./node_modules/lodash/find');
 
   this.id = "flg" + data.id;
   this.name = data.name;
@@ -485,7 +485,7 @@ game_flag.prototype.slotFlag = function(player)
   // console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
   //console.log('cooldowns', this.config.clientCooldowns);
 
-  var clientFlag = this._.find(_this.config.clientCooldowns, {'name':_this.typeToName(player.hasFlag)});
+  var clientFlag = _.find(_this.config.clientCooldowns, {'name':_this.typeToName(player.hasFlag)});
   console.log('* clientFlag', clientFlag, this.name);
   if (clientFlag === undefined) return;
 
@@ -589,8 +589,8 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     msg = {};
 
     // carrier
-    var playerSource = this.config._.find(_this.getplayers.allplayers, {'mp':_this.heldBy});
-    console.log('playerSource', playerSource);
+    var playerSource = _.find(_this.getplayers.allplayers, {'mp':_this.heldBy});
+    console.log('* playerSource', playerSource, this.heldBy, this);
     
     msg.playerName = playerSource.playerName;
 
@@ -640,7 +640,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
 
     if (this.config.server)
     {
-      var fcEvent = this._.find(_this.config.events, {"type":2});
+      var fcEvent = _.find(_this.config.events, {"type":2});
       fcEvent.doStop();
 
       _.forEach(_this.getplayers.allplayers, function(ply)

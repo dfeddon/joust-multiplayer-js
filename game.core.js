@@ -2940,6 +2940,7 @@ game_core.prototype.client_onflagremove = function(data)
     flagTaken.visible = false;
     flagTaken.isHeld = true;
     flagTaken.isActive = false;
+    flagTaken.heldBy = playerSource.mp;
 
     // set player's has flag attribute // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     if (flagTaken.name == "midFlag")

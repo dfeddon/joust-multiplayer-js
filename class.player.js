@@ -1255,6 +1255,7 @@ game_player.prototype.timeoutRespawn = function(victor)
     this.active = true;
     this.landed = 1;
     this.bubble = false;
+    this.progression = 0;
     this.pos = this.config.gridToPixel(3,4);
 
     if (this.mp == this.config.players.self.mp)
@@ -1272,6 +1273,7 @@ game_player.prototype.timeoutRespawn = function(victor)
             this.config.players.self.pos = this.config.gridToPixel(3,4);
             this.config.players.self.dead = false;
             this.config.players.self.landed = 1;
+            this.config.players.self.progression = 0;
 
             var ui = document.getElementById('splash');
             ui.style.display = "block";
@@ -1748,7 +1750,7 @@ game_player.prototype.draw = function()
     this.config.ctx.font = "16px Mirza";
     this.config.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
-    var txt = this.playerName + this.team.toString();//+ "(" + this.mana.toString() + ")";
+    var txt = this.playerName;// + this.team.toString();//+ "(" + this.mana.toString() + ")";
     this.config.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
         this.pos.x + (this.size.hx/2),//.fixed(1),
