@@ -1957,7 +1957,8 @@ game_player.prototype.draw = function()
         // draw flag
         //game.ctx.save();
         //console.log('flagImg', flagImg, this.dir);
-        if (flagImg)
+        // if flag is undefined, it's been removed
+        if (flagImg && flag)
         {
             this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
             // draw timer

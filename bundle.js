@@ -3095,6 +3095,7 @@ game_player.prototype.timeoutRespawn = function(victor)
     this.active = true;
     this.landed = 1;
     this.bubble = false;
+    this.progression = 0;
     this.pos = this.config.gridToPixel(3,4);
 
     if (this.mp == this.config.players.self.mp)
@@ -3112,6 +3113,7 @@ game_player.prototype.timeoutRespawn = function(victor)
             this.config.players.self.pos = this.config.gridToPixel(3,4);
             this.config.players.self.dead = false;
             this.config.players.self.landed = 1;
+            this.config.players.self.progression = 0;
 
             var ui = document.getElementById('splash');
             ui.style.display = "block";
@@ -3795,7 +3797,8 @@ game_player.prototype.draw = function()
         // draw flag
         //game.ctx.save();
         //console.log('flagImg', flagImg, this.dir);
-        if (flagImg)
+        // if flag is undefined, it's been removed
+        if (flagImg && flag)
         {
             this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
             // draw timer
@@ -4083,9 +4086,10 @@ module.exports = game_toast;
 'use strict';
 
 var domready = require('domready');
-var config = require('./class.globals');
+//var config = require('./class.globals');
 var assets = require('./singleton.assets');
 var game_core = require('./game.core');
+var device = {};
 // var _ = require('./node_modules/lodash/lodash.min');
 /*
 var egyptian_set = require('./egyptian_set');
@@ -4105,7 +4109,7 @@ domready(function()
 
 	//A window global for our game root variable.
 	var game = {};
-	config.device = {};
+	//device = {};
 
 	//When loading, we store references to our
 	//drawing canvases, and initiate a game instance.
@@ -4126,48 +4130,48 @@ domready(function()
 	console.log("Platform: " + navigator.platform);
 	console.log("User-agent header: " + navigator.userAgent);
 
-	config.device.isMobile = 'ontouchstart' in window;
+	device.isMobile = 'ontouchstart' in window;
 	var userAgent = window.navigator.userAgent.toLowerCase();
-	config.device.safari = /safari/.test(userAgent);
-	config.device.ios = /iphone|ipod|ipad/.test(userAgent);
-	config.device.android = /android/.test(userAgent);
-	console.log('isMobile', config.device.isMobile);
+	device.safari = /safari/.test(userAgent);
+	device.ios = /iphone|ipod|ipad/.test(userAgent);
+	device.android = /android/.test(userAgent);
+	console.log('isMobile', device.isMobile);
 	console.log('userAgent', userAgent);
-	console.log('safari', config.device.safari);
-	console.log('ios', config.device.ios);
-	console.log('android', config.device.android);
+	console.log('safari', device.safari);
+	console.log('ios', device.ios);
+	console.log('android', device.android);
 	
 	// is mobile device?
 	//this.isMobile = 'ontouchstart' in window;
 	var splash = true;
 	var userAgent = window.navigator.userAgent.toLowerCase();
 	var ui = document.getElementById('uiTopBar');
-	console.log('isMobile', config.device.isMobile, userAgent);
+	console.log('isMobile', device.isMobile, userAgent);
 
 	// show DOM controls for mobile devices
-	if (config.device.isMobile)
+	if (device.isMobile)
 	{
 		//require('./class.extControls');
 		//*
-		config.device.standalone = window.navigator.standalone; // (fullscreen)
-		config.device.ios = /iphone|ipod|ipad/.test(userAgent);
-		config.device.android = /android/.test(userAgent);
+		device.standalone = window.navigator.standalone; // (fullscreen)
+		device.ios = /iphone|ipod|ipad/.test(userAgent);
+		device.android = /android/.test(userAgent);
 
-		console.log('standalone', config.device.standalone);
+		console.log('standalone', device.standalone);
 		
 		
 		// if ios browser (not webview)
-		if (config.device.ios)// && safari)
+		if (device.ios)// && safari)
 		{
 			console.log('iOS!');
 			
-			config.device.safari = /safari/.test( userAgent );
-			config.device.iphone = /iphone/.test(userAgent);
-			config.device.ipad = /ipad/.test(userAgent);
-			config.device.ipod = /ipod/.test(userAgent);
-			console.log('ios', config.device.ios, 'safari', config.device.safari, config.device.iphone, config.device.ipad, config.device.ipod);
+			device.safari = /safari/.test( userAgent );
+			device.iphone = /iphone/.test(userAgent);
+			device.ipad = /ipad/.test(userAgent);
+			device.ipod = /ipod/.test(userAgent);
+			console.log('ios', device.ios, 'safari', device.safari, device.iphone, device.ipad, device.ipod);
 
-			if (config.device.safari)
+			if (device.safari)
 			{
 				// browser, suggest app
 				splash = false;
@@ -4194,12 +4198,12 @@ domready(function()
 			new nativeControls();
 			*/
 		}
-		else if (config.device.android)
+		else if (device.android)
 		{
 			console.log('android!');
-			config.device.webview = /AppName\/[0-9\.]+$/.test(navigator.userAgent);
-			console.log('android webview?', config.device.webview);
-			if (config.device.webview)
+			device.webview = /AppName\/[0-9\.]+$/.test(navigator.userAgent);
+			console.log('android webview?', device.webview);
+			if (device.webview)
 			{
 				// using app
 			}
@@ -4225,7 +4229,7 @@ domready(function()
 	if (splash)
 	{
 		var splash, nickname, btnStart, adContainer;
-		if (config.device.iphone || config.device.ipod)
+		if (device.iphone || device.ipod)
 		{
 			splash = document.getElementById('splash-phone');
 			nickname = document.getElementById('nickname-phone');
@@ -4246,7 +4250,7 @@ domready(function()
 			btnStart = document.getElementById('btnStart');
 		}
 		splash.style.display = "block";
-		if (config.device.ipad) 
+		if (device.ipad) 
 		{
 			//adContainer.style.width = "0px";
 			adContainer.style.display = "none";
@@ -4279,8 +4283,6 @@ domready(function()
 
 	// asset loader
 	var loader = new PxLoader();
-	console.log('loader', loader);
-	
 	
 	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
@@ -4331,7 +4333,7 @@ domready(function()
 	assets.flag_slot_9 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-9.png");
 	assets.flag_slot_10 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png");
 
-	console.log('loader', loader);
+	// console.log('loader', loader);
 	
 	//document.externalControlAction("x");
 
@@ -4339,15 +4341,15 @@ domready(function()
 	//alert('test');
 	//document.externalControlAction("A");
 	// loader progress
-	loader.addProgressListener(function(e)
-	{
-		console.log('progress', e);
+	// loader.addProgressListener(function(e)
+	// {
+	// 	console.log('progress', e);
 		
-	});
+	// });
 	// assets load complete handler
 	loader.addCompletionListener(function()
 	{
-		console.log("* assets complete handler...");
+		// console.log("* assets complete handler...");
 		//Create our game client instance.
 		game = new game_core();
 
@@ -4379,16 +4381,16 @@ domready(function()
 	// external controls (from apps)
 	/////////////////////////////////////////
 	
-	if (config.device.ios || config.device.android)
+	if (device.ios || device.android)
 	{
-		console.log('* mobile device', config.device.ios, config.device.android);
+		// console.log('* mobile device', device.ios, device.android);
 		
 		document.externalControlAction = function(data)
 		{
 			// var vp = document.getElementById('viewport');
 			// console.log("vp", vp.ownerDocument.defaultView);
 			// //var game = this.game;//document.getElementById('viewport').ownerDocument.defaultView.game_core;
-			console.log('extctrl-action', data);
+			// console.log('extctrl-action', data);
 			//alert("HI");
 			
 			
@@ -4423,7 +4425,7 @@ domready(function()
 			}
 		};
 	}
-	else console.log('...not mobile device...');
+	// else console.log('...not mobile device...');
 }); //window.onload
 
 		// document.externalControlAction = function(data)
@@ -4463,7 +4465,7 @@ domready(function()
 		// 	}
 		// };
 
-},{"./class.globals":5,"./game.core":11,"./singleton.assets":178,"domready":12}],10:[function(require,module,exports){
+},{"./game.core":11,"./singleton.assets":178,"domready":12}],10:[function(require,module,exports){
 (function (global){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // egyptian_set.js
