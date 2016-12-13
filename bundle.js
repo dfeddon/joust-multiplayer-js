@@ -3675,7 +3675,7 @@ game_player.prototype.draw = function()
     {
         console.log('dead animation...');
         
-        img = assets.animate.gg;//document.getElementById('animate-gg');
+        img = assets.animate_gg;//document.getElementById('animate-gg');
         imgW = 64;//33;
         imgH = 64;//44;
     }
@@ -3891,7 +3891,7 @@ game_toast.prototype.show = function(data)
   if (!data)
     data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
 
-    if (data.playerTeam === 0) 
+    if (data.playerTeam === 1) 
     {
       data.playerTeam = "red";
       data.otherTeam = 'blue';
@@ -5158,7 +5158,7 @@ var game_core = function(game_instance)
         {
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
-            other.playerName = this.nameGenerator() + " [" + other.mp + "]";            
+            other.playerName = this.nameGenerator();// + " [" + other.mp + "]";            
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
             //if (other.mp != "cp1") other.isBot = true;
