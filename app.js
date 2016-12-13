@@ -90,6 +90,8 @@ var sio = io.listen(server);//, {transports:['websocket']});
 // using uws module
 // https://github.com/uWebSockets/uWebSockets
 //*
+//sio.set('transports', ['websocket']);
+
 //console.log('engine', sio.engine);
 sio.engine.ws = new (require('uws').Server)(
 {
@@ -101,6 +103,7 @@ sio.engine.ws = new (require('uws').Server)(
 //Configure the socket.io connection settings.
 //See http://socket.io/
 //sio.set('transports', ['websocket']);
+//clientIo.set('transports', ['websocket']);
 /*
 sio.configure(function ()
 {
@@ -207,14 +210,16 @@ sio.sockets.on('connection', function (client)
 //     console.log('client io connected...');
 // });
 // auto-create host game
-var host = clientIo.connect(UUID()
-    // , 
-    // {
-    //     'transports':['websocket']
-    //     // 'force new connection': false,
-    //     // 'path': '/socket.io/socket.io.js'//-client/so'
-    // }
+var host = clientIo.connect(UUID());
+/*
+    , 
+    {
+        'transports':['websocket']
+        // 'force new connection': false,
+        // 'path': '/socket.io/socket.io.js'//-client/so'
+    }
 );
+*/
 host.userid = UUID();
 host.hosting = true;
 //console.log('host', host);

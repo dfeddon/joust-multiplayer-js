@@ -6,6 +6,7 @@
 
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
+var assets = require('./singleton.assets');
 var _ = require('./node_modules/lodash/lodash.min');
 
 function game_chest(data, client, getplayers, config)
@@ -150,8 +151,8 @@ game_chest.prototype.update = function()
 game_chest.prototype.draw = function()
 {
   if (this.opening === true)
-    this.ctx.drawImage(document.getElementById("evt-chestopen"), this.x, this.y, this.width, this.height);
-  else this.ctx.drawImage(document.getElementById("evt-chestclosed"), this.x, this.y, this.width, this.height);
+    this.ctx.drawImage(assets.evt_chestopen, this.x, this.y, this.width, this.height);
+  else this.ctx.drawImage(assets.evt_chestclosed, this.x, this.y, this.width, this.height);
 };
 
 if('undefined' != typeof global)

@@ -37,6 +37,9 @@
 		<!-- Load font -->
 		<link href="https://fonts.googleapis.com/css?family=Mirza" rel="stylesheet">
 
+		<!-- Asset loader -->
+		<script type="text/javascript" src="lib/pxloader-images.min.js"></script>
+ 
 		<!-- Game code -->
 
 		<!-- Load the common game code. -->
@@ -258,78 +261,6 @@
 		<!--
 		########################## ASSETS ###############################
 		-->
-		<div id="assets" style="display:none;width:0;height:0">
-			<!--<img id="ss1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/1.png" width="2000" height="2000">
-			<img id="ss2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/2.png" width="2000" height="2000">-->
-			<!-- <img id="p2r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/fly2-r.png" width="50" height="50"> -->
-			<!-- <img id="p2l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/fly2-l.png" width="50" height="50"> -->
-			<img id="p2r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png" width="64" height="64">
-			<img id="p2l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png" width="64" height="64">
-			<!-- <img id="p1r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/fly1-r.png" width="50" height="50">
-			<img id="p1l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/fly1-l.png" width="50" height="50"> -->
-			<img id="p1r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-right.png" width="64" height="64">
-			<img id="p1l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-left.png" width="64" height="64">
-			<img id="p1skid-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png" width="64" height="64">
-			<img id="p1skid-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png" width="64" height="64">
-			<img id="p1stand-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-right.png" width="64" height="64">
-			<img id="p1stand-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-left.png" width="64" height="64">
-			<img id="p1stun-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png" width="64" height="64">
-			<img id="p1stun-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png" width="64" height="64">
-
-			<!--<img id="potion-1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/potion-1.png" width="15" height="15">
-			<img id="buff-shield" src="http://s3.amazonaws.com/com.dfeddon.wingdom/buff-shield.png" width="15" height="15">
-			<img id="buff-alacrity" src="http://s3.amazonaws.com/com.dfeddon.wingdom/buff-alacrity.png" width="15" height="15">
-			<img id="debuff-weakened" src="http://s3.amazonaws.com/com.dfeddon.wingdom/debuff-weakened.png" width="15" height="15">
-
-			<img id="ability-burst" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-burst.png" width="15" height="15">
-			<img id="ability-frost" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-frost.png" width="15" height="15">
-			<img id="ability-blink" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-blink.png" width="15" height="15">
-			<img id="ability-grapple" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-grapple.png" width="15" height="15">
-			<img id="ability-anchor" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-anchor.png" width="15" height="15">
-			<img id="ability-cinder" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-cinder.png" width="15" height="15">
-			<img id="ability-confusion" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-confusion.png" width="15" height="15">-->
-			<img id="ability-bubble" src="http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png" width="64" height="64">
-
-			<img id="animate-explosion" src="http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png" width="512" height="512">
-			<img id="animate-torches" src="http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-torches.png" width="256" height="64">
-			<img id="animate-gg" src="http://s3.amazonaws.com/com.dfeddon.wingdom/EXPLOSIONS1.png" width="64" height="64">
-
-			<img id="plat-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/plat-l.png" width="64" height="64">
-			<img id="plat-m" src="http://s3.amazonaws.com/com.dfeddon.wingdom/plat-m.png" width="64" height="64">
-			<img id="plat-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/plat-r.png" width="64" height="64">
-			<img id="plat-rotate" src="http://s3.amazonaws.com/com.dfeddon.wingdom/plat-rotate.png" width="384" height="64">
-
-			<img id="evt-chestopen" src="http://s3.amazonaws.com/com.dfeddon.wingdom/chest-open.png" width="64" height="64">
-			<img id="evt-chestclosed" src="http://s3.amazonaws.com/com.dfeddon.wingdom/chest-closed.png" width="64" height="64">
-			<img id="evt-potion-red-full" src="http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-full.png" width="64" height="64">
-			<img id="evt-potion-red-empty" src="http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-empty.png" width="64" height="64">
-			<img id="evt-potion-blue-full" src="http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-full.png" width="64" height="64">
-			<img id="evt-potion-blue-empty" src="http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-empty.png" width="64" height="64">
-
-			<!-- <img id="the-flag" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag.png" width="64" height="64"> -->
-			<img id="flag-red-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-r.png" width="64" height="64">
-			<img id="flag-red-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-l.png" width="64" height="64">
-			<img id="flag-blue-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-blue-r.png" width="64" height="64">
-			<img id="flag-blue-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-blue-l.png" width="64" height="64">
-			<img id="flag-mid-r" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-r.png" width="64" height="64">
-			<img id="flag-mid-l" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-l.png" width="64" height="64">
-			<img id="flag-slot-mid" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-mid.png" width="64" height="64">
-			<img id="flag-slot-red" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-red.png" width="64" height="64">
-			<img id="flag-slot-blue" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-blue.png" width="64" height="64">
-			<img id="flag-slot-1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-1.png" width="64" height="64">
-			<img id="flag-slot-2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-2.png" width="64" height="64">
-			<img id="flag-slot-3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-3.png" width="64" height="64">
-			<img id="flag-slot-4" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-4.png" width="64" height="64">
-			<img id="flag-slot-5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-5.png" width="64" height="64">
-			<img id="flag-slot-6" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-6.png" width="64" height="64">
-			<img id="flag-slot-7" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-7.png" width="64" height="64">
-			<img id="flag-slot-8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-8.png" width="64" height="64">
-			<img id="flag-slot-9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-9.png" width="64" height="64">
-			<img id="flag-slot-10" src="http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png" width="64" height="64">
-
-			<!-- <img id="bg" src="http://s3.amazonaws.com/com.dfeddon.wingdom/slither-io-bg.jpg" width="599" height="519"> -->
-			<!-- <xml id="tmx1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/tilemaps/joust-alpha-1.tmx"> -->
-		</div>
 		<div id="canvases" oncontextmenu="return false;" style="position:relative;">
 			<canvas id="viewport"></canvas>
 		</div>

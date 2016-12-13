@@ -5,6 +5,7 @@
 "use strict";
 
 //var config = require('./class.globals');
+var assets = require('./singleton.assets');
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
@@ -164,8 +165,8 @@ function game_player(player_instance, isHost, pindex, config)
         //     var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
         //     return ratio;
         // }
-        var src1 = document.getElementById('ss1');
-        var src2 = document.getElementById('ss2');
+        var src1 = assets.ss1;//document.getElementById('ss1');
+        var src2 = assets.ss2;//document.getElementById('ss2');
 
         var cvs1 = document.createElement('canvas');//('canvas_' + y.toString());
         cvs1.width = 2000;
@@ -1832,16 +1833,16 @@ game_player.prototype.draw = function()
     {
         console.log('dead animation...');
         
-        img = document.getElementById('animate-gg');
+        img = assets.animate.gg;//document.getElementById('animate-gg');
         imgW = 64;//33;
         imgH = 64;//44;
     }
     else if (this.vuln === true)
     {
         if (this.dir === 1)
-            img = document.getElementById("p1stun-l");
+            img = assets.p1stun_l;//document.getElementById("p1stun-l");
             //this.vulnLeft;//document.getElementById("p1stun-l");
-        else img = document.getElementById("p1stun-r");
+        else img = assets.p1stun_r;//document.getElementById("p1stun-r");
 
         imgW = 64;
         imgH = 64;
@@ -1853,9 +1854,9 @@ game_player.prototype.draw = function()
         //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
         this.flap = false;
-        if (this.dir === 1) img = document.getElementById("p1l");
+        if (this.dir === 1) img = assets.p1l;//document.getElementById("p1l");
         //img = this.flapLeft;//document.getElementById("p1l");
-        else img = document.getElementById("p1r");
+        else img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
         imgW = 64;//40;
@@ -1864,9 +1865,9 @@ game_player.prototype.draw = function()
     else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1)img=document.getElementById("p1stand-l");
+        if (this.dir === 1) img = assets.p1stand_l;//document.getElementById("p1stand-l");
             //img = this.standLeft;// document.getElementById("p1stand-l");
-        else img=document.getElementById("p1stand-r");
+        else img = assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
         imgW = 64;//33;
@@ -1875,8 +1876,8 @@ game_player.prototype.draw = function()
     else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            img = document.getElementById("p1skid-l");
-        else img = document.getElementById("p1skid-r");
+            img = assets.p1skid_l;//document.getElementById("p1skid-l");
+        else img = assets.p1skid_r;//document.getElementById("p1skid-r");
 
         imgW = 64;//33;
         imgH = 64;//44;
@@ -1884,11 +1885,11 @@ game_player.prototype.draw = function()
     else // gliding
     {
         if (this.dir === 1)
-            img = document.getElementById("p2l");
+            img = assets.p2l;//document.getElementById("p2l");
             //img = ctx.putImageData(imgData,10,70);
             //img = this.glideLeft;
         else //img = this.glideRight;//
-        img = document.getElementById("p2r");
+        img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         imgW = 64;//40;
@@ -1935,20 +1936,20 @@ game_player.prototype.draw = function()
         {
             case 1: // mid
                 if (this.dir === 0)
-                    flagImg = document.getElementById('flag-mid-r');
-                else flagImg = document.getElementById('flag-mid-l');
+                    flagImg = assets.flag_mid_r;//document.getElementById('flag-mid-r');
+                else flagImg = assets.flag_mid_l;//document.getElementById('flag-mid-l');
             break;
 
             case 2: // red
                 if (this.dir === 0)
-                    flagImg = document.getElementById('flag-red-r');
-                else flagImg = document.getElementById('flag-red-l');
+                    flagImg = assets.flag_red_r;//document.getElementById('flag-red-r');
+                else flagImg = assets.flag_red_l;//document.getElementById('flag-red-l');
             break;
 
             case 3: // blue
                 if (this.dir === 0)
-                    flagImg = document.getElementById('flag-blue-r');
-                else flagImg = document.getElementById('flag-blue-l');
+                    flagImg = assets.flag_blue_r;//document.getElementById('flag-blue-r');
+                else flagImg = assets.flag_blue_l;//document.getElementById('flag-blue-l');
             break;
         }
         // draw flag
@@ -1991,7 +1992,7 @@ game_player.prototype.draw = function()
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);
 
     if (this.bubble === true)
-        this.config.ctx.drawImage(document.getElementById("ability-bubble"), this.pos.x - 8, this.pos.y - 8, 76, 76);
+        this.config.ctx.drawImage(assets.ability_bubble, this.pos.x - 8, this.pos.y - 8, 76, 76);
 
 
 

@@ -8,6 +8,7 @@ var game_toast = require('./class.toast');
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
 var _ = require('lodash');
+var assets = require('./singleton.assets');
 
 function game_flag(data, context, getplayers, config)
 {
@@ -78,67 +79,67 @@ function game_flag(data, context, getplayers, config)
     switch(data.name)
     {
       case "midFlag":
-        this.image = document.getElementById("flag-mid-r");
+        this.image = assets.flag_mid_r;
         break;
 
       case "redFlag":
-        this.image = document.getElementById("flag-red-l");
+        this.image = assets.flag_red_l;
         break;
 
       case "blueFlag":
-        this.image = document.getElementById("flag-blue-r");
+        this.image = assets.flag_blue_r;
       break;
 
       case "slot1":
-        this.image = document.getElementById("flag-slot-1");
+        this.image = assets.flag_slot_1;
       break;
 
       case "slot2":
-        this.image = document.getElementById("flag-slot-2");
+        this.image = assets.flag_slot_2;
       break;
 
       case "slot3":
-        this.image = document.getElementById("flag-slot-3");
+        this.image = assets.flag_slot_3;
       break;
 
       case "slot4":
-        this.image = document.getElementById("flag-slot-4");
+        this.image = assets.flag_slot_4;
       break;
 
       case "slot5":
-        this.image = document.getElementById("flag-slot-5");
+        this.image = assets.flag_slot_5;
       break;
 
       case "slot6":
-        this.image = document.getElementById("flag-slot-6");
+        this.image = assets.flag_slot_6;
       break;
 
       case "slot7":
-        this.image = document.getElementById("flag-slot-7");
+        this.image = assets.flag_slot_7;
       break;
 
       case "slot8":
-        this.image = document.getElementById("flag-slot-8");
+        this.image = assets.flag_slot_8;
       break;
 
       case "slot9":
-        this.image = document.getElementById("flag-slot-9");
+        this.image = assets.flag_slot_9;
       break;
 
       case "slot10":
-        this.image = document.getElementById("flag-slot-10");
+        this.image = assets.flag_slot_10;
       break;
 
       case "slotBlue":
-        this.image = document.getElementById("flag-slot-blue");
+        this.image = assets.flag_slot_blue;
       break;
 
       case "slotRed":
-        this.image = document.getElementById("flag-slot-red");
+        this.image = assets.flag_slot_red;
       break;
 
       case "midSlot":
-        this.image = document.getElementById("flag-slot-mid");
+        this.image = assets.flag_slot_mid;
         break;
     }
   }
@@ -333,16 +334,16 @@ game_flag.prototype.setter = function(obj)
   if (this.type == "slot" && this.ctx)
   {
     //this.draw();
-    this.image = document.getElementById("flag-slot");
+    this.image = assets.flag_slot;
   }
   else if (this.ctx && this.type == "flag")
   {
     if (this.name == "midFlag")
-      this.image = document.getElementById("flag-mid-r");
+      this.image = assets.flag_mid_r;
     else if (this.name == "redFlag")
-      this.image = document.getElementById("flag-red-l");
+      this.image = assets.flag_red_l;
     else if (this.name == "blueFlag")
-      this.image = document.getElementById("flag-blue-r");
+      this.image = assets.flag_blue_r;
   }
 
   console.log('flag image', this.image);
@@ -694,56 +695,56 @@ game_flag.prototype.setCtx = function(ctx)
     switch(this.name)
     {
       case "slot1":
-        this.image = document.getElementById("flag-slot-1");
+        this.image = assets.flag_slot_1;
       break;
 
       case "slot2":
-        this.image = document.getElementById("flag-slot-2");
+        this.image = assets.flag_slot_2;
       break;
 
       case "slot3":
-        this.image = document.getElementById("flag-slot-3");
+        this.image = assets.flag_slot_3;
       break;
 
       case "slot4":
-        this.image = document.getElementById("flag-slot-4");
+        this.image = assets.flag_slot_4;
       break;
 
       case "slot5":
-        this.image = document.getElementById("flag-slot-5");
+        this.image = assets.flag_slot_5;
       break;
 
       case "slot6":
-        this.image = document.getElementById("flag-slot-6");
+        this.image = assets.flag_slot_6;
       break;
 
       case "slot7":
-        this.image = document.getElementById("flag-slot-7");
+        this.image = assets.flag_slot_7;
       break;
 
       case "slot8":
-        this.image = document.getElementById("flag-slot-8");
+        this.image = assets.flag_slot_8;
       break;
 
       case "slot9":
-        this.image = document.getElementById("flag-slot-9");
+        this.image = assets.flag_slot_9;
       break;
 
       case "slot10":
-        this.image = document.getElementById("flag-slot-10");
+        this.image = assets.flag_slot_10;
       break;
 
     }
-    //this.image = document.getElementById("flag-slot");
+    //this.image = assets.flag_slot;
   }
   if (this.ctx && this.type == "flag")
   {
     if (name == "midFlag")
-      this.image = document.getElementById("flag-mid-r");
+      this.image = assets.flag_mid_r;
     else if (name == "redFlag")
-      this.image = document.getElementById("flag-red-l");
+      this.image = assets.flag_red_l;
     else if (name == "blueFlag")
-      this.image = document.getElementById("flag-blue-r");
+      this.image = assets.flag_blue_r;
   }
 
   console.log('setter', this);

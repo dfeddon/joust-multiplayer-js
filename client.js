@@ -10,6 +10,7 @@
 
 var domready = require('domready');
 var config = require('./class.globals');
+var assets = require('./singleton.assets');
 var game_core = require('./game.core');
 // var _ = require('./node_modules/lodash/lodash.min');
 /*
@@ -202,38 +203,103 @@ domready(function()
 	}
 	//localStorage.debug = '*';
 
+	// asset loader
+	var loader = new PxLoader();
+	console.log('loader', loader);
+	
+	
+	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
+	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
+	assets.p1r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-right.png");
+	assets.p1l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-left.png");
+	assets.p1skid_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png");
+	assets.p1skid_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
+	assets.p1stand_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-right.png");
+	assets.p1stand_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-left.png");
+	assets.p1stun_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png");
+	assets.p1stun_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png");
 
-	console.log('doc', document);
+	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
+
+	assets.animate_explosion = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png");
+	assets.animate_torches = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-torches.png");
+	assets.animate_gg = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/EXPLOSIONS1.png");
+
+	assets.plat_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-l.png");
+	assets.plat_m = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-m.png");
+	assets.plat_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-r.png");
+	assets.plat_rotate = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-rotate.png");
+
+	assets.evt_chestopen = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/chest-open.png");
+	assets.evt_chestclosed = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/chest-closed.png");
+	assets.evt_potion_red_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-full.png");
+	assets.evt_potion_red_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-empty.png");
+	assets.evt_potion_blue_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-full.png");
+	assets.evt_potion_blue_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-empty.png");
+
+	assets.flag_red_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-r.png");
+	assets.flag_red_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-l.png");
+	assets.flag_blue_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-blue-r.png");
+	assets.flag_blue_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-blue-l.png");
+	assets.flag_mid_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-r.png");
+	assets.flag_mid_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-l.png");
+	assets.flag_slot_mid = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-mid.png");
+	assets.flag_slot_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-red.png");
+	assets.flag_slot_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-blue.png");
+	assets.flag_slot_1 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-1.png");
+	assets.flag_slot_2 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-2.png");
+	assets.flag_slot_3 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-3.png");
+	assets.flag_slot_4 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-4.png");
+	assets.flag_slot_5 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-5.png");
+	assets.flag_slot_6 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-6.png");
+	assets.flag_slot_7 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-7.png");
+	assets.flag_slot_8 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-8.png");
+	assets.flag_slot_9 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-9.png");
+	assets.flag_slot_10 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png");
+
+	console.log('loader', loader);
 	
 	//document.externalControlAction("x");
 
 	//console.log("eca", document, document.externalControlAction);
 	//alert('test');
 	//document.externalControlAction("A");
+	// loader progress
+	loader.addProgressListener(function(e)
+	{
+		console.log('progress', e);
+		
+	});
+	// assets load complete handler
+	loader.addCompletionListener(function()
+	{
+		console.log("* assets complete handler...");
+		//Create our game client instance.
+		game = new game_core();
 
-	//Create our game client instance.
-	game = new game_core();
+		//Fetch the viewport (primary game canvas )
+		game.viewport = document.getElementById('viewport');
 
-	//Fetch the viewport (primary game canvas )
-	game.viewport = document.getElementById('viewport');
+		//Adjust their size
+		game.viewport.width = window.innerWidth;//game.world.width;
+		game.viewport.height = window.innerHeight;//game.world.height;
 
-	//Adjust their size
-	game.viewport.width = window.innerWidth;//game.world.width;
-	game.viewport.height = window.innerHeight;//game.world.height;
+		//Fetch the rendering contexts
+		game.ctx = game.viewport.getContext('2d');
 
-	//Fetch the rendering contexts
-	game.ctx = game.viewport.getContext('2d');
+		//Set the draw style for the font
+		game.ctx.font = '11px "Helvetica"';
 
-	//Set the draw style for the font
-	game.ctx.font = '11px "Helvetica"';
+		// set the canvas origin (0,0) to center canvas
+		// All coordinates to the left of center canvas are negative
+		// All coordinates below center canvas are negative
+		//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
 
-	// set the canvas origin (0,0) to center canvas
-	// All coordinates to the left of center canvas are negative
-	// All coordinates below center canvas are negative
-	//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
+		//Finally, start the loop
+		game.update( new Date().getTime() );		
+	});
 
-	//Finally, start the loop
-	game.update( new Date().getTime() );
+	loader.start();
 
 	/////////////////////////////////////////
 	// external controls (from apps)
