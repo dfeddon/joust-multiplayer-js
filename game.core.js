@@ -32,6 +32,7 @@ var
     //transformClass      = require('./class.transform'),
     game_event_server   = require('./class.event'),
     game_chest          = require('./class.chest'),
+    assets              = require('./singleton.assets'),
     game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
@@ -126,7 +127,7 @@ var game_core = function(game_instance)
 
     this.config.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.config.world.totalplayers = 10;//30;//40;//4;
+    this.config.world.totalplayers = 30;//40;//4;
 
     this.config.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -369,7 +370,7 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
-
+        //var assets = 
         //this._ = _;
 
         /*var collisionObject = require('./class.collision'),
@@ -5287,6 +5288,10 @@ game_core.prototype.client_onplayernames = function(data)
     this.players.self.active = true;
     this.players.self.visible = true;
     this.players.self.vuln = false;
+    //console.log("my player name", assets.playerName);
+    if (assets.playerName)
+        this.players.self.playerName = assets.playerName;
+    // set playerName here
 };
 
 game_core.prototype.client_onjoingame = function(data)
@@ -5311,6 +5316,9 @@ game_core.prototype.client_onjoingame = function(data)
 
     var team = parseInt(alldata[3]);
     var playerName = alldata[4];
+    //console.log('playerName', playerName);
+    
+    //assets.playerName = playerName;
     var flags = JSON.parse(alldata[5]);
     //console.log('# startpos', startpos);
 
@@ -5340,7 +5348,8 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.mis = this.getplayers.allplayers[i].mis;
             //if (team > 0)
             this.getplayers.allplayers[i].team = team;
-            this.getplayers.allplayers[i].playerName = playerName;
+            if (playerName && playerName.length > 2)
+                this.getplayers.allplayers[i].playerName = playerName;
             /*/ set start position
             if (team == 1)
                 this.getplayers.allplayers[i].pos = this.gridToPixel(2, 2);

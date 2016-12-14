@@ -4267,19 +4267,26 @@ domready(function()
 		nickname.addEventListener("change", function(e)
 		{
 			console.log('nickname changed', e.target.value, e);
-			game.players.self.playerName = e.target.value;
+			//game.players.self.playerName = e.target.value;
+			assets.playerName = e.target.value;
 		});
 		btnStart.addEventListener("click", function(e)
 		{
 			console.log('start game clicked', assets.loaded);
 			if (!assets.loaded) return;
 
-			startGame();
+			if (!game.players)
+				startGame();
+			else
+			{
+				// activate player
+				game.players.self.active = true;
+				game.players.self.visible = true;
+				game.players.self.vuln = false;
+				if (assets.playerName)
+					game.players.self.playerName = assets.playerName;
+			}
 
-			// // activate player
-			// game.players.self.active = true;
-			// game.players.self.visible = true;
-			// game.players.self.vuln = false;
 			// hide splash
 			splash.style.display = "none";
 			
@@ -4997,6 +5004,7 @@ var
     //transformClass      = require('./class.transform'),
     game_event_server   = require('./class.event'),
     game_chest          = require('./class.chest'),
+    assets              = require('./singleton.assets'),
     game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
@@ -5091,7 +5099,7 @@ var game_core = function(game_instance)
 
     this.config.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.config.world.totalplayers = 10;//30;//40;//4;
+    this.config.world.totalplayers = 30;//40;//4;
 
     this.config.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -5334,7 +5342,7 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
-
+        //var assets = 
         //this._ = _;
 
         /*var collisionObject = require('./class.collision'),
@@ -10252,6 +10260,10 @@ game_core.prototype.client_onplayernames = function(data)
     this.players.self.active = true;
     this.players.self.visible = true;
     this.players.self.vuln = false;
+    //console.log("my player name", assets.playerName);
+    if (assets.playerName)
+        this.players.self.playerName = assets.playerName;
+    // set playerName here
 };
 
 game_core.prototype.client_onjoingame = function(data)
@@ -10276,6 +10288,9 @@ game_core.prototype.client_onjoingame = function(data)
 
     var team = parseInt(alldata[3]);
     var playerName = alldata[4];
+    //console.log('playerName', playerName);
+    
+    //assets.playerName = playerName;
     var flags = JSON.parse(alldata[5]);
     //console.log('# startpos', startpos);
 
@@ -10305,7 +10320,8 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.mis = this.getplayers.allplayers[i].mis;
             //if (team > 0)
             this.getplayers.allplayers[i].team = team;
-            this.getplayers.allplayers[i].playerName = playerName;
+            if (playerName && playerName.length > 2)
+                this.getplayers.allplayers[i].playerName = playerName;
             /*/ set start position
             if (team == 1)
                 this.getplayers.allplayers[i].pos = this.gridToPixel(2, 2);
@@ -10851,7 +10867,7 @@ game_core.prototype.client_draw_info = function() {
 }; //game_core.client_draw_help
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./class.chest":1,"./class.event":2,"./class.flag":3,"./class.getplayers":4,"./class.globals":5,"./class.platform":6,"./class.player":7,"./class.toast":8,"./egyptian_set":10,"./node_modules/lodash/lodash.min":144,"fs":179,"node-uuid":156,"xml2js":160}],12:[function(require,module,exports){
+},{"./class.chest":1,"./class.event":2,"./class.flag":3,"./class.getplayers":4,"./class.globals":5,"./class.platform":6,"./class.player":7,"./class.toast":8,"./egyptian_set":10,"./node_modules/lodash/lodash.min":144,"./singleton.assets":178,"fs":179,"node-uuid":156,"xml2js":160}],12:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */

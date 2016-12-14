@@ -189,19 +189,26 @@ domready(function()
 		nickname.addEventListener("change", function(e)
 		{
 			console.log('nickname changed', e.target.value, e);
-			game.players.self.playerName = e.target.value;
+			//game.players.self.playerName = e.target.value;
+			assets.playerName = e.target.value;
 		});
 		btnStart.addEventListener("click", function(e)
 		{
 			console.log('start game clicked', assets.loaded);
 			if (!assets.loaded) return;
 
-			startGame();
+			if (!game.players)
+				startGame();
+			else
+			{
+				// activate player
+				game.players.self.active = true;
+				game.players.self.visible = true;
+				game.players.self.vuln = false;
+				if (assets.playerName)
+					game.players.self.playerName = assets.playerName;
+			}
 
-			// // activate player
-			// game.players.self.active = true;
-			// game.players.self.visible = true;
-			// game.players.self.vuln = false;
 			// hide splash
 			splash.style.display = "none";
 			
