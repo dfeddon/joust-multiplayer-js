@@ -3893,13 +3893,13 @@ game_toast.prototype.show = function(data)
 
     if (data.playerTeam === 1) 
     {
-      data.playerTeam = "red";
-      data.otherTeam = 'blue';
+      data.playerTeam = "#FF6961";
+      data.otherTeam = '#6ebee6';
     }
     else 
     {
-      data.playerTeam = "blue";
-      data.otherTeam = "red";
+      data.playerTeam = "#6ebee6";
+      data.otherTeam = "#FF6961";
     }
 
     var dir = "over";
@@ -3935,7 +3935,7 @@ game_toast.prototype.show = function(data)
     break;
 
     case "slotFlag":
-      this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> planted the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!<br> " + dir + " at <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
+      this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> planted the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font><br> " + dir + " at <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
     break;
 
     case "carrierDied":
@@ -4090,6 +4090,7 @@ var domready = require('domready');
 //var config = require('./class.globals');
 var assets = require('./singleton.assets');
 var game_core = require('./game.core');
+//var localStorage = require('bower_components/simple-webstorage/extendStorage');
 var device = {};
 // var _ = require('./node_modules/lodash/lodash.min');
 /*
@@ -4101,6 +4102,12 @@ var game_chest = require('./class.chest');
 var game_flag = require('./class.flag');
 var
 //*/
+
+/* 
+TWITTER POST
+https://twitter.com/intent/tweet?status=Come%20and%20play%20http%3A%2F%2Fwingdom.io%20%23wingdomio
+
+*/
 
 domready(function()
 {
@@ -4180,10 +4187,10 @@ domready(function()
 				apprec.style.display = "block";
 				apprec.addEventListener("click", function(e)
 				{
-					window.location = "http://www.google.com";
+					window.location = "http://www.apple.com/itunes/";
 				});
 				//var ui = document.getElementById('uiTopBar');
-				ui.style.display = "none";
+				//ui.style.display = "none";
 				return;
 			}
 			else
@@ -4216,10 +4223,10 @@ domready(function()
 				apprec.style.display = "block";
 				apprec.addEventListener("click", function(e)
 				{
-					window.location = "http://www.google.com";
+					window.location = "https://play.google.com/store/apps/category/GAME?utm_source=na_Med&utm_medium=hasem&utm_content=Nov1215&utm_campaign=Evergreen&pcampaignid=MKT-DR-na-us-all-Med-hasem-gm-Evergreen-May0315-1-SiteLink%7cONSEM_kwid_43700006873862192&gclid=CIGa5JHu8dACFc3ZDQodhNEC4Q&gclsrc=ds&dclid=CPDb6ZHu8dACFUQdHwodFZ4K0g";
 				});
 				//var ui = document.getElementById('uiTopBar');
-				ui.style.display = "none";
+				//ui.style.display = "none";
 				return;
 			}
 			
@@ -4264,11 +4271,15 @@ domready(function()
 		});
 		btnStart.addEventListener("click", function(e)
 		{
-			console.log('start game clicked');
-			// activate player
-			game.players.self.active = true;
-			game.players.self.visible = true;
-			game.players.self.vuln = false;
+			console.log('start game clicked', assets.loaded);
+			if (!assets.loaded) return;
+
+			startGame();
+
+			// // activate player
+			// game.players.self.active = true;
+			// game.players.self.visible = true;
+			// game.players.self.vuln = false;
 			// hide splash
 			splash.style.display = "none";
 			
@@ -4334,23 +4345,28 @@ domready(function()
 	assets.flag_slot_9 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-9.png");
 	assets.flag_slot_10 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png");
 
-	// console.log('loader', loader);
-	
-	//document.externalControlAction("x");
-
-	//console.log("eca", document, document.externalControlAction);
-	//alert('test');
-	//document.externalControlAction("A");
 	// loader progress
-	// loader.addProgressListener(function(e)
-	// {
-	// 	console.log('progress', e);
+	loader.addProgressListener(function(e)
+	{
+		console.log('progress', e);
 		
-	// });
+	});
 	// assets load complete handler
 	loader.addCompletionListener(function()
 	{
-		// console.log("* assets complete handler...");
+		assets.loaded = true;
+	});
+
+	var startGame = function()
+	{
+		// remove bg
+		document.body.style.backgroundImage = "none";
+
+		// show top UI bar
+		var ui = document.getElementById('uiTopBar');
+		ui.style.display = "block";
+
+
 		//Create our game client instance.
 		game = new game_core();
 
@@ -4372,13 +4388,44 @@ domready(function()
 		// All coordinates below center canvas are negative
 		//game.ctx.translate(this.game.world.width / 2, this.game.world.height / 2);
 
-		//Finally, start the loop
+		//Finally, start the game loop
 		game.update( new Date().getTime() );		
-	});
+	};
 
+	// load assets
 	console.log('device:', device);
 	loader.start();
 
+	/////////////////////////////////////////
+	// localStorage
+	/////////////////////////////////////////
+	var storage = function(action)
+	{
+		if (action == "set")
+		{
+			localStorage.hasTweeted = 1;
+		}
+		else if (action == "get")
+		{
+			console.log('localStorage', localStorage);
+			
+			return localStorage.hasTweeted;   // --> true
+			//localStorage.get('myKey');   // --> {a:[1,2,5], b: 'ok'}
+		}
+		else if (action == "del")
+		{
+			localStorage.removeItem('hasTweeted');
+		}
+	}
+
+	assets.hasTweeted = storage("get");
+	console.log('hasTweeted', assets.hasTweeted);	
+	if (!assets.hasTweeted)
+	{
+		// show unlock skin callout
+		console.log('show media callout!');
+		
+	}
 	/////////////////////////////////////////
 	// external controls (from apps)
 	/////////////////////////////////////////
@@ -10200,7 +10247,13 @@ game_core.prototype.client_onplayernames = function(data)
         }
         // console.log('p', p);
     }
-}
+
+    // activate player
+    this.players.self.active = true;
+    this.players.self.visible = true;
+    this.players.self.vuln = false;
+};
+
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)

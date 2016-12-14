@@ -38,13 +38,13 @@ game_toast.prototype.show = function(data)
 
     if (data.playerTeam === 1) 
     {
-      data.playerTeam = "red";
-      data.otherTeam = 'blue';
+      data.playerTeam = "#FF6961";
+      data.otherTeam = '#6ebee6';
     }
     else 
     {
-      data.playerTeam = "blue";
-      data.otherTeam = "red";
+      data.playerTeam = "#6ebee6";
+      data.otherTeam = "#FF6961";
     }
 
     var dir = "over";
@@ -80,7 +80,7 @@ game_toast.prototype.show = function(data)
     break;
 
     case "slotFlag":
-      this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> planted the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>!<br> " + dir + " at <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
+      this.toast.innerHTML = "<font color='" + data.playerTeam + "'<b>" + data.playerName + "</b></font> planted the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font><br> " + dir + " at <font color='yellow'><b>"+ this.getSlotLabel(data.targetSlot) + "</b></font>!";
     break;
 
     case "carrierDied":

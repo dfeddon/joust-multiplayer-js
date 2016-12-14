@@ -5282,7 +5282,13 @@ game_core.prototype.client_onplayernames = function(data)
         }
         // console.log('p', p);
     }
-}
+
+    // activate player
+    this.players.self.active = true;
+    this.players.self.visible = true;
+    this.players.self.vuln = false;
+};
+
 game_core.prototype.client_onjoingame = function(data)
 {
     //if (glog)
