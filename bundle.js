@@ -3082,6 +3082,7 @@ game_player.prototype.timeoutRespawn = function(victor)
         {
             var ui = document.getElementById('splash');
             ui.style.display = "block";
+            //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
         }
 
         return;
@@ -4302,6 +4303,9 @@ domready(function()
 
 	// asset loader
 	var loader = new PxLoader();
+
+	// link only
+	assets.bg_splash = "http://s3.amazonaws.com/com.dfeddon.wingdom/bg-splash.jpg";
 	
 	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");

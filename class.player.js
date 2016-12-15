@@ -1242,6 +1242,7 @@ game_player.prototype.timeoutRespawn = function(victor)
         {
             var ui = document.getElementById('splash');
             ui.style.display = "block";
+            //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
         }
 
         return;

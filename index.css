@@ -202,6 +202,53 @@ h2
 	border-radius: 5px
 }
 
+#cf {
+  position:relative;
+  height:200px;
+  width:300px;
+  margin:0 auto;
+}
+
+#cf img {
+    position:absolute;
+    left:0px;
+    top:0;
+    -webkit-animation-name: fade;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-duration: 15s;
+    animation-name: fade;
+    animation-iteration-count: infinite;
+    animation-duration: 15s;
+}
+
+@-webkit-keyframes fade {
+    0% {opacity: 0;}
+    20% {opacity: 1;}
+    33% {opacity: 1;}
+    53% {opacity: 0;}
+    100% {opacity: 0;}
+}
+@keyframes fade {
+    0% {opacity: 0;}
+    20% {opacity: 1;}
+    33% {opacity: 1;}
+    53% {opacity: 0;}
+    100% {opacity: 0;}
+}
+
+#f1 {
+    /*background-color: lightblue;*/
+}
+#f2 {
+    -webkit-animation-delay: -10s;
+	opacity: 0;
+    /*background-color: yellow;*/
+}
+#f3 {
+	opacity: 0;
+    -webkit-animation-delay: -5s;
+    /*background-color: lightgreen;*/
+}
 /*
 .form button {
   font-family: "Roboto", sans-serif;

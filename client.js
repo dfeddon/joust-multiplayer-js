@@ -224,6 +224,9 @@ domready(function()
 
 	// asset loader
 	var loader = new PxLoader();
+
+	// link only
+	assets.bg_splash = "http://s3.amazonaws.com/com.dfeddon.wingdom/bg-splash.jpg";
 	
 	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
