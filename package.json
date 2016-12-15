@@ -6,7 +6,7 @@
   "version": "0.8.0",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js –-nouse-idle-notification",
+    "start": "node bundle.server.js –-nouse-idle-notification",
     "local": "nodemon --watch app.js"
   },
   "dependencies": {
@@ -24,8 +24,14 @@
     "node": "6.2.0"
   },
   "devDependencies": {
-    "memwatch-next": "^0.3.0",
+    "grunt": "^1.0.1",
+    "grunt-aws-s3": "^0.14.5",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-uglify": "^2.0.0",
     "gulp-concat-util": "^0.5.5",
-    "gulp-uglify": "^2.0.0"
+    "gulp-uglify": "^2.0.0",
+    "memwatch-next": "^0.3.0"
   }
 }

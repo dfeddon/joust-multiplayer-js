@@ -183,7 +183,8 @@ domready(function()
 		if (device.ipad) 
 		{
 			//adContainer.style.width = "0px";
-			adContainer.style.display = "none";
+			// TODO: only hide is inapp adremove is false
+			//adContainer.style.display = "none";
 		}
 
 		nickname.addEventListener("change", function(e)
