@@ -45,7 +45,13 @@
 		<!-- Load the common game code. -->
 		<!-- <script type="text/javascript" src="game.core.js"></script> -->
 		<!-- Finally, Load the game client code. -->
-		<script type="text/javascript" src="bundle.js"></script> 
+		<!--<script id="bundle" type="text/javascript" src="http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.js"></script> -->
+		<script type="text/javascript">
+			var script = document.createElement('script');
+			if(document.domain == "localhost") script.src = 'bundle.js';
+			else script.src = 'http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.js';
+			document.head.appendChild(script);
+		</script>
 
 		<!-- RequireJS
 		<script src="require.js"></script>
@@ -245,7 +251,7 @@
 					<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-keyboard.png" />
 				</div>
 				<!-- LINKS -->
-				<br><br>
+				<!--<br><br>-->
 				<div>
 					<a href>privacy</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href>contact</a>
 				</div>

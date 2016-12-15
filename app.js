@@ -48,8 +48,47 @@ console.log('\t :: Express :: Listening on port ' + gameport );
 //By default, we forward the / path to index.html automatically.
 app.get( '/', function( req, res )
 {
-    console.log('trying to load %s', __dirname + '/index.html');
+    //console.log('trying to load %s', __dirname + '/index.html');
     res.sendfile( '/index.html' , { root:__dirname });
+});
+
+// security
+app.get('/app.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/game.core.js', function(req, res)
+{
+    //console.log('stop!', req.headers);
+    res.status(404).end();
+});
+app.get('/game.server.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.player.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.chest.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.flag.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.toast.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/egyptian_set.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/package.json', function(req, res)
+{
+    res.status(404).end();
 });
 
 

@@ -1607,11 +1607,12 @@ game_core.prototype.tilemapper = function()
         //console.log(source, trans, imageWidth, imageHeight);
 
         var layers = [];
-        var image = new Image();
-        image.onload = function(e)
-        {
+        var image = assets.skin1_tileset;
+        //var image = new Image();
+        //image.onload = function(e)
+        //{
             // image loaded
-            var sheet = e.target;
+            var sheet = image;//e.target;
             //context2.drawImage(e.target, 0, 0);
 
             // first, create canvas the exact size of the tilemap
@@ -1628,7 +1629,7 @@ game_core.prototype.tilemapper = function()
             ///////////////////////////////////
             // add tilemap to tile canvas context
             ///////////////////////////////////
-            tmContext.drawImage(e.target, 0, 0);
+            tmContext.drawImage(image, 0, 0);
 
 
             ///////////////////////////////////
@@ -1760,16 +1761,18 @@ game_core.prototype.tilemapper = function()
 
             // declare territory
             _this.updateTerritory();
-        }; // end tilemap image loaded
+        //}; // end tilemap image loaded
 
         // path: ../tilesets/skin1-tileset.png
+        /*
         console.log('* tileset image source', source);
         
-        //var split = source.split("/");
-        //var filename = split[2];
-        image.src = source.replace("..", "/assets");
-        //image.src = "http://s3.amazonaws.com/com.dfeddon.wingdom/" + filename;
-        //console.log(image.src);
+        var split = source.split("/");
+        var filename = split[2];
+        //image.src = source.replace("..", "/assets");
+        image.src = "http://s3.amazonaws.com/com.dfeddon.wingdom/" + filename;
+        console.log('* imgsrc', image.src);
+        */
 
     }
 };
@@ -4557,7 +4560,7 @@ game_core.prototype.client_process_net_updates = function()
         //if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
         //{
             // TODO: bug below - "self_pp" is undefined
-            if (self_pp && self_tp)
+            if (self_pp && self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
             {
             this.players.self.pos =
                 this.v_lerp(this.players.self.pos,

@@ -190,7 +190,12 @@ domready(function()
 		{
 			console.log('nickname changed', e.target.value, e);
 			//game.players.self.playerName = e.target.value;
-			assets.playerName = e.target.value;
+			// ensure string has at least 3 text chars (excluding whitespace)
+			var myString = e.target.value;
+			var noWhiteSpace = myString.replace(/\s/g, "");
+			var strLength = noWhiteSpace.length;
+			if (strLength > 2)
+				assets.playerName = e.target.value;
 		});
 		btnStart.addEventListener("click", function(e)
 		{
@@ -227,6 +232,10 @@ domready(function()
 
 	// link only
 	assets.bg_splash = "http://s3.amazonaws.com/com.dfeddon.wingdom/bg-splash.jpg";
+
+	// CORS
+	var origin = {origin:"Anonymous"};
+	assets.skin1_tileset = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-tileset.png",'',0,origin);
 	
 	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
