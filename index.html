@@ -45,11 +45,11 @@
 		<!-- Load the common game code. -->
 		<!-- <script type="text/javascript" src="game.core.js"></script> -->
 		<!-- Finally, Load the game client code. -->
-		<!--<script id="bundle" type="text/javascript" src="http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.js"></script> -->
+		<!--<script id="bundle" type="text/javascript" src="http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.client.min.js"></script> -->
 		<script type="text/javascript">
 			var script = document.createElement('script');
-			if(document.domain == "localhost") script.src = 'bundle.js';
-			else script.src = 'http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.js';
+			if(document.domain == "localhost") script.src = 'bundle.client.min.js';
+			else script.src = 'http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.client.min.js';
 			document.head.appendChild(script);
 		</script>
 

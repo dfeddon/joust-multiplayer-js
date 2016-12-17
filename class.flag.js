@@ -590,7 +590,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
 
     // carrier
     var playerSource = _.find(_this.getplayers.allplayers, {'mp':_this.heldBy});
-    console.log('* playerSource', playerSource, this.heldBy, this);
+    console.log('* playerSource', playerSource.mp, this.heldBy);//, this);
     
     msg.playerName = playerSource.playerName;
 
@@ -653,7 +653,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
       });
     }
   }
-  console.log('flag slotted and reset', this);
+  console.log('flag slotted and reset');
 };
 
 game_flag.prototype.timeoutCooldown = function()

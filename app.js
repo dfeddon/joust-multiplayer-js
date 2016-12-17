@@ -27,7 +27,7 @@ var
     app             = express(),
     server          = http.createServer(app),
     //throng          = require('throng'),
-    //memwatch        = require('memwatch-next'),
+    memwatch        = require('memwatch-next'),
     //heapdump        = require('heapdump'),
     util            = require('util'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
@@ -53,28 +53,45 @@ app.get( '/', function( req, res )
 });
 
 // security
+
 app.get('/app.js', function(req, res)
 {
     res.status(404).end();
 });
-app.get('/game.core.js', function(req, res)
+app.get('/package.json', function(req, res)
 {
     //console.log('stop!', req.headers);
     res.status(404).end();
 });
-app.get('/game.server.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.player.js', function(req, res)
-{
-    res.status(404).end();
-});
+// app.get('/index.css', function(req, res)
+// {
+//     res.status(404).end();
+// });
 app.get('/class.chest.js', function(req, res)
 {
     res.status(404).end();
 });
+app.get('/class.event.js', function(req, res)
+{
+    res.status(404).end();
+});
 app.get('/class.flag.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.getplayers.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.globals.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.platform.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/class.player.js', function(req, res)
 {
     res.status(404).end();
 });
@@ -86,7 +103,15 @@ app.get('/egyptian_set.js', function(req, res)
 {
     res.status(404).end();
 });
-app.get('/package.json', function(req, res)
+app.get('/game.core.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/game.server.js', function(req, res)
+{
+    res.status(404).end();
+});
+app.get('/singleton.assets.js', function(req, res)
 {
     res.status(404).end();
 });
@@ -266,23 +291,24 @@ host.hosting = true;
 
 game_server.createGame(host);
 
-/*
+//*
 setInterval(function()
 {
     if (typeof(global.gc) == 'function')
         global.gc();
     console.log('** GC done')
-}, 1000*60);
+}, 30 * 1000);
 //*/
 
 ////////////////////////////////////////
 // Memwatch
 ////////////////////////////////////////
-/*
+//*
 var hd;
 memwatch.on('leak', function(info) 
 {
     console.log('Memory Leak!!!:', info);
+    /*
     if (!hd)
     {
         hd = new memwatch.HeapDiff();
@@ -293,6 +319,7 @@ memwatch.on('leak', function(info)
         console.error(util.inspect(diff, true, null));
         hd = null;
     }
+    */
     //process.kill(process.pid, 'SIGUSR2'); 
 });
 
