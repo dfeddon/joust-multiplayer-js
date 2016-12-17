@@ -198,6 +198,7 @@ domready(function()
 			if (strLength > 2)
 				assets.playerName = e.target.value;
 		});
+
 		btnStart.addEventListener("click", function(e)
 		{
 			console.log('start game clicked', assets.loaded);
@@ -225,6 +226,40 @@ domready(function()
 			//_this.client_update();
 			//_this.players.self.visible = true;
 		});
+
+		// skins
+		//*
+		var plusSlides = function(n)
+		{
+			showSlides(slideIndex += n);
+		};
+		var showSlides = function(n)
+		{
+			var i;
+			var x = document.getElementsByClassName("slides");
+			if (n > x.length) {slideIndex = 1}    
+			else if (n < 1) {slideIndex = x.length}
+			for (i = 0; i < x.length; i++) 
+			{
+				x[i].style.display = "none";
+			}
+			x[slideIndex-1].style.display = "block";			
+		};
+		//*/
+		var leftArrow = document.getElementById("leftArrow");
+		var rightArrow = document.getElementById('rightArrow');
+		
+		leftArrow.addEventListener("click", function(e)
+		{
+			plusSlides(-1);
+		});
+		rightArrow.addEventListener("click", function(e)
+		{
+			plusSlides(1);
+		});
+		
+		var slideIndex = 0;
+		showSlides(slideIndex);
 	}
 	//localStorage.debug = '*';
 
