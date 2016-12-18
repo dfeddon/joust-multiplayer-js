@@ -72,6 +72,10 @@ function game_player(player_instance, isHost, pindex, config)
     this.vuln = false;
     this.bubble = false;
     this.dying = false;
+
+    // TODO: default to invisible skin
+    this.skinName = "skin1";
+    this.skin = assets.skins.skin1;
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -135,7 +139,8 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.playerName = "";
     this.playerSprite = "roundRooster";
-    return;
+    //return;
+    /*
     if (!this.config.server)
     {
         // function transparency(img)
@@ -358,10 +363,10 @@ function game_player(player_instance, isHost, pindex, config)
                 imgCvsCtx.putImageData(getImg, 0, 0);
                 this.glideRight = new Image();
                 this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-                /*var ratio = calculateAspectRatioFit(this.glideRight.width,this.glideRight.height,64,64);
-                console.log('ratio', ratio);
-                this.glideRight.width*=ratio;
-                this.glideRight.height*=ratio;*/
+                // var ratio = calculateAspectRatioFit(this.glideRight.width,this.glideRight.height,64,64);
+                // console.log('ratio', ratio);
+                // this.glideRight.width*=ratio;
+                // this.glideRight.height*=ratio;
 
                 // glide left
                 //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
@@ -524,6 +529,8 @@ function game_player(player_instance, isHost, pindex, config)
         src1 = null;
         src2 = null;
         //console.log('::',src1);
+        //*/
+
         /*
         // spritesheet
         var playerSheet = document.getElementById('ss1');
@@ -564,7 +571,7 @@ function game_player(player_instance, isHost, pindex, config)
             ]
         );
         console.log('animate', this.animation);*/
-    }
+    //}
     //this.lastNamePlate = "YOU";
 } // end game_player constructor
 

@@ -272,6 +272,9 @@ domready(function()
 	// CORS
 	var origin = {origin:"Anonymous"};
 	assets.skin1_tileset = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-tileset.png",'',0,origin);
+
+	assets.skins = {};
+	assets.skins.skin1 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/tilemap_skins1.png');
 	
 	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
