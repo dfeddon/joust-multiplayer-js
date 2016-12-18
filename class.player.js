@@ -6,6 +6,7 @@
 
 //var config = require('./class.globals');
 var assets = require('./singleton.assets');
+var game_spritesheet = require('./class.spritesheet');
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
@@ -17,7 +18,7 @@ function game_player(player_instance, isHost, pindex, config)
     else console.log('** added player (without instance)');
     //if (isGhost) console.log('** ^ player is ghost, adding to ghost store');
 
-    var self = this;
+    var _this = this;
 
     this.instance = player_instance;
     this.config = config;
@@ -74,8 +75,12 @@ function game_player(player_instance, isHost, pindex, config)
     this.dying = false;
 
     // TODO: default to invisible skin
-    this.skinName = "skin1";
-    this.skin = assets.skins.skin1;
+    this.skin = "skin1";
+    if (!config.server)
+    {
+        this.sprite = new game_spritesheet(assets.skins[this.skin]);
+    }    
+
     //this.stunLen = 500; // 1.5 sec
 
     this.isLocal = false;
@@ -1850,9 +1855,9 @@ game_player.prototype.draw = function()
     else if (this.vuln === true)
     {
         if (this.dir === 1)
-            img = assets.p1stun_l;//document.getElementById("p1stun-l");
+            this.sprite.draw('vuln-l', this.pos);//img = assets.p1stun_l;//document.getElementById("p1stun-l");
             //this.vulnLeft;//document.getElementById("p1stun-l");
-        else img = assets.p1stun_r;//document.getElementById("p1stun-r");
+        else img = this.sprite.draw('vuln-r', this.pos);//assets.p1stun_r;//document.getElementById("p1stun-r");
 
         imgW = 64;
         imgH = 64;
@@ -1864,9 +1869,13 @@ game_player.prototype.draw = function()
         //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
         this.flap = false;
-        if (this.dir === 1) img = assets.p1l;//document.getElementById("p1l");
+        if (this.dir === 1) 
+        {
+            this.sprite.draw('flap-l', this.pos);
+            //img = assets.p1l;//document.getElementById("p1l");
+        }
         //img = this.flapLeft;//document.getElementById("p1l");
-        else img = assets.p1r;//document.getElementById("p1r");
+        else this.sprite.draw('flap-r', this.pos);//img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
         imgW = 64;//40;
@@ -1875,9 +1884,9 @@ game_player.prototype.draw = function()
     else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1) img = assets.p1stand_l;//document.getElementById("p1stand-l");
+        if (this.dir === 1) this.sprite.draw('land-l', this.pos);//img = assets.p1stand_l;//document.getElementById("p1stand-l");
             //img = this.standLeft;// document.getElementById("p1stand-l");
-        else img = assets.p1stand_r;//document.getElementById("p1stand-r");
+        else img = this.sprite.draw('land-r', this.pos);//assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
         imgW = 64;//33;
@@ -1886,8 +1895,8 @@ game_player.prototype.draw = function()
     else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            img = assets.p1skid_l;//document.getElementById("p1skid-l");
-        else img = assets.p1skid_r;//document.getElementById("p1skid-r");
+            img = this.sprite.draw('land-l', this.pos);//assets.p1skid_l;//document.getElementById("p1skid-l");
+        else img = this.sprite.draw('land-r', this.pos);//assets.p1skid_r;//document.getElementById("p1skid-r");
 
         imgW = 64;//33;
         imgH = 64;//44;
@@ -1895,11 +1904,11 @@ game_player.prototype.draw = function()
     else // gliding
     {
         if (this.dir === 1)
-            img = assets.p2l;//document.getElementById("p2l");
+            img = this.sprite.draw('fly-l', this.pos);//assets.p2l;//document.getElementById("p2l");
             //img = ctx.putImageData(imgData,10,70);
             //img = this.glideLeft;
         else //img = this.glideRight;//
-        img = assets.p2r;//document.getElementById("p2r");
+        this.sprite.draw('fly-r', this.pos);//img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         imgW = 64;//40;
@@ -1997,7 +2006,7 @@ game_player.prototype.draw = function()
         //console.log(this.glideRight);
     if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         //if (this.glideRight)
-            this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
+            //this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
         //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
 
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);

@@ -274,18 +274,18 @@ domready(function()
 	assets.skin1_tileset = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-tileset.png",'',0,origin);
 
 	assets.skins = {};
-	assets.skins.skin1 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/tilemap_skins1.png');
+	assets.skins.skin1 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin1.png');
 	
-	assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
-	assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
-	assets.p1r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-right.png");
-	assets.p1l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-left.png");
-	assets.p1skid_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png");
-	assets.p1skid_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
-	assets.p1stand_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-right.png");
-	assets.p1stand_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-left.png");
-	assets.p1stun_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png");
-	assets.p1stun_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png");
+	// assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
+	// assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
+	// assets.p1r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-right.png");
+	// assets.p1l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-flap-left.png");
+	// assets.p1skid_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png");
+	// assets.p1skid_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");
+	// assets.p1stand_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-right.png");
+	// assets.p1stand_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stand-left.png");
+	// assets.p1stun_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png");
+	// assets.p1stun_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png");
 
 	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
 

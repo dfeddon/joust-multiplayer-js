@@ -104,6 +104,7 @@ var game_core = function(game_instance)
     
     this.getplayers = new getplayers();
     this.config = new config();
+    this.config.server = (this.server) ? true : false;
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
     
 
