@@ -51,12 +51,13 @@ module.exports = function(grunt)
             {
                 options:
                 {
-                    compress: 
+                    compress:false,
+                    /*compress: 
                     {
-                        drop_console: true
-                    },
-                    mangle: true,
-                    beautify: false
+                        drop_console: false
+                },*/
+                    mangle: false,
+                    beautify: true
                 },
                 files: 
                 {
@@ -93,6 +94,7 @@ module.exports = function(grunt)
                     { src: ['./class.event.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./class.chest.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./class.toast.js'], dest: '../wingdom-server-dist/' },
+                    { src: ['./class.spritesheet.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/keyboard.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/pxloader-images.min.js'], dest: '../wingdom-server-dist/' },

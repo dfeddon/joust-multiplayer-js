@@ -32,6 +32,7 @@ var
     util            = require('util'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
+http.globalAgent.maxSockets = Infinity;
 /* Express server set up. */
 
 //The express server handles passing our content to the browser,

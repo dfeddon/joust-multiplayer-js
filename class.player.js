@@ -31,8 +31,8 @@ function game_player(player_instance, isHost, pindex, config)
     //this.pos = { x:0, y:0 };
 
     this.lpos = this.pos;
-    this.size = { x:64, y:64, hx:64, hy:64 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 };
-    this.hitbox = {w:64/2,h:64/2};
+    this.size = { x:48, y:48, hx:48, hy:48, offset:16 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 };
+    //this.hitbox = {w:64/2,h:64/2};
     this.dir = 0; // 0 = right, 1 = left (derek added)
 
     // velocity
@@ -1766,7 +1766,7 @@ game_player.prototype.draw = function()
     var txt = this.playerName;// + this.team.toString();//+ "(" + this.mana.toString() + ")";
     this.config.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
-        this.pos.x + (this.size.hx/2),//.fixed(1),
+        this.pos.x + ((this.size.hx + this.size.offset)/2),//.fixed(1),
         this.pos.y - txtOffset
         //100
     );
@@ -1786,7 +1786,7 @@ game_player.prototype.draw = function()
     {
         this.config.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
             //this.pos.x - 15,
-            this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
+            this.pos.x + ((this.size.hx + this.size.offset)/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
             //this.pos.x + (this.size.hx/2) - 30,
             this.pos.y - txtOffset - 12,
             15, 15);
@@ -1977,7 +1977,7 @@ game_player.prototype.draw = function()
         // if flag is undefined, it's been removed
         if (flagImg && flag)
         {
-            this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - (this.size.hx/2) : this.pos.x + (this.size.hx/2), this.pos.y - (this.size.hx/2), 64, 64);
+            this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - ((this.size.hx+this.size.offset)/2) : this.pos.x + ((this.size.hx+this.size.offset)/2), this.pos.y - ((this.size.hx + this.size.offset)/2), 64, 64);
             // draw timer
             //*
             this.config.ctx.font = "18px Mirza";
@@ -1987,7 +1987,7 @@ game_player.prototype.draw = function()
             if (flag)
             this.config.ctx.fillText(
                 flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
-                (this.dir === 0) ? this.pos.x - 5 : this.pos.x + this.size.hx + 5,//.fixed(1),
+                (this.dir === 0) ? this.pos.x - 5 : this.pos.x + (this.size.hx + this.size.offset) + 5,//.fixed(1),
                 this.pos.y - 5//txtOffset
                 //100
             );
