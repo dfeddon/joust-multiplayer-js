@@ -98,6 +98,7 @@ module.exports = function(grunt)
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/keyboard.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/pxloader-images.min.js'], dest: '../wingdom-server-dist/' },
+                    { src: ['./robots.txt'], dest: '../wingdom-server-dist/' },
                 ],
             },
         },

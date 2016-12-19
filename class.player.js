@@ -1569,6 +1569,10 @@ game_player.prototype.isVuln = function(len)
     // if carrying flag, drop it
     if (this.config.server && this.hasFlag)
         this.dropFlag();
+    
+    // break bubble
+    if (this.bubble === true)
+        this.bubble = false;
 };
 
 game_player.prototype.dropFlag = function()
@@ -1862,6 +1866,7 @@ game_player.prototype.draw = function()
         img = assets.animate_gg;//document.getElementById('animate-gg');
         imgW = 64;//33;
         imgH = 64;//44;
+        this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
     }
     else if (this.vuln === true)
     {
@@ -2015,7 +2020,7 @@ game_player.prototype.draw = function()
     //game.ctx.beginPath();
     //if (this.glideRight)
         //console.log(this.glideRight);
-    if(String(window.location).indexOf('debug') == -1 && this.visible===true)
+    //if(String(window.location).indexOf('debug') == -1 && this.visible===true)
         //if (this.glideRight)
             //this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);//img.width, img.height);//, imgW, imgH);
         //else game.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
