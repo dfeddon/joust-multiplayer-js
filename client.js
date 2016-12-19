@@ -204,9 +204,15 @@ domready(function()
 			console.log('start game clicked', assets.loaded);
 			if (!assets.loaded) return;
 
-			if (!game.players)
+			//var skin = "skin" + assets.skinIndex.toString();
+			var skins = document.getElementsByClassName("slides");
+			assets.playerSkin = skins[assets.skinIndex - 1].id;
+
+			if (!game.players) // first game
+			{				
 				startGame();
-			else
+			}
+			else // respawning
 			{
 				// activate player
 				game.players.self.active = true;
@@ -214,6 +220,8 @@ domready(function()
 				game.players.self.vuln = false;
 				if (assets.playerName)
 					game.players.self.playerName = assets.playerName;
+				// skin
+				game.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
 			}
 
 			// hide splash
@@ -231,19 +239,19 @@ domready(function()
 		//*
 		var plusSlides = function(n)
 		{
-			showSlides(slideIndex += n);
+			showSlides(assets.skinIndex += n);
 		};
 		var showSlides = function(n)
 		{
 			var i;
 			var x = document.getElementsByClassName("slides");
-			if (n > x.length) {slideIndex = 1}    
-			else if (n < 1) {slideIndex = x.length}
+			if (n > x.length) {assets.skinIndex = 1}    
+			else if (n < 1) {assets.skinIndex = x.length}
 			for (i = 0; i < x.length; i++) 
 			{
 				x[i].style.display = "none";
 			}
-			x[slideIndex-1].style.display = "block";			
+			x[assets.skinIndex-1].style.display = "block";			
 		};
 		//*/
 		var leftArrow = document.getElementById("leftArrow");
@@ -258,8 +266,8 @@ domready(function()
 			plusSlides(1);
 		});
 		
-		var slideIndex = 0;
-		showSlides(slideIndex);
+		assets.skinIndex = 1;
+		showSlides(assets.skinIndex);
 	}
 	//localStorage.debug = '*';
 
@@ -275,6 +283,10 @@ domready(function()
 
 	assets.skins = {};
 	assets.skins.skin1 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin1.png');
+	assets.skins.skin2 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin2.png');
+	assets.skins.skin5 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin5.png');
+	assets.skins.skin8 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin8.png');
+	assets.skins.skin9 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin9.png');
 	
 	// assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	// assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");

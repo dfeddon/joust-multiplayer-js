@@ -589,6 +589,17 @@ game_player.prototype.dead = false;
 //     console.log('player.setFlag', int);
 //     this.hasFlag = int;
 // };
+game_player.prototype.setSkin = function(skin)
+{
+    console.log('== player.setSkin', skin, '==');
+    
+    this.skin = skin;
+    if (!this.config.server)
+    {
+        this.sprite = new game_spritesheet(assets.skins[skin]);
+    }    
+};
+
 game_player.prototype.botAction = function()
 {
     console.log('== botAction ==');
@@ -1598,7 +1609,7 @@ game_player.prototype.getCoord = function()
     // direction-dependent, account for
     this.nw =
     {
-        x: Math.floor(this.pos.x / 64),
+        x: Math.floor((this.pos.x + this.size.offset) / 64),
         y: Math.floor(this.pos.y / 64)
     };
     this.ne =
@@ -1608,7 +1619,7 @@ game_player.prototype.getCoord = function()
     };
     this.sw =
     {
-        x: Math.floor(this.pos.x / 64),
+        x: Math.floor((this.pos.x + this.size.offset) / 64),
         y: Math.floor((this.pos.y + this.size.hy) / 64)
     };
     this.se =
@@ -1619,7 +1630,7 @@ game_player.prototype.getCoord = function()
     this.n =
     {
         x: Math.floor((this.pos.x + (this.size.hx/2)) / 64),
-        y: Math.floor(this.pos.y / 64)
+        y: Math.floor((this.pos.y - (this.size.offset)) / 64)
     };
     this.s =
     {
@@ -1628,12 +1639,12 @@ game_player.prototype.getCoord = function()
     };
     this.e =
     {
-        x: Math.floor((this.pos.x + this.size.hx) / 64),
+        x: Math.floor((this.pos.x + this.size.hx - this.size.offset) / 64),
         y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
     };
     this.w =
     {
-        x: Math.floor(this.pos.x / 64),
+        x: Math.floor((this.pos.x + this.size.offset) / 64),
         y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
     };
     return { nw:this.nw, ne:this.ne, sw:this.sw, se:this.se, n:this.n, s:this.s, e:this.e, w:this.w };

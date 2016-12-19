@@ -5295,6 +5295,8 @@ game_core.prototype.client_onplayernames = function(data)
     //console.log("my player name", assets.playerName);
     if (assets.playerName)
         this.players.self.playerName = assets.playerName;
+    if (assets.playerSkin)
+        this.players.self.setSkin(assets.playerSkin);
     // set playerName here
 };
 

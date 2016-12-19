@@ -50,7 +50,7 @@ console.log('\t :: Express :: Listening on port ' + gameport );
 app.get( '/', function( req, res )
 {
     //console.log('trying to load %s', __dirname + '/index.html');
-    res.sendfile( '/index.html' , { root:__dirname });
+    res.sendFile( '/index.html' , { root:__dirname });
 });
 
 // security
@@ -130,7 +130,7 @@ app.get( '/*' , function( req, res, next )
     console.log('\t :: Express :: file requested : ' + file);
 
     //Send the requesting client the file.
-    res.sendfile( __dirname + '/' + file );
+    res.sendFile( __dirname + '/' + file );
 }); //app.get *
 
 app.post( '/api/orbs' , function( req, res, next )
