@@ -367,13 +367,13 @@ game_flag.prototype.doTake = function(player)
     return;
   }
 
-  if (player.team === 1 && this.name == "redFlag")
+  if (player.team === 1 && this.name == "redFlag" && this.sourceSlot == "slotRed")
   {
     console.log("red team cannot get red flag");
     this.isHeld = false;
     return;
   }
-  else if (player.team === 2 && this.name == "blueFlag")
+  else if (player.team === 2 && this.name == "blueFlag" && this.sourceSlot == "slotBlue")
   {
     console.log("blue team cannot take blue flag");
     this.isHeld = false;
@@ -761,7 +761,7 @@ game_flag.prototype.draw = function()
       this.image = assets.flag_red_r;
     else this.image = assets.flag_red_l;
   }
-  
+
   if (this.image && this.visible)
     this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 
