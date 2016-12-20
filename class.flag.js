@@ -742,7 +742,9 @@ game_flag.prototype.setCtx = function(ctx)
     if (name == "midFlag")
       this.image = assets.flag_mid_r;
     else if (name == "redFlag")
+    {
       this.image = assets.flag_red_l;
+    }
     else if (name == "blueFlag")
       this.image = assets.flag_blue_r;
   }
@@ -753,8 +755,15 @@ game_flag.prototype.setCtx = function(ctx)
 game_flag.prototype.draw = function()
 {
   //console.log('dodraw', this.image, this.x, this.y);
+  if (this.name == "redFlag")
+  {
+    if (this.sourceSlot != "slotRed")
+      this.image = assets.flag_red_r;
+    else this.image = assets.flag_red_l;
+  }
+  
   if (this.image && this.visible)
-  this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 
   if (this.onCooldown)
   {

@@ -510,7 +510,9 @@ game_server.startGame = function(game, newplayer)
                         name: fo[l].name,
                         x: fo[l].x,
                         y: fo[l].y,
-                        visible:fo[l].visible
+                        sourceSlot: fo[l].sourceSlot,
+                        visible: fo[l].visible,
+                        isActive: fo[l].isActive
                     };
                     flagsArray.push(flag);
                 }

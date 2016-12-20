@@ -5585,16 +5585,24 @@ game_core.prototype.client_onhostgame = function(data)
     });
 
     var cflag;
-    //console.log('flags', flags, this.config.flagObjects);
+    console.log('flags', flags);//, this.config.flagObjects);
     this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
         cflag = _.find(_this.config.flagObjects, {'name': flag.name});
-        //console.log('cflag', cflag);
+        console.log('* cflag', cflag);
         if (cflag)
+        {
             cflag.visible = flag.visible;
+            cflag.x = flag.x;
+            cflag.y = flag.y;
+            cflag.sourceSlot = flag.sourceSlot;
+            cflag.isActive = flag.isActive;
+        }
         else _this.config.preflags.push(flag);
     });
+
+    this.updateTerritory();
 }
 
 game_core.prototype.client_onhostgame_orig = function(data) {
