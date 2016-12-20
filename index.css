@@ -41,6 +41,12 @@ html , body {
 	display: block;
 	width: 100%;
 */
+#rec-ss
+{
+	display: block;
+	/*width: 100%;*/
+	/*height: auto%;*/
+}
 #rec-img
 {
 	display: block;

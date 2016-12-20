@@ -47,15 +47,27 @@ module.exports = function(grunt)
             //         ]
             //     }
             // },
-            my_target_client:
+            dist:
             {
                 options:
                 {
-                    compress:false,
-                    /*compress: 
+                    compress: 
                     {
-                        drop_console: false
-                },*/
+                        drop_console: true
+                    },
+                    mangle: true,
+                    beautify: false
+                },
+                files: 
+                {
+                    'bundle.client.min.js': ['bundle.client.min.js']
+                }
+            },
+            dev:
+            {
+                options:
+                {
+                    compress: false,
                     mangle: false,
                     beautify: true
                 },
@@ -158,6 +170,6 @@ module.exports = function(grunt)
     grunt.loadNpmTasks('grunt-git');
 
     // Default task(s).
-    grunt.registerTask('default', ['clean', 'browserify', 'uglify', 'copy', 'aws_s3']);//, 'grunt_git']);
-
+    grunt.registerTask('default', ['browserify']);//, 'uglify:dev']);//, 'grunt_git']);
+    grunt.registerTask('dist', ['clean', 'browserify', 'uglify:dist', 'copy', 'aws_s3']);//, 'grunt_git']);
 };
