@@ -5273,31 +5273,47 @@ game_core.prototype.client_onplayernames = function(data)
     var data = JSON.parse(data);
     console.log("== client_onplayernames", data, "==");
     // console.log('len', data.length);
-    var p;
-    for (var i = 0; i < data.length; i++)
-    {
-        p = _.find(this.getplayers.allplayers, {'mp':data[i].mp});
-        if (p)
-        {
-            console.log('* settings player', data[i].name, data[i].team);
-            if (data[i].name != "")
-                p.playerName = data[i].name;
-            if (data[i].team > 0 && p.team === 0)
-                p.team = parseInt(data[i].team);
-        }
-        // console.log('p', p);
-    }
 
-    // activate player
-    this.players.self.active = true;
-    this.players.self.visible = true;
-    this.players.self.vuln = false;
-    //console.log("my player name", assets.playerName);
-    if (assets.playerName)
-        this.players.self.playerName = assets.playerName;
-    if (assets.playerSkin)
-        this.players.self.setSkin(assets.playerSkin);
-    // set playerName here
+    var p;
+    // if object, we are updating other clients of new player
+    if (!Array.isArray(data))
+    {
+        console.log('updating extant clients...');
+        
+        p = _.find(this.getplayers.allplayers, {'mp':data.mp});
+        p.playerName = data.name;
+        p.setSkin(data.skin);
+    }
+    else // otherwise, array will update new client about *all* existing players
+    {
+
+        for (var i = 0; i < data.length; i++)
+        {
+            p = _.find(this.getplayers.allplayers, {'mp':data[i].mp});
+            if (p)
+            {
+                console.log('* settings player', data[i].name, data[i].team, data[i].skin);
+                if (data[i].name != "")
+                    p.playerName = data[i].name;
+                if (data[i].team > 0 && p.team === 0)
+                    p.team = parseInt(data[i].team);
+                if (data[i].skin != "")
+                    p.setSkin(data[i].skin);
+            }
+            console.log('p', p);
+        }
+
+        // activate player
+        this.players.self.active = true;
+        this.players.self.visible = true;
+        this.players.self.vuln = false;
+        //console.log("my player name", assets.playerName);
+        if (assets.playerName)
+            this.players.self.playerName = assets.playerName;
+        if (assets.playerSkin)
+            this.players.self.setSkin(assets.playerSkin);
+        // set playerName here
+    }
 };
 
 game_core.prototype.client_onjoingame = function(data)
@@ -5524,7 +5540,7 @@ game_core.prototype.client_onhostgame = function(data)
                 this.players.self.landed = 0;
                 // get other players' names
                 //this.socket.emit('message', {data:"n.hello!"});
-                this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid);
+                this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
                 /*
                 var url = "http://localhost:4004/api/playernames/";
                 console.log('* api call');//, this.players.self.instance);//.instance.game);

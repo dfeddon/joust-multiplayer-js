@@ -117,33 +117,55 @@ game_server._onMessage = function(client,message)
     {    //A client is asking for lag simulation
         this.fake_latency = parseFloat(message_parts[1]);
     }
-    else if (message_type == 'n')
+    else if (message_type == 'n') // store playerName and playerSkin
     {
-        this.log('getting player names for', message_parts[1], '...');
+        var mp = message_parts[1];
+        var gameId = message_parts[2];
+        var split = message_parts[3].split("|");
+        var playerName = split[0];
+        var playerSkin = split[1];
+        this.log('getting player names for', message_parts);// '...');
         var p = client.game.gamecore.getplayers.allplayers;
         var arr = [];
         var source;
         for (var j = 0; j < p.length; j++)
         {
-            //this.log(p[j].mp, p[j].playerName, p[j].team);
-            if (p[j].mp != message_parts[1] && p[j].mp != "hp" && p[j].instance)
-                arr.push({mp:p[j].mp, name:p[j].playerName, team:p[j].team});
+            this.log(p[j].mp, p[j].playerName, p[j].team, p[j].skin);
+            if (p[j].mp != mp && p[j].mp != "hp" && p[j].instance)
+            {
+                // update others' server player
+                arr.push({mp:p[j].mp, name:p[j].playerName, team:p[j].team, skin:p[j].skin});
+                // also, 'notify' other's client of the new player (name, skin, etc. that isn't sent live)
+                // p[j].instance.send('s.n.' + mp + name + skin);
+            }
+            else if (p[j].mp == mp)
+            {
+                // update server's player name and skin
+                this.log('* updating my server creds', playerName, playerSkin);
+                p[j].playerName = playerName;
+                p[j].skin = playerSkin;
+            }
         }
         this.log(arr);
 
-        // message_parts[2] is game id
-        var thegame = this.games[message_parts[2]];
+        // update player(s) in the appropriate game
+        var thegame = this.games[gameId];
         for (var i = 0; i < thegame.player_clients.length; i++)
         {
             //console.log('dtf-dtf', i);
             
-            if (thegame.player_clients[i].mp == message_parts[1])
+            if (thegame.player_clients[i].mp == mp)
             {
-                // tell client game is ended
+                // send other players data to requesting (new) client
                 thegame.player_clients[i].send('s.n.' + JSON.stringify(arr));
 
                 // remove client socket
-                thegame.player_clients.splice(i, 1);
+                //thegame.player_clients.splice(i, 1);
+            }
+            else
+            {
+                // update other clients of new players name/team/skin
+                thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
             }
         }
         
