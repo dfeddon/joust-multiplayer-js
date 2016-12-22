@@ -2357,6 +2357,8 @@ game_core.prototype.check_collision = function( player )
 
         });
     }
+
+    // base gate collisions
     // platform collisions
     /*
     //for (var j = 0; j < this.platforms.length; j++)
@@ -2562,53 +2564,82 @@ game_core.prototype.check_collision = function( player )
 
     // tilemap
     var b = 10; // bounce
+    var gatepush = 128;
     var h = player.hitGrid();
     //console.log(c);
     // console.log('::', h);
     if (h !== undefined)
     {
         //if (player.landed === 1) return;
+        // console.log('tiles', h.nw.t, h.sw.t, h.ne.t, h.se.t, h.n.t, h.s.t, h.e.t, h.w.t);
+        
 
         //////////////////////////////
         // collide from below (full)
         //////////////////////////////
         if (h.ne.t > 0 && h.nw.t > 0) // collide from below
         {
-            //console.log('stop ne', player.mp);
-            //player.pos.x -= b;
-            player.pos.y += b;
-            player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
-            /*if (player.vuln===false)
-                player.isVuln(500);*/
+            console.log('stop ne,nw', player.mp, h.ne.t, h.nw.t, player.team);
+            // blue gate across
+            if (h.ne.t === 122 && h.nw.t === 122 && player.team === 2) 
+            {
+                player.pos.y -= gatepush;
+            }
+            else
+            {
+                //player.pos.x -= b;
+                player.pos.y += b;
+                player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+                /*if (player.vuln===false)
+                    player.isVuln(500);*/
+            }
         }
         //////////////////////////////
         // land (full)
         //////////////////////////////
         else if (h.sw.t > 0 && h.se.t > 0) // land
         {
-            //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
-            //player.pos.x += b;
-            //player.pos.y -= b;
+            //console.log(h.sw.t,h.se.t);
+            
+            // red gate across
+            if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) 
+            {
+                player.pos.y += gatepush;
+            }
+            else
+            {
+                //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
+                //player.pos.x += b;
+                //player.pos.y -= b;
 
-            // set y
-            player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
-            //player.hitFrom = 2;
+                // set y
+                player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                //player.hitFrom = 2;
 
-            // process landing
-            //if (this.server)
-            player.doLand();
-            //if (!this.server) this.client_process_net_prediction_correction2();
+                // process landing
+                //if (this.server)
+                player.doLand();
+                //if (!this.server) this.client_process_net_prediction_correction2();
+            }
         }
         //////////////////////////////
         // side collision (full, left)
         //////////////////////////////
         else if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
-            //console.log('hit w wall');
-            player.pos.x += 15; // bounce
-            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
+            //console.log('hit w wall', h.nw.t, h.sw.t, player.team);
+            // blue gate down
+            if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2) 
+            {
+                player.pos.x -= gatepush;
+            }
+            else
+            {
+                player.pos.x += 15; // bounce
+                player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+            }
             //player.vx *= -1; // stop accel
             //console.log('vx', player.vx);
         }
@@ -2617,10 +2648,18 @@ game_core.prototype.check_collision = function( player )
         //////////////////////////////
         else if (h.ne.t > 0 && h.se.t > 0)
         {
-            player.pos.x -= 15; //bounce
-            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
-            player.collision = true;
-            //player.vx = 0; // stop accel
+            // red gate down
+            if (h.ne.t === 73 && h.se.t === 73 && player.team === 1) 
+            {
+                player.pos.x += gatepush;
+            }
+            else
+            {
+                player.pos.x -= 15; //bounce
+                player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                player.collision = true;
+                //player.vx = 0; // stop accel
+            }
         }
         //////////////////////////////
         // side collision (full, right)
@@ -5281,8 +5320,10 @@ game_core.prototype.client_onplayernames = function(data)
         console.log('updating extant clients...');
         
         p = _.find(this.getplayers.allplayers, {'mp':data.mp});
-        p.playerName = data.name;
-        p.setSkin(data.skin);
+        if (p.playername)
+            p.playerName = data.name;
+        if (data.skin)
+            p.setSkin(data.skin);
     }
     else // otherwise, array will update new client about *all* existing players
     {
@@ -5293,7 +5334,7 @@ game_core.prototype.client_onplayernames = function(data)
             if (p)
             {
                 console.log('* settings player', data[i].name, data[i].team, data[i].skin);
-                if (data[i].name != "")
+                if (data[i].name != undefined)
                     p.playerName = data[i].name;
                 if (data[i].team > 0 && p.team === 0)
                     p.team = parseInt(data[i].team);
@@ -5307,9 +5348,10 @@ game_core.prototype.client_onplayernames = function(data)
         this.players.self.active = true;
         this.players.self.visible = true;
         this.players.self.vuln = false;
-        //console.log("my player name", assets.playerName);
-        if (assets.playerName)
+        console.log("* my player name", assets.playerName);
+        if (assets.playerName !== undefined)
             this.players.self.playerName = assets.playerName;
+        else console.log("* player name is undefined", this.players.self.playerName);
         if (assets.playerSkin)
             this.players.self.setSkin(assets.playerSkin);
         // set playerName here

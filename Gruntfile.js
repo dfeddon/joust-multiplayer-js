@@ -87,6 +87,8 @@ module.exports = function(grunt)
                 [
                     // client files
                     { src: ['./bundle.client.min.js'], dest: './dist/client/'},
+                    { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
+                    { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/'},
                     // server files
                     // { src: ['./bundle.server.min.js'], dest: '../wingdom-server-dist/'},
                     { src: ['./package.json'], dest: '../wingdom-server-dist/' },
@@ -133,6 +135,17 @@ module.exports = function(grunt)
                     {expand: true, cwd: 'dist/client', src: ['**'], dest: './', action: 'upload'}
                 ],
             },
+            // dev:
+            // {
+            //     options: 
+            //     {
+            //         bucket: 'com.dfeddon.wingdom'
+            //     },
+            //     files:
+            //     [
+            //         {expand: true, cwd: 'dist/client', src: ['**'], dest: './', action: 'upload'}
+            //     ],
+            // } 
         },
 
         // git commit

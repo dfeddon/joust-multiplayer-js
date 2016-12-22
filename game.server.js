@@ -15,6 +15,7 @@ var
     UUID        = require('node-uuid'),
     //namegen     = require('./name_generator'),
     name_set    = require('./egyptian_set'),
+    _           = require('lodash'),
     //config      = require('./class.globals'),
     //getplayers  = require('./class.getplayers'),
     verbose     = true;
@@ -142,7 +143,8 @@ game_server._onMessage = function(client,message)
             {
                 // update server's player name and skin
                 this.log('* updating my server creds', playerName, playerSkin);
-                p[j].playerName = playerName;
+                if (playerName !== 'undefined')
+                    p[j].playerName = playerName;
                 p[j].skin = playerSkin;
             }
         }
@@ -283,7 +285,7 @@ game_server.endGame = function(gameid, userid)
                     thegame.player_clients[i].send('s.e');
 
                     // remove client socket
-                    console.log("* is client host?", thegame.player_clients[i].hosting);
+                    console.log("* is client host?", thegame.player_clients[i].hosting, thegame.gamecore.players.self.host);
                     thegame.player_clients.splice(i, 1);
                 }
             }
@@ -387,6 +389,44 @@ game_server.startGame = function(game, newplayer)
 {
     this.log('@@ startGame', game.id, newplayer.mp, newplayer.userid);
     this.log('* total clients', game.player_clients.length);
+
+    var teamObj = this.getTeams(game);
+    this.log('* team obj', teamObj);
+    if (teamObj.isfull)
+    {
+        console.warn("Game is full!");
+    }
+    else team = teamObj.recommend;
+    this.log('* teams', team);
+
+    // set start position (based on team)
+    var startPos = {x:0,y:0};
+    var teamRed_x = 3;
+    var teamRed_y = 4;
+    var teamBlue_x = 47;
+    var teamBlue_y = 26;
+    var sx, sy;
+    // var sx = Math.floor(Math.random() * teamRed_x) + 1;
+    // var sy = Math.floor(Math.random() * teamRed_y) + 1;
+    if (team === 1) // red
+    {
+        sx = teamRed_x;
+        sy = teamRed_y;
+    }
+    else if (team === 2)
+    {
+        sx = teamBlue_x;
+        sy = teamBlue_y;
+    }
+    else 
+    {
+        console.warn("player team undecided!"); return;
+    }
+    // TODO: set position based on team
+    var pos = game.gamecore.gridToPixel(sx, sy);//3,4);
+    startPos.x = pos.x;
+    startPos.y = pos.y;
+    
     //right so a game has 2 players and wants to begin
     //the host already knows they are hosting,
     //tell the other client they are joining a game
@@ -414,11 +454,13 @@ game_server.startGame = function(game, newplayer)
             newplayerInstance = p[x];
             playerName = p[x].playerName;
             playerMP = p[x].mp;
-            team = Math.floor(Math.random() * 2) + 1; // 1 = red, 2 = blue
+            //team = team;//Math.floor(Math.random() * 2) + 1; // 1 = red, 2 = blue
             // only assign team if team has not yet been assigned
             //if (p[x].team == 0)
             //{
             newplayerInstance.team = team;
+            p[x].team = team;
+            p[x].pos = startPos;
             //}
             nonhosts.push(p[x].instance);
             console.log('* player', newplayerInstance.mp, 'assigned to team', team);
@@ -528,7 +570,7 @@ game_server.startGame = function(game, newplayer)
             }
             else
             {
-                this.log('* sending MYgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
+                this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
                 this.log("* data:", playerMP, playerName);
                 
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
@@ -556,30 +598,6 @@ game_server.startGame = function(game, newplayer)
 
 }; //game_server.startGame
 
-// game_server.hasHost = function()
-// {
-//     var val = null;
-//     for (var i = 0; i < this.allplayers.length; i++)
-//     {
-//         if (this.allplayers[i].host === true)
-//         {
-//             this.log('@@ host exists!');
-//             val = this.allplayers[i];
-//             break;
-//         }
-//     }
-//     return val;
-// };
-// game_server.nameGenerator = function()
-// {
-//     // name generator
-//     var set = new name_set().getSet();
-//     var rnd = Math.floor(Math.random() * set.length);
-//     var pname = set[rnd];
-//     console.log('pname', pname);
-//
-//     return pname;
-// }
 game_server.findGame = function(client)
 {
     this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
@@ -640,17 +658,37 @@ game_server.findGame = function(client)
                             if (client_added === false)
                             {
                                 // use cp, as host's hp and his props are already defined
-                                console.log('*** found client', players[i].mp, client.userid);//players[i].id);
+                                console.log('*** found client', players[i].mp, client.userid, players[i].team);//players[i].id);
                                 players[i].instance = client;
                                 players[i].id = client.userid;
                                 players[i].isLocal = true;
+                                /*
                                 // player start position
-                                var teamRed_x = 6;
-                                var teamRed_y = 6;
-                                var sx = Math.floor(Math.random() * teamRed_x) + 1;
-                                var sy = Math.floor(Math.random() * teamRed_y) + 1;
+                                var teamRed_x = 3;
+                                var teamRed_y = 4;
+                                var teamBlue_x = 47;
+                                var teamBlue_y = 26;
+                                var sx, sy;
+                                // var sx = Math.floor(Math.random() * teamRed_x) + 1;
+                                // var sy = Math.floor(Math.random() * teamRed_y) + 1;
+                                if (players[i].team === 1) // red
+                                {
+                                    sx = teamRed_x;
+                                    sy = teamRed_y;
+                                }
+                                else if (players[i].team === 2)
+                                {
+                                    sx = teamBlue_x;
+                                    sy = teamBlue_y;
+                                }
+                                else 
+                                {
+                                    console.warn("player team undecided!"); return;
+                                }
                                 // TODO: set position based on team
                                 players[i].pos = game_instance.gamecore.gridToPixel(sx, sy);//3,4);
+                                //*/
+
                                 // players[i].playerName = this.nameGenerator();
                                 // console.log('playername', players[i].playerName);
                                 players[i].gameid = gameid;
@@ -735,3 +773,77 @@ game_server.findGame = function(client)
     }
 
 }; //game_server.findGame
+
+game_server.getTeams = function(game_instance)
+{
+    this.log("== getTeams ==");
+    var _this = this;
+    var blue = 0;
+    var red = 0;
+    var total = 0;
+    var full = false;
+    var rec;
+
+    var players = game_instance.gamecore.getplayers.allplayers;
+    _.forEach(players, function(player)
+    {
+        if (player.instance)
+        {
+            _this.log("player team", player.team);
+            if (player.team === 1)
+                red++;
+            else if (player.team === 2)
+                blue++;
+            
+            total++;
+        }
+    });
+
+    total--; // remove "host" player
+    total--; // remove new player
+
+    _this.log('red', red, 'blue', blue);
+
+    if (total === MAX_PLAYERS_PER_GAME)
+        isfull = true;
+    else
+    {
+        if (red > blue)
+            rec = 2;
+        else if (red < blue)
+            rec = 1;
+        else // tie
+        {
+            var rnd = Math.random() >= 0.5;
+            _this.log('* team rnd', rnd);
+            if (rnd) rec = 1;
+            else rec = 2;
+        }
+    }
+
+    return { red: red, blue: blue, total: total, isfull: full, recommend:rec };
+};
+// game_server.hasHost = function()
+// {
+//     var val = null;
+//     for (var i = 0; i < this.allplayers.length; i++)
+//     {
+//         if (this.allplayers[i].host === true)
+//         {
+//             this.log('@@ host exists!');
+//             val = this.allplayers[i];
+//             break;
+//         }
+//     }
+//     return val;
+// };
+// game_server.nameGenerator = function()
+// {
+//     // name generator
+//     var set = new name_set().getSet();
+//     var rnd = Math.floor(Math.random() * set.length);
+//     var pname = set[rnd];
+//     console.log('pname', pname);
+//
+//     return pname;
+// }

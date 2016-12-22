@@ -197,6 +197,7 @@ domready(function()
 			var strLength = noWhiteSpace.length;
 			if (strLength > 2)
 				assets.playerName = e.target.value;
+			else assets.playerName = undefined;
 		});
 
 		btnStart.addEventListener("click", function(e)
