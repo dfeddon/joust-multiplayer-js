@@ -287,7 +287,7 @@ var host = clientIo.connect(UUID());
 */
 host.userid = UUID();
 host.hosting = true;
-//console.log('host', host);
+console.log('host', host.userid);
 //console.log('host.io.engine.transport.name', host.io.opts.transports);
 
 game_server.createGame(host);

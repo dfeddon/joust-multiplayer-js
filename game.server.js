@@ -285,7 +285,9 @@ game_server.endGame = function(gameid, userid)
                     thegame.player_clients[i].send('s.e');
 
                     // remove client socket
-                    console.log("* is client host?", thegame.player_clients[i].hosting, thegame.gamecore.players.self.host);
+                    //console.log("* is client host?, player_client", thegame.player_clients[i]);//.hosting, thegame.gamecore.players.self.host);
+                    //console.log('* players.self', thegame.gamecore.players.self);
+                    
                     thegame.player_clients.splice(i, 1);
                 }
             }

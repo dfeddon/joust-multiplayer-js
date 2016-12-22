@@ -36,7 +36,7 @@ game_toast.prototype.show = function(data)
   if (!data)
     data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
 
-    if (data.playerTeam === 1) 
+    if (data.playerTeam === 2) 
     {
       data.playerTeam = "#FF6961";
       data.otherTeam = '#6ebee6';
@@ -92,11 +92,11 @@ game_toast.prototype.show = function(data)
     break;
 
     case "carrierStunned":
-      this.toast.innerHTML = "The <font color='" + data.otherTeam + "'<b>flag carrier</b></font> dropped the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>...";
+      this.toast.innerHTML = "The <font color='" + data.playerTeam + "'<b>flag carrier</b></font> dropped the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font>...";
     break;
 
     case "flagTimeout":
-      this.toast.innerHTML = "The <font color='" + data.otherTeam + "'<b>flag carrier</b></font> failed to advance the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font> in time.";
+      this.toast.innerHTML = "The <font color='" + data.playerTeam + "'<b>flag carrier</b></font> failed to advance the <font color='#fff'><b>"+ this.getFlagLabel(data.flagName) + "</b></font> in time.";
     break;
 
     case "flagReset":

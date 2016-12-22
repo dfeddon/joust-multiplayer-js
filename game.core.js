@@ -5572,7 +5572,7 @@ game_core.prototype.client_onhostgame = function(data)
             // if self.mp == "hp", player is the NEW player!
             if (this.players.self.mp == "hp")
             {
-                console.log("assinging new client to players.self", this.players.self.mp)
+                console.log("assigning new client to players.self", this.players.self.mp)
                 this.getplayers.allplayers[i].isLocal = true;
                 this.players.self = this.getplayers.allplayers[i];
                 this.players.self.active = false;
