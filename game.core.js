@@ -5061,7 +5061,7 @@ game_core.prototype.create_physics_simulation = function() {
         this._pdt = (new Date().getTime() - this._pdte)/1000.0;
         this._pdte = new Date().getTime();
         // TODO: *** By default this fnc is run by both server AND client
-        if (this.server)
+        //if (this.server)
             this.update_physics();
     }.bind(this), 15);
 

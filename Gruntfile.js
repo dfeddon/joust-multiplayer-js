@@ -60,7 +60,20 @@ module.exports = function(grunt)
                 },
                 files: 
                 {
-                    'bundle.client.min.js': ['bundle.client.min.js']
+                    'bundle.client.min.js': ['bundle.client.min.js'],
+                    'dist/server/app.js': ['app.js'],
+                    'dist/server/game.server.js': ['gamer.server.js'],
+                    'dist/server/game.core.js': ['game.core.js'],
+                    'dist/server/class.globals.js': ['class.globals.js'],
+                    'dist/server/singleton.assets.js': ['singleton.assets.js'],
+                    'dist/server/class.getplayers.js': ['class.getplayers.js'],
+                    'dist/server/class.player.js': ['class.player.js'],
+                    'dist/server/class.flag.js': ['class.flag.js'],
+                    'dist/server/class.platform.js': ['class.platform.js'],
+                    'dist/server/class.event.js': ['class.event.js'],
+                    'dist/server/class.chest.js': ['class.chest.js'],
+                    'dist/server/class.toast.js': ['class.toast.js'],
+                    'dist/server/class.spritesheet.js': ['class.spritesheet.js'],
                 }
             },
             dev:
@@ -85,7 +98,7 @@ module.exports = function(grunt)
             {
                 files:
                 [
-                    // client files
+                    // client files (files uploaded to S3)
                     { src: ['./bundle.client.min.js'], dest: './dist/client/'},
                     { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/'},
