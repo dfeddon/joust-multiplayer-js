@@ -270,6 +270,8 @@ domready(function()
 		assets.skinIndex = 1;
 		showSlides(assets.skinIndex);
 	}
+
+	assets.device = device;
 	//localStorage.debug = '*';
 
 	// asset loader

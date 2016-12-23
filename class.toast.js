@@ -33,10 +33,10 @@ game_toast.prototype.show = function(data)
         playerInDiamondChamber - PLAYER entered the Diamon Chamber.
         playerGotDiamond - PLAYER has won the Diamond! The field is flipped.
   */
-  if (!data)
-    data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
+  //if (!data)
+    //data = {action: "takeFlag", playerName: "Jouster", playerTeam: 0, flagName: "Mid Flag", targetSlot: "Placque #3"};
 
-    if (data.playerTeam === 2) 
+    if (data.playerTeam === 1) 
     {
       data.playerTeam = "#FF6961";
       data.otherTeam = '#6ebee6';

@@ -500,6 +500,7 @@ var game_core = function(game_instance)
 
     //Start a physics loop, this is separate to the rendering
     //as this happens at a fixed frequency
+
     this.create_physics_simulation();
 
     //Start a fast paced timer for measuring time easier
@@ -2069,7 +2070,7 @@ game_core.prototype.pk = function(victor, victim)
 
     _.forEach(this.getplayers.allplayers, function(p, i)
     {
-        if (p.instance && p.mp != "hp")
+        if (p.instance)// && p.mp != "hp")
         {
             console.log('sending...', p.mp);
             
@@ -3308,6 +3309,7 @@ game_core.prototype.update_physics = function()
 {
     if (glog)
     console.log('##+@@ update_physics');
+    //if (!this.config.server) return;
 
     var _this = this;
 
@@ -3479,7 +3481,7 @@ game_core.prototype.server_update = function()
         bufView[10] = (player.bubble) ? 1 : 0;
         bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
-        //bufView[13] = player.team;
+        //bufView[13] = (player.dead) ? 1 : 0;//player.team;
         //bufView[11] = new Date();
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
@@ -4351,7 +4353,7 @@ game_core.prototype.client_process_net_updates = function()
                 player.bubble = (vt[10] === 1) ? true : false;
                 player.visible = (vt[11] === 1) ? true : false;
                 player.bufferIndex = index;// -> vt[12]
-                //player.team = vt[13];
+                //player.dead = (vt[13] == 1) ? true : false;
                 //console.log(Boolean(player.flap));
                 //console.log('set playerIndex', vt[11]);
 
@@ -4807,6 +4809,7 @@ game_core.prototype.client_update_local_position = function()
         //*/
 
         //We handle collision on client if predicting.
+        //if (this.players.self.landed === 1)
         this.check_collision( this.players.self );
 
     //}  //if(this.client_predict)
@@ -5057,7 +5060,9 @@ game_core.prototype.create_physics_simulation = function() {
     setInterval(function(){
         this._pdt = (new Date().getTime() - this._pdte)/1000.0;
         this._pdte = new Date().getTime();
-        this.update_physics();
+        // TODO: *** By default this fnc is run by both server AND client
+        if (this.server)
+            this.update_physics();
     }.bind(this), 15);
 
 }; //game_core.client_create_physics_simulation
@@ -5832,9 +5837,12 @@ game_core.prototype.client_onplayerkilled = function(data)
     var victim = _.find(this.getplayers.allplayers, {'mp':split[0]});
     var victor = _.find(this.getplayers.allplayers, {'mp':split[1]});
     console.log('victim', victim.mp);
-    console.log('victor', victor.mp);
-
-    victim.doKill(victor);
+    if (victor)
+    {
+        console.log('victor', victor.mp);
+        victim.doKill(victor);
+    }
+    else victim.doKill();
 }
 
 game_core.prototype.client_ondisconnect = function(data) {

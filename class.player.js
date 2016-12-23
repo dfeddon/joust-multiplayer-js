@@ -11,7 +11,7 @@ var game_spritesheet = require('./class.spritesheet');
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
 {
-    console.log('game_player');//, game_instance, player_instance);
+    console.log('== game_player.constructor', player_instance);//, game_instance, player_instance);
     //Store the instance, if any
     // ## NOTE: only server sends instance, not clients!!
     if (player_instance) console.log('** server added player (with instance)');
@@ -22,7 +22,8 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.instance = player_instance;
     this.config = config;
-    //this.game = game_instance;
+    // if (this.instance)
+    //     this.game = this.instance.game;
     this.isBot = false;
 
     this.player_abilities_enabled = false;
@@ -600,6 +601,43 @@ game_player.prototype.setSkin = function(skin)
     }    
 };
 
+game_player.prototype.respawn = function()
+{
+    console.log("== respawn ==");//, this.instance);
+
+    var allplayers = this.instance.game.gamecore.getplayers.allplayers;
+
+    // set start position (based on team)
+    var startPos = {x:0,y:0};
+    var teamRed_x = 3;
+    var teamRed_y = 4;
+    var teamBlue_x = 47;
+    var teamBlue_y = 26;
+    var sx, sy;
+    // var sx = Math.floor(Math.random() * teamRed_x) + 1;
+    // var sy = Math.floor(Math.random() * teamRed_y) + 1;
+    if (this.team === 1) // red
+    {
+        sx = teamRed_x;
+        sy = teamRed_y;
+    }
+    else if (this.team === 2)
+    {
+        sx = teamBlue_x;
+        sy = teamBlue_y;
+    }
+    else 
+    {
+        console.warn("player team undecided!"); return;
+    }
+    // TODO: set position based on team
+    var pos = this.instance.game.gamecore.gridToPixel(sx, sy);//3,4);
+    startPos.x = pos.x;
+    startPos.y = pos.y;
+
+    this.pos = startPos;
+};
+
 game_player.prototype.botAction = function()
 {
     console.log('== botAction ==');
@@ -669,12 +707,23 @@ game_player.prototype.doLand = function()
 {
     //console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
 
+    var _this = this;
+
     // if falling fataly fast...
     if (this.vy > 10)
     {
         console.log('fatal bounce!', this.vy);
         
         this.vy = 0;
+        this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
+        {
+            if (p.instance)// && p.mp != "hp")
+            {
+                console.log('sending...', p.mp);
+                
+                p.instance.send('p.k.' + _this.mp + '|' + "");
+            }
+        });
         this.doKill();
         return;
     }
@@ -1161,6 +1210,19 @@ game_player.prototype.doKill = function(victor)
 
     console.log('player dying', this.mp);
 
+    // // update all players
+    // this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
+    // {
+    //     if (p.instance && p.mp != "hp")
+    //     {
+    //         console.log('sending...', p.mp);
+
+    //         if (victor)      
+    //             p.instance.send('p.k.' + _this.mp + '|' + victor.mp);
+    //         else p.instance.send('p.k.' + _this.mp + '|' + victor.mp);
+    //     }
+    // });
+
     this.dead = true;
 
     // if (victor && victor.mp == this.mp)
@@ -1249,7 +1311,7 @@ game_player.prototype.doKill = function(victor)
 
 game_player.prototype.timeoutRespawn = function(victor)
 {
-    console.log('player dead complete', this.disconnected);
+    console.log('player dead complete', this.disconnected, this.mp);
 
     if (this.disconnected)
     {
@@ -1264,6 +1326,8 @@ game_player.prototype.timeoutRespawn = function(victor)
         if (this.mp == this.config.players.self.mp)
         {
             var ui = document.getElementById('splash');
+            if (assets.device == "phone")
+                ui = document.getElementById('splash-phone');
             ui.style.display = "block";
             //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
         }
@@ -1280,10 +1344,12 @@ game_player.prototype.timeoutRespawn = function(victor)
     this.landed = 1;
     this.bubble = false;
     this.progression = 0;
-    this.pos = this.config.gridToPixel(3,4);
+    //this.pos = this.config.gridToPixel(3,4);
 
     if (this.mp == this.config.players.self.mp)
     {
+        console.log('* dead player is self (me)...');
+        
         this.config.players.self = this;
         // this.config.players.self.visible = false;
         // this.config.players.self.pos = this.config.gridToPixel(3,4);
@@ -1292,22 +1358,30 @@ game_player.prototype.timeoutRespawn = function(victor)
 
         if (!this.config.server)
         {
+            console.log('* client-only...');
+            
             this.config.players.self.visible = false;
             this.config.players.self.active = false;
-            this.config.players.self.pos = this.config.gridToPixel(3,4);
+            //this.config.players.self.pos = this.config.gridToPixel(3,4);
             this.config.players.self.dead = false;
             this.config.players.self.landed = 1;
             this.config.players.self.progression = 0;
 
             var ui = document.getElementById('splash');
+            if (assets.device == "phone")
+                ui = document.getElementById('splash-phone');
             ui.style.display = "block";
         }
-
+        // else 
+        // {
+        // }
     }
     else // not self
     {
         //this.visible = false;
     }
+
+    if (this.config.server) this.respawn();
 
     // // show respawn screen (ads)
     // if (!this.config.server && victor.mp != this.config.players.self.mp)
