@@ -715,7 +715,7 @@ game_player.prototype.doLand = function()
         console.log('fatal bounce!', this.vy);
         
         this.vy = 0;
-        this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
+        this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
         {
             if (p.instance)// && p.mp != "hp")
             {
