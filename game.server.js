@@ -146,6 +146,10 @@ game_server._onMessage = function(client,message)
                 if (playerName !== 'undefined')
                     p[j].playerName = playerName;
                 p[j].skin = playerSkin;
+
+                // set vis (when respawning!)
+                p[j].visible = true;
+                p[j].active = true;
             }
         }
         this.log(arr);
@@ -167,6 +171,8 @@ game_server._onMessage = function(client,message)
             else
             {
                 // update other clients of new players name/team/skin
+                console.log('informing others', thegame.player_clients[i].mp, 'about', mp, playerName, playerSkin);
+                
                 thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
             }
         }
@@ -299,9 +305,11 @@ game_server.endGame = function(gameid, userid)
                     console.log('@@ removing player', allplayers[j].mp, userid, allplayers[j].host);
                     disconnected_mp = allplayers[j].mp;
                     if (!allplayers[j].host)
-                    allplayers[j].instance = null;//.splice(j, 1);
-                    allplayers[j].active = false;
-                    allplayers[j].pos = {x:0, y:0};
+                        allplayers[j].instance = null;//.splice(j, 1);
+                    allplayers[j].disconnected = true;
+                    // allplayers[j].active = false;
+                    // allplayers[j].pos = {x:0, y:0};
+                    allplayers[j].reset();
                     game_instance.player_count--;
                 }
             }

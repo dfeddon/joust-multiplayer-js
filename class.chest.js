@@ -119,6 +119,8 @@ game_chest.prototype.doTake = function(player)//, chests)
   this.opening = true;
 
   setTimeout(this.timeoutOpened.bind(this), 750);
+
+  player.addToScore(100);
 };
 
 game_chest.prototype.timeoutOpened = function()

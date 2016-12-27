@@ -244,7 +244,11 @@ var game_core = function(game_instance)
         {
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
-            other.playerName = this.nameGenerator();// + " [" + other.mp + "]";            
+            other.playerName = this.nameGenerator();// + " [" + other.mp + "]"; 
+            
+            other.visible = false;
+            other.active = false;           
+            
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
             //if (other.mp != "cp1") other.isBot = true;
@@ -5338,7 +5342,7 @@ game_core.prototype.client_onplayernames = function(data)
         console.log('updating extant clients...');
         
         p = _.find(this.getplayers.allplayers, {'mp':data.mp});
-        if (p.playername)
+        if (data.name)
             p.playerName = data.name;
         if (data.skin)
             p.setSkin(data.skin);
@@ -5530,7 +5534,7 @@ game_core.prototype.client_onjoingame = function(data)
     //this.client_reset_positions();
 }; //client_onjoingame
 
-game_core.prototype.client_onhostgame = function(data) 
+game_core.prototype.client_onhostgame = function(data)
 {
     console.log('## client_onhostgame', data);// (player joined is not host: self.host=false)');
     var _this = this;
@@ -5980,6 +5984,12 @@ game_core.prototype.client_draw_info = function()
     fpsTxt.innerHTML = Math.ceil(this.fps_avg);
 
     /////////////////////////////////
+    // score
+    /////////////////////////////////
+    var scoreTxt = document.getElementById('txtScore');
+    scoreTxt.innerHTML = this.players.self.score;
+
+    /////////////////////////////////
     // leaderboard
     /////////////////////////////////
     var hscore = [];
@@ -5989,7 +5999,7 @@ game_core.prototype.client_draw_info = function()
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
     });
     // sort it
-    _.orderBy(hscore, ['score']);
+    hscore = _.orderBy(hscore, ['score'], ['desc']);
 
     // if more than 10 players, take the top 10
     if (hscore.length > 10)

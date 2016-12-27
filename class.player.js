@@ -591,6 +591,27 @@ game_player.prototype.dead = false;
 //     console.log('player.setFlag', int);
 //     this.hasFlag = int;
 // };
+
+game_player.prototype.reset = function()
+{
+    console.log('== player.reset() ==');
+    this.dead = false;
+    this.dying = false;
+    this.visible = false;
+    //this.vuln = true; // this disables input
+    this.active = true;
+    this.landed = 1;
+    this.bubble = false;
+    this.score = 0;
+    this.progression = 0;
+
+    if (this.disconnected)
+        this.pos = this.config.gridToPixel(0,0);
+    else if (this.config.server) 
+        this.respawn();
+
+};
+
 game_player.prototype.setSkin = function(skin)
 {
     console.log('== player.setSkin', skin, '==');
@@ -602,11 +623,16 @@ game_player.prototype.setSkin = function(skin)
     }    
 };
 
+game_player.prototype.addToScore = function(val)
+{
+    this.score += val;
+};
+
 game_player.prototype.respawn = function()
 {
     console.log("== respawn ==");//, this.instance);
 
-    var allplayers = this.instance.game.gamecore.getplayers.allplayers;
+    //var allplayers = this.instance.game.gamecore.getplayers.allplayers;
 
     // set start position (based on team)
     var startPos = {x:0,y:0};
@@ -1314,42 +1340,43 @@ game_player.prototype.timeoutRespawn = function(victor)
 {
     console.log('player dead complete', this.disconnected, this.mp);
 
-    if (this.disconnected)
-    {
-        this.dead = false;
-        this.dying = false;
-        this.visible = false;
-        //this.vuln = true; // this disables input
-        this.active = true;
-        this.landed = 1;
-        this.bubble = false;
-        this.score = 0;
-        this.progression = 0;
-        this.pos = this.config.gridToPixel(0,0);
+    this.reset();
+    // if (this.disconnected)
+    // {
+        // this.dead = false;
+        // this.dying = false;
+        // this.visible = false;
+        // //this.vuln = true; // this disables input
+        // this.active = true;
+        // this.landed = 1;
+        // this.bubble = false;
+        // this.score = 0;
+        // this.progression = 0;
+        // this.pos = this.config.gridToPixel(0,0);
 
-        if (this.mp == this.config.players.self.mp)
-        {
-            var ui = document.getElementById('splash');
-            if (assets.device == "phone")
-                ui = document.getElementById('splash-phone');
-            ui.style.display = "block";
-            //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
-        }
-        return;
-    }
+    //     if (this.mp == this.config.players.self.mp)
+    //     {
+    //         var ui = document.getElementById('splash');
+    //         if (assets.device == "phone")
+    //             ui = document.getElementById('splash-phone');
+    //         ui.style.display = "block";
+    //         //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
+    //     }
+    //     return;
+    // }
 
     // ...otherwise, not disconnected. Player can respawn...
     
-    this.dead = false;
-    this.dying = false;
-    this.visible = false;
-    //this.vuln = true; // this disables input
-    this.active = true;
-    this.landed = 1;
-    this.bubble = false;
-    this.progression = 0;
-    this.score = 0;
-    //this.pos = this.config.gridToPixel(3,4);
+    // this.dead = false;
+    // this.dying = false;
+    // this.visible = false;
+    // //this.vuln = true; // this disables input
+    // this.active = true;
+    // this.landed = 1;
+    // this.bubble = false;
+    // this.progression = 0;
+    // this.score = 0;
+    // //this.pos = this.config.gridToPixel(3,4);
 
     if (this.mp == this.config.players.self.mp)
     {
@@ -1365,28 +1392,28 @@ game_player.prototype.timeoutRespawn = function(victor)
         {
             console.log('* client-only...');
             
-            this.config.players.self.visible = false;
-            this.config.players.self.active = false;
-            //this.config.players.self.pos = this.config.gridToPixel(3,4);
-            this.config.players.self.dead = false;
-            this.config.players.self.landed = 1;
-            this.config.players.self.progression = 0;
+            // this.config.players.self.visible = false;
+            // this.config.players.self.active = false;
+            // //this.config.players.self.pos = this.config.gridToPixel(3,4);
+            // this.config.players.self.dead = false;
+            // this.config.players.self.landed = 1;
+            // this.config.players.self.progression = 0;
 
             var ui = document.getElementById('splash');
             if (assets.device == "phone")
                 ui = document.getElementById('splash-phone');
             ui.style.display = "block";
         }
-        // else 
-        // {
-        // }
+        else // server
+        {
+        }
     }
     else // not self
     {
         //this.visible = false;
     }
-
-    if (this.config.server) this.respawn();
+    
+    // if (this.config.server) this.respawn();
 
     // // show respawn screen (ads)
     // if (!this.config.server && victor.mp != this.config.players.self.mp)

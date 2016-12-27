@@ -206,8 +206,20 @@ domready(function()
 			if (!assets.loaded) return;
 
 			//var skin = "skin" + assets.skinIndex.toString();
+			// get selected skin
 			var skins = document.getElementsByClassName("slides");
 			assets.playerSkin = skins[assets.skinIndex - 1].id;
+
+			// get player name
+			var myString = nickname.value;
+			var noWhiteSpace = myString.replace(/\s/g, "");
+			var strLength = noWhiteSpace.length;
+			if (strLength > 2)
+				assets.playerName = myString;//e.target.value;
+			else assets.playerName = undefined;
+
+			console.log('* final player name', assets.playerName);
+			
 
 			if (!game.players) // first game
 			{				
@@ -216,6 +228,7 @@ domready(function()
 			else // respawning
 			{
 				// activate player
+				console.log("* respawing existing player...", assets.playerName, skin);
 				game.players.self.active = true;
 				game.players.self.visible = true;
 				game.players.self.vuln = false;
@@ -223,6 +236,12 @@ domready(function()
 					game.players.self.playerName = assets.playerName;
 				// skin
 				game.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
+				//game.players.self.respawn();
+				game.socket.emit('message', 'n.' + game.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + skin);
+
+				// start the game loop
+				// game.update( new Date().getTime() );		
+
 			}
 
 			// hide splash
