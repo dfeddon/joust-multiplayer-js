@@ -494,14 +494,15 @@ h5
 {
 	position: absolute;
 	display: none;
-	top: 32px;
+	top: 50px;/*32px;*/
 	right: 0px;
 	padding-right: 15px;
 	padding-left: 30px;
 	font-family: 'Mirza', serif;
+	font-size: 12px;
 	/*height: 10px;*/
 	/*width: 250px;*/
-	background: rgba(0,0,0,0.65);
+	/*background: rgba(0,0,0,0.65);*/
 	opacity: 0.85;
 	z-index: 500;
 	/* disallow text selection */
@@ -518,6 +519,11 @@ h5
 	-moz-columns: 1;*/
 	width: 150px;
 }
+
+/*#scoreslist > tr
+{
+	font-size: 10px;
+}*/
 
 /*#scoreboard > li
 {

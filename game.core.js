@@ -5121,6 +5121,10 @@ game_core.prototype.client_create_configuration = function() {
     this.fps_avg = 0;                   //The current average fps displayed in the debug UI
     this.fps_avg_acc = 0;               //The accumulation of the last avgcount fps samples
 
+    this.ping_avg = 0;
+    this.ping_avg_acc = 0;
+    this.ping_count = 0;
+
     this.lit = 0;
     this.llt = new Date().getTime();
 
@@ -5947,7 +5951,6 @@ game_core.prototype.client_refresh_fps = function() {
     } //reached 10 frames
 }; //game_core.client_refresh_fps
 
-
 game_core.prototype.client_draw_info = function() 
 {
     if (glog) console.log('client_draw_info');
@@ -5956,6 +5959,17 @@ game_core.prototype.client_draw_info = function()
     /////////////////////////////////
     // ping
     /////////////////////////////////
+    //When we reach 10 frames we work out the average fps
+    // this.ping_avg_acc = this.net_ping;
+    // this.ping_count++;
+    // if(this.ping_count % 10) 
+    // {
+    //     this.ping_avg = this.ping_avg_acc/this.ping_count;
+    //     //this.fps_avg_count = 1;
+    //     //this.fps_avg_acc = this.fps;
+    //     var pingTxt = document.getElementById('txtPing');
+    //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
+    // } //reached 10 frames
     var pingTxt = document.getElementById('txtPing');
     pingTxt.innerHTML = this.net_ping;// + "/" + this.last_ping_time;
 
