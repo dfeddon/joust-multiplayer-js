@@ -742,15 +742,19 @@ game_player.prototype.doLand = function()
         console.log('fatal bounce!', this.vy);
         
         this.vy = 0;
-        this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
+
+        if (this.config.server)
         {
-            if (p.instance)// && p.mp != "hp")
+            this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
             {
-                console.log('sending...', p.mp);
-                
-                p.instance.send('p.k.' + _this.mp + '|' + "");
-            }
-        });
+                if (p.instance)// && p.mp != "hp")
+                {
+                    console.log('sending...', p.mp);
+                    
+                    p.instance.send('p.k.' + _this.mp + '|' + "");
+                }
+            });
+        }
         this.doKill();
         return;
     }
@@ -1347,11 +1351,13 @@ game_player.prototype.timeoutRespawn = function(victor)
     console.log('player dead complete', this.disconnected, this.mp);
 
     // revise highscore?
-    if (assets.myHighScore < this.score)
+    if (assets.myHighscore < this.score)
     {
         // update high score locally
-        localStorage.myHighScore = score;
+        localStorage.wingdom__myHighscore = this.score;
+        assets.myHighscore = this.score;
     }
+    assets.myLastscore = this.score;
 
     this.reset();
     // if (this.disconnected)
@@ -1415,6 +1421,14 @@ game_player.prototype.timeoutRespawn = function(victor)
             var ui = document.getElementById('splash');
             if (assets.device == "phone")
                 ui = document.getElementById('splash-phone');
+            else
+            {
+                document.getElementById('btnStart').innerText = "Play Again?"
+                document.getElementById('scoring').style.display = "block";
+                // update scores
+                document.getElementById('txtYourscore').innerHTML = assets.myLastscore.toString();
+                document.getElementById('txtHighscore').innerHTML = assets.myHighscore.toString();
+            }
             ui.style.display = "block";
         }
         else // server

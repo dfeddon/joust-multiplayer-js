@@ -520,6 +520,34 @@ h5
 	width: 150px;
 }
 
+#scoring
+{
+	display: none;
+	padding-top: 15px;
+}
+#mylastscore
+{
+	font-family: 'Mirza', serif;
+	font-size: 2em;
+}
+#myhighscore
+{
+	font-family: 'Mirza', serif;
+	font-size: 1.25em;
+}
+
+#socialmedia
+{
+	/*top: 5px;*/
+}
+.twitter-share-button
+{
+	padding-top: 10px;
+}
+.fb-like
+{
+	padding-top: -15px;
+}
 /*#scoreslist > tr
 {
 	font-size: 10px;

@@ -8,7 +8,14 @@
 		</style>
 
 		<title>wingdom.io</title>
-		<meta name="description" content="Play with millions of players around the world in thrilling 15 vs 15 PvP matches. Your goal? Defend and advance territorial flags for your team to rule the wingdom!"/>
+		<meta name="description" content="Play with millions of players around the world in thrilling, Joust-like PvP matches! Your goal? Defend and advance territorial flags for your team and rule the wingdom!"/>
+		<!-- You can use open graph tags to customize link previews.
+		Learn more: https://developers.facebook.com/docs/sharing/webmasters -->
+		<meta property="og:url"           content="http://www.wingdom.io/index.html" />
+		<meta property="og:type"          content="website" />
+		<meta property="og:title"         content="wingdom.io" />
+		<meta property="og:description"   content="Play with millions of players around the world in thrilling, Joust-like PvP matches! Your goal? Defend and advance territorial flags for your team and rule the wingdom!" />
+		<meta property="og:image"         content="http://s3.amazonaws.com/com.dfeddon.wingdom/og-image.png" />
 
 		<link rel="canonical" href="http://wwww.wingdom.io/">
 
@@ -75,6 +82,17 @@
 	</head>
 
 	<body>
+
+		<!-- Load Facebook SDK for JavaScript -->
+		<!-- Your like button code -->
+		<div id="fb-root"></div>
+		<script>(function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if (d.getElementById(id)) return;
+		js = d.createElement(s); js.id = id;
+		js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.8";
+		fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));</script>
 
 		<!--
 		########################## TOAST ###############################
@@ -288,6 +306,16 @@
 		<div id="splash">
 			
 			<div id="nameContainer">
+				<div id="socialmedia">
+					<!-- FACEBOOK -->
+					<div class="fb-like" data-href="http://www.wingdom.io/" data-layout="button" data-action="like" data-size="large" data-show-faces="false" data-share="true"></div>			
+					<!-- Twitter -->
+					<a href="https://twitter.com/share" class="twitter-share-button" data-size="large" data-text="Remember Joust? The classic video game? Team-based multiplayer sure would've' been cool. Welp..." data-url="http://www.wingdom.io/" data-hashtags="wingdomio,iogames" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+					<!-- YouTube -->
+					<script src="https://apis.google.com/js/platform.js"></script>
+					<div class="g-ytsubscribe" data-channelid="UC1XFA5NGzG86jjO_lG2mUvw" data-layout="default" data-count="default"></div>					
+				</div>
+				
 				<!-- TITLE -->
 				<br>
 				<!--<h1>winglings.io</h1>-->
@@ -329,6 +357,20 @@
 					<button class="btn">
 						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png"/>
 					</button>
+				</div>
+
+				<!-- SCORES -->
+				<!--<br><br>-->
+				<div id="scoring">
+					<div id="mylastscore">
+						<label id="lblYourscore">Your Score:</label>
+						<label id="txtYourscore">0</label>
+					</div>
+					
+					<div id="myhighscore">
+						<label id="lblHighscore">High Score:</label>
+						<label id="txtHighscore">0</label>
+					</div>
 				</div>
 				
 				<!-- START -->
