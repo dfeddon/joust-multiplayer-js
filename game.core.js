@@ -148,6 +148,8 @@ var game_core = function(game_instance)
     this.mp = null;
     this.gameid = null;
 
+    this.last_hscore = []; // last high score
+
     this.getplayers.allplayers = []; // client/server players store
     //this.entities = [];
     this.player_abilities_enabled = false;
@@ -533,9 +535,9 @@ var game_core = function(game_instance)
         this.players.self.color = this.color;
 
         //Make this only if requested
-        if(String(window.location).indexOf('debug') != -1) {
-            this.client_create_debug_gui();
-        }
+        // if(String(window.location).indexOf('debug') != -1) {
+        //     this.client_create_debug_gui();
+        //}
 
 
     }
@@ -3080,7 +3082,7 @@ game_core.prototype.client_on_orbremoval = function(data)
 
 game_core.prototype.process_input = function( player )
 {
-    //console.log('##+@@process_input');
+    //console.log('##+@@process_input', player.mp);
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
@@ -3481,7 +3483,8 @@ game_core.prototype.server_update = function()
         bufView[10] = (player.bubble) ? 1 : 0;
         bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
-        //bufView[13] = (player.dead) ? 1 : 0;//player.team;
+        bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
+        bufView[14] = player.active;
         //bufView[11] = new Date();
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
@@ -4353,6 +4356,8 @@ game_core.prototype.client_process_net_updates = function()
                 player.bubble = (vt[10] === 1) ? true : false;
                 player.visible = (vt[11] === 1) ? true : false;
                 player.bufferIndex = index;// -> vt[12]
+                player.score = vt[13];
+                player.active = vt[14];
                 //player.dead = (vt[13] == 1) ? true : false;
                 //console.log(Boolean(player.flap));
                 //console.log('set playerIndex', vt[11]);
@@ -4404,6 +4409,8 @@ game_core.prototype.client_process_net_updates = function()
                 _this.players.self.bubble = (self_vt[10] === 1) ? true : false;
                 _this.players.self.visible = (self_vt[11] === 1) ? true : false;
                 _this.players.self.bufferIndex = index;// -> vt[12]
+                _this.players.self.score = self_vt[13];
+                _this.players.self.active = self_vt[14];
                 //_this.players.self.team = self_vt[13];
                 //}
                 //*/
@@ -4827,12 +4834,15 @@ game_core.prototype.client_update_physics = function()
     //{
 
         this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
+        //if (this.players.self.mp != "hp")
+        //{
         var nd = this.process_input(this.players.self);
         //if (nd.x === 0 && nd.y == 0)
             //this.players.self.update();
         //else 
         this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, nd);
         this.players.self.state_time = this.local_time;
+        //}
         
         //console.log('nd', nd);
         
@@ -4904,7 +4914,7 @@ game_core.prototype.client_update = function()
     }
 
     //draw help/information if required
-    // this.client_draw_info();
+    this.client_draw_info();
 
     // draw prerenders
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
@@ -5078,9 +5088,7 @@ game_core.prototype.client_create_ping_timer = function() {
         this.socket.send('p.' + (this.last_ping_time) );
 
     }.bind(this), 250);
-
 }; //game_core.client_create_ping_timer
-
 
 game_core.prototype.client_create_configuration = function() {
 
@@ -5118,7 +5126,8 @@ game_core.prototype.client_create_configuration = function() {
 
 };//game_core.client_create_configuration
 
-game_core.prototype.client_create_debug_gui = function() {
+game_core.prototype.client_create_debug_gui = function() 
+{
 
     this.gui = new dat.GUI();
 
@@ -5936,13 +5945,65 @@ game_core.prototype.client_refresh_fps = function() {
         this.fps_avg_acc = this.fps;
 
     } //reached 10 frames
-
 }; //game_core.client_refresh_fps
 
 
-game_core.prototype.client_draw_info = function() {
+game_core.prototype.client_draw_info = function() 
+{
     if (glog) console.log('client_draw_info');
+    var _this = this;
 
+    /////////////////////////////////
+    // ping
+    /////////////////////////////////
+    var pingTxt = document.getElementById('txtPing');
+    pingTxt.innerHTML = this.net_ping;// + "/" + this.last_ping_time;
+
+    /////////////////////////////////
+    // fps
+    /////////////////////////////////
+    var fpsTxt = document.getElementById('txtFPS');
+    fpsTxt.innerHTML = Math.ceil(this.fps_avg);
+
+    /////////////////////////////////
+    // leaderboard
+    /////////////////////////////////
+    var hscore = [];
+    _.forEach(_this.getplayers.allplayers, function(p)
+    {
+        if (p.active)
+            hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
+    });
+    // sort it
+    _.orderBy(hscore, ['score']);
+
+    // if more than 10 players, take the top 10
+    if (hscore.length > 10)
+    {
+        hscore = array.slice(hscore, 0, 10);
+    }
+    // don't update if redundant
+    if (hscore == this.last_hscore) return;
+    else this.last_hscore = hscore;
+    
+    // update DOM #scoreboard items
+    var tbl = document.getElementById('scoreslist');
+    var color;
+    _.forEach(hscore, function(p, i)
+    {
+        tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
+        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
+        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
+        // set color
+        if (!p.visible)
+            color = "lightgray";
+        else if (p.team == 1) color = "#FF6961";
+        else color = "#6ebee6";
+        tbl.rows[i].style.color = color;
+    });
+    // console.log('score post: ', JSON.stringify(hscore));
+
+    /*
     //We don't want this to be too distracting
     this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
 
@@ -5971,5 +6032,5 @@ game_core.prototype.client_draw_info = function() {
 
     //Reset the style back to full white.
     this.ctx.fillStyle = 'rgba(255,255,255,1)';
-
+    */
 }; //game_core.client_draw_help

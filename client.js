@@ -359,7 +359,11 @@ domready(function()
 
 		// show top UI bar
 		var ui = document.getElementById('uiTopBar');
+		var info = document.getElementById('uiInfoBar');
+		var scoreboard = document.getElementById('scoreboard');
 		ui.style.display = "block";
+		info.style.display = "block";
+		scoreboard.style.display = "block";
 
 
 		//Create our game client instance.

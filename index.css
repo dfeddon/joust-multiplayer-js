@@ -423,6 +423,114 @@ h5
 	font-size: 1.5em;
 }
 
+#uiInfoBar
+{
+	position: absolute;
+	display: none;
+	top: 33px;
+	height: 10px;
+	width: 100%;
+	/*background: rgba(0,0,0,0.65);*/
+	opacity: 0.85;
+	z-index: 500;
+	/* disallow text selection */
+	-webkit-user-select: none; /* Chrome/Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	-o-user-select: none;
+	user-select: none;
+}
+#ibPing
+{
+	position: absolute;
+	left: 15px;
+	/*background: rgba(0,0,0,0.65);*/
+	/*opacity: 0.85;*/
+	font-family: 'Mirza', serif;
+}
+#lblPing
+{
+	/*position: absolute;
+	left: 55px;*/
+	/*font-family: 'Mirza', serif;
+	font-size: 14px;*/
+	opacity: 0.65
+}
+#ibFPS
+{
+	position: absolute;
+	left: 125px;
+	/*background: rgba(0,0,0,0.65);*/
+	/*opacity: 0.85;*/
+	font-family: 'Mirza', serif;
+}
+#lblFPS
+{
+	opacity: 0.65;
+}
+/*#txtFPS
+{
+	position: absolute;
+	left: 150px;
+}*/
+#ibScore
+{
+	font-family: 'Mirza', serif;
+	text-align: center;
+}
+#lblScore
+{
+	opacity: 0.65;
+}
+.txtInfo
+{
+	width: 25;
+	height: 25;
+	display: inline-block;
+	padding-top: 3px;
+}
+
+#scoreboard
+{
+	position: absolute;
+	display: none;
+	top: 32px;
+	right: 0px;
+	padding-right: 15px;
+	padding-left: 30px;
+	font-family: 'Mirza', serif;
+	/*height: 10px;*/
+	/*width: 250px;*/
+	background: rgba(0,0,0,0.65);
+	opacity: 0.85;
+	z-index: 500;
+	/* disallow text selection */
+	-webkit-user-select: none; /* Chrome/Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	-o-user-select: none;
+	user-select: none;
+}
+#scoreslist
+{
+	/*columns: 1;
+	-webkit-columns: 1;
+	-moz-columns: 1;*/
+	width: 150px;
+}
+
+/*#scoreboard > li
+{
+	position: relative;
+}
+#scoreboard > p
+{
+	text-align: right;
+}
+.leaderRow
+{
+}*/
+
 #mobile-controls-l
 {
 	display: none;

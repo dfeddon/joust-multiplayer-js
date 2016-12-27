@@ -74,6 +74,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.vuln = false;
     this.bubble = false;
     this.dying = false;
+    this.score = 0;
 
     // TODO: default to invisible skin
     this.skin = "skin1";
@@ -1317,10 +1318,13 @@ game_player.prototype.timeoutRespawn = function(victor)
     {
         this.dead = false;
         this.dying = false;
+        this.visible = false;
         //this.vuln = true; // this disables input
-        // this.active = true;
+        this.active = true;
         this.landed = 1;
         this.bubble = false;
+        this.score = 0;
+        this.progression = 0;
         this.pos = this.config.gridToPixel(0,0);
 
         if (this.mp == this.config.players.self.mp)
@@ -1331,7 +1335,6 @@ game_player.prototype.timeoutRespawn = function(victor)
             ui.style.display = "block";
             //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
         }
-
         return;
     }
 
@@ -1339,11 +1342,13 @@ game_player.prototype.timeoutRespawn = function(victor)
     
     this.dead = false;
     this.dying = false;
+    this.visible = false;
     //this.vuln = true; // this disables input
     this.active = true;
     this.landed = 1;
     this.bubble = false;
     this.progression = 0;
+    this.score = 0;
     //this.pos = this.config.gridToPixel(3,4);
 
     if (this.mp == this.config.players.self.mp)
