@@ -1279,9 +1279,11 @@ game_player.prototype.doKill = function(victor)
     }
 
     // if carrying flag, drop it
+    var hadFlag = false;
     if (this.hasFlag)
     {
         this.dropFlag();
+        hadFlag = true; // needed for victor scoring below
 
         if (this.mp == this.config.players.self.mp)
             this.config.players.self.dropFlag();
@@ -1318,6 +1320,10 @@ game_player.prototype.doKill = function(victor)
     {
         console.log(this.mp, 'slain by', victor.mp);
 
+        if (hadFlag)
+            victor.addToScore(1500);
+        else victor.addToScore(500);
+
         // var victim = this.mp.replace ( /[^\d.]/g, '' );
         // this.killedBy = parseInt(victim);
         // console.log(victor.mp, 'killed player', this.killedBy);
@@ -1339,6 +1345,13 @@ game_player.prototype.doKill = function(victor)
 game_player.prototype.timeoutRespawn = function(victor)
 {
     console.log('player dead complete', this.disconnected, this.mp);
+
+    // revise highscore?
+    if (assets.myHighScore < this.score)
+    {
+        // update high score locally
+        localStorage.myHighScore = score;
+    }
 
     this.reset();
     // if (this.disconnected)

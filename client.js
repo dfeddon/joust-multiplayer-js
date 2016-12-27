@@ -362,12 +362,17 @@ domready(function()
 	// loader progress
 	loader.addProgressListener(function(e)
 	{
-		console.log('progress', e);
+		//console.log('progress', e.completedCount);
 		
 	});
 	// assets load complete handler
 	loader.addCompletionListener(function()
 	{
+		console.log('* all assets loaded...');
+
+		// update button text from loading to join game
+		document.getElementById("btnStart").innerText = "Join Game";
+		
 		assets.loaded = true;
 	});
 
@@ -417,33 +422,43 @@ domready(function()
 	/////////////////////////////////////////
 	// localStorage
 	/////////////////////////////////////////
-	var storage = function(action)
+	var storage = function(action, item, val)
 	{
 		if (action == "set")
 		{
-			localStorage.hasTweeted = 1;
+			localStorage[item] = val;
+			return localStorage[item];
 		}
 		else if (action == "get")
 		{
 			console.log('localStorage', localStorage);
 			
-			return localStorage.hasTweeted;   // --> true
+			return localStorage[item];   // --> true
 			//localStorage.get('myKey');   // --> {a:[1,2,5], b: 'ok'}
 		}
 		else if (action == "del")
 		{
-			localStorage.removeItem('hasTweeted');
+			localStorage.removeItem(item);
 		}
-	}
+	};
 
-	assets.hasTweeted = storage("get");
-	console.log('hasTweeted', assets.hasTweeted);	
-	if (!assets.hasTweeted)
+	// tweet for skins
+	assets.skinUnlock = storage("get", "wingdom__skinUnlock");
+	console.log('skinUnlock', assets.skinUnlock);
+	if (assets.skinUnlock === undefined)	
+		console.log(storage("set", "wingdom__skinUnlock", false));
+	if (!assets.skinUnlock)
 	{
 		// show unlock skin callout
-		console.log('show media callout!');
+		console.log('show skin unlock media callout!');
 		
 	}
+	// highscore
+	assets.myHighscore = storage("get", "wingdom__myHighscore");
+	if (!assets.myHighscore === undefined)
+		console.log(storage("set", "wingdom__myHighscore", 0));
+	assets.myHighscore = storage("get", "wingdom__myHighscore");
+	
 	/////////////////////////////////////////
 	// external controls (from apps)
 	/////////////////////////////////////////

@@ -132,10 +132,14 @@ function game_flag(data, context, getplayers, config)
 
       case "slotBlue":
         this.image = assets.flag_slot_blue;
+        console.log('slotBlue!');
+        
       break;
 
       case "slotRed":
         this.image = assets.flag_slot_red;
+        console.log('slotRed!');
+        
       break;
 
       case "midSlot":
@@ -569,6 +573,8 @@ game_flag.prototype.slotFlag = function(player)
 
     var flagObj = this.config._.find(_this.config.flagObjects, {"name":clientFlag.name});//this.name});
     flagObj.reset(true);//, this.game.server_time);
+
+    player.addToScore(2500);
   }
 };
 

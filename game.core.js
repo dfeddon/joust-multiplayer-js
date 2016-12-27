@@ -1514,8 +1514,8 @@ game_core.prototype.tilemapper = function()
                     //}
                     //this.config.flagObjects.push(flg);
                 });
-                for (var k in flagObjectsObj)
-                    delete flagObjectsObj[k];
+                // for (var k in flagObjectsObj)
+                //     delete flagObjectsObj[k];
 
                 /*_.forEach(objsArray, function(i)
                 {
@@ -1736,6 +1736,7 @@ game_core.prototype.tilemapper = function()
                 }
             }
             //console.log('preflags', pre);
+            console.log('flagArray', flagArray);
             
             _.forEach(flagArray, function(fo)
             {
@@ -1783,6 +1784,12 @@ game_core.prototype.tilemapper = function()
         */
 
     }
+    // housecleaning
+    // if (flagObjectsObj)
+    // {
+    //     for (var k in flagObjectsObj)
+    //         delete flagObjectsObj[k];
+    // }
 };
 game_core.prototype.addSpriteSheets = function()
 {
