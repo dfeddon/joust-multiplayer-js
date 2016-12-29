@@ -263,7 +263,7 @@ var game_core = function(game_instance)
         // this.entities.push(hp);
 
         this.players = {};
-        this.players.self = hp;
+        //this.players.self = hp;
         //this.players.hostGame = hp.game;
 
         // add player (host)
@@ -3094,6 +3094,8 @@ game_core.prototype.client_on_orbremoval = function(data)
 game_core.prototype.process_input = function( player )
 {
     //console.log('##+@@process_input', player.mp);
+    //if (!this.config.server) console.log('client input', player.mp);
+    
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
@@ -3165,7 +3167,7 @@ game_core.prototype.process_input = function( player )
                 // }
                 if(key == 'u') { // flap
                     //TODO: up should take player direction into account
-                    //console.log('flap!');
+                    //console.log('flap!', player.mp, player.pos);
 
                     player.doFlap();
                     //document.externalControlAction('x');
@@ -4224,6 +4226,8 @@ game_core.prototype.client_process_net_updates = function()
         target = this.server_updates[0];
         previous = this.server_updates[0];
     }
+    //console.log('target', target, 'previous', previous);
+    
     //console.log('target', typeof(target), target);
     //console.log('previous', previous);
     //Now that we have a target and a previous destination,
@@ -4292,13 +4296,17 @@ game_core.prototype.client_process_net_updates = function()
         var lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
         var self_pp;
         var self_tp;
-        _.forEach(this.getplayers.allplayers, function(player, index)
+        //console.log('len', this.getplayers.allplayers.length);
+        
+        _.forEach(_this.getplayers.allplayers, function(player, index)
         {
-            if (player != _this.players.self)// && previous[player.mp])
+            //console.log('=', player.mp, _this.players.self.mp);
+            
+            if (player.mp != _this.players.self.mp)// && previous[player.mp])
             {
                 //console.log('**', target[player.mp]);
                 // check for bad objects
-                if (target[player.mp] == undefined || previous[player.mp] == undefined) return false;
+                //if (target[player.mp] == undefined || previous[player.mp] == undefined) return false;
                 //try{
                 vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 //}catch(err){console.log(err, index, target[player.mp]);}
@@ -4395,8 +4403,10 @@ game_core.prototype.client_process_net_updates = function()
                 //*/
                 //console.log(this.getplayers.allplayers[j].pos);
             }
-            else
+            else // local player
             {
+                //console.log('local player');
+                
                 var self_vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.mp], (index * 16), 16);
                 //console.log('vt.len', self_vt, self_vp);
@@ -4451,7 +4461,7 @@ game_core.prototype.client_process_net_updates = function()
             self_vt = null;
             self_vp = null;
             */
-        });
+        }); // end forEach
         
         // console.log(other_server_pos2);
         //*/
@@ -4700,6 +4710,8 @@ game_core.prototype.client_process_net_updates = function()
         //} // if other_server_pos
 
     } //if target && previous
+    //else console.log('target/previoius', target, previous);
+    
 
 }; //game_core.client_process_net_updates
 

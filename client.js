@@ -165,6 +165,9 @@ domready(function()
 			nickname = document.getElementById('nickname-phone');
 			btnStart = document.getElementById('btnStart-phone');
 
+			// hide social media buttons
+			document.getElementById('socialmedia').style.display = "none";
+
 			/*if (iphone)
 			{
 				var v = document.getElementById("viewport"); 
@@ -199,6 +202,15 @@ domready(function()
 				assets.playerName = e.target.value;
 			else assets.playerName = undefined;
 		});
+
+		document.body.onkeydown = function(e)
+		{
+			console.log('keypress');
+			
+			if (e.keyCode === 13)
+				console.log('enter start!');
+				
+		};
 
 		btnStart.addEventListener("click", function(e)
 		{

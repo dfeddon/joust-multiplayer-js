@@ -277,15 +277,16 @@ game_server.endGame = function(gameid, userid)
             var host;
             var nonhosts = [];
             var game_instance = this.games[gameid];
+            this.log("player clients", thegame.player_clients.length);
             for (var i = 0; i < thegame.player_clients.length; i++)
             {
                 // if (thegame.player_clients[i].hosting)
                 //     host = thegame.player_clients[i];
                 // else nonhosts.push(thegame.player_clients[i]);
-                this.log(thegame.player_clients.length, thegame.player_clients[i].userid, userid);
+                this.log(thegame.player_clients.length, thegame.player_clients[i].userid, userid, thegame.player_clients[i].hosting);
                 if (thegame.player_clients[i].userid == userid)
                 {
-                    console.log('@@ removing client id', userid);
+                    console.log('@@ removing client id', userid, thegame.player_clients[i].hosting);
 
                     // tell client game is ended
                     thegame.player_clients[i].send('s.e');
@@ -306,6 +307,7 @@ game_server.endGame = function(gameid, userid)
                     disconnected_mp = allplayers[j].mp;
                     if (!allplayers[j].host)
                         allplayers[j].instance = null;//.splice(j, 1);
+                    else this.log("* not disconnecting host player...");
                     allplayers[j].disconnected = true;
                     // allplayers[j].active = false;
                     // allplayers[j].pos = {x:0, y:0};
@@ -321,9 +323,10 @@ game_server.endGame = function(gameid, userid)
                     {
                         console.log('@@ informing player', allplayers[k].mp, 'about', disconnected_mp);                    
                         allplayers[k].instance.send('s.e.' + disconnected_mp);
-                        thegame.gamecore.players.self = allplayers[k];
+                        //thegame.gamecore.players.self = allplayers[k];
                     }
                 }
+                this.log("player clients", thegame.player_clients.length);
             }
 
             // if host, send the players the msg the game is ending
@@ -715,10 +718,10 @@ game_server.findGame = function(client)
                         else
                         {
                             console.log(players[i].mp, 'has instance!');
-                            continue;
+                            //continue;
                             //players[i].instance = game_instance.player_clients[j];
                             //players[i].id = game_instance.player_clients[j].userid;
-                            //console.log('mp =', players[i].mp);
+                            this.log('mp =', players[i].mp, game_instance.player_clients[j].hosting);
                             if (game_instance.player_clients[j].hosting === true && players[i].mp == 'hp')
                             {
                                 console.log('*** found host!', game_instance.player_clients[j].userid);//, players[i].instance);
@@ -730,6 +733,7 @@ game_server.findGame = function(client)
                                 //players[i].mis = 'his';
                                 players[i].instance = game_instance.player_clients[j];
                                 host_added = true;
+                                this.log("* player host is", players[i].mp)
                             }
                         }
                     }

@@ -326,7 +326,7 @@ memwatch.on('leak', function(info)
 
 memwatch.on('stats', function(stats)
 {
-    console.log('V8 GC stats', stats);
+    //console.log('V8 GC stats', stats);
     //process.kill(process.pid, 'SIGUSR2');
 })
 //*/

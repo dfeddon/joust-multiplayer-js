@@ -11,7 +11,7 @@ var game_spritesheet = require('./class.spritesheet');
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
 {
-    console.log('== game_player.constructor', player_instance);//, game_instance, player_instance);
+    console.log('== game_player.constructor');//, player_instance);//, game_instance, player_instance);
     //Store the instance, if any
     // ## NOTE: only server sends instance, not clients!!
     if (player_instance) console.log('** server added player (with instance)');
@@ -1273,7 +1273,7 @@ game_player.prototype.doKill = function(victor)
     // remove bubble
     this.bubble = false;
 
-    if (this.mp == this.config.players.self.mp)
+    if (!this.config.server && this.mp == this.config.players.self.mp)
     {
         this.config.players.self.vx = 0;
         this.config.players.self.vy = 0;
@@ -1397,7 +1397,7 @@ game_player.prototype.timeoutRespawn = function(victor)
     // this.score = 0;
     // //this.pos = this.config.gridToPixel(3,4);
 
-    if (this.mp == this.config.players.self.mp)
+    if (!this.config.server && this.mp == this.config.players.self.mp)
     {
         console.log('* dead player is self (me)...');
         
@@ -1426,8 +1426,10 @@ game_player.prototype.timeoutRespawn = function(victor)
                 document.getElementById('btnStart').innerText = "Play Again?"
                 document.getElementById('scoring').style.display = "block";
                 // update scores
-                document.getElementById('txtYourscore').innerHTML = assets.myLastscore.toString();
-                document.getElementById('txtHighscore').innerHTML = assets.myHighscore.toString();
+                if (assets.myLastscore)
+                document.getElementById('txtYourscore').innerHTML = assets.myLastscore;//.toString();
+                if (assets.myHighscore)
+                document.getElementById('txtHighscore').innerHTML = assets.myHighscore;//.toString();
             }
             ui.style.display = "block";
         }
