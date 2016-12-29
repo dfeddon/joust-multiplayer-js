@@ -1426,9 +1426,9 @@ game_player.prototype.timeoutRespawn = function(victor)
                 document.getElementById('btnStart').innerText = "Play Again?"
                 document.getElementById('scoring').style.display = "block";
                 // update scores
-                if (assets.myLastscore)
                 document.getElementById('txtYourscore').innerHTML = assets.myLastscore;//.toString();
-                if (assets.myHighscore)
+                document.getElementById('txtScore').innerHTML = assets.myLastscore;//.toString();
+                if (assets.myHighscore) // user may be blocking storage OR in incognito mode
                 document.getElementById('txtHighscore').innerHTML = assets.myHighscore;//.toString();
             }
             ui.style.display = "block";
