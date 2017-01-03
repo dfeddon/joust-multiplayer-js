@@ -1446,27 +1446,30 @@ game_core.prototype.tilemapper = function()
         ///////////////////////////////////
         var objectgroupNode = xmlDoc.getElementsByTagName('objectgroup');
         var flagArray = [];
+        var flagObjectsObj;
         //console.log('objectgroups', objectgroupNode.length);
-        for (var og = 0; og < objectgroupNode.length; og++)
+        //for (var og = 0; og < objectgroupNode.length; og++)
+        _.forEach(objectgroupNode, function(ogn)
         {
-            var ogName = objectgroupNode[og].getAttribute('name');
-            console.log('group name', ogName);//, objectgroupNode[og]);
-            var ogInner = objectgroupNode[og].innerHTML;
+            var ogName = ogn.getAttribute('name');
+            console.log('group name', ogName);//, ogn);
+            var ogInner = ogn.innerHTML;
             var ogRows = ogInner.split("\n");
             ogRows.shift(); ogRows.pop();
             //console.log(ogRows);
             var parser = new DOMParser();
             var xml, atts, s;
             var nodes = [];
-            for (var d = 0; d < ogRows.length; d++)
+            //for (var d = 0; d < ogRows.length; d++)
+            _.forEach(ogRows, function(ogr)
             {
                 // parse to xml
-                xml = parser.parseFromString(ogRows[d], "text/xml");
+                xml = parser.parseFromString(ogr, "text/xml");
                 // get attributes (via NamedNodeMap)
                 atts = xml.childNodes[0].attributes;
                 nodes.push(atts);
                 //console.log('atts', atts);
-            }
+            });
             switch(ogName)
             {
                 case "chestSpawn":
@@ -1487,7 +1490,7 @@ game_core.prototype.tilemapper = function()
                 // assign attribues to chest obj
                 var flg;
                 //for (var e = 0; e < nodes.length; e++)
-                var flagObjectsObj;
+                //var flagObjectsObj;
                 //var objsArray = [];
                 _.forEach(nodes, function(e)
                 {
@@ -1517,14 +1520,18 @@ game_core.prototype.tilemapper = function()
                 // for (var k in flagObjectsObj)
                 //     delete flagObjectsObj[k];
 
-                /*_.forEach(objsArray, function(i)
+                /*
+                _.forEach(objsArray, function(i)
                 {
                     //console.log(i);
                     this.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
                 });*/
                 break;
-            }
-        }
+            } // switch
+        }); // forEach
+
+        // for (var k in flagObjectsObj)
+        //     delete flagObjectsObj[k];
         //console.log('chests', this.chestSpawnPoints);
         //console.log('players', this.config.flagObjects);
 
@@ -1784,12 +1791,14 @@ game_core.prototype.tilemapper = function()
         */
 
     }
-    // housecleaning
-    // if (flagObjectsObj)
-    // {
-    //     for (var k in flagObjectsObj)
-    //         delete flagObjectsObj[k];
-    // }
+    // TODO: housecleaning
+    if (flagObjectsObj)
+    {
+        console.log('* removing flag objects...');
+        
+        for (var k in flagObjectsObj)
+            delete flagObjectsObj[k];
+    }
 };
 game_core.prototype.addSpriteSheets = function()
 {
@@ -4306,7 +4315,11 @@ game_core.prototype.client_process_net_updates = function()
             {
                 //console.log('**', target[player.mp]);
                 // check for bad objects
-                //if (target[player.mp] == undefined || previous[player.mp] == undefined) return false;
+                if (target[player.mp] === undefined || previous[player.mp] === undefined) 
+                {
+                    console.log("* missing TARGET and/or PREVIOUS object....");
+                    return false;
+                }
                 //try{
                 vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 //}catch(err){console.log(err, index, target[player.mp]);}
@@ -6016,6 +6029,9 @@ game_core.prototype.client_draw_info = function()
     {
         if (p.active)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
+        // if respawning, auto-set score to 0
+        if (!p.visible)
+            p.score = 0;
     });
     // sort it
     hscore = _.orderBy(hscore, ['score'], ['desc']);

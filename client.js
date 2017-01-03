@@ -131,13 +131,17 @@ domready(function()
 		else if (device.android)
 		{
 			console.log('android!');
-			device.webview = /AppName\/[0-9\.]+$/.test(navigator.userAgent);
+			device.webview = (userAgent == "android-wingdom-app"); //AppName\/[0-9\.]+$/.test(navigator.userAgent);
 			console.log('android webview?', device.webview);
 			if (device.webview)
 			{
+				console.log('yes, android webview!');
+
+				// TODO: Phone or Tablet
+				
 				// using app
 			}
-			else
+			/*else
 			{
 				// browser, suggest app
 				splash = false;
@@ -150,16 +154,17 @@ domready(function()
 				//var ui = document.getElementById('uiTopBar');
 				//ui.style.display = "none";
 				return;
-			}
+			}*/
 			
 		}
 		//*/
-	}
+	} // end if device is mobile
 	//else // website (or app)
+	//splash = true;device.webview = true;
 	if (splash)
 	{
 		var splash, nickname, btnStart, adContainer;
-		if (device.iphone || device.ipod)
+		if (device.iphone || device.ipod || device.webview)
 		{
 			splash = document.getElementById('splash-phone');
 			nickname = document.getElementById('nickname-phone');
@@ -335,21 +340,21 @@ domready(function()
 
 	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
 
-	assets.animate_explosion = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png");
-	assets.animate_torches = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-torches.png");
+	// assets.animate_explosion = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png");
+	// assets.animate_torches = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-torches.png");
 	assets.animate_gg = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/EXPLOSIONS1.png");
 
-	assets.plat_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-l.png");
-	assets.plat_m = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-m.png");
-	assets.plat_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-r.png");
-	assets.plat_rotate = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-rotate.png");
+	// assets.plat_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-l.png");
+	// assets.plat_m = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-m.png");
+	// assets.plat_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-r.png");
+	// assets.plat_rotate = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-rotate.png");
 
 	assets.evt_chestopen = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/chest-open.png");
 	assets.evt_chestclosed = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/chest-closed.png");
-	assets.evt_potion_red_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-full.png");
-	assets.evt_potion_red_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-empty.png");
-	assets.evt_potion_blue_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-full.png");
-	assets.evt_potion_blue_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-empty.png");
+	// assets.evt_potion_red_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-full.png");
+	// assets.evt_potion_red_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-empty.png");
+	// assets.evt_potion_blue_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-full.png");
+	// assets.evt_potion_blue_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-empty.png");
 
 	assets.flag_red_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-r.png");
 	assets.flag_red_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-red-l.png");
