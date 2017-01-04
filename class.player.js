@@ -599,7 +599,7 @@ game_player.prototype.reset = function()
     this.dying = false;
     this.visible = false;
     //this.vuln = true; // this disables input
-    this.active = true;
+    this.active = false;
     this.landed = 1;
     this.bubble = false;
     this.score = 0;
@@ -643,6 +643,7 @@ game_player.prototype.respawn = function()
     var sx, sy;
     // var sx = Math.floor(Math.random() * teamRed_x) + 1;
     // var sy = Math.floor(Math.random() * teamRed_y) + 1;
+    console.log("* team", this.team);
     if (this.team === 1) // red
     {
         sx = teamRed_x;
@@ -663,6 +664,7 @@ game_player.prototype.respawn = function()
     startPos.y = pos.y;
 
     this.pos = startPos;
+    //assets.respawnPos = startPos;
 };
 
 game_player.prototype.botAction = function()
@@ -1442,7 +1444,7 @@ game_player.prototype.timeoutRespawn = function(victor)
         //this.visible = false;
     }
     
-    // if (this.config.server) this.respawn();
+    if (this.config.server) this.respawn();
 
     // // show respawn screen (ads)
     // if (!this.config.server && victor.mp != this.config.players.self.mp)

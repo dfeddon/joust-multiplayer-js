@@ -224,8 +224,13 @@ domready(function()
 
 			//var skin = "skin" + assets.skinIndex.toString();
 			// get selected skin
+			console.log('assets.playerSkin', assets.playerSkin);
+			
 			var skins = document.getElementsByClassName("slides");
+			//if (!assets.playerSkin)
 			assets.playerSkin = skins[assets.skinIndex - 1].id;
+			console.log('playerSkin', assets.playerSkin, assets.skinIndex);
+			
 
 			// get player name
 			var myString = nickname.value;
@@ -245,7 +250,7 @@ domready(function()
 			else // respawning
 			{
 				// activate player
-				console.log("* respawing existing player...", assets.playerName, skin);
+				console.log("* respawing existing player...", assets.playerName, assets.playerSkin);//skin);
 				game.players.self.active = true;
 				game.players.self.visible = true;
 				game.players.self.vuln = false;
@@ -253,8 +258,10 @@ domready(function()
 					game.players.self.playerName = assets.playerName;
 				// skin
 				game.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
+				// start pos
+				//game.players.self.pos = assets.respawnPos;
 				//game.players.self.respawn();
-				game.socket.emit('message', 'n.' + game.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + skin);
+				game.socket.emit('message', 'n.' + game.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
 
 				// start the game loop
 				// game.update( new Date().getTime() );		

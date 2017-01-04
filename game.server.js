@@ -158,7 +158,7 @@ game_server._onMessage = function(client,message)
         var thegame = this.games[gameId];
         for (var i = 0; i < thegame.player_clients.length; i++)
         {
-            //console.log('dtf-dtf', i);
+            console.log('* clients', thegame.player_clients[i].mp);
             
             if (thegame.player_clients[i].mp == mp)
             {
