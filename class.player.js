@@ -1291,7 +1291,7 @@ game_player.prototype.doKill = function(victor)
         this.dropFlag();
         hadFlag = true; // needed for victor scoring below
 
-        if (this.mp == this.config.players.self.mp)
+        if (!this.config.server && this.mp == this.config.players.self.mp)
             this.config.players.self.dropFlag();
     }
 

@@ -4315,14 +4315,18 @@ game_core.prototype.client_process_net_updates = function()
             {
                 //console.log('**', target[player.mp]);
                 // check for bad objects
-                if (target[player.mp] === undefined)// || previous[player.mp] === undefined) 
-                    target[player.mp] = previous[player.mp];
-                // {
-                //     console.log("* missing TARGET and/or PREVIOUS object....");
-                //     return false;
-                // }
-                else if (previous[player.mp] === undefined) 
-                    previous[player.mp] = target[player.mp];
+                if (target[player.mp] === undefined)
+                {
+                    if (previous[player.mp])// || previous[player.mp] === undefined) 
+                        target[player.mp] = previous[player.mp];
+                    else return;
+                }
+                else if (previous[player.mp] === undefined)
+                {
+                    if (target[player.mp]) 
+                        previous[player.mp] = target[player.mp];
+                    else return;
+                }
                 //try{
                 vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 //}catch(err){console.log(err, index, target[player.mp]);}
@@ -5126,7 +5130,7 @@ game_core.prototype.client_create_ping_timer = function() {
         this.last_ping_time = new Date().getTime() - this.fake_lag;
         this.socket.send('p.' + (this.last_ping_time) );
 
-    }.bind(this), 250);
+    }.bind(this), 1000);
 }; //game_core.client_create_ping_timer
 
 game_core.prototype.client_create_configuration = function() {

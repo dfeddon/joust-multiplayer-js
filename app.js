@@ -275,8 +275,8 @@ sio.sockets.on('connection', function (client)
 //     console.log('client io connected...');
 // });
 // auto-create host game
-var host = clientIo.connect(UUID());
 /*
+var host = clientIo.connect(UUID());
     , 
     {
         'transports':['websocket']
@@ -285,12 +285,18 @@ var host = clientIo.connect(UUID());
     }
 );
 */
+// auto create 20 games
+//var totalGames = 5;
+var host;
+// for (var i = 0; i < totalGames; i++)
+// {
+host = clientIo.connect(UUID());
 host.userid = UUID();
 host.hosting = true;
 console.log('host', host.userid);
-//console.log('host.io.engine.transport.name', host.io.opts.transports);
-
 game_server.createGame(host);
+//console.log('host.io.engine.transport.name', host.io.opts.transports);
+// }
 
 //*
 setInterval(function()

@@ -8,7 +8,7 @@ MIT Licensed.
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 30;
+var MAX_PLAYERS_PER_GAME = 31;
 
 var
     game_server = module.exports = { games : {}, game_count:0 },

@@ -14,7 +14,7 @@ var assets = require('./singleton.assets');
 var game_core = require('./game.core');
 //var localStorage = require('bower_components/simple-webstorage/extendStorage');
 var device = {};
-// var _ = require('./node_modules/lodash/lodash.min');
+var _ = require('./node_modules/lodash/lodash.min');
 /*
 var egyptian_set = require('./egyptian_set');
 var game_spritesheet = require('./class.spritesheet');
@@ -83,6 +83,7 @@ domready(function()
 	{
 		//require('./class.extControls');
 		//*
+		device.isNative = false; // default
 		device.standalone = window.navigator.standalone; // (fullscreen)
 		device.ios = /iphone|ipod|ipad/.test(userAgent);
 		device.android = /android/.test(userAgent);
@@ -101,23 +102,27 @@ domready(function()
 			device.ipod = /ipod/.test(userAgent);
 			console.log('ios', device.ios, 'safari', device.safari, device.iphone, device.ipad, device.ipod);
 
+			// browser
 			if (device.safari)
 			{
 				// browser, suggest app
-				splash = false;
-				var apprec = document.getElementById('apprec');
-				apprec.style.display = "block";
-				apprec.addEventListener("click", function(e)
-				{
-					window.location = "http://www.apple.com/itunes/";
-				});
+				//*
+				// splash = false;
+				// var apprec = document.getElementById('apprec');
+				// apprec.style.display = "block";
+				// apprec.addEventListener("click", function(e)
+				// {
+				// 	window.location = "http://www.apple.com/itunes/";
+				// });
 				//var ui = document.getElementById('uiTopBar');
 				//ui.style.display = "none";
-				return;
+				// return;
+				//*/
 			}
-			else
+			else // native app
 			{
 				// using app
+				device.isNative = true;
 			}
 			
 			// show native controls
@@ -140,27 +145,101 @@ domready(function()
 				// TODO: Phone or Tablet
 				
 				// using app
+				device.isNative = true;
 			}
-			/*else
+			//*
+			else
 			{
 				// browser, suggest app
-				splash = false;
-				var apprec = document.getElementById('apprec');
-				apprec.style.display = "block";
-				apprec.addEventListener("click", function(e)
-				{
-					window.location = "https://play.google.com/store/apps/category/GAME?utm_source=na_Med&utm_medium=hasem&utm_content=Nov1215&utm_campaign=Evergreen&pcampaignid=MKT-DR-na-us-all-Med-hasem-gm-Evergreen-May0315-1-SiteLink%7cONSEM_kwid_43700006873862192&gclid=CIGa5JHu8dACFc3ZDQodhNEC4Q&gclsrc=ds&dclid=CPDb6ZHu8dACFUQdHwodFZ4K0g";
-				});
+				// splash = false;
+				// var apprec = document.getElementById('apprec');
+				// apprec.style.display = "block";
+				// apprec.addEventListener("click", function(e)
+				// {
+				// 	window.location = "https://play.google.com/store/apps/category/GAME?utm_source=na_Med&utm_medium=hasem&utm_content=Nov1215&utm_campaign=Evergreen&pcampaignid=MKT-DR-na-us-all-Med-hasem-gm-Evergreen-May0315-1-SiteLink%7cONSEM_kwid_43700006873862192&gclid=CIGa5JHu8dACFc3ZDQodhNEC4Q&gclsrc=ds&dclid=CPDb6ZHu8dACFUQdHwodFZ4K0g";
+				// });
 				//var ui = document.getElementById('uiTopBar');
 				//ui.style.display = "none";
-				return;
-			}*/
+				//return;
+			}
+			//*/
 			
 		}
 		//*/
 	} // end if device is mobile
 	//else // website (or app)
 	//splash = true;device.webview = true;
+	var dirThreshold = 100;
+	if (device.isMobile)// && device.isNative === false)
+	{
+		// setup touch controls
+		var cvs = document.getElementById("viewport");
+		
+		cvs.addEventListener("touchstart", function(e)
+		{
+			// mousePos = getTouchPos(cvs, e);
+			e.preventDefault();
+
+			//ts = e.touches[0];
+			_.forEach(e.touches, function(ts)
+			{
+				if (ts.clientX < (cvs.width / 2))
+				{
+					console.log('* ctrl left!');
+					if (ts.clientX < dirThreshold)
+					{
+						console.log('** glide left start');					
+						game.getKeyboard()._onKeyChange({keyCode:37}, true);
+					}
+					else
+					{
+						console.log('** glide right start');					
+						game.getKeyboard()._onKeyChange({keyCode:39}, true);
+					}
+				}
+				else
+				{
+					console.log('* flap start!');
+					game.getKeyboard()._onKeyChange({keyCode:38}, true);
+				}
+			});
+		});
+		cvs.addEventListener("touchend", function(e)
+		{
+			e.preventDefault();
+			//te = e.changedTouches[0];
+			
+			_.forEach(e.changedTouches, function(te)
+			{
+				if (te.clientX < (cvs.width / 2))
+				{
+					console.log('* ctrl left!');
+					if (te.clientX < dirThreshold)
+					{
+						console.log('** glide left stop!');
+						
+						game.getKeyboard()._onKeyChange({keyCode:37}, false);
+					}
+					else
+					{ 
+						console.log('** glide right stop!');
+						
+						game.getKeyboard()._onKeyChange({keyCode:39}, false);
+					}
+				}
+				else
+				{
+					console.log('* flap stop!', game);
+					game.getKeyboard()._onKeyChange({keyCode:38}, false);
+				}
+				console.log('touchEnd', e);
+			});
+		});
+		// cvs.addEventListener("touchmove", function(e)
+		// {
+		// 	console.log('touchMove', e);
+		// });
+	}
 	if (splash)
 	{
 		var splash, nickname, btnStart, adContainer;

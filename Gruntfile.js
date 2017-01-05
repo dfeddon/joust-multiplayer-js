@@ -100,7 +100,7 @@ module.exports = function(grunt)
                 [
                     // client files (files uploaded to S3)
                     { src: ['./bundle.client.min.js'], dest: './dist/client/'},
-                    { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
+                    // { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/'},
                     // server files
                     // { src: ['./bundle.server.min.js'], dest: '../wingdom-server-dist/'},
