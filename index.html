@@ -3,7 +3,7 @@
 	<head>
 		<style>
 			* { margin:0; padding:0; } /* to remove the top and left whitespace */
-			html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
+			html, body { margin:0; height:100%; } /* just to be sure these are full screen*/
 			canvas { display:block; } /* To remove the scrollbars */
 		</style>
 
@@ -241,20 +241,23 @@
 		-->
 		<!-- Initially empty and invisible -->
 		<div id="splash-phone">
+				<center>
+					<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-header.png"/>
+				</center>
 			
-			<!--<div id="nameContainer-phone">-->
+			<div id="sideLeft">
 				<!-- TITLE -->
 				<!--<br>-->
 				<!--<h1>winglings.io</h1>-->
-				<center>
-				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-header.png"/>
-				</center>
+				<!--<center>
+					<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-header.png"/>
+				</center>-->
 				
 				<!-- NAME -->
 				<br>
 				<div>
 					<center>
-					<input id="nickname-phone" type="text" placeholder="Your Nickname"/>
+						<input id="nickname-phone" type="text" placeholder="Your Nickname"/>
 					</center>
 				</div>
 
@@ -267,35 +270,49 @@
 				</div>-->
 
 				<!-- SKINS -->
-				<!--<br>
+				<br>
 				<h2>&#9753; Select a Wingling &#9753;</h2>
+				<!--<br>-->
 				<div id="leftArrow-phone" class="float">
 					<button class="btn">
 						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowLeft.png"/>
 					</button>
 				</div>
 
-				<div id="skin-phone" class="float">
-					<button class="btn">
-						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png"/>
-					</button>
+				<div id="skin" class="float">
+					<img class="slides-phone" id="skin1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png"/>
+					<img class="slides-phone" id="skin2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin2.png"/>
+					<img class="slides-phone" id="skin5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin5.png"/>
+					<img class="slides-phone" id="skin8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin8.png"/>
+					<img class="slides-phone" id="skin9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin9.png"/>
 				</div>
 				
 				<div id="rightArrow-phone" class="float">
 					<button class="btn">
 						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png"/>
 					</button>
-				</div>-->
+				</div>
 				
 				<!-- START -->
 				<!--</div>-->
 				<div>
-				<br>
+					<br><br>
 					<center>
-					<button id="btnStart-phone">Join Game</button>
+						<button id="btnStart-phone">Join Game</button>
 					</center>
 				</div>
 		</div>
+
+		<div id="sideRight">
+
+			<div id="cf1" class="cf">
+				<img id="f3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-chests.png" />
+				<img id="f2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-keyboard.png" />
+				<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-redvblue.png" />
+			</div>
+
+		</div>
+	</div>
 
 		<!--
 		########################## MOBILE CONTROLS ###############################
@@ -390,8 +407,8 @@
 				</div>
 
 				<!-- HELP -->
-				<br><br>
-				<div id="cf">
+				<br>
+				<div id="cf2" class="cf">
 					<img id="f3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-chests.png" />
 					<img id="f2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-keyboard.png" />
 					<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-redvblue.png" />
@@ -424,11 +441,11 @@
 		########################## APP RECOMMEND ###############################
 		-->
 		<div id="apprec">
-			<div id="rec-screenshot">
+			<!--<div id="rec-screenshot">
 				<center>
 					<img id="rec-ss" src="http://s3.amazonaws.com/com.dfeddon.wingdom/screenshot1.png" align="middle"/>
 				</center>
-			</div>
+			</div>-->
 			<div id="rec-image">
 				<!--<br><br>-->
 				<center>

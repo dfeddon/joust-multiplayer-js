@@ -95,34 +95,33 @@ domready(function()
 		if (device.ios)// && safari)
 		{
 			console.log('iOS!');
-			
+			device.webview = /ios-wingdom-app/.test(userAgent);//(userAgent == "ios-wingdom-app");
 			device.safari = /safari/.test( userAgent );
-			device.iphone = /iphone/.test(userAgent);
-			device.ipad = /ipad/.test(userAgent);
+			device.iphone = /iPhone/.test(userAgent);
+			device.ipad = /iPad/.test(userAgent);
 			device.ipod = /ipod/.test(userAgent);
 			console.log('ios', device.ios, 'safari', device.safari, device.iphone, device.ipad, device.ipod);
 
 			// browser
-			if (device.safari)
+			if (device.webview)
+				device.isNative = true;
+			else
 			{
+				// if (screen.orientation.type != "landscape")
+				// 	screen.orientation.lock("landscape");
 				// browser, suggest app
 				//*
 				// splash = false;
-				// var apprec = document.getElementById('apprec');
-				// apprec.style.display = "block";
-				// apprec.addEventListener("click", function(e)
-				// {
-				// 	window.location = "http://www.apple.com/itunes/";
-				// });
+				var apprec = document.getElementById('apprec');
+				apprec.style.display = "block";
+				apprec.addEventListener("click", function(e)
+				{
+					window.location = "http://www.apple.com/itunes/";
+				});
 				//var ui = document.getElementById('uiTopBar');
 				//ui.style.display = "none";
 				// return;
 				//*/
-			}
-			else // native app
-			{
-				// using app
-				device.isNative = true;
 			}
 			
 			// show native controls
@@ -150,14 +149,16 @@ domready(function()
 			//*
 			else
 			{
+				if (screen.orientation.type != "landscape")
+					screen.orientation.lock("landscape");
 				// browser, suggest app
 				// splash = false;
-				// var apprec = document.getElementById('apprec');
-				// apprec.style.display = "block";
-				// apprec.addEventListener("click", function(e)
-				// {
-				// 	window.location = "https://play.google.com/store/apps/category/GAME?utm_source=na_Med&utm_medium=hasem&utm_content=Nov1215&utm_campaign=Evergreen&pcampaignid=MKT-DR-na-us-all-Med-hasem-gm-Evergreen-May0315-1-SiteLink%7cONSEM_kwid_43700006873862192&gclid=CIGa5JHu8dACFc3ZDQodhNEC4Q&gclsrc=ds&dclid=CPDb6ZHu8dACFUQdHwodFZ4K0g";
-				// });
+				var apprec = document.getElementById('apprec');
+				apprec.style.display = "block";
+				apprec.addEventListener("click", function(e)
+				{
+					window.location = "https://play.google.com/store/apps/category/GAME?utm_source=na_Med&utm_medium=hasem&utm_content=Nov1215&utm_campaign=Evergreen&pcampaignid=MKT-DR-na-us-all-Med-hasem-gm-Evergreen-May0315-1-SiteLink%7cONSEM_kwid_43700006873862192&gclid=CIGa5JHu8dACFc3ZDQodhNEC4Q&gclsrc=ds&dclid=CPDb6ZHu8dACFUQdHwodFZ4K0g";
+				});
 				//var ui = document.getElementById('uiTopBar');
 				//ui.style.display = "none";
 				//return;
@@ -170,7 +171,7 @@ domready(function()
 	//else // website (or app)
 	//splash = true;device.webview = true;
 	var dirThreshold = 100;
-	if (device.isMobile)// && device.isNative === false)
+	if (device.isMobile && !device.webview)// && device.isNative === false)
 	{
 		// setup touch controls
 		var cvs = document.getElementById("viewport");
@@ -242,12 +243,18 @@ domready(function()
 	}
 	if (splash)
 	{
-		var splash, nickname, btnStart, adContainer;
-		if (device.iphone || device.ipod || device.webview)
+		var splash, nickname, btnStart, adContainer, skins, leftArrow, rightArrow;
+		//console.log('screen.width', screen.width);
+		
+		// is phone?
+		device.isPhone = false;
+		if (device.isMobile && screen.width <= 760)//device.iphone || device.ipod || device.webview)
 		{
+			device.isPhone = true;
 			splash = document.getElementById('splash-phone');
 			nickname = document.getElementById('nickname-phone');
 			btnStart = document.getElementById('btnStart-phone');
+			//skins = document.getElementsByClassName("slides-phone")
 
 			// hide social media buttons
 			document.getElementById('socialmedia').style.display = "none";
@@ -265,6 +272,7 @@ domready(function()
 			nickname = document.getElementById('nickname');
 			adContainer = document.getElementById('adContainer');
 			btnStart = document.getElementById('btnStart');
+			//skins = document.getElementsByClassName("slides");
 		}
 		splash.style.display = "block";
 		if (device.ipad) 
@@ -321,7 +329,6 @@ domready(function()
 
 			console.log('* final player name', assets.playerName);
 			
-
 			if (!game.players) // first game
 			{				
 				startGame();
@@ -347,6 +354,10 @@ domready(function()
 
 			}
 
+			// hide app recommendation ui
+			var apprec = document.getElementById("apprec");
+			if (apprec) apprec.style.display = "none";
+
 			// hide splash
 			splash.style.display = "none";
 			
@@ -367,7 +378,10 @@ domready(function()
 		var showSlides = function(n)
 		{
 			var i;
-			var x = document.getElementsByClassName("slides");
+			var x;
+			if (device.isPhone)
+				x = document.getElementsByClassName("slides-phone");
+			else x = document.getElementsByClassName("slides");
 			if (n > x.length) {assets.skinIndex = 1}    
 			else if (n < 1) {assets.skinIndex = x.length}
 			for (i = 0; i < x.length; i++) 
@@ -377,8 +391,17 @@ domready(function()
 			x[assets.skinIndex-1].style.display = "block";			
 		};
 		//*/
-		var leftArrow = document.getElementById("leftArrow");
-		var rightArrow = document.getElementById('rightArrow');
+		var leftArrow, rightArrow;
+		if (device.isPhone)
+		{
+			leftArrow = document.getElementById("leftArrow-phone");
+			rightArrow = document.getElementById('rightArrow-phone');
+		}
+		else
+		{
+			leftArrow = document.getElementById("leftArrow");
+			rightArrow = document.getElementById('rightArrow');
+		}
 		
 		leftArrow.addEventListener("click", function(e)
 		{

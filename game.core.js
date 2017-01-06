@@ -4317,12 +4317,14 @@ game_core.prototype.client_process_net_updates = function()
                 // check for bad objects
                 if (target[player.mp] === undefined)
                 {
+                    console.log('** bad target', previous[player.mp]);
                     if (previous[player.mp])// || previous[player.mp] === undefined) 
                         target[player.mp] = previous[player.mp];
                     else return;
                 }
                 else if (previous[player.mp] === undefined)
                 {
+                    console.log('** bad previous', target[player.mp]);
                     if (target[player.mp]) 
                         previous[player.mp] = target[player.mp];
                     else return;
