@@ -295,14 +295,11 @@ domready(function()
 			else assets.playerName = undefined;
 		});
 
-		document.body.onkeydown = function(e)
-		{
-			console.log('keypress');
-			
-			if (e.keyCode === 13)
-				console.log('enter start!');
-				
-		};
+		// document.body.onkeydown = function(e)
+		// {
+		// 	if (e.keyCode === 13)
+		// 		console.log('enter start!');
+		// };
 
 		btnStart.addEventListener("click", function(e)
 		{

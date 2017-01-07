@@ -1886,7 +1886,8 @@ game_player.prototype.draw = function()
         // game.ctx.font = "small-caps lighter 15px serif";
 
         // draw progression
-        this.drawAbilities();
+        if (!this.vuln)
+            this.drawAbilities();
     } // end isLocal
     // else
     // {
