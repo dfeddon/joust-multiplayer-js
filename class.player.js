@@ -1433,7 +1433,12 @@ game_player.prototype.timeoutRespawn = function(victor)
             txtScore.innerHTML = assets.myLastscore;//.toString();
             if (assets.myHighscore) // user may be blocking storage OR in incognito mode
                 txtHighscore.innerHTML = assets.myHighscore;//.toString();
-            ui.style.display = "block";
+            if (!assets.device.isPhone)
+            {
+                var slides = document.getElementById('cf2');
+                slides.style.display = "none";
+            }
+            ui.style.display = "inline-block";
         }
         else // server
         {

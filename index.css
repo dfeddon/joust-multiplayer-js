@@ -3,6 +3,9 @@ html, body {
 	/*background: #212121;*/
 	color: #fff;
 	font-family: Helvetica;
+	margin: 0;
+	height: 100%;
+	overflow: auto;/*hidden;*/
 	/*margin: 0 auto;*/
 	/*padding: 0;*/
 	/*width: 100%;*/
@@ -17,6 +20,7 @@ html, body {
 	-moz-background-size: 100% 100%;
 	-o-background-size: 100% 100%;
 	background-size: 100% 100%;
+	/*overflow: hidden;*/
 }
 
 img 
@@ -27,6 +31,17 @@ img
 @font-face {
     font-family: 'Mirza', serif;
     /*src: url('http://www.miketaylr.com/f/kulminoituva.ttf');*/
+}
+
+/*@viewport
+{
+	width: device-width;
+	zoom: .5;
+}*/
+#viewport
+{
+	/*width: 100%;
+	height: 100%;*/
 }
 #apprec
 {
@@ -68,9 +83,11 @@ img
 #splash-phone
 {
 	display: none;/*block;*/
-	position: absolute;
+	position: fixed;
 	width: 100%;
-	overflow-y: hidden;
+	/*width: 100%;*/
+	height: 100%;
+	overflow-y: scroll;/*hidden;*/
 	/*margin: auto;*/
 	/*margin: 0px auto;
 	border-radius: 15px;*/
@@ -84,7 +101,7 @@ img
 	/*background-image: url('http://s3.amazonaws.com/com.dfeddon.wingdom/bg-splash.jpg');*/
 	background-color: #9B0000;
 	background-size: cover;
-	/*opacity: 0.95;*/
+	opacity: 0.75;
 	z-index:1001;
 }
 #splash-phone > div
@@ -654,6 +671,7 @@ h5
 {
 	display: none;
 	padding-top: 15px;
+	background-color: 'blue';
 }
 #mylastscore-phone
 {

@@ -23,7 +23,7 @@
 		<!-- Apple web app -->
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<!--<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">-->
 		<link rel="apple-touch-icon" sizes="72x72" href="/assets/apple-touch-icon-72x72.png">
 		<link rel="apple-touch-icon" sizes="114x114" href="/assets/apple-touch-icon-114x114.png">
 		<link rel="apple-touch-icon" href="/assets/apple-touch-icon-57x57.png">
@@ -34,7 +34,17 @@
 
 		<!-- <link href="http://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet" type="text/css"> -->
 
-		<meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0, width=device-width" />
+		<meta name="viewport" id="meta" content="initial-scale=1, maximum-scale=2, minimum-scale=0.5, user-scalable=0, width=device-width" />
+		<script>
+		var userAgent = window.navigator.userAgent.toLowerCase(),
+		ios = /iphone|ipod|ipad/.test( userAgent );
+		webview = /ios-wingdom-app/.test(userAgent);
+		if (webview && ios)//screen.width <= 320)
+		{
+			var mvp = document.getElementById('meta');
+			mvp.setAttribute('content','initial-scale=0.75');
+		}
+		</script>
 
 		<!-- Library code -->
 
@@ -362,7 +372,7 @@
 					<!-- Twitter -->
 					<a href="http://twitter.com/share" class="twitter-share-button" data-size="large" data-text="Remember Joust? The classic video game? Team-based multiplayer sure would've been cool. Welp..." data-url="http://www.wingdom.io/" data-hashtags="wingdomio,iogames" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 					<!-- YouTube -->
-					<script src="http://apis.google.com/js/platform.js"></script>
+					<script src="https://apis.google.com/js/platform.js"></script>
 					<div class="g-ytsubscribe" data-channelid="UC1XFA5NGzG86jjO_lG2mUvw" data-layout="default" data-count="hidden"></div>					
 				</div>
 				
@@ -412,6 +422,7 @@
 				<!-- SCORES -->
 				<!--<br><br>-->
 				<div id="scoring">
+					<br>
 					<div id="mylastscore">
 						<label id="lblYourscore">Your Score:</label>
 						<label id="txtYourscore">0</label>
