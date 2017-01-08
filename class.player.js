@@ -1420,19 +1420,19 @@ game_player.prototype.timeoutRespawn = function(victor)
             // this.config.players.self.landed = 1;
             // this.config.players.self.progression = 0;
 
-            var ui = document.getElementById('splash');
-            if (assets.device == "phone")
-                ui = document.getElementById('splash-phone');
-            else
-            {
-                document.getElementById('btnStart').innerText = "Play Again?"
-                document.getElementById('scoring').style.display = "block";
-                // update scores
-                document.getElementById('txtYourscore').innerHTML = assets.myLastscore;//.toString();
-                document.getElementById('txtScore').innerHTML = assets.myLastscore;//.toString();
-                if (assets.myHighscore) // user may be blocking storage OR in incognito mode
-                document.getElementById('txtHighscore').innerHTML = assets.myHighscore;//.toString();
-            }
+            var ui = (assets.device.isPhone) ? document.getElementById('splash-phone') : document.getElementById('splash');
+            var start = (assets.device.isPhone) ? document.getElementById('btnStart-phone') : document.getElementById('btnStart');
+            var scoring = (assets.device.isPhone) ? document.getElementById('scoring-phone') : document.getElementById('scoring');
+            var txtYourscore = (assets.device.isPhone) ? document.getElementById('txtYourscore-phone') : document.getElementById('txtYourscore');
+            var txtScore = document.getElementById('txtScore');
+            var txtHighscore = (assets.device.isPhone) ? document.getElementById('txtHighscore-phone') : document.getElementById('txtHighscore');
+            start.innerText = "Play Again?"
+            scoring.style.display = "block";
+            // update scores
+            txtYourscore.innerHTML = assets.myLastscore;//.toString();
+            txtScore.innerHTML = assets.myLastscore;//.toString();
+            if (assets.myHighscore) // user may be blocking storage OR in incognito mode
+                txtHighscore.innerHTML = assets.myHighscore;//.toString();
             ui.style.display = "block";
         }
         else // server

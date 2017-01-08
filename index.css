@@ -19,6 +19,11 @@ html, body {
 	background-size: 100% 100%;
 }
 
+img 
+{
+	max-width: 100%;
+}
+
 @font-face {
     font-family: 'Mirza', serif;
     /*src: url('http://www.miketaylr.com/f/kulminoituva.ttf');*/
@@ -63,7 +68,7 @@ html, body {
 #splash-phone
 {
 	display: none;/*block;*/
-	/*position: absolute;*/
+	position: absolute;
 	width: 100%;
 	overflow-y: hidden;
 	/*margin: auto;*/
@@ -78,6 +83,7 @@ html, body {
 	/*background-color: #2e2e2e;*/
 	/*background-image: url('http://s3.amazonaws.com/com.dfeddon.wingdom/bg-splash.jpg');*/
 	background-color: #9B0000;
+	background-size: cover;
 	/*opacity: 0.95;*/
 	z-index:1001;
 }
@@ -90,6 +96,7 @@ html, body {
 	opacity: 1.0;
 	border-radius: 5px;
 	float: left;
+	padding-bottom: 80px;
 	/*width: 90%;*/
 
 	/*width: 50%;height:50%;*/
@@ -99,22 +106,19 @@ html, body {
 {
 	display: inline-block;
 	/*position: fixed;*/
-	width: 50%;
+	width: 100%;
 	height: 100%;
 	/*max-width: 600px;*/
 	/*vertical-align: middle;*/
 	background: transparent;
 }
-#sideRight
+/*#sideRight
 {
 	display: inline-block;
-	/*position: fixed;*/
 	width: 50%;
 	height: 100%;
-	/*max-width: 600px;*/
-	/*vertical-align: middle;*/
 	background: transparent;
-}
+}*/
 #nickname-phone
 {
 	display: inline;
@@ -175,14 +179,17 @@ h2
 #splash
 {
 	display: none;/*block;*/
-	position: relative;
+	position: absolute;
 	top: 50%;
+	/*left: 50%;*/
 	transform: translateY(-50%);
-	/*margin: auto;*/
-	margin: 0px auto;
+	/*transform: translateX(-50%);*/
+	margin: auto;
+	/*margin: 0px auto;*/
 	border-radius: 15px;
 	/*top: 7.5%;
 	left: 7.5%;*/
+	left: 7.5%;
 	width: 85%;
 	height: 85%;
 	max-width: 1200px;
@@ -297,10 +304,12 @@ h2
 }
 
 #cf1 {
-  position:fixed;
+  /*position:fixed;*/
+  position:relative;
   height:200px;
   width:300px;
-  top: 100px;
+  margin:0 auto;
+  /*top: 100px;*/
   /*top: 50%;
   transform: translateY(-50%);
   left: 75%;
@@ -637,6 +646,21 @@ h5
 	font-size: 2em;
 }
 #myhighscore
+{
+	font-family: 'Mirza', serif;
+	font-size: 1.25em;
+}
+#scoring-phone
+{
+	display: none;
+	padding-top: 15px;
+}
+#mylastscore-phone
+{
+	font-family: 'Mirza', serif;
+	font-size: 2em;
+}
+#myhighscore-phone
 {
 	font-family: 'Mirza', serif;
 	font-size: 1.25em;

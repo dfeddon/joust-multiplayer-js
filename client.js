@@ -149,8 +149,8 @@ domready(function()
 			//*
 			else
 			{
-				if (screen.orientation.type != "landscape")
-					screen.orientation.lock("landscape");
+				// if (screen.orientation.type != "landscape")
+				// 	screen.orientation.lock("landscape");
 				// browser, suggest app
 				// splash = false;
 				var apprec = document.getElementById('apprec');

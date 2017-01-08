@@ -2216,7 +2216,7 @@ game_core.prototype.check_collision = function( player )
                     // otherwise, positioning counts
                     var dif = player.pos.y - other.pos.y;
                     //console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
-                    if ((dif >= -5 && dif <= 5 && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
+                    if ((dif >= -15 && dif <= 15 && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
@@ -4356,11 +4356,11 @@ game_core.prototype.client_process_net_updates = function()
                 // console.log('*', previous[player.mp]);
                 
                 var p = {}; // temp player obj
-                for (var prop in p)
-                {
-                    if (p.hasOwnProperty(prop))
-                        delete p[prop];
-                }
+                // for (var prop in p)
+                // {
+                //     if (p.hasOwnProperty(prop))
+                //         delete p[prop];
+                // }
                 p.pos = {}; // temp pos
                 
                 p.pos.x = parseInt(vt[0]);//target[player.mp].x;
