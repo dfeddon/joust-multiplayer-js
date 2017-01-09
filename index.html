@@ -362,67 +362,110 @@
 		</div>
 
 		<!--
+		########################## HELP ###############################
+		-->
+		<div id="helper">
+			<div id="closeHelper" onclick="document.getElementById('helper').style.display='none';document.getElementById('splash').style.display='block'">
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/close-button.png" width="32" height="32"/>
+			</div>
+
+
+			<article class="comic">
+				<!-- glide, flap, speed, vulnerability, collision, teams, territory, rule!
+			<div class="panel">
+				<!--<p class="text top-left">Player Controls</p>-->
+				<p class="speech">So how do I get around in here?</p>
+				<p class="text bottom-right">...hold down the direction keys to glide and walk</p>
+			</div>
+			<div class="panel">
+				<p class="text top-left">Hold flap key to ascend</p>
+				<p class="text bottom-right">...hold flap and direction to ascend and glide</p>
+			</div>
+			<div class="panel">
+				<p class="speech">What's this gray line above my head?</p>
+				<p class="text bottom-right">That's your speed meter...</p>
+			</div>
+			<div class="panel">
+				<p class="text top-left">To increase your speed...</p>
+				<p class="text bottom-right">...open the available chests</p>
+			</div>
+			<div class="panel">
+				<p class="text top-left">There's another surprise in these chests...</p>
+				<p class="text bottom-right">Protective bubble shields!</p>
+			</div>
+			<div class="panel"></div>
+			<div class="panel"></div>
+			<div class="panel"></div>
+			<div class="panel">
+				<p class="text bottom-right">THE END</p>
+			</div>
+			</article>
+
+
+		</div>
+		<!--
 		########################## SPLASH LARGE ###############################
 		-->
 		<!-- Initially empty and invisible -->
 		<div id="splash">
-			
-			<div id="nameContainer">
-				<div id="socialmedia">
-					<!-- FACEBOOK -->
-					<div class="fb-like" data-href="http://www.wingdom.io/" data-layout="button" data-action="like" data-size="large" data-show-faces="false" data-share="true"></div>			
-					<!-- Twitter -->
-					<a href="http://twitter.com/share" class="twitter-share-button" data-size="large" data-text="Remember Joust? The classic video game? Team-based multiplayer sure would've been cool. Welp..." data-url="http://www.wingdom.io/" data-hashtags="wingdomio,iogames" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-					<!-- YouTube -->
-					<script src="https://apis.google.com/js/platform.js"></script>
-					<div class="g-ytsubscribe" data-channelid="UC1XFA5NGzG86jjO_lG2mUvw" data-layout="default" data-count="hidden"></div>					
-				</div>
-				
-				<!-- TITLE -->
-				<br>
-				<!--<h1>winglings.io</h1>-->
-				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-header.png"/>
-				
-				<!-- NAME -->
-				<br>
-				<div>
-					<input id="nickname" type="text" placeholder="Your Nickname" maxLength="18" minLength="3" pattern="[a-zA-Z0-9]{3,18}" />
+
+			<div id="help" onclick="document.getElementById('helper').style.display='block';document.getElementById('splash').style.display='none'">
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/help-button.png" width="32" height="32"/>
+			</div>
+
+			<div id="socialmedia">
+				<!-- FACEBOOK -->
+				<div class="fb-like" data-href="http://www.wingdom.io/" data-layout="button" data-action="like" data-size="large" data-show-faces="false" data-share="true"></div>			
+				<!-- Twitter -->
+				<a href="http://twitter.com/share" class="twitter-share-button" data-size="large" data-text="Play the multiplayer Joust-like game" data-url="http://www.wingdom.io/" data-hashtags="wingdomio,iogames" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+				<!-- YouTube -->
+				<script src="https://apis.google.com/js/platform.js"></script>
+				<div class="g-ytsubscribe" data-channelid="UC1XFA5NGzG86jjO_lG2mUvw" data-layout="default" data-count="hidden"></div>					
+			</div>
+
+			<!-- TITLE -->
+			<div id="wrapper">
+
+				<div id="title">
+					<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-header-large.png"/>
 				</div>
 
-				<!-- TEAM -->
-				<!--<br>
-				<h2>&#9753; Select a Team &#9753;</h2> 
-				<div>
-					<button id="teamRed">Red</button>
-					<button id="teamBlue">Blue</button>
-				</div>-->
+				<div id="holder">
 
-				<!-- SKINS -->
-				<br>
-				<h2>&#9753; Select a Wingling &#9753;</h2>
-				<!--<br>-->
-				<div id="leftArrow" class="float">
-					<button class="btn">
-						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowLeft.png"/>
-					</button>
+					<div id="namewrapper">
+						<input id="nickname" type="text" placeholder="Your Nickname" maxLength="18" minLength="3" pattern="[a-zA-Z0-9]{3,18}" autofocus/>
+
+						<button id="btnStart">One sec...</button>
+					</div>
+
+					<div id="skinwrapper">
+						<br><br>
+						<h2>&#9753; Select a Wingling &#9753;</h2>
+						<!--<br>-->
+						<div id="leftArrow" class="float">
+							<button class="btn">
+								<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowLeft.png"/>
+							</button>
+						</div>
+
+						<div id="skin" class="float">
+							<img class="slides" id="skin1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png"/>
+							<img class="slides" id="skin2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin2.png"/>
+							<img class="slides" id="skin5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin5.png"/>
+							<img class="slides" id="skin8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin8.png"/>
+							<img class="slides" id="skin9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin9.png"/>
+						</div>
+						
+						<div id="rightArrow" class="float">
+							<button class="btn">
+								<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png"/>
+							</button>
+						</div>
+					
+					</div>
+					
 				</div>
 
-				<div id="skin" class="float">
-					<img class="slides" id="skin1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png"/>
-					<img class="slides" id="skin2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin2.png"/>
-					<img class="slides" id="skin5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin5.png"/>
-					<img class="slides" id="skin8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin8.png"/>
-					<img class="slides" id="skin9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin9.png"/>
-				</div>
-				
-				<div id="rightArrow" class="float">
-					<button class="btn">
-						<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png"/>
-					</button>
-				</div>
-
-				<!-- SCORES -->
-				<!--<br><br>-->
 				<div id="scoring">
 					<br>
 					<div id="mylastscore">
@@ -431,24 +474,26 @@
 					</div>
 					
 					<div id="myhighscore">
-						<label id="lblHighscore">High Score:</label>
+						<label id="lblHighscore">Your Highscore:</label>
 						<label id="txtHighscore">0</label>
 					</div>
-				</div>
-				
-				<!-- START -->
-				<br><br>
-				<div>
-					<button id="btnStart">One sec...</button>
+					<br>
 				</div>
 
+			</div>
+			
+				<!-- SCORES -->
+				<!--<br><br>-->
+				
+				<!-- START -->
+
 				<!-- HELP -->
-				<br>
-				<div id="cf2" class="cf">
+				<!--<br>-->
+				<!--<div id="cf2" class="cf">
 					<img id="f3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-chests.png" />
 					<img id="f2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-keyboard.png" />
 					<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-redvblue.png" />
-				</div>
+				</div>-->
 				<!-- LINKS -->
 				<!--<br><br>-->
 				<!--<div>
@@ -457,11 +502,8 @@
 
 			</div>
 
-			<div id="adContainer" align="center">
-				<!--<br><br>-->
-				<!--<font color="gray">Ad goes here...</font>-->
+			<!--<div id="adContainer" align="center">
 				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-				<!-- wingdom.io (Web) -->
 				<ins class="adsbygoogle"
 					style="display:inline-block;width:300px;height:600px"
 					data-ad-client="ca-pub-9112378286449680"
@@ -469,9 +511,9 @@
 				<script>
 				(adsbygoogle = window.adsbygoogle || []).push({});
 				</script>
-			</div>
+			</div>-->
 
-		</div>
+		<!--</div>-->
 
 		<!--
 		########################## APP RECOMMEND ###############################
