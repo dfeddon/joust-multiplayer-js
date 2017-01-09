@@ -328,25 +328,14 @@ domready(function()
 			
 			if (!game.players) // first game
 			{
-				// if mobile, scale to 75%
-				if (device.isMobile)
+				// if mobile, scale to 75% (account for orientation)
+				if (device.isMobile && (window.innerWidth <= 480 || window.innerHeight <= 480))
 				{
 					console.log('*adjusting meta scale...', device.android);
 					
 					var meta = document.getElementById("meta");
 					var canvas = document.getElementById("viewport");
-					console.log('canvas w/h', canvas.width, canvas.height, window.innerWidth, window.innerHeight);
-					console.log('canvas', canvas);
-					
-					
 					meta.setAttribute('content', 'width=device-width, initial-scale=0.75, maximum-scale=1.0, minimum-scale=0.5, user-scalable=1');
-					// canvas.width = window.innerWidth;
-					// canvas.height = window.innerHeight;
-					// canvas.style.width = window.innerWidth;
-					// canvas.style.height = window.innerHeight;
-					// var ctx = canvas.getContext('2d');
-					// ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-					console.log('canvas w/h', canvas.width, canvas.height, window.innerWidth, window.innerHeight);
 				}
 
 				startGame();
@@ -436,6 +425,16 @@ domready(function()
 
 	assets.device = device;
 	//localStorage.debug = '*';
+
+	// canvas resize handler (orientation change)
+    window.addEventListener('onresize', resizeCanvas, false);
+    function resizeCanvas()
+    {
+        viewport.width = window.innerWidth;
+        viewport.height = window.innerHeight;
+    }
+    resizeCanvas();
+	
 
 	// asset loader
 	var loader = new PxLoader();

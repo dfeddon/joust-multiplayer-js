@@ -494,7 +494,7 @@ var game_core = function(game_instance)
     }
 
     //The speed at which the clients move.
-    this.playerspeed = 250;//120;
+    this.playerspeed = 275;//120;
 
     //Set up some physics integration values
     this._pdt = 0.0001;                 //The physics update delta time

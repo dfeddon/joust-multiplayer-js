@@ -37,9 +37,11 @@
 		<meta name="viewport" id="meta" content="initial-scale=1, maximum-scale=2, minimum-scale=0.5, user-scalable=0, width=device-width" />
 		<script>
 		var userAgent = window.navigator.userAgent.toLowerCase(),
-		ios = /iphone|ipod|ipad/.test( userAgent );
+		iphone = /iphone/.test( userAgent ),
 		webview = /ios-wingdom-app/.test(userAgent);
-		if (webview && ios)//screen.width <= 320)
+		console.log('*', userAgent);
+		
+		if (webview && iphone)//screen.width <= 320)
 		{
 			var mvp = document.getElementById('meta');
 			mvp.setAttribute('content','initial-scale=0.75');
