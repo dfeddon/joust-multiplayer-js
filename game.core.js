@@ -5999,8 +5999,8 @@ game_core.prototype.client_connect_to_server = function()
 }; //game_core.client_connect_to_server
 
 
-game_core.prototype.client_refresh_fps = function() {
-
+game_core.prototype.client_refresh_fps = function() 
+{
     //We store the fps for 10 frames, by adding it to this accumulator
     this.fps = 1/this.dt;
     this.fps_avg_acc += this.fps;

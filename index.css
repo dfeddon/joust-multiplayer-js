@@ -176,8 +176,8 @@ a:visited
 }
 h2
 {
-	font-size: 1.5em;
-	font-family: Mirza;
+	font-size: 1.75em;
+	font-family: "Mirza";
 	color: #FAF5AF;
 }
 .float {
@@ -258,7 +258,7 @@ h2
 	/*vertical-align: middle;*/
 	background-color: rgba(0, 0, 0, 0.75);
 	border-radius: 10px;
-	border-style: double;
+	border-style: none;/*double;*/
 	border-width: 5px;
 	border-color: gold;
 }
@@ -343,7 +343,7 @@ h2
 	height: 175px;
 	width: 45%;
 	float: right;
-	margin-right: 15px;
+	margin-right: 5px;
 	/*margin-top: 15px;*/
 	border-style: none;
 	border-color: white;
@@ -760,7 +760,8 @@ h5
 #myhighscore
 {
 	font-family: 'Mirza', serif;
-	font-size: 2em;
+	font-size: 1.5em;
+	color: gray;
 }
 #scoring-phone
 {

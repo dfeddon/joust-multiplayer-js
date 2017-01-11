@@ -1412,6 +1412,16 @@ game_player.prototype.timeoutRespawn = function(victor)
         if (!this.config.server)
         {
             console.log('* client-only...');
+
+            if (assets.device.ios)
+            {
+                console.log('* notify iOS the game is starting...');
+                try {
+                    webkit.messageHandlers.callbackHandler.postMessage("gamestop");
+                } catch (error) {
+                    console.log('* Error: The native context does not exist!', error);
+                }
+            }
             
             // this.config.players.self.visible = false;
             // this.config.players.self.active = false;
@@ -1426,19 +1436,39 @@ game_player.prototype.timeoutRespawn = function(victor)
             var txtYourscore = (assets.device.isPhone) ? document.getElementById('txtYourscore-phone') : document.getElementById('txtYourscore');
             var txtScore = document.getElementById('txtScore');
             var txtHighscore = (assets.device.isPhone) ? document.getElementById('txtHighscore-phone') : document.getElementById('txtHighscore');
-            start.innerText = "Play Again?"
+            start.innerText = "Play Again?";
+            console.log('scoring?');
+            
             scoring.style.display = "block";
             // update scores
             txtYourscore.innerHTML = assets.myLastscore;//.toString();
             txtScore.innerHTML = assets.myLastscore;//.toString();
             if (assets.myHighscore) // user may be blocking storage OR in incognito mode
                 txtHighscore.innerHTML = assets.myHighscore;//.toString();
-            if (!assets.device.isPhone)
-            {
-                var slides = document.getElementById('cf2');
-                slides.style.display = "none";
-            }
+            // if (!assets.device.isPhone)
+            // {
+            //     var slides = document.getElementById('cf2');
+            //     slides.style.display = "none";
+            // }
+
+            // hide ui top bar
+            var uiTopBar = document.getElementById('uiTopBar');
+            uiTopBar.style.display = "none";
+
+            // hide ui info bar
+            var uiInfoBar = document.getElementById('uiInfoBar');
+            uiInfoBar.style.display = "none";
+            
+            // show splash
             ui.style.display = "inline-block";
+            // ...and score
+            var myLastscoreDiv = document.getElementById('mylastscore');
+            myLastscoreDiv.style.display = "block";
+            // ...but remove bg image
+            ui.style.background = 'none';
+            // ...and hide leaderboard
+            var scoreboard = document.getElementById('scoreboard');
+            scoreboard.style.display = "none";
         }
         else // server
         {

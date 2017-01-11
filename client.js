@@ -361,12 +361,35 @@ domready(function()
 
 			}
 
+			// notify iOS that we're starting/respawning the game (turn on controls)
+			if (device.ios)
+			{
+				console.log('* notify iOS the game is starting...');
+				try {
+					webkit.messageHandlers.callbackHandler.postMessage("gamestart");
+				} catch (error) {
+					console.log('* Error: The native context does not exist!', error);
+				}
+			}
+
+
 			// hide app recommendation ui
 			var apprec = document.getElementById("apprec");
 			if (apprec) apprec.style.display = "none";
 
 			// hide splash
 			splash.style.display = "none";
+
+			// remove bg
+			document.body.style.backgroundImage = "none";
+
+			// show UI elements
+			var ui = document.getElementById('uiTopBar');
+			var info = document.getElementById('uiInfoBar');
+			var scoreboard = document.getElementById('scoreboard');
+			ui.style.display = "block";
+			info.style.display = "block";
+			scoreboard.style.display = "block";
 			
 			// force flap (to reveal player)
 			//config.keyboard._onKeyChange({keyCode:38}, false);
@@ -521,16 +544,16 @@ domready(function()
 
 	var startGame = function()
 	{
-		// remove bg
-		document.body.style.backgroundImage = "none";
+		// // remove bg
+		// document.body.style.backgroundImage = "none";
 
-		// show top UI bar
-		var ui = document.getElementById('uiTopBar');
-		var info = document.getElementById('uiInfoBar');
-		var scoreboard = document.getElementById('scoreboard');
-		ui.style.display = "block";
-		info.style.display = "block";
-		scoreboard.style.display = "block";
+		// // show top UI bar
+		// var ui = document.getElementById('uiTopBar');
+		// var info = document.getElementById('uiInfoBar');
+		// var scoreboard = document.getElementById('scoreboard');
+		// ui.style.display = "block";
+		// info.style.display = "block";
+		// scoreboard.style.display = "block";
 
 
 		//Create our game client instance.
