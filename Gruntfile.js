@@ -107,6 +107,8 @@ module.exports = function(grunt)
                     { src: ['./package.json'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.css'], dest: '../wingdom-server-dist/' },
+                    { src: ['./privacy.html'], dest: '../wingdom-server-dist/' },
+                    { src: ['./terms.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./favicon.ico'], dest: '../wingdom-server-dist/' },
                     { src: ['./egyptian_set.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: '../wingdom-server-dist/' },

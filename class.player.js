@@ -644,6 +644,7 @@ game_player.prototype.respawn = function()
     // var sx = Math.floor(Math.random() * teamRed_x) + 1;
     // var sy = Math.floor(Math.random() * teamRed_y) + 1;
     console.log("* team", this.team);
+    //var y_offset = 15;
     if (this.team === 1) // red
     {
         sx = teamRed_x;
@@ -1465,7 +1466,8 @@ game_player.prototype.timeoutRespawn = function(victor)
             var myLastscoreDiv = document.getElementById('mylastscore');
             myLastscoreDiv.style.display = "block";
             // ...but remove bg image
-            ui.style.background = 'none';
+            if (!assets.device.isPhone)
+                ui.style.background = 'none';
             // ...and hide leaderboard
             var scoreboard = document.getElementById('scoreboard');
             scoreboard.style.display = "none";

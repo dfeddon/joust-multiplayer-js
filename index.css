@@ -247,6 +247,16 @@ h2
 	text-align: center;
 	/*background-color: rgba(0, 0, 0, 0.75);*/
 }
+#legal
+{
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
+	float: right;
+	text-align: center;
+	font-size: 12px;
+	/*background-color: rgba(0, 0, 0, 0.75);*/
+}
 #wrapper
 {
 	display: absolute;
