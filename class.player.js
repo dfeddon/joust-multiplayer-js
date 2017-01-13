@@ -1414,63 +1414,10 @@ game_player.prototype.timeoutRespawn = function(victor)
         {
             console.log('* client-only...');
 
-            if (assets.device.ios)
-            {
-                console.log('* notify iOS the game is starting...');
-                try {
-                    webkit.messageHandlers.callbackHandler.postMessage("gamestop");
-                } catch (error) {
-                    console.log('* Error: The native context does not exist!', error);
-                }
-            }
-            
-            // this.config.players.self.visible = false;
-            // this.config.players.self.active = false;
-            // //this.config.players.self.pos = this.config.gridToPixel(3,4);
-            // this.config.players.self.dead = false;
-            // this.config.players.self.landed = 1;
-            // this.config.players.self.progression = 0;
-
-            var ui = (assets.device.isPhone) ? document.getElementById('splash-phone') : document.getElementById('splash');
-            var start = (assets.device.isPhone) ? document.getElementById('btnStart-phone') : document.getElementById('btnStart');
-            var scoring = (assets.device.isPhone) ? document.getElementById('scoring-phone') : document.getElementById('scoring');
-            var txtYourscore = (assets.device.isPhone) ? document.getElementById('txtYourscore-phone') : document.getElementById('txtYourscore');
-            var txtScore = document.getElementById('txtScore');
-            var txtHighscore = (assets.device.isPhone) ? document.getElementById('txtHighscore-phone') : document.getElementById('txtHighscore');
-            start.innerText = "Play Again?";
-            console.log('scoring?');
-            
-            scoring.style.display = "block";
-            // update scores
-            txtYourscore.innerHTML = assets.myLastscore;//.toString();
-            txtScore.innerHTML = assets.myLastscore;//.toString();
-            if (assets.myHighscore) // user may be blocking storage OR in incognito mode
-                txtHighscore.innerHTML = assets.myHighscore;//.toString();
-            // if (!assets.device.isPhone)
-            // {
-            //     var slides = document.getElementById('cf2');
-            //     slides.style.display = "none";
-            // }
-
-            // hide ui top bar
-            var uiTopBar = document.getElementById('uiTopBar');
-            uiTopBar.style.display = "none";
-
-            // hide ui info bar
-            var uiInfoBar = document.getElementById('uiInfoBar');
-            uiInfoBar.style.display = "none";
-            
-            // show splash
-            ui.style.display = "inline-block";
-            // ...and score
-            var myLastscoreDiv = document.getElementById('mylastscore');
-            myLastscoreDiv.style.display = "block";
-            // ...but remove bg image
-            if (!assets.device.isPhone)
-                ui.style.background = 'none';
-            // ...and hide leaderboard
-            var scoreboard = document.getElementById('scoreboard');
-            scoreboard.style.display = "none";
+            var event = document.createEvent('Event');
+            event.player = this;
+            event.initEvent('playerRespawn', true, true);
+            document.dispatchEvent(event);
         }
         else // server
         {

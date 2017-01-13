@@ -5,7 +5,7 @@ html, body {
 	font-family: Helvetica;
 	margin: 0;
 	height: 100%;
-	overflow: auto;/*hidden;*/
+	overflow: hidden;/*auto;/*hidden;*/
 	/*margin: 0 auto;*/
 	/*padding: 0;*/
 	/*width: 100%;*/
@@ -176,8 +176,8 @@ a:visited
 }
 h2
 {
-	font-size: 1.75em;
-	font-family: "Mirza";
+	/*font-size: 20px;/*1.75em;*/
+	font-family: "Mirza";*/
 	color: #FAF5AF;
 }
 .float {
@@ -283,17 +283,23 @@ h2
 }
 #holder
 {
-	display: relative;
+	display: flex;
 	margin-top: 20px;
 	width: 100%;
 	overflow-y: hidden;
 	vertical-align: middle;
 	text-align: center;
 }
+#holder > div
+{
+	flex: 1;
+}
+
 #namewrapper
 {
 	display: relative;
 	width: 45%;
+	max-width: 350px;
 	height: 175px;
 	float: left;
 	margin: auto;
@@ -347,11 +353,39 @@ h2
 	border-radius: 5px
 }
 
+#respawnTimer
+{
+	padding-top: 30px;
+	display: relative;
+    font-family: Mirza, sans-serif;
+    color: #fff;
+    font-weight: 100;
+    text-align: center;
+    /*font-size: 30px;*/
+}
+#respawnWrapper
+{
+	display: none;
+}
+#respawnLabel
+{
+	font-size: 30px;
+}
+#timerSeconds
+{
+	font-family: sans-serif;
+	font-size: 80px;
+	/*border-style: solid;
+	border-width: 5px;
+	border-radius: 5px;
+	border-color: yellow; */
+}
 #skinwrapper
 {
 	display: relative;
-	height: 175px;
+	height: 150px;
 	width: 45%;
+	/*max-width: 250px;*/
 	float: right;
 	margin-right: 5px;
 	/*margin-top: 15px;*/
@@ -360,7 +394,11 @@ h2
 	border-radius: 5px;
 	border-width: 1px;
 }
-
+#skinSelectLabel
+{
+	font-family: Mirza, serif;
+	font-size: 30px;
+}
 /*#nameContainer
 {
 	display: inline-block;
