@@ -846,6 +846,11 @@ h5
 	top: 50%;
 	transform: translateY(+35%);
 }
+#patreon
+{
+	vertical-align: middle;
+	height: 29px;
+}
 /*#scoreslist > tr
 {
 	font-size: 10px;
@@ -873,77 +878,216 @@ h5
 	width: 50%;
 	z-index: 15;
 }
-#mobile-controls-r
+#mobile-controls-r-off
 {
 	display: none;
 	position: absolute;
-	bottom: 0;
-	right: 0;
-	height: 100px;
-	width: 250;
+	pointer-events: none;
+	bottom: 0px;
+	left: 0px;
+	height: 150px;
+	width: 100%;
 	z-index: 16;
+}
+#mobile-controls-r
+{
+	display: none; /*flex*/
+	flex-direction: row;
+	position: absolute;
+	bottom: 0px;
+	height: 150px;
+	width: 100%;
+	pointer-events: none;
+	/*overflow-y: hidden;*/
+	/*vertical-align: middle;*/
+	/*text-align: center;*/
+	/*background-color: transparent;*/
+	z-index: 150;
+}
+#nav
+{
+	order: 1;
+	display: inline-block;
+	pointer-events: none;
+	bottom: 0px;
+	height: 50px;
+	width: 25%;
+	opacity: 0.5;
+	/*background-color: yellow;*/
+	/*float: left;*/
 }
 #dirL
 {
-	/*position: absolute;*/
-	/*z-index: 16;*/
-	/*display: block;*/
-	width: 100px;
-	height: 100px;
-	bottom: 50;
-	left: 50;
-	border-radius: 100%;
-	border: 3px solid black;
-	background-color: white;
-	opacity: 0.5;
-	/* disallow text selection */
-	-webkit-user-select: none; /* Chrome/Safari */        
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	-o-user-select: none;
-	user-select: none;
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	width: 50px;
+	height: 50px;
+	/*opacity: 0.5;*/
+	left: 20px;
+	bottom: 20px;
+	/*background-color: transparent;*/
+	content:url("/assets/ios-glide-left.png");
 }
-
 #dirR
 {
-	/*position: absolute;*/
-	/*z-index: 17;*/
-	/*display: block;*/
-	width: 100px;
-	height: 100px;
-	bottom: 50;
-	left: 250;
-	border-radius: 100%;
-	border: 3px solid black;
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	width: 50px;
+	height: 50px;
+	/*opacity: 0.5;*/
+	left: 100px;
+	bottom: 20px;
+	/*background-color: transparent;*/
+	content:url("/assets/ios-glide-right.png");
+}
+#flip-div
+{
+	order: 2;
+	display: inline-block;
+	/*pointer-events: none;*/
+	bottom: 0px;
+	height: 50px;
+	width: 50%;
 	opacity: 0.5;
-	background-color: white;
-	/* disallow text selection */
-	-webkit-user-select: none; /* Chrome/Safari */        
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	-o-user-select: none;
-	user-select: none;
+	/*background-color: blue;*/
+	text-align: center;
+	/*z-index: 60;*/
+}
+#flip-image
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: auto;
+	/*width: 50px;
+	height: 50px;*/
+	/*opacity: 0.5;*/
+	/*left: 20px;*/
+	margin: 0 auto;
+	/*margin-bottom: 0px !important;*/
+	bottom: 20px;
+	/*vertical-align: bottom*/
+	/*background-color: transparent;*/
+	content:url("/assets/controls-flip.png");
+}
+#flap-div
+{
+	order: 3;
+	display: inline-block;
+	pointer-events: none;
+	bottom: 0px;
+	height: 50px;
+	width: 25%;
+	opacity: 0.5;
+	/*background-color: orange;*/
+	text-align: center;
+	/*float: right;*/
+}
+#flap-image
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	content:url("/assets/ios-flap-button.png");
+	/*opacity: 0.5;*/
+	right: 15px;
+	bottom: 20px;
+	/*float: right;*/
+}
+#mobile-controls-l
+{
+	display: none; /*flex*/
+	flex-direction: row;
+	position: absolute;
+	bottom: 0px;
+	height: 150px;
+	width: 100%;
+	pointer-events: none;
+	/*overflow-y: hidden;*/
+	/*vertical-align: middle;*/
+	/*text-align: center;*/
+	/*background-color: transparent;*/
+	z-index: 150;
+}
+#nav-l
+{
+	order: 3;
+	display: inline-block;
+	pointer-events: none;
+	bottom: 0px;
+	height: 50px;
+	width: 25%;
+	opacity: 0.5;
+	/*background-color: yellow;*/
+	/*float: left;*/
+}
+#dirL-l
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	width: 50px;
+	height: 50px;
+	right: 100px;
+	bottom: 20px;
+	content:url("/assets/ios-glide-left.png");
+}
+#dirR-l
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	width: 50px;
+	height: 50px;
+	right: 20px;
+	bottom: 20px;
+	content:url("/assets/ios-glide-right.png");
 }
 
-#flap
+#flip-div-l
 {
-	/*position: absolute;*/
-	/*z-index: 18;*/
-	/*display: block;*/
-	width: 250px;
-	height: 100px;
-	bottom: 50;
-	right: 50;
-	border-radius: 5%;
-	border: 3px solid black;
+	order: 2;
+	display: inline-block;
+	bottom: 0px;
+	height: 50px;
+	width: 50%;
 	opacity: 0.5;
-	background-color: white;
-	/* disallow text selection */
-	-webkit-user-select: none; /* Chrome/Safari */        
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	-o-user-select: none;
-	user-select: none;
+	text-align: center;
+}
+#flip-image-l
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: auto;
+	/*height: 50px;*/
+	margin: 0 auto;
+	bottom: 20px;
+	content:url("/assets/controls-flip.png");
+}
+#flap-div-l
+{
+	order: 1;
+	display: inline-block;
+	pointer-events: none;
+	bottom: 0px;
+	height: 50px;
+	width: 25%;
+	opacity: 0.5;
+	/*background-color: orange;*/
+	text-align: center;
+	/*float: right;*/
+}
+#flap-image-l
+{
+	display: inline-block;
+	position: absolute;
+	pointer-events: none;
+	content:url("/assets/ios-flap-button-rev.png");
+	/*opacity: 0.5;*/
+	left: 15px;
+	bottom: 20px;
+	/*float: right;*/
 }
 
 #viewport {

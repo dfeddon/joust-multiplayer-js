@@ -181,27 +181,57 @@ domready(function()
 			// mousePos = getTouchPos(cvs, e);
 			e.preventDefault();
 
+			var ctrlDefault = true;
+			var ctrlR = document.getElementById('mobile-controls-r');
+			if (ctrlR.style.display == "none")
+				ctrlDefault = false;
+
 			//ts = e.touches[0];
 			_.forEach(e.touches, function(ts)
 			{
-				if (ts.clientX < (cvs.width / 2))
+				if (ctrlDefault)
 				{
-					console.log('* ctrl left!');
-					if (ts.clientX < dirThreshold)
+					if (ts.clientX < (cvs.width / 2))
 					{
-						console.log('** glide left start');					
-						game.getKeyboard()._onKeyChange({keyCode:37}, true);
+						console.log('* ctrl left!');
+						if (ts.clientX < dirThreshold)
+						{
+							console.log('** glide left start');					
+							game.getKeyboard()._onKeyChange({keyCode:37}, true);
+						}
+						else
+						{
+							console.log('** glide right start');					
+							game.getKeyboard()._onKeyChange({keyCode:39}, true);
+						}
 					}
 					else
 					{
-						console.log('** glide right start');					
-						game.getKeyboard()._onKeyChange({keyCode:39}, true);
+						console.log('* flap start!');
+						game.getKeyboard()._onKeyChange({keyCode:38}, true);
 					}
 				}
 				else
 				{
-					console.log('* flap start!');
-					game.getKeyboard()._onKeyChange({keyCode:38}, true);
+					if (ts.clientX > (cvs.width / 2))
+					{
+						console.log('* ctrl left!');
+						if (ts.clientX > (cvs.width - dirThreshold))
+						{
+							console.log('** glide right start');					
+							game.getKeyboard()._onKeyChange({keyCode:39}, true);
+						}
+						else
+						{
+							console.log('** glide left start');					
+							game.getKeyboard()._onKeyChange({keyCode:37}, true);
+						}
+					}
+					else
+					{
+						console.log('* flap start!');
+						game.getKeyboard()._onKeyChange({keyCode:38}, true);
+					}
 				}
 			});
 		});
@@ -209,29 +239,61 @@ domready(function()
 		{
 			e.preventDefault();
 			//te = e.changedTouches[0];
+
+			var ctrlDefault = true;
+			var ctrlR = document.getElementById('mobile-controls-r');
+			if (ctrlR.style.display == "none")
+				ctrlDefault = false;
 			
 			_.forEach(e.changedTouches, function(te)
 			{
-				if (te.clientX < (cvs.width / 2))
+				if (ctrlDefault)
 				{
-					console.log('* ctrl left!');
-					if (te.clientX < dirThreshold)
+					if (te.clientX < (cvs.width / 2))
 					{
-						console.log('** glide left stop!');
-						
-						game.getKeyboard()._onKeyChange({keyCode:37}, false);
+						console.log('* ctrl left!');
+						if (te.clientX < dirThreshold)
+						{
+							console.log('** glide left stop!');
+							
+							game.getKeyboard()._onKeyChange({keyCode:37}, false);
+						}
+						else
+						{ 
+							console.log('** glide right stop!');
+							
+							game.getKeyboard()._onKeyChange({keyCode:39}, false);
+						}
 					}
 					else
-					{ 
-						console.log('** glide right stop!');
-						
-						game.getKeyboard()._onKeyChange({keyCode:39}, false);
+					{
+						console.log('* flap stop!', game);
+						game.getKeyboard()._onKeyChange({keyCode:38}, false);
 					}
 				}
 				else
 				{
-					console.log('* flap stop!', game);
-					game.getKeyboard()._onKeyChange({keyCode:38}, false);
+					if (te.clientX > (cvs.width / 2))
+					{
+						console.log('* ctrl left!');
+						if (te.clientX > (cvs.width - dirThreshold))
+						{
+							console.log('** glide right stop!');
+							
+							game.getKeyboard()._onKeyChange({keyCode:39}, false);
+						}
+						else
+						{ 
+							console.log('** glide left stop!');
+							
+							game.getKeyboard()._onKeyChange({keyCode:37}, false);
+						}
+					}
+					else
+					{
+						console.log('* flap stop!', game);
+						game.getKeyboard()._onKeyChange({keyCode:38}, false);
+					}
 				}
 				console.log('touchEnd', e);
 			});
@@ -390,6 +452,37 @@ domready(function()
 			ui.style.display = "block";
 			info.style.display = "block";
 			scoreboard.style.display = "block";
+
+			// show controls
+			if (device.isMobile && device.isNative === false)
+			{
+				console.log('* show mobile browser controls');
+				
+				//var cl = document.getElementById('mobile-controls-l');
+				var cr = document.getElementById('mobile-controls-r');
+				var cl = document.getElementById('mobile-controls-l');
+				//cl.style.display = "block";
+				cr.style.display = "flex";
+
+				// listen for controls switch
+				var flip = document.getElementById('flip-image');
+				flip.addEventListener("touchstart", function(e)
+				{
+					console.log('flip controls!');
+
+					cr.style.display = "none";
+					//var cl = document.getElementById('mobile-controls-l');
+					cl.style.display = "flex";
+				});
+
+				var flipl = document.getElementById('flip-image-l');
+				flipl.addEventListener('touchstart', function(e)
+				{
+					cl.style.display = "none";
+					// var cl = document.getElementById('mobile-controls-l');
+					cr.style.display = "flex";
+				})
+			}
 			
 			// force flap (to reveal player)
 			//config.keyboard._onKeyChange({keyCode:38}, false);
