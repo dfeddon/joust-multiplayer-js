@@ -11,11 +11,11 @@ var game_spritesheet = require('./class.spritesheet');
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
 {
-    console.log('== game_player.constructor');//, player_instance);//, game_instance, player_instance);
+    // console.log('== game_player.constructor');//, player_instance);//, game_instance, player_instance);
     //Store the instance, if any
     // ## NOTE: only server sends instance, not clients!!
-    if (player_instance) console.log('** server added player (with instance)');
-    else console.log('** added player (without instance)');
+    // if (player_instance) console.log('** server added player (with instance)');
+    // else console.log('** added player (without instance)');
     //if (isGhost) console.log('** ^ player is ghost, adding to ghost store');
 
     var _this = this;

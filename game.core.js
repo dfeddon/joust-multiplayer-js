@@ -19,6 +19,9 @@
 
 'use strict';
 
+var MAX_PLAYERS_PER_GAME = 5;//31;
+var MAX_GAMES_PER_SERVER = 2;
+
 // include modules
 var 
     _                   = require('./node_modules/lodash/lodash.min'),
@@ -96,7 +99,7 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 
 var game_core = function(game_instance)
 {
-    console.log('## game_core instantiated');
+    console.log('## game_core instantiated');//, game_instance);
     //Store the instance, if any
     this.instance = game_instance;
     //Store a flag if we are the server
@@ -107,7 +110,6 @@ var game_core = function(game_instance)
     this.config.server = (this.server) ? true : false;
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
     
-
     var _this = this;
 
     this.bg = null;
@@ -128,7 +130,7 @@ var game_core = function(game_instance)
 
     this.config.world.gravity = 0.05;//.25;//2;//3.5;
 
-    this.config.world.totalplayers = 30;//40;//4;
+    this.config.world.totalplayers = MAX_PLAYERS_PER_GAME;//30;
 
     this.config.world.maxOrbs = 0;//150;
     this.orbs = [];
@@ -267,9 +269,10 @@ var game_core = function(game_instance)
         //this.players.hostGame = hp.game;
 
         // add player (host)
-        console.log('len', this.getplayers.allplayers.length);
+        /*console.log('len', this.getplayers.allplayers.length);
         for (var j in this.getplayers.allplayers)
             console.log(this.getplayers.allplayers[j].mp, this.getplayers.allplayers[j].pos);
+        */
 
         ///////////////////////////////////
         // orbs
@@ -456,10 +459,10 @@ var game_core = function(game_instance)
 
         this.players.self = chost;//new game_player(this);
 
-        console.log('len', this.getplayers.allplayers.length);
+        // console.log('len', this.getplayers.allplayers.length);
 
-        for (var y in this.getplayers.allplayers)
-            console.log(this.getplayers.allplayers[y].mp);
+        // for (var y in this.getplayers.allplayers)
+        //     console.log(this.getplayers.allplayers[y].mp);
 
         // define platforms
         /*
@@ -517,7 +520,7 @@ var game_core = function(game_instance)
     {
         //Create a keyboard handler
         this.keyboard = new THREEx.KeyboardState();
-        console.log("* this.keyboard", this.keyboard);
+        // console.log("* this.keyboard", this.keyboard);
         this.config.keyboard = new THREEx.KeyboardState();
 
         //Create the default configuration settings
@@ -598,7 +601,7 @@ game_core.prototype.nameGenerator = function()
     var set = new egyptian_set().getSet();
     var rnd = Math.floor(Math.random() * set.length);
     var pname = set[rnd];
-    console.log('pname', pname);
+    //console.log('pname', pname);
 
     return pname;
 };
@@ -2115,7 +2118,9 @@ game_core.prototype.check_collision = function( player )
     
 
     var _this = this;
-
+    if (this.server)
+    console.log('* id', this.instance.id, 'len', this.getplayers.allplayers.length);
+    
     //console.log('g', this.players.self.getGrid());
 
     //Left wall. TODO:stop accel
@@ -2183,7 +2188,7 @@ game_core.prototype.check_collision = function( player )
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
     if (this.config.server)
     {
-        _.forEach(this.getplayers.allplayers, function(other)
+        _.forEach(_this.getplayers.allplayers, function(other)
         {
             //console.log('->', other.team, player.team);
             //other.pos.x = other.pos.x.fixed(4);
@@ -3345,7 +3350,8 @@ game_core.prototype.update_physics = function()
     _.forEach(this.getplayers.allplayers, function(player)
     {
         //if (_this.players.self)
-        player.update();
+        if (player.active)
+            player.update();
 
         // degrade player angle
         if (player.a > 0)
@@ -3483,7 +3489,7 @@ game_core.prototype.server_update = function()
     
     // var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
     //var bufView;
-    _.forEach(this.getplayers.allplayers, function(player, index)
+    _.forEach(_this.getplayers.allplayers, function(player, index)
     {
         //console.log(index * 16);
         // set player's bufferIndex
@@ -3513,7 +3519,7 @@ game_core.prototype.server_update = function()
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
-        //console.log('bufView', bufView);
+        console.log('bufView', player, bufView);
         
         laststate[player.mp] = bufArr;
         //*/
@@ -5122,37 +5128,64 @@ game_core.prototype.client_update = function()
 
 }; //game_core.update_client
 
+game_core.prototype.timerFnc = function()
+{
+    this._dt = new Date().getTime() - this._dte;
+    this._dte = new Date().getTime();
+    this.local_time += this._dt/1000.0;
+}
 game_core.prototype.create_timer = function(){
-    setInterval(function(){
-        this._dt = new Date().getTime() - this._dte;
-        this._dte = new Date().getTime();
-        this.local_time += this._dt/1000.0;
-    }.bind(this), 4);
+    setInterval(
+    //     function(){
+    //     this._dt = new Date().getTime() - this._dte;
+    //     this._dte = new Date().getTime();
+    //     this.local_time += this._dt/1000.0;
+    // }
+    this.timerFnc
+    .bind(this), 4);
 };
 
+game_core.prototype.phySimFunc = function()
+{
+    this._pdt = (new Date().getTime() - this._pdte)/1000.0;
+    this._pdte = new Date().getTime();
+    // TODO: *** By default this fnc is run by both server AND client
+    //if (this.server)
+    this.update_physics();
+}
 game_core.prototype.create_physics_simulation = function() {
 
-    setInterval(function(){
-        this._pdt = (new Date().getTime() - this._pdte)/1000.0;
-        this._pdte = new Date().getTime();
-        // TODO: *** By default this fnc is run by both server AND client
-        //if (this.server)
-            this.update_physics();
-    }.bind(this), 15);
+    setInterval(
+    //     function(){
+    //     this._pdt = (new Date().getTime() - this._pdte)/1000.0;
+    //     this._pdte = new Date().getTime();
+    //     // TODO: *** By default this fnc is run by both server AND client
+    //     //if (this.server)
+    //     this.update_physics();
+    // }
+    this.phySimFunc
+    .bind(this), 15);
 
 }; //game_core.client_create_physics_simulation
 
-
+game_core.prototype.pingFnc = function()
+{
+    this.last_ping_time = new Date().getTime() - this.fake_lag;
+    this.socket.send('p.' + (this.last_ping_time) );
+}
 game_core.prototype.client_create_ping_timer = function() {
+    var _this = this;
         //Set a ping timer to 1 second, to maintain the ping/latency between
         //client and server and calculated roughly how our connection is doing
 
-    setInterval(function(){
+    setInterval(
+    //     function(){
+    //     this.last_ping_time = new Date().getTime() - this.fake_lag;
+    //     this.socket.send('p.' + (this.last_ping_time) );
 
-        this.last_ping_time = new Date().getTime() - this.fake_lag;
-        this.socket.send('p.' + (this.last_ping_time) );
-
-    }.bind(this), 1000);
+    // }
+    this.pingFnc
+    .bind(this), 1000);
 }; //game_core.client_create_ping_timer
 
 game_core.prototype.client_create_configuration = function() {
@@ -5606,6 +5639,8 @@ game_core.prototype.client_onhostgame = function(data)
 
     this.mp = alldata[0];
     this.gameid = alldata[1];
+    console.log('* game id', this.gameid);
+    
     //console.log('1',alldata[0]);
     //console.log('2',alldata[1]);
     console.log(alldata[2]);
@@ -6068,7 +6103,7 @@ game_core.prototype.client_draw_info = function()
     // if more than 10 players, take the top 10
     if (hscore.length > 10)
     {
-        hscore = array.slice(hscore, 0, 10);
+        hscore = hscore.slice(hscore, 0, 10);
     }
     // don't update if redundant
     if (hscore == this.last_hscore) return;

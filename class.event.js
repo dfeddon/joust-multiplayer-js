@@ -17,7 +17,7 @@ console.log('diff ' + (e.getTime() - now.getTime())/1000);
 
 function game_event(getplayers, config)//game_instance)
 {
-  console.log('game event constructor');
+  // console.log('game event constructor');
 
   this.getplayers = getplayers;
   this.config = config;

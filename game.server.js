@@ -8,7 +8,8 @@ MIT Licensed.
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 31;
+var MAX_PLAYERS_PER_GAME = 5;//31;
+var MAX_GAMES_PER_SERVER = 2;
 
 var
     game_server = module.exports = { games : {}, game_count:0 },
@@ -222,6 +223,8 @@ game_server.createGame = function(client)
         player_count: 1              //for simple checking of state
     };
 
+    this.log("@@ game id", thegame.id);
+
     //Store it in the list of game
     this.games[ thegame.id ] = thegame;
 
@@ -245,7 +248,8 @@ game_server.createGame = function(client)
 
     //tell the player that they are now the host
     //s=server message, h=you are hosting
-    client.send('s.h.'+ String(thegame.gamecore.local_time).replace('.','-'));
+    // client.send('s.h.'+ String(thegame.gamecore.local_time).replace('.','-'));
+    client.send('s.r.'+ String(thegame.gamecore.local_time).replace('.','-'));
     console.log('@@ inform client that we are hosting (client.hosting=true) at  ' + thegame.gamecore.local_time);
     client.game = thegame;
     client.hosting = true;
@@ -529,7 +533,7 @@ game_server.startGame = function(game, newplayer)
                     //playerMP = p[x].mp;
                     //game_instance.gamecore.players.self =
                 }
-                else this.log(x, p[x].mp, p[x].playerName);
+                //else this.log(x, p[x].mp, p[x].playerName);
             }
             // TODO: Replace orbs array with active chests (and player instance) array
             //console.log('*chests', game_instance.gamecore.chests);
@@ -594,9 +598,10 @@ game_server.startGame = function(game, newplayer)
     }
 
     // send readyup to *all* players
+    this.log('sending readyup to all', nonhosts.length);
     for (var k = 0; k < nonhosts.length; k++)
     {
-        this.log("readyup!", nonhosts[k].userid);
+        //this.log("readyup!", nonhosts[k].userid);
         //if (nonhosts[k] != "host")
         nonhosts[k].send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
     }
@@ -615,6 +620,11 @@ game_server.findGame = function(client)
 {
     this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
 
+    // if (this.game_count && this.game_count === MAX_GAMES_PER_SERVER)
+    // {
+    //     this.log("game count maxed", this.game_count);
+    //     return;
+    // }
     //so there are games active,
     //lets see if one needs another player
 
@@ -658,16 +668,13 @@ game_server.findGame = function(client)
                 for (var j = 0; j < game_instance.player_clients.length; j++)
                 {
                     //console.log('^', game_instance.player_clients[j].userid, game_instance.player_clients[j].hosting);
-                //}
                     players = game_instance.gamecore.getplayers.allplayers;
                     for (var i = 0; i < players.length; i++)
                     {
-                        //console.log('mp =', players[i].mp);
                         // find null instance
-                        //console.log('derek', players[i].instance);
                         if (!players[i].instance)
                         {
-                            console.log('@@ evaluating players for instancing', players[i].mp);
+                            //console.log('@@ evaluating players for instancing', players[i].mp);
                             if (client_added === false)
                             {
                                 // use cp, as host's hp and his props are already defined
@@ -675,52 +682,14 @@ game_server.findGame = function(client)
                                 players[i].instance = client;
                                 players[i].id = client.userid;
                                 players[i].isLocal = true;
-                                /*
-                                // player start position
-                                var teamRed_x = 3;
-                                var teamRed_y = 4;
-                                var teamBlue_x = 47;
-                                var teamBlue_y = 26;
-                                var sx, sy;
-                                // var sx = Math.floor(Math.random() * teamRed_x) + 1;
-                                // var sy = Math.floor(Math.random() * teamRed_y) + 1;
-                                if (players[i].team === 1) // red
-                                {
-                                    sx = teamRed_x;
-                                    sy = teamRed_y;
-                                }
-                                else if (players[i].team === 2)
-                                {
-                                    sx = teamBlue_x;
-                                    sy = teamBlue_y;
-                                }
-                                else 
-                                {
-                                    console.warn("player team undecided!"); return;
-                                }
-                                // TODO: set position based on team
-                                players[i].pos = game_instance.gamecore.gridToPixel(sx, sy);//3,4);
-                                //*/
-
-                                // players[i].playerName = this.nameGenerator();
-                                // console.log('playername', players[i].playerName);
                                 players[i].gameid = gameid;
                                 client.mp = players[i].mp;
-                                //this.log(client);
-                                //client.me = true;
                                 client_added = true;
-                                //break;
                             }
-                            //break;
-                            //players[i].mp = 'cp'+players.length-1;
-                            //players[i].mis = 'cis'+players.length-1;
                         }
                         else
                         {
                             console.log(players[i].mp, 'has instance!');
-                            //continue;
-                            //players[i].instance = game_instance.player_clients[j];
-                            //players[i].id = game_instance.player_clients[j].userid;
                             this.log('mp =', players[i].mp, game_instance.player_clients[j].hosting);
                             if (game_instance.player_clients[j].hosting === true && players[i].mp == 'hp')
                             {
@@ -767,22 +736,30 @@ game_server.findGame = function(client)
                 this.startGame(game_instance, client);
 
             } //end if game has less than max players
+            else
+            {
+                this.log("@@ game is FULL...");
+                // client will create a new game (as host)
+                client.hosting = true;
+            }
         } //for all games
 
-            //now if we didn't join a game,
-            //we must create one
+        //now if we didn't join a game,
+        //we must create one
         if(!joined_a_game)
         {
-
-            this.createGame(client);
-
+            this.log('@@ failed to join a game, ergo we must create one (likely game is full)');
+            var game = this.createGame(client);
+            //var player = 
+            this.startGame(game, client);
+            this.findGame(client);
         } //if no join already
 
     }
     else
     { //if there are any games at all
 
-            //no games? create one!
+        //no games? create one!
         this.createGame(client);
     }
 

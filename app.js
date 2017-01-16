@@ -32,7 +32,7 @@ var
     util            = require('util'),
     WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
-http.globalAgent.maxSockets = Infinity;
+http.globalAgent.maxSockets = 300;//Infinity;
 /* Express server set up. */
 
 //The express server handles passing our content to the browser,
@@ -285,26 +285,22 @@ var host = clientIo.connect(UUID());
     }
 );
 */
-// auto create 20 games
-//var totalGames = 5;
-var host;
-// for (var i = 0; i < totalGames; i++)
-// {
-host = clientIo.connect(UUID());
-host.userid = UUID();
-host.hosting = true;
-console.log('host', host.userid);
-game_server.createGame(host);
-//console.log('host.io.engine.transport.name', host.io.opts.transports);
-// }
 
 //*
-setInterval(function()
+this.gcFunc = function()
 {
     if (typeof(global.gc) == 'function')
         global.gc();
     console.log('** GC done')
-}, 30 * 1000);
+}
+setInterval(this.gcFunc, 30 * 1000);
+
+// setInterval(function()
+// {
+//     if (typeof(global.gc) == 'function')
+//         global.gc();
+//     console.log('** GC done')
+// }, 30 * 1000);
 //*/
 
 ////////////////////////////////////////
@@ -314,7 +310,7 @@ setInterval(function()
 var hd;
 memwatch.on('leak', function(info) 
 {
-    console.log('Memory Leak!!!:', info);
+    // console.log('Memory Leak!!!:', info);
     /*
     if (!hd)
     {
@@ -332,7 +328,7 @@ memwatch.on('leak', function(info)
 
 memwatch.on('stats', function(stats)
 {
-    //console.log('V8 GC stats', stats);
+    // console.log('V8 GC stats', stats);
     //process.kill(process.pid, 'SIGUSR2');
 })
 //*/
@@ -367,3 +363,33 @@ throng(
     start: startWorker
 });
 //*/
+this.vp = 0;
+var tot = 3;
+this.vplayer = function()
+{
+    console.log("this vp:", this.vp)
+    if (this.vp === tot)
+    {
+        clearInterval(this.vplayer);
+        return;
+    }
+    var c = clientIo.connect(UUID());//, {"force new connection":true});
+    c.userid = UUID();
+    c.hosting = false;
+    game_server.findGame(c);
+    this.vp++;
+}
+//setInterval(this.vplayer.bind(this), 10 * 1000);
+
+// auto create 20 games
+var totalGames = 2;
+//var host;
+for (var i = 0; i < totalGames; i++)
+{
+    var host = clientIo.connect(UUID());
+    host.userid = UUID();
+    host.hosting = true;
+    console.log('host', host.userid);
+    game_server.createGame(host);
+    //console.log('host.io.engine.transport.name', host.io.opts.transports);
+}
