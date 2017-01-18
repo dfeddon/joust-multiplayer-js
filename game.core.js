@@ -19,8 +19,8 @@
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 5;//31;
-var MAX_GAMES_PER_SERVER = 2;
+var MAX_PLAYERS_PER_GAME = 3;//31;
+var MAX_GAMES_PER_SERVER = 2;//20;
 
 // include modules
 var 
@@ -36,6 +36,7 @@ var
     game_event_server   = require('./class.event'),
     game_chest          = require('./class.chest'),
     assets              = require('./singleton.assets'),
+    pool                = require('typedarray-pool'),
     game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
@@ -109,6 +110,8 @@ var game_core = function(game_instance)
     this.config = new config();
     this.config.server = (this.server) ? true : false;
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
+
+    this.bufArr = new ArrayBuffer(768);//480);
     
     var _this = this;
 
@@ -274,6 +277,11 @@ var game_core = function(game_instance)
             console.log(this.getplayers.allplayers[j].mp, this.getplayers.allplayers[j].pos);
         */
 
+        // add typedarray-pool
+        //this.serverPool = pool.malloc(768, "arraybuffer");
+        //console.log('pool', this.serverPool);
+        
+
         ///////////////////////////////////
         // orbs
         ///////////////////////////////////
@@ -380,6 +388,8 @@ var game_core = function(game_instance)
     }
     else // clients (browsers)
     {
+        console.log('client instance', this.instance);
+        
         //var assets = 
         //this._ = _;
 
@@ -464,6 +474,9 @@ var game_core = function(game_instance)
         // for (var y in this.getplayers.allplayers)
         //     console.log(this.getplayers.allplayers[y].mp);
 
+        this.clientPool = pool.malloc(16, "int16");
+        console.log('pool', this.clientPool);
+
         // define platforms
         /*
         var canvasPlatforms = document.createElement('canvas');
@@ -518,6 +531,8 @@ var game_core = function(game_instance)
     //Client specific initialisation
     if(!this.server)
     {
+        console.log('* client keyboard...');
+        
         //Create a keyboard handler
         this.keyboard = new THREEx.KeyboardState();
         // console.log("* this.keyboard", this.keyboard);
@@ -2118,8 +2133,8 @@ game_core.prototype.check_collision = function( player )
     
 
     var _this = this;
-    if (this.server)
-    console.log('* id', this.instance.id, 'len', this.getplayers.allplayers.length);
+    // if (this.server)
+    // console.log('* id', this.instance.id, 'len', this.getplayers.allplayers.length);
     
     //console.log('g', this.players.self.getGrid());
 
@@ -3350,6 +3365,8 @@ game_core.prototype.update_physics = function()
     _.forEach(this.getplayers.allplayers, function(player)
     {
         //if (_this.players.self)
+        //console.log('p:', player.mp, player.active);
+        
         if (player.active)
             player.update();
 
@@ -3489,19 +3506,34 @@ game_core.prototype.server_update = function()
     
     // var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
     //var bufView;
+    //console.log('=====================');
+    //var bufArr = new ArrayBuffer(768);
     _.forEach(_this.getplayers.allplayers, function(player, index)
     {
-        //console.log(index * 16);
+        //console.log('active', player.active, player.visible);
+        
+        if (!player.instance) return;
+
+        //console.log(_this.getplayers.allplayers.length);
         // set player's bufferIndex
         //player.bufferIndex = index;
-        var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
-        var bufView = new Int16Array(bufArr, (index * 16), 16);
-        //, 0, Math.floor(bufArr.byteLength/2));
+        //var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
+        //var bufArr = new ArrayBuffer(16 * _this.getplayers.allplayers.length);
+        //var bufView = new Int16Array(bufArr, (index * 16), 16);
+        //console.log(_this.serverPool);
+        
+        //_this.serverPool[index].prototype.byteLength = 768;
+        var buffer = pool.malloc(768, "arraybuffer");
+        var bufView = new Int16Array(buffer, (index * 16), 16);
+        //var bufView = _this.serverPool;//(_this.bufArr, (index * 16), 16);
+        // bufView.buffer = _this.bufArr;
+        // bufView.byteOffset = index * 16;
+        // bufView.length = 16;
         //*
         if (player.pos.x === 0 && player.pos.y === 0) return;
         //player.pos.x = player.pox.x.toFixed(2);
-        bufView[0] = player.pos.x;//.fixed(2);
-        bufView[1] = player.pos.y;//.fixed(2);
+        bufView[0] = player.pos.x.fixed(0);
+        bufView[1] = player.pos.y.fixed(0);//.fixed(2);
         bufView[2] = player.dir;
         bufView[3] = (player.flap) ? 1 : 0;
         bufView[4] = player.landed;
@@ -3514,14 +3546,19 @@ game_core.prototype.server_update = function()
         bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
         bufView[12] = index; // player's bufferIndex
         bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
-        bufView[14] = player.active;
+        bufView[14] = (player.active) ? 1 : 0;
+        bufView[15] = 16; // open item
         //bufView[11] = new Date();
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
-        console.log('bufView', player, bufView);
+        //console.log('bufView', player.mp, bufView);
         
-        laststate[player.mp] = bufArr;
+        laststate[player.instance.userid] = buffer;//_this.serverPool;//bufArr;
+        //pool.free(buffer);
+        // if (player.mp == "cp1")
+        // console.log(player.instance.userid, bufView);
+        
         //*/
         /*
         _this.laststate[player.mp] = 
@@ -3539,6 +3576,8 @@ game_core.prototype.server_update = function()
             g:player.hasFlag,
             b:player.bubble
         };//*/
+        // console.log('*', player.last_input_seq);
+        
         laststate[player.mis] = player.last_input_seq;
 
         // reset flap on server instance
@@ -3549,7 +3588,7 @@ game_core.prototype.server_update = function()
         //if (player.killedBy > 0) player.killedBy = 0;
         ///console.log(':::', player.pos);
     });
-    
+    // pool.free(this.serverPool);
 
     /////////////////////////////////
     // process platforms
@@ -3670,11 +3709,13 @@ game_core.prototype.server_update = function()
     
     //console.log('len', this.getplayers.allplayers.length);
     //for (var j = 0; j < this.getplayers.allplayers.length; j++)
+    //console.log('ls', laststate);
+    
     _.forEach(this.getplayers.allplayers, function(ply)
     {
         if (ply.instance)// && this.getplayers.allplayers[j].instance != "host")
         {
-            //console.log('inst', ply.instance);//.userid);
+            //console.log('inst', laststate['cp1']);//.userid);
             ply.instance.emit('onserverupdate', laststate);
             
             // clear socket's send buffer
@@ -3685,6 +3726,7 @@ game_core.prototype.server_update = function()
 
     // clear laststate
     //console.log('pre', laststate);
+    // pool.free(this.serverPool);
     for (var k in laststate) 
     {
         delete laststate[k];
@@ -4032,9 +4074,11 @@ game_core.prototype.client_process_net_prediction_correction = function()
     //Our latest server position
     //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
     //console.log('bufferIndex', this.players.self.bufferIndex);
+    // console.log('*', this.clientPool, latest_server_data[this.players.self.mp], this.players.self.bufferIndex);
     
     var self_sp = new Int16Array(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
-    //console.log('self_sp', self_sp);
+    // if (this.players.self.bufferIndex)
+    // var self_sp = this.clientPool.set(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
     
     var my_server_pos = {x:self_sp[0], y:self_sp[1]};
     //var my_server_pos = latest_server_data[this.players.self.mp];
@@ -4273,6 +4317,7 @@ game_core.prototype.client_process_net_updates = function()
     //   var view = new Int16Array(target.cp1, 0, 12);//target.cp1.byteLength);//, len);//, Math.floor(target.cp1.byteLength/2));
     //   console.log(view);
       //console.log(view.getInt16(1, false));
+      //console.log('::', target, previous);
       
     //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
      if(target && previous)
@@ -4320,34 +4365,41 @@ game_core.prototype.client_process_net_updates = function()
         var lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
         var self_pp;
         var self_tp;
-        //console.log('len', this.getplayers.allplayers.length);
+        //console.log('len', this.getplayers.allplayers[0]);//.length);
         
         _.forEach(_this.getplayers.allplayers, function(player, index)
         {
             //console.log('=', player.mp, _this.players.self.mp);
+            //console.log('i', player.mp, player);
             
-            if (player.mp != _this.players.self.mp)// && previous[player.mp])
+            if (!player.userid) return;
+            //else console.log('#', player.userid);
+            
+            
+            if (player.userid != _this.players.self.userid)// && previous[player.mp])
             {
                 //console.log('**', target[player.mp]);
                 // check for bad objects
-                if (target[player.mp] === undefined)
+                if (target[player.userid] === undefined)
                 {
                     //console.log('** bad target', previous[player.mp]);
-                    if (previous[player.mp])// || previous[player.mp] === undefined) 
-                        target[player.mp] = previous[player.mp];
+                    if (previous[player.userid])// || previous[player.mp] === undefined) 
+                        target[player.userid] = previous[player.userid];
                     else return;
                 }
-                else if (previous[player.mp] === undefined)
+                else if (previous[player.userid] === undefined)
                 {
                     //console.log('** bad previous', target[player.mp]);
-                    if (target[player.mp]) 
-                        previous[player.mp] = target[player.mp];
+                    if (target[player.userid]) 
+                        previous[player.userid] = target[player.userid];
                     else return;
                 }
                 //try{
-                vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                vt = new Int16Array(target[player.userid], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                // vt = _this.clientPool.set(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 //}catch(err){console.log(err, index, target[player.mp]);}
-                vp = new Int16Array(previous[player.mp], (index * 16), 16);
+                vp = new Int16Array(previous[player.userid], (index * 16), 16);
+                // vp = _this.clientPool.set(previous[player.mp], (index * 16), 16);
                   //console.log(vt);
                   //console.log(vp);
 
@@ -4419,10 +4471,11 @@ game_core.prototype.client_process_net_updates = function()
                 player.visible = (vt[11] === 1) ? true : false;
                 player.bufferIndex = index;// -> vt[12]
                 player.score = vt[13];
-                player.active = vt[14];
+                player.active = (vt[14] === 1) ? true : false;
                 //player.dead = (vt[13] == 1) ? true : false;
                 //console.log(Boolean(player.flap));
-                //console.log('set playerIndex', vt[11]);
+                //if (player.mp == "cp1")
+                    // console.log('#', player.mp, vt);
 
                 // if (player.killedBy > 0)
                 // {
@@ -4444,15 +4497,20 @@ game_core.prototype.client_process_net_updates = function()
                 player.vy = target[player.mp].vy;
                 player.bubble = target[player.mp].b;
                 //*/
+                // console.log('* p', player.pos);
+                
                 //console.log(this.getplayers.allplayers[j].pos);
             }
             else // local player
             {
                 //console.log('local player');
                 
-                var self_vt = new Int16Array(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
-                var self_vp = new Int16Array(previous[player.mp], (index * 16), 16);
-                //console.log('vt.len', self_vt, self_vp);
+                var self_vt = new Int16Array(target[player.userid], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                var self_vp = new Int16Array(previous[player.userid], (index * 16), 16);
+                // var self_vt = _this.clientPool(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                // var self_vp = _this.clientPool(previous[player.mp], (index * 16), 16);
+                // console.log('vt', self_vt);
+                // console.log('vp', self_vp);
 
                 self_tp = {x:parseInt(self_vt[0]), y:parseInt(self_vt[1])};
                 self_pp = {x:parseInt(self_vp[0]), y:parseInt(self_vp[1])};
@@ -4474,10 +4532,12 @@ game_core.prototype.client_process_net_updates = function()
                 _this.players.self.visible = (self_vt[11] === 1) ? true : false;
                 _this.players.self.bufferIndex = index;// -> vt[12]
                 _this.players.self.score = self_vt[13];
-                _this.players.self.active = self_vt[14];
+                _this.players.self.active = (self_vt[14] === 1) ? true : false;
                 //_this.players.self.team = self_vt[13];
                 //}
                 //*/
+                // console.log('@', _this.players.self.mp, _this.players.self.active, _this.players.self.visible);
+                
 
                 // check for invalid values (bad socket?)
                 // if (!(self_vt[0] > 0)) 
@@ -4490,9 +4550,9 @@ game_core.prototype.client_process_net_updates = function()
 
                 //player.pos.x = self_vt[0];//target[player.mp].x;
                 //player.pos.y = self_vt[1];//target[player.mp].y;
-                //console.log('MEMEMEMEMEMEME', self_pp);
+                console.log('Me', _this.players.self.mp, self_vt);
             }
-
+            
             // for (var k in vt) 
             // {
             //     vt[k] = null;
@@ -4675,11 +4735,11 @@ game_core.prototype.client_process_net_updates = function()
             // TODO: bug below - "self_pp" is undefined
             if (self_pp && self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
             {
-            this.players.self.pos =
-                this.v_lerp(this.players.self.pos,
-                this.v_lerp(self_pp, self_tp, this._pdt*this.client_smooth),
-                this._pdt*this.client_smooth
-            );
+                this.players.self.pos =
+                    this.v_lerp(this.players.self.pos,
+                    this.v_lerp(self_pp, self_tp, this._pdt*this.client_smooth),
+                    this._pdt*this.client_smooth
+                );
             }
         //}
         //else this.players.self.pos = this.players.self.old_state;
@@ -5433,7 +5493,7 @@ game_core.prototype.client_onplayernames = function(data)
     // if object, we are updating other clients of new player
     if (!Array.isArray(data))
     {
-        console.log('updating extant clients...');
+        console.log('updating extant clients...', data.name, data.skin);
         
         p = _.find(this.getplayers.allplayers, {'mp':data.mp});
         if (data.name)
@@ -5502,6 +5562,8 @@ game_core.prototype.client_onjoingame = function(data)
     var flags = JSON.parse(alldata[5]);
     //console.log('# startpos', startpos);
 
+    var userid = alldata[6];
+
     //console.log('3',alldata[2]);
 
     console.log('len', this.getplayers.allplayers.length);
@@ -5528,6 +5590,7 @@ game_core.prototype.client_onjoingame = function(data)
             //this.players.self.mis = this.getplayers.allplayers[i].mis;
             //if (team > 0)
             this.getplayers.allplayers[i].team = team;
+            this.getplayers.allplayers[i].userid = userid;
             if (playerName && playerName.length > 2)
                 this.getplayers.allplayers[i].playerName = playerName;
             /*/ set start position
@@ -5651,6 +5714,7 @@ game_core.prototype.client_onhostgame = function(data)
     var team = parseInt(alldata[3]);
     var playerName = alldata[4];
     var flags = JSON.parse(alldata[5]);
+    var userid = alldata[6];
     //console.log('# startpos', startpos);
 
     //console.log('3',alldata[2]);
@@ -5680,6 +5744,7 @@ game_core.prototype.client_onhostgame = function(data)
             //if (team > 0)
             this.getplayers.allplayers[i].team = team;
             this.getplayers.allplayers[i].playerName = playerName;
+            this.getplayers.allplayers[i].userid = userid;
             /*/ set start position
             if (team == 1)
                 this.getplayers.allplayers[i].pos = this.gridToPixel(2, 2);
@@ -5831,6 +5896,7 @@ game_core.prototype.client_onconnected = function(data) {
     //this lets us store the information about ourselves and set the colors
     //to show we are now ready to be playing.
     this.players.self.id = data.id;
+    this.players.self.userid = data.id;
     //this.players.self.info_color = '#cc0000';
     this.players.self.state = 'connected';
     this.players.self.online = true;
@@ -6094,7 +6160,7 @@ game_core.prototype.client_draw_info = function()
         if (p.active)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
         // if respawning, auto-set score to 0
-        if (!p.visible)
+        if (!p.visible)// || !p.active)
             p.score = 0;
     });
     // sort it
@@ -6118,7 +6184,7 @@ game_core.prototype.client_draw_info = function()
         tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
         tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
         // set color
-        if (!p.visible)
+        if (!p.visible)// || !p.active)
             color = "lightgray";
         else if (p.team == 1) color = "#FF6961";
         else color = "#6ebee6";

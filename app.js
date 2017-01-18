@@ -310,7 +310,7 @@ setInterval(this.gcFunc, 30 * 1000);
 var hd;
 memwatch.on('leak', function(info) 
 {
-    // console.log('Memory Leak!!!:', info);
+    console.log('Memory Leak!!!:', info);
     /*
     if (!hd)
     {
@@ -328,7 +328,7 @@ memwatch.on('leak', function(info)
 
 memwatch.on('stats', function(stats)
 {
-    // console.log('V8 GC stats', stats);
+    console.log('V8 GC stats', stats);
     //process.kill(process.pid, 'SIGUSR2');
 })
 //*/
@@ -379,7 +379,7 @@ this.vplayer = function()
     game_server.findGame(c);
     this.vp++;
 }
-//setInterval(this.vplayer.bind(this), 10 * 1000);
+//setInterval(this.vplayer.bind(this), 3 * 1000);
 
 // auto create 20 games
 var totalGames = 2;

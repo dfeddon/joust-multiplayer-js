@@ -1101,6 +1101,9 @@ game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
     //console.log('== player.update ==', this.config.server, this.isBot, this.mp);
+    //if (this.mp == "cp1")
+    //console.log('p:', this.mp, this.visible, this.active);
+    
     // if (this.config.server && this.isBot)
     // {
     //     this.botAction();

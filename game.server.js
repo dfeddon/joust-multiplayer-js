@@ -8,8 +8,8 @@ MIT Licensed.
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 5;//31;
-var MAX_GAMES_PER_SERVER = 2;
+var MAX_PLAYERS_PER_GAME = 31;
+var MAX_GAMES_PER_SERVER = 20;
 
 var
     game_server = module.exports = { games : {}, game_count:0 },
@@ -144,7 +144,7 @@ game_server._onMessage = function(client,message)
             {
                 // update server's player name and skin
                 this.log('* updating my server creds', playerName, playerSkin);
-                if (playerName !== 'undefined')
+                if (playerName !== undefined)
                     p[j].playerName = playerName;
                 p[j].skin = playerSkin;
 
@@ -449,7 +449,7 @@ game_server.startGame = function(game, newplayer)
     //tell the other client they are joining a game
     //s=server message, j=you are joining, send them the host id
 
-    var newplayerInstance, playerName, playerMP, team;
+    var newplayerInstance, playerName, playerMP, team, playerUserId;
     var p = game.gamecore.getplayers.allplayers;
     // get host client and all non-hosting clients
     var host;
@@ -471,6 +471,7 @@ game_server.startGame = function(game, newplayer)
             newplayerInstance = p[x];
             playerName = p[x].playerName;
             playerMP = p[x].mp;
+            playerUserId = p[x].instance.userid;
             //team = team;//Math.floor(Math.random() * 2) + 1; // 1 = red, 2 = blue
             // only assign team if team has not yet been assigned
             //if (p[x].team == 0)
@@ -520,7 +521,7 @@ game_server.startGame = function(game, newplayer)
         for (var j = 0; j < nonhosts.length; j++)
         {
             this.log('@@', nonhosts[j].userid, nonhosts[j].mp, nonhosts.pos);
-            var playerName, playerMP;
+            //var playerName, playerMP;
             var p = game_instance.gamecore.getplayers.allplayers;
             for (var x = 0; x < p.length; x++)
             {
@@ -580,10 +581,10 @@ game_server.startGame = function(game, newplayer)
             if (nonhosts[j].mp != newplayer.mp)
             {
                 this.log('* sending joingame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
-                this.log("* data:", playerMP, playerName);
+                this.log("* data:", playerMP, playerName, playerUserId);
                 
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
-                nonhosts[j].send('s.j.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray));
+                nonhosts[j].send('s.j.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
             else
             {
@@ -591,7 +592,7 @@ game_server.startGame = function(game, newplayer)
                 this.log("* data:", playerMP, playerName);
                 
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
-                nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray));
+                nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
             nonhosts[j].game = game;
         }
