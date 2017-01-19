@@ -640,6 +640,8 @@ game_server.findGame = function(client)
             //only care about our own properties.
             if(!this.games.hasOwnProperty(gameid)) continue;
 
+            this.log("@@ game id", gameid);
+
             //get the game we are checking against
             var game_instance = this.games[gameid];
 
@@ -648,6 +650,7 @@ game_server.findGame = function(client)
 
             if(game_instance.player_count < MAX_PLAYERS_PER_GAME)
             {
+                this.log("@@ joining game", gameid);
                 //someone wants us to join!
                 joined_a_game = true;
                 //increase the player count and store
@@ -735,6 +738,7 @@ game_server.findGame = function(client)
                 //start running the game on the server,
                 //which will tell them to respawn/start
                 this.startGame(game_instance, client);
+                break;
 
             } //end if game has less than max players
             else

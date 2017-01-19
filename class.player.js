@@ -93,6 +93,7 @@ function game_player(player_instance, isHost, pindex, config)
         console.log('WE GOT SERVER HOST!', player_instance.userid);
         this.mp = 'hp';
         this.mis = 'his';
+        this.visible = false;
     }
     else {
         this.mp = 'cp' + pindex;//(getplayers.allplayers.length + 1);

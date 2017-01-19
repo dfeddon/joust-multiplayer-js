@@ -19,8 +19,8 @@
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 3;//31;
-var MAX_GAMES_PER_SERVER = 2;//20;
+var MAX_PLAYERS_PER_GAME = 31;
+var MAX_GAMES_PER_SERVER = 20;
 
 // include modules
 var 
@@ -106,7 +106,7 @@ var game_core = function(game_instance)
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
     
-    this.getplayers = new getplayers();
+    this.getplayers = new getplayers(game_instance);
     this.config = new config();
     this.config.server = (this.server) ? true : false;
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
@@ -252,7 +252,7 @@ var game_core = function(game_instance)
             other.playerName = this.nameGenerator();// + " [" + other.mp + "]"; 
             
             other.visible = false;
-            other.active = false;           
+            other.active = false;
             
             // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
             //other.playerName = this.nameGenerator();
@@ -260,6 +260,7 @@ var game_core = function(game_instance)
             this.getplayers.allplayers.push(other);
             // this.entities.push(other);
         }
+        // host player starts game loop on startup
         var hp = new game_player(this.instance.player_host, true, NaN, this.config);
         console.log('server host player (hp)', this.instance.player_host.userid);
         
@@ -3555,9 +3556,10 @@ game_core.prototype.server_update = function()
         //console.log('bufView', player.mp, bufView);
         
         laststate[player.instance.userid] = buffer;//_this.serverPool;//bufArr;
+        
         //pool.free(buffer);
         // if (player.mp == "cp1")
-        // console.log(player.instance.userid, bufView);
+        // console.log(player.instance.userid, _this.instance.id, bufView);
         
         //*/
         /*
@@ -3615,6 +3617,7 @@ game_core.prototype.server_update = function()
 
     // process events
     //for (var l = 0; l < this.events.length; l++)
+
     _.forEach(this.events, function(evt)
     {
         if (evt.state !== evt.STATE_STOPPED)
@@ -3719,7 +3722,7 @@ game_core.prototype.server_update = function()
             ply.instance.emit('onserverupdate', laststate);
             
             // clear socket's send buffer
-            if (ply.instance && ply.instance.sendBuffer)
+            if (ply.instance.sendBuffer)
                 ply.instance.sendBuffer.length = 0;
         }
     });
@@ -3986,8 +3989,9 @@ game_core.prototype.client_process_net_prediction_correction2 = function()
     //Our latest server position
     //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
     //console.log('bufferIndex', this.players.self.bufferIndex);
-    
-    var self_sp = new Int16Array(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
+    console.log('lsd:', latest_server_data);
+    console.log('userid', tihs.players.self.userid);
+    var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
     //console.log('self_sp', self_sp);
     
     var my_server_pos = {x:self_sp[0], y:self_sp[1]};
@@ -4076,7 +4080,7 @@ game_core.prototype.client_process_net_prediction_correction = function()
     //console.log('bufferIndex', this.players.self.bufferIndex);
     // console.log('*', this.clientPool, latest_server_data[this.players.self.mp], this.players.self.bufferIndex);
     
-    var self_sp = new Int16Array(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
+    var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
     // if (this.players.self.bufferIndex)
     // var self_sp = this.clientPool.set(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
     
@@ -4550,7 +4554,7 @@ game_core.prototype.client_process_net_updates = function()
 
                 //player.pos.x = self_vt[0];//target[player.mp].x;
                 //player.pos.y = self_vt[1];//target[player.mp].y;
-                console.log('Me', _this.players.self.mp, self_vt);
+                //console.log('Me', _this.players.self.mp, self_vt);
             }
             
             // for (var k in vt) 

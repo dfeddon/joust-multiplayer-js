@@ -1,8 +1,10 @@
 'use strict';
 
-function getplayers()
+function getplayers(game_instance)
 {
-    this.allplayers = [];
+    if (game_instance)
+        game_instance.allplayers = [];
+    else this.allplayers = [];
 }
 getplayers.prototype.allplayers = [];
 
