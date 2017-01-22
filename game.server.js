@@ -42,12 +42,27 @@ game_server._dte = new Date().getTime();
     //a local queue of messages we delay if faking latency
 game_server.messages = [];
 
-setInterval(function()
+var gameservertime = function()
 {
     game_server._dt = new Date().getTime() - game_server._dte;
     game_server._dte = new Date().getTime();
     game_server.local_time += game_server._dt/1000.0;
+}
+setInterval(function()
+{
+    gameservertime();
+    // game_server._dt = new Date().getTime() - game_server._dte;
+    // game_server._dte = new Date().getTime();
+    // game_server.local_time += game_server._dt/1000.0;
 }, 4);
+
+game_server.setIO = function(io, emitter)
+{
+    this.io = io;
+    this.emitter = emitter;
+    console.log('setIO', io);
+    
+}
 
 game_server.onMessage = function(client,message)
 {
@@ -233,7 +248,7 @@ game_server.createGame = function(client)
 
     //Create a new game core instance, this actually runs the
     //game code like collisions and such.
-    thegame.gamecore = new game_core( thegame );
+    thegame.gamecore = new game_core( thegame, this.io );
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -584,28 +599,45 @@ game_server.startGame = function(game, newplayer)
                 this.log("* data:", playerMP, playerName, playerUserId);
                 
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
-                nonhosts[j].send('s.j.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                // nonhosts[j].send('s.j.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
             else
             {
                 this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
                 this.log("* data:", playerMP, playerName);
-                
+
+                // joing game/room            
+                nonhosts[j].game = game;
+                nonhosts[j].join(game.id);
+                this.log("player joined game", game.id);
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
-                nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                //console.log('nonhosts[j]', nonhosts[j]);
+                this.log("hostgame", this.games[game.id].id);
+                nonhosts[j].emit('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId, function(err, success)
+                {
+                    if (err)
+                        this.log("ERROR:", err);
+                    else this.log("Success", success);
+                });
+
+                // let others know player has joined their game
+                nonhosts[j].broadcast.to(game.id).emit('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                //this.io.in(game.id).emit('hostgame' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
-            nonhosts[j].game = game;
+            // nonhosts[j].game = game;
         }
     }
 
     // send readyup to *all* players
     this.log('sending readyup to all', nonhosts.length);
-    for (var k = 0; k < nonhosts.length; k++)
-    {
-        //this.log("readyup!", nonhosts[k].userid);
-        //if (nonhosts[k] != "host")
-        nonhosts[k].send('s.r.'+ String(game.gamecore.local_time).replace('.','-'));
-    }
+    this.io.in(game.id).emit('onreadygame', String(game.gamecore.local_time).replace('.','-'));
+    // for (var k = 0; k < nonhosts.length; k++)
+    // {
+    //     //this.log("readyup!", nonhosts[k].userid);
+    //     //if (nonhosts[k] != "host")
+    //     nonhosts[k].emit('onreadygame', String(game.gamecore.local_time).replace('.','-'));
+    // }
     // if (host)
     // {
     //     this.log('readyup host!');
