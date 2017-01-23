@@ -341,12 +341,17 @@ console.log('\t :: Express :: Listening on port ' + gameport );
 
 //Express and socket.io can work together to serve the socket.io client files for you.
 //This way, when the client requests '/socket.io/' files, socket.io determines what the client needs.
-
+var ioserver = http.createServer(function(req, res){ 
+    // Send HTML headers and message
+    // res.writeHead(200,{ 'Content-Type': 'text/html' }); 
+    // res.end('<h1>Hello Socket Lover!</h1>');
+});
+ioserver.listen(3000);
 //Create a socket.io instance using our express server
 //console.log('server prot', server);
 // var proxy = httpProxy.createProxyServer({target:'http://localhost:3000'});
 //var netserver = net.createServer({ pauseOnConnect: true }, function(){}).listen(3000);
-var sio = io.listen(server);
+var sio = io.listen(server);//server);
 var events = require('events');//, {transports:['websocket']});
 var serverEmitter = new events.EventEmitter();
 game_server.setIO(sio, serverEmitter);
@@ -688,7 +693,7 @@ var vplayer = function()
 //setInterval(this.vplayer.bind(this), 3 * 1000);
 
 // auto create 20 games
-var totalGames = 1;
+var totalGames = 2;
 //var host;
 for (var i = 0; i < totalGames; i++)
 {

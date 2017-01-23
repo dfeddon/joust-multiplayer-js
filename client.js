@@ -884,8 +884,9 @@ domready(function()
 			break;
 
 			case "x": // flap up
-			//console.log('flap up!', game);
+			console.log('flap up!', game);
 			game.getKeyboard()._onKeyChange({keyCode:38}, false);
+			game.getKeyboard()._onKeyChange({keyCode:88}, true);
 			break;
 			}
 		};

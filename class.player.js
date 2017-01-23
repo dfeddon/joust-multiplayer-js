@@ -686,7 +686,7 @@ game_player.prototype.botAction = function()
 
 game_player.prototype.doFlap = function()
 {
-    //console.log('doFlap', this.dir);
+    // console.log('doFlap', this.dir);
 
     // set flap flag
     this.flap = true;
@@ -2006,11 +2006,11 @@ game_player.prototype.draw = function()
     }
     else if (this.flap === true)
     {
-        //console.log('flap!');
+        // console.log('draw:flap!');
         
         //this.vulnRight;//document.getElementById("p1stun-l");
         // reset flap on client
-        this.flap = false;
+        // this.flap = false;
         if (this.dir === 1) 
         {
             this.sprite.draw('flap-l', this.pos);
@@ -2074,7 +2074,7 @@ game_player.prototype.draw = function()
         {
             console.log('* player.draw: flag reset', this.hasFlag);
             // reset flag
-            for (var f = 0; f < this.config.flagObjects.length; f++)
+            for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
             {
                 if (this.config.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
                     this.config.flagObjects[f].reset(false, this.game);
