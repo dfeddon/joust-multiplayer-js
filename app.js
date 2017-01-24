@@ -424,7 +424,7 @@ sio.sockets.on('connection', function (client)
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
     client.userid = UUID();
-    console.log('@@ new client connected', client.userid);//, client);
+    console.log('@@ new client connected', client.userid, client.id);//, client);
 
     //tell the player they connected, giving them their id
     client.emit('onconnected', { id: client.userid } );
@@ -451,7 +451,7 @@ sio.sockets.on('connection', function (client)
     {
         //Useful to know when soomeone disconnects
         console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.gameid);//client.game.id);
-
+        
         // remove player from allplayers array
         //console.log('game', client.game.gamecore);
         // for (var i = 0; i < client.game.gamecore.allplayers.length; i++)

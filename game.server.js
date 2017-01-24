@@ -148,7 +148,7 @@ game_server._onMessage = function(client,message)
         for (var j = 0; j < p.length; j++)
         {
             this.log(p[j].mp, p[j].playerName, p[j].team, p[j].skin);
-            if (p[j].mp != mp && p[j].mp != "hp" && p[j].instance)
+            if (p[j].mp != mp && p[j].instance)
             {
                 // update others' server player
                 arr.push({mp:p[j].mp, name:p[j].playerName, team:p[j].team, skin:p[j].skin});
@@ -174,24 +174,30 @@ game_server._onMessage = function(client,message)
         var thegame = this.games[gameId];
         for (var i = 0; i < thegame.player_clients.length; i++)
         {
-            console.log('* clients', thegame.player_clients[i].mp);
+            console.log('* clients', thegame.player_clients[i].mp, thegame.player_clients[i].userid);
             
             if (thegame.player_clients[i].mp == mp)
             {
                 // send other players data to requesting (new) client
-                thegame.player_clients[i].send('s.n.' + JSON.stringify(arr));
-
+                // thegame.player_clients[i].send('s.n.' + JSON.stringify(arr));
+                thegame.player_clients[i].emit('onplayernames', JSON.stringify(arr));
+                // update other clients of new players name/team/skin
+                // thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
+                thegame.player_clients[i].broadcast.to(gameId).emit('onplayernames', JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
                 // remove client socket
                 //thegame.player_clients.splice(i, 1);
+                break;
             }
-            else
-            {
-                // update other clients of new players name/team/skin
-                console.log('informing others', thegame.player_clients[i].mp, 'about', mp, playerName, playerSkin);
+            // else
+            // {
+            //     // update other clients of new players name/team/skin
+            //     console.log('informing others', thegame.player_clients[i].mp, 'about', mp, playerName, playerSkin);
                 
-                thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
-            }
+            //     thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
+            // }
         }
+
+
         
         //this.log(source);
         //source.send('s.n' + JSON.stringify(arr));
@@ -226,7 +232,7 @@ game_server.createGame = function(client)
     // client.hosting = true; // TODO: forced 'hosting' prop -- is this valid?
     var clients = [];
     //if (!ghostHost)
-    clients.push(client);
+    //clients.push(client);
     //var clients = [client]; // include host client
 
     var thegame =
@@ -298,22 +304,29 @@ game_server.endGame = function(gameid, userid)
         {
             // get host client and all non-hosting clients
             var allplayers = thegame.gamecore.getplayers.allplayers;
-            var host;
+            //var host;
             var nonhosts = [];
             var game_instance = this.games[gameid];
             this.log("player clients", thegame.player_clients.length);
+            // remove client from clients array
             for (var i = 0; i < thegame.player_clients.length; i++)
             {
                 // if (thegame.player_clients[i].hosting)
                 //     host = thegame.player_clients[i];
                 // else nonhosts.push(thegame.player_clients[i]);
-                this.log(thegame.player_clients.length, thegame.player_clients[i].userid, userid, thegame.player_clients[i].hosting);
+                this.log(thegame.player_clients.length, thegame.player_clients[i].userid, userid);//, thegame.player_clients[i].hosting);
                 if (thegame.player_clients[i].userid == userid)
                 {
-                    console.log('@@ removing client id', userid, thegame.player_clients[i].hosting);
+                    console.log('@@ removing client id', userid);//, thegame.player_clients[i].hosting);
 
                     // tell client game is ended
-                    thegame.player_clients[i].send('s.e');
+                    thegame.player_clients[i].emit('ondisconnect');
+                    // inform other players
+                    this.log('mp', thegame.player_clients[i].mp);
+                    //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
+                    thegame.player_clients[i].broadcast.to(thegame.id).emit('ondisconnect', thegame.player_clients[i].mp);
+                    // leaving game
+                    thegame.player_clients[i].leave(gameid);
 
                     // remove client socket
                     //console.log("* is client host?, player_client", thegame.player_clients[i]);//.hosting, thegame.gamecore.players.self.host);
@@ -321,24 +334,29 @@ game_server.endGame = function(gameid, userid)
                     
                     thegame.player_clients.splice(i, 1);
                 }
-            }
+            } // end for loop
+
+            // remove player from allplayer array
             var disconnected_mp;
             for (var j = 0; j < allplayers.length; j++)
             {
                 if (allplayers[j].id == userid)
                 {
-                    console.log('@@ removing player', allplayers[j].mp, userid, allplayers[j].host);
+                    console.log('@@ removing player', allplayers[j].mp, userid);//, allplayers[j].host);
+                    
                     disconnected_mp = allplayers[j].mp;
-                    if (!allplayers[j].host)
-                        allplayers[j].instance = null;//.splice(j, 1);
-                    else this.log("* not disconnecting host player...");
+                    // if (!allplayers[j].host)
+                    allplayers[j].instance = null;//.splice(j, 1);
+                    // else this.log("* not disconnecting host player...");
                     allplayers[j].disconnected = true;
                     // allplayers[j].active = false;
                     // allplayers[j].pos = {x:0, y:0};
                     allplayers[j].reset();
                     game_instance.player_count--;
+                    break;
                 }
             }
+            /*
             if (disconnected_mp)
             {
                 for (var k = 0; k < allplayers.length; k++)
@@ -352,6 +370,7 @@ game_server.endGame = function(gameid, userid)
                 }
                 this.log("player clients", thegame.player_clients.length);
             }
+            */
 
             // if host, send the players the msg the game is ending
             // if (userid == host.userid)
@@ -409,11 +428,42 @@ game_server.endGame = function(gameid, userid)
                 }
             }*/
         }
+        else
+        {
+            this.log("last player in game has disconnected...")
 
-        // delete this.games[gameid];
-        // this.game_count--;
-        //
-        // this.log('@@ game removed. there are now ' + this.game_count + ' games' );
+            thegame.player_clients[0].send('s.e');
+
+            this.log('mp', thegame.player_clients[0].mp);
+            // the allplayer instance
+            var allplayers = thegame.gamecore.getplayers.allplayers;
+            for (var j = 0; j < allplayers.length; j++)
+            {
+                if (allplayers[j].mp == thegame.player_clients[0].mp)
+                {
+                    this.log("* found player, removing from canvas");
+                    allplayers[j].instance = null;
+                    allplayers[j].disconnected = true;
+                    allplayers[j].reset();
+                }
+            }
+            // leaving game
+            thegame.player_clients[0].leave(gameid);
+            // remove client
+            thegame.player_clients.splice(0, 1);
+            thegame.player_count--;
+            this.log("players left", thegame.player_clients.length, thegame.player_count);
+
+            // quit game?
+            if (this.games.length > 1)
+            {
+                delete this.games[gameid];
+                this.game_count--;
+                //
+                this.log('@@ game removed. there are now ' + this.game_count + ' games' );
+            }
+            else this.log("@@ player left only remaining game (game remains active)");
+        }
     }
     else
     {
@@ -608,12 +658,17 @@ game_server.startGame = function(game, newplayer)
             // }
             // else
             // {
+            if (nonhosts[j].mp == newplayer.mp)
+            {
                 this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
                 this.log("* data:", playerMP, playerName);
 
                 // joing game/room
                 // this.log('****', nonhosts[j]);
+                // TODO: assign instance (nonhosts[j]) to allplayers.player
                 nonhosts[j].game = game;
+                nonhosts[j].active = true;
+                nonhosts[j].visible = true;
                 nonhosts[j].join(game.id);
                 this.log("player joined game", game.id);
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
@@ -632,7 +687,7 @@ game_server.startGame = function(game, newplayer)
                 
                 nonhosts[j].broadcast.to(game.id).emit('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //this.io.in(game.id).emit('hostgame' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
-            // }
+            }
             // nonhosts[j].game = game;
         }
     // }
@@ -686,7 +741,7 @@ game_server.findGame = function(client)
             var game_instance = this.games[gameid];
 
             //If the game is a player short
-            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME);
+            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME, game_instance.player_clients.length);
 
             if(game_instance.player_count < MAX_PLAYERS_PER_GAME)
             {

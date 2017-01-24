@@ -64,7 +64,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.n =0;
     this.s = 0;
     this.c = 0;
-    this.visible = true;
+    this.visible = false;
     this.active = false;
     this.state = 'not-connected';
     //this.color = 'rgba(255,255,255,0.1)';
@@ -88,18 +88,19 @@ function game_player(player_instance, isHost, pindex, config)
     this.isLocal = false;
     this.bufferIndex = undefined;//0;
 
-    if (isHost && player_instance)// && player_instance.host)
-    {
-        console.log('WE GOT SERVER HOST!', player_instance.userid);
-        this.mp = 'hp';
-        this.mis = 'his';
-        this.visible = false;
-    }
-    else {
-        this.mp = 'cp' + pindex;//(getplayers.allplayers.length + 1);
-        this.mis = 'cis' + pindex;//(getplayers.allplayers.length + 1);
+    // if (isHost && player_instance)// && player_instance.host)
+    // {
+    //     console.log('WE GOT SERVER HOST!', player_instance.userid);
+    //     this.mp = 'hp';
+    //     this.mis = 'his';
+    //     this.visible = false;
+    // }
+    // else 
+    // {
+    this.mp = 'cp' + pindex;//(getplayers.allplayers.length + 1);
+    this.mis = 'cis' + pindex;//(getplayers.allplayers.length + 1);
         //delete getplayers.allplayers;
-    }
+    // }
 
     // assign pos and input seq properties
     //Our local history of inputs

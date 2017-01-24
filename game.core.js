@@ -3602,6 +3602,7 @@ game_core.prototype.server_update = function()
         // console.log('bufView', player.mp, bufView);
         
         laststate[player.instance.userid] = buffer;//_this.serverPool;//bufArr;
+        // console.log('buffer', buffer);
         
         //pool.free(buffer);
         // if (player.mp == "cp1")
@@ -3754,7 +3755,7 @@ game_core.prototype.server_update = function()
     //if (Object.keys(laststate).length === 0) return;
     
     laststate.t = this.config.server_time;
-    //console.log(this.laststate.cp1);
+    // console.log(laststate);
     // var view = new Int16Array(this.laststate.cp1, 0, 16);
     // console.log('view', view);
     //console.log('bufview', bufView);
@@ -3848,10 +3849,21 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     //var player_client;
     //console.log('1',client.userid);
     //console.log('2',this.players.self.instance.userid);
+    if (!this.server)
+    {
+        console.log('client', client.userid);
+        console.log('instan', this.players.self.instance.userid); 
+    }
     if (!this.server && client.userid == this.players.self.instance.userid)
+    {
         player_client = this.players.self;//.instance.userid);
+        console.log('self', this.players.self.instance);
+        
+    }
     else
     {
+        //console.log('client.userid', client.userid);
+        
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
         // _.forEach(this.getplayers.allplayers, function(player)
         var player;
@@ -3980,7 +3992,7 @@ game_core.prototype.client_handle_input = function(key){
         this.keyboard.pressed('up') || key=='u') {
 
             //y_dir = -1;
-            console.log('pressed u');
+            // console.log('pressed u');
             // y_dir = this.players.self.vy;//0.5;//1;
             // x_dir = this.players.self.vx;
             input.push('u');
@@ -4549,7 +4561,7 @@ game_core.prototype.client_process_net_updates = function()
                 player.score = vt[13];
                 player.active = (vt[14] === 1) ? true : false;
                 //player.dead = (vt[13] == 1) ? true : false;
-                //console.log(Boolean(player.flap));
+                // console.log(player.mp, player.active, player.visible);
                 //if (player.mp == "cp1")
                     // console.log('#', player.mp, vt);
 
@@ -4575,11 +4587,11 @@ game_core.prototype.client_process_net_updates = function()
                 //*/
                 // console.log('* p', player.pos);
                 
-                //console.log(this.getplayers.allplayers[j].pos);
+                console.log(this.getplayers.allplayers[j]);
             }
             else // local player
             {
-                //console.log('local player');
+                console.log('local player');
                 
                 var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);
@@ -5595,6 +5607,10 @@ game_core.prototype.client_onplayernames = function(data)
                     p.team = parseInt(data[i].team);
                 if (data[i].skin != "")
                     p.setSkin(data[i].skin);
+                
+                // activate player
+                p.active = true;
+                p.visible = true;
             }
             console.log('p', p);
         }
@@ -5679,55 +5695,13 @@ game_core.prototype.client_onjoingame = function(data)
             */
             this.getplayers.allplayers[i].active = true;
             //this.getplayers.allplayers[i].playerName = "Jouster";
-            // if self.mp == "hp", player is the NEW player!
-            if (this.players.self.mp == "hp")
-            {
-                console.log("assinging new client to players.self", this.players.self.mp)
-                // this.getplayers.allplayers[i].isLocal = true;
-                // this.players.self = this.getplayers.allplayers[i];
-                // this.players.self.active = false;
-                // this.players.self.visible = true;
-                // this.players.self.dead = false;
-                // this.players.self.vuln = false;
-                // this.players.self.landed = 0;
-                // get other players' names
-                //this.socket.emit('message', {data:"n.hello!"});
-                // this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid);
-                /*
-                var url = "http://localhost:4004/api/playernames/";
-                console.log('* api call');//, this.players.self.instance);//.instance.game);
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", url, true);
-                xmlhttp.setRequestHeader("Content-type", "application/json");
-                //xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
-                //xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
-                xmlhttp.send('');//{gameId:this.players.self.});
-
-                xmlhttp.onreadystatechange = function ()
-                { //Call a function when the state changes.
-                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-                    {
-                        //alert(xmlhttp.responseText);
-                        //console.log('data', xmlhttp.responseText);
-                        //return xmlhttp.responseText;
-                        self.tilemap = xmlhttp.responseText;
-                        self.tilemapper();
-                        self.prerenderer();
-                        //self.buildPlatforms();
-                    }
-                };
-                
-                //*/
-                //console.log(this.players.self);
-            }
-            //else console.log("SELF:", this.players.self);
         }
-        else if (this.getplayers.allplayers[i].mp == 'hp')
-        {
-            //this.players.host = this.getplayers.allplayers[i];
-            console.log('remove host client', i, this.getplayers.allplayers[i].host);
-            this.getplayers.allplayers.splice(i, 1);
-        }
+        // else if (this.getplayers.allplayers[i].mp == 'hp')
+        // {
+        //     //this.players.host = this.getplayers.allplayers[i];
+        //     console.log('remove host client', i, this.getplayers.allplayers[i].host);
+        //     this.getplayers.allplayers.splice(i, 1);
+        // }
         // else if (this.getplayers.allplayers[i].instance.hosting)
     }
 
@@ -5834,14 +5808,23 @@ game_core.prototype.client_onhostgame = function(data, callback)
             // if self.mp == "hp", player is the NEW player!
             // if (this.players.self.mp == "hp")
             // {
-            console.log("assigning new client to players.self", this.players.self.mp)
+            console.log("assigning new client to players.self", this.players.self.mp);
             this.getplayers.allplayers[i].isLocal = true;
+            //this.players.self = null;
             this.players.self = this.getplayers.allplayers[i];
-            this.players.self.active = true;
+            // console.log('self:', this.players.self);
+            // console.log('sock:', this.socket);
+            // console.log('io');
+            
+            
+            
+            //this.players.self.instance = this.socket;
+            // this.players.self.mp = 
+            /*this.players.self.active = true;
             this.players.self.visible = true;
             this.players.self.dead = false;
             this.players.self.vuln = false;
-            this.players.self.landed = 0;
+            this.players.self.landed = 0;*/
             this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
             console.log('this.player.self', this.players.self.mp);
             
@@ -5885,6 +5868,8 @@ game_core.prototype.client_onhostgame = function(data, callback)
         // }
         else if (this.getplayers.allplayers[i].instance)
         {
+            console.log('* found "other" player instance', this.getplayers.allplayers[i]);
+            
             this.getplayers.allplayers[i].active = true;
             this.getplayers.allplayers[i].visible = true;
         }
@@ -6026,14 +6011,14 @@ game_core.prototype.client_onnetmessage = function(data) {
                 // case 'r' : //ready a game requested
                 //     this.client_onreadygame(commanddata); break;
 
-                case 'e' : //end game requested
-                    this.client_ondisconnect(commanddata); break;
+                // case 'e' : //end game requested
+                //     this.client_ondisconnect(commanddata); break;
 
                 case 'p' : //server ping
                     this.client_onping(commanddata); break;
 
-                case 'n' : // get player names
-                    this.client_onplayernames(commanddata); break;
+                // case 'n' : // get player names
+                //     this.client_onplayernames(commanddata); break;
 
                 // case 'c' : //other player changed colors
                 //     //console.log('got color', commanddata);
@@ -6117,7 +6102,7 @@ game_core.prototype.client_ondisconnect = function(data) {
     // remove player from client (data is disconnected player.mp)
     for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
     {
-        //console.log(this.getplayers.allplayers[i]);
+        console.log(this.getplayers.allplayers[i]);
         if (this.getplayers.allplayers[i].mp == data)
         {
             console.log('* removing player', this.getplayers.allplayers[i].mp, data);
@@ -6178,6 +6163,8 @@ game_core.prototype.client_connect_to_server = function()
     this.socket.on('onjoingame', this.client_onjoingame.bind(this));
     this.socket.on('onreadygame', this.client_onreadygame.bind(this));
     this.socket.on('onplayerkill', this.client_onplayerkilled.bind(this));
+    this.socket.on('ondisconnect', this.client_ondisconnect.bind(this));
+    this.socket.on('onplayernames', this.client_onplayernames.bind(this));
 
     // orb removal
     //this.socket.on('orbremoval', this.client_on_orbremoval.bind(this));
