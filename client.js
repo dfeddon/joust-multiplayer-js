@@ -704,6 +704,7 @@ domready(function()
 	// assets.p1stun_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png");
 	// assets.p1stun_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png");
 
+	assets.callout_shield = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/callout-shield.png");
 	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
 
 	// assets.animate_explosion = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png");

@@ -675,25 +675,29 @@ throng(
 });
 //*/
 var vp = 0;
-var tot = 3;
+var tot = 29;
 var vplayer = function()
 {
-    console.log("this vp:", this.vp)
-    if (this.vp === tot)
+    console.log("this vp:", vp)
+    if (vp === tot)
     {
-        clearInterval(this.vplayer);
+        clearInterval(vplayer);
         return;
     }
-    var c = clientIo.connect(UUID());//, {"force new connection":true});
-    c.userid = UUID();
-    c.hosting = false;
-    game_server.findGame(c);
-    this.vp++;
+    var c = new clientIo.connect('http://localhost:4004');//.connect(UUID());//, {"force new connection":true});
+    console.log('new autoplayer...');
+    // clientIo.connect();
+    // c.userid = UUID();
+    // c.on('connect', function(){console.log('cnct')});
+    
+    // c.hosting = false;
+    //game_server.findGame(c);
+    vp++;
 }
-//setInterval(this.vplayer.bind(this), 3 * 1000);
+// setInterval(vplayer.bind(this), 10 * 1000);
 
 // auto create 20 games
-var totalGames = 2;
+var totalGames = 0;
 //var host;
 for (var i = 0; i < totalGames; i++)
 {

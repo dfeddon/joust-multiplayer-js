@@ -6,6 +6,9 @@
 
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
+
+// require('gsap-tween-light');
+// var tweenmax = require("./node_modules/gsap/src/minified/TweenLite.min.js");
 var assets = require('./singleton.assets');
 var _ = require('./node_modules/lodash/lodash.min');
 
@@ -21,6 +24,7 @@ function game_chest(data, client, getplayers, config)
   {
     var v = document.getElementById('viewport');
     this.ctx = v.getContext('2d');
+    // TweenLite.ticker.addEventListener("tick", this.draw);
     //this.ctx = this.game.viewport.getContext('2d');
   }
 
@@ -41,6 +45,7 @@ function game_chest(data, client, getplayers, config)
   this.takenBy = null;
   this.opening = false;
 
+  this.callout = null;
   //console.log('chest constructor', data);
 
   //this._ = require('./node_modules/lodash/lodash.min');
@@ -117,6 +122,13 @@ game_chest.prototype.doTake = function(player)//, chests)
   });
 
   this.opening = true;
+  if (!this.config.server)
+  {
+    // start pos
+    // this.callout = { x: this.x, y: this.y - 50, image: assets.callout_shield };
+
+    // TweenLite.to(this.callout, 1.5, {x: this.x, y: this.y - 100, onUpdate:this.doAnimate});
+  }
 
   setTimeout(this.timeoutOpened.bind(this), 750);
 
@@ -153,9 +165,17 @@ game_chest.prototype.update = function()
 game_chest.prototype.draw = function()
 {
   if (this.opening === true)
+  {
     this.ctx.drawImage(assets.evt_chestopen, this.x, this.y, this.width, this.height);
+    // this.ctx.drawImage(assets.callout_shield, this.x, this.y - 50, this.width, this.height);
+  }
   else this.ctx.drawImage(assets.evt_chestclosed, this.x, this.y, this.width, this.height);
 };
+
+// game_chest.prototype.doAnimate = function()
+// {
+//   this.ctx.drawImage(assets.callout_shield, this.x, this.y - 50, this.width, this.height);
+// }
 
 if('undefined' != typeof global)
     module.exports = game_chest;

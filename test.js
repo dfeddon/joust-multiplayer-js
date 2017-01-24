@@ -1,3 +1,6 @@
+///////////////////////////////////
+// packages
+///////////////////////////////////
 var
     gameport        = process.env.PORT || 4004,
     socketport      = 3000,
@@ -35,20 +38,26 @@ app.listen(8088);
 console.log('@ http listening on port 8088');
 
 ///////////////////////////////////
-// socket.io
+// socket.io/redis
 ///////////////////////////////////
 var io = require('socket.io').listen(app);
+
 var redis = require('redis');
 var redis2 = require('socket.io-redis');
+
 io.adapter(redis2({ host: 'localhost', port: 6379 }));
+
 var fs = require('fs');
 
 ///////////////////////////////////
 // file handler
 ///////////////////////////////////
-function handler(req,res){
-    fs.readFile(__dirname + '/test.html', function(err,data){
-        if(err){
+function handler(req,res)
+{
+    fs.readFile(__dirname + '/test.html', function(err,data)
+    {
+        if(err)
+        {
             res.writeHead(500);
             return res.end('Error loading index.html');
         }
@@ -64,29 +73,53 @@ function handler(req,res){
 var store = redis.createClient();   
 var pub = redis.createClient();
 var sub = redis.createClient();
-sub.on("message", function (channel, data) {
-        data = JSON.parse(data);
-        console.log("Inside Redis_Sub: data from channel " + channel + ": " + (data.sendType));
-        if (parseInt("sendToSelf".localeCompare(data.sendType)) === 0) {
-             io.emit(data.method, data.data);
-        }else if (parseInt("sendToAllConnectedClients".localeCompare(data.sendType)) === 0) {
-             io.sockets.emit(data.method, data.data);
-        }else if (parseInt("sendToAllClientsInRoom".localeCompare(data.sendType)) === 0) {
-            io.sockets.in(channel).emit(data.method, data.data);
-        }       
 
-    });
+sub.on("message", function (channel, data) 
+{
+    data = JSON.parse(data);
+    console.log("Inside Redis_Sub: data from channel " + channel + ": " + (data.sendType));
+
+    switch(data.sendType)
+    {
+        // send to self
+        case "sendToSelf":
+            io.emit(data.method, data.data);
+            break;
+
+        // send to all clients
+        case "sendToAllConnectedClients":
+            io.sockets.emit(data.method, data.data);
+            break;
+
+        // send to all clients in room
+        case "sendToAllClientsInRoom":
+            io.sockets.in(channel).emit(data.method, data.data);
+            break;
+
+        // send to all clients in room
+        case "sendToOtherClientsInRoom":
+            // socket.broadcast.to(channel).emit(data.method, data.data);
+            break;
+
+        default: console.log('Error:', data);
+    }
+
+});
 
 ///////////////////////////////////
 // io connection
 ///////////////////////////////////
-io.sockets.on('connection', function (socket) {
-
-    sub.on("subscribe", function(channel, count) {
+io.sockets.on('connection', function (socket) 
+{
+    console.log('* io.sockets connection:', socket.connected);
+    
+    sub.on("subscribe", function(channel, count) 
+    {
         console.log("Subscribed to " + channel + ". Now subscribed to " + count + " channel(s).");
     });
 
-    socket.on("setUsername", function (data) {
+    socket.on("setUsername", function (data) 
+    {
         console.log("Got 'setUsername' from client, " + JSON.stringify(data));
         var reply = JSON.stringify({
                 method: 'message',
@@ -95,7 +128,8 @@ io.sockets.on('connection', function (socket) {
             });     
     });
 
-    socket.on("createRoom", function (data) {
+    socket.on("createRoom", function (data) 
+    {
         console.log("Got 'createRoom' from client , " + JSON.stringify(data));
         sub.subscribe(data.room);
         socket.join(data.room);     
@@ -106,16 +140,17 @@ io.sockets.on('connection', function (socket) {
                 data: "Share this room name with others to Join:" + data.room
             });
         pub.publish(data.room,reply);
-
-
     });
-    socket.on("joinRooom", function (data) {
+
+    socket.on("joinRooom", function (data) 
+    {
         console.log("Got 'joinRooom' from client , " + JSON.stringify(data));
         sub.subscribe(data.room);
         socket.join(data.room);     
-
     });
-    socket.on("sendMessage", function (data) {
+
+    socket.on("sendMessage", function (data) 
+    {
         console.log("Got 'sendMessage' from client , " + JSON.stringify(data));
         var reply = JSON.stringify({
                 method: 'message', 
@@ -123,10 +158,19 @@ io.sockets.on('connection', function (socket) {
                 data: data.user + ":" + data.msg 
             });
         pub.publish(data.room,reply);
+    });
+
+    socket.on('connect', function () 
+    {
+        console.log('* new socket connected');
+        
+        // sub.quit();
+        // pub.publish("chatting","User is disconnected :" + socket.id);
 
     });
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function () 
+    {
         sub.quit();
         pub.publish("chatting","User is disconnected :" + socket.id);
     });

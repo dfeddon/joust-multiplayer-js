@@ -19,7 +19,7 @@
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 31;
+var MAX_PLAYERS_PER_GAME = 30;
 var MAX_GAMES_PER_SERVER = 20;
 
 // include modules
@@ -103,9 +103,9 @@ var game_core = function(game_instance, io)
     console.log('## game_core instantiated');//, game_instance);
     //Store the instance, if any
     this.instance = game_instance;
+    this.io = io;
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
-    this.io = io;
     
     this.getplayers = new getplayers(game_instance);
     this.config = new config();
@@ -249,6 +249,12 @@ var game_core = function(game_instance, io)
         var other;
         for (var i = this.config.world.totalplayers - 1; i >= 0; i--)
         {
+            // if (!other.instance)
+            // {
+            //     other = new game_player(this.instance.player_host, true, NaN, this.config);
+            //     console.log('@ new client added to player', other.mp);                
+            // }
+            // else 
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
             other.playerName = this.nameGenerator();// + " [" + other.mp + "]"; 
@@ -262,16 +268,22 @@ var game_core = function(game_instance, io)
             this.getplayers.allplayers.push(other);
             // this.entities.push(other);
         }
+        /*
         // host player starts game loop on startup
         var hp = new game_player(this.instance.player_host, true, NaN, this.config);
         console.log('server host player (hp)', this.instance.player_host.userid);
         
         // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
         this.getplayers.allplayers.push(hp);
+        */
         // this.entities.push(hp);
 
-        this.players = {};
-        //this.players.self = hp;
+        // this.players = {};
+        // this.players.self = {};
+        // this.players.self.old_state = {};
+        // this.players.self.old_state.pos = {x:0,y:0};
+        // // this.players.self.last
+        // this.players.self.mp = "hp";
         //this.players.hostGame = hp.game;
 
         // add player (host)
@@ -395,7 +407,14 @@ var game_core = function(game_instance, io)
         
         //var assets = 
         //this._ = _;
-
+        this.players = {};
+        this.players.self = {};
+        this.players.self.old_state = {};
+        this.players.self.old_state.pos = {x:0,y:0};
+        // this.players.self.last
+        this.players.self.mp = "hp";
+        console.log('self', this.players.self);
+        
         /*var collisionObject = require('./class.collision'),
         PhysicsEntity       = require('./class.physicsEntity'),
         CollisionDetector   = require('./class.collisionDetector'),
@@ -451,7 +470,7 @@ var game_core = function(game_instance, io)
 
         console.log("## adding client players...", this.config.world.totalplayers);
 
-        this.players = {};
+        // this.players = {};
         var p;
         for (var l = 1; l < this.config.world.totalplayers; l++)
         {
@@ -463,7 +482,7 @@ var game_core = function(game_instance, io)
             this.getplayers.allplayers.push(p);//,null,false));
             // this.entities.push(p);
         }
-        var chost = new game_player(null, false, NaN, this.config);//, true);
+        /*var chost = new game_player(null, false, NaN, this.config);//, true);
         chost.mp = 'hp';
         chost.mis = 'his';
         chost.host = true;
@@ -471,7 +490,7 @@ var game_core = function(game_instance, io)
         this.getplayers.allplayers.push(chost);
         // this.entities.push(chost);
 
-        this.players.self = chost;//new game_player(this);
+        this.players.self = chost;//new game_player(this);*/
 
         // console.log('len', this.getplayers.allplayers.length);
 
@@ -556,9 +575,9 @@ var game_core = function(game_instance, io)
         this.client_create_ping_timer();
 
         //Set their colors from the storage or locally
-        this.color = localStorage.getItem('color') || '#cc8822' ;
-        localStorage.setItem('color', this.color);
-        this.players.self.color = this.color;
+        // this.color = localStorage.getItem('color') || '#cc8822' ;
+        // localStorage.setItem('color', this.color);
+        // this.players.self.color = this.color;
 
         //Make this only if requested
         // if(String(window.location).indexOf('debug') != -1) {
@@ -3138,7 +3157,7 @@ game_core.prototype.client_on_orbremoval = function(data)
 
 game_core.prototype.process_input = function( player )
 {
-    //console.log('##+@@process_input', player.mp);
+    // console.log('##+@@process_input', player.mp);
     //if (!this.config.server) console.log('client input', player.mp);
     
     //It's possible to have recieved multiple inputs by now,
@@ -3586,7 +3605,7 @@ game_core.prototype.server_update = function()
         
         //pool.free(buffer);
         // if (player.mp == "cp1")
-        // console.log(player.instance.userid, _this.instance.id, bufView);
+        // console.log(player.playerName, player.instance.userid, _this.instance.id, bufView);
         
         //*/
         /*
@@ -3909,7 +3928,7 @@ document.externalControlAction = function(data)
 
 game_core.prototype.client_handle_input = function(key){
     //if (glog)
-    // console.log('## client_handle_input', key);//this.keyboard);//this.keyboard.pressed('up'));
+    // console.log('## client_handle_input', this.players.self.active);//this.keyboard);//this.keyboard.pressed('up'));
 
     if (this.players.self.vuln === true || this.players.self.active === false)
     {
@@ -3961,7 +3980,7 @@ game_core.prototype.client_handle_input = function(key){
         this.keyboard.pressed('up') || key=='u') {
 
             //y_dir = -1;
-            //console.log('pressed u');
+            console.log('pressed u');
             // y_dir = this.players.self.vy;//0.5;//1;
             // x_dir = this.players.self.vx;
             input.push('u');
@@ -4572,7 +4591,7 @@ game_core.prototype.client_process_net_updates = function()
                 self_tp = {x:parseInt(self_vt[0]), y:parseInt(self_vt[1])};
                 self_pp = {x:parseInt(self_vp[0]), y:parseInt(self_vp[1])};
                 player.bufferIndex = j;
-                //console.log('vt', self_vt);
+                // console.log('vt', self_vt);
                 
 
                 //*
@@ -5015,7 +5034,7 @@ game_core.prototype.client_update_physics = function()
 
     //if(this.client_predict)
     //{
-
+        //if (!this.players.self.old_state) return;
         this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
         //if (this.players.self.mp != "hp")
         //{
@@ -5049,6 +5068,9 @@ game_core.prototype.client_update = function()
     if (glog)
     console.log('## client_update');
     //console.log(this.viewport);
+    // console.log('1', this.players);
+    // console.log('2', this.players.self);
+    
     if (this.players.self.mp == "hp") return;
 
     var _this = this;
@@ -5810,55 +5832,62 @@ game_core.prototype.client_onhostgame = function(data, callback)
             this.getplayers.allplayers[i].active = true;
             //this.getplayers.allplayers[i].playerName = "Jouster";
             // if self.mp == "hp", player is the NEW player!
-            if (this.players.self.mp == "hp")
-            {
-                console.log("assigning new client to players.self", this.players.self.mp)
-                this.getplayers.allplayers[i].isLocal = true;
-                this.players.self = this.getplayers.allplayers[i];
-                this.players.self.active = false;
-                this.players.self.visible = true;
-                this.players.self.dead = false;
-                this.players.self.vuln = false;
-                this.players.self.landed = 0;
-                // get other players' names
-                //this.socket.emit('message', {data:"n.hello!"});
-                this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
-                /*
-                var url = "http://localhost:4004/api/playernames/";
-                console.log('* api call');//, this.players.self.instance);//.instance.game);
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", url, true);
-                xmlhttp.setRequestHeader("Content-type", "application/json");
-                //xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
-                //xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
-                xmlhttp.send('');//{gameId:this.players.self.});
+            // if (this.players.self.mp == "hp")
+            // {
+            console.log("assigning new client to players.self", this.players.self.mp)
+            this.getplayers.allplayers[i].isLocal = true;
+            this.players.self = this.getplayers.allplayers[i];
+            this.players.self.active = true;
+            this.players.self.visible = true;
+            this.players.self.dead = false;
+            this.players.self.vuln = false;
+            this.players.self.landed = 0;
+            this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
+            console.log('this.player.self', this.players.self.mp);
+            
+            // get other players' names
+            //this.socket.emit('message', {data:"n.hello!"});
+            this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
+            /*
+            var url = "http://localhost:4004/api/playernames/";
+            console.log('* api call');//, this.players.self.instance);//.instance.game);
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", url, true);
+            xmlhttp.setRequestHeader("Content-type", "application/json");
+            //xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
+            //xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
+            xmlhttp.send('');//{gameId:this.players.self.});
 
-                xmlhttp.onreadystatechange = function ()
-                { //Call a function when the state changes.
-                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-                    {
-                        //alert(xmlhttp.responseText);
-                        //console.log('data', xmlhttp.responseText);
-                        //return xmlhttp.responseText;
-                        self.tilemap = xmlhttp.responseText;
-                        self.tilemapper();
-                        self.prerenderer();
-                        //self.buildPlatforms();
-                    }
-                };
-                
-                //*/
-                //console.log(this.players.self);
-            }
+            xmlhttp.onreadystatechange = function ()
+            { //Call a function when the state changes.
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
+                {
+                    //alert(xmlhttp.responseText);
+                    //console.log('data', xmlhttp.responseText);
+                    //return xmlhttp.responseText;
+                    self.tilemap = xmlhttp.responseText;
+                    self.tilemapper();
+                    self.prerenderer();
+                    //self.buildPlatforms();
+                }
+            };
+            
+            //*/
+            //console.log(this.players.self);
+            // }
             //else console.log("SELF:", this.players.self);
         }
-        else if (this.getplayers.allplayers[i].mp == 'hp')
+        // else if (this.getplayers.allplayers[i].mp == 'hp')
+        // {
+        //     //this.players.host = this.getplayers.allplayers[i];
+        //     console.log('remove host client', i, this.getplayers.allplayers[i].host);
+        //     this.getplayers.allplayers.splice(i, 1);
+        // }
+        else if (this.getplayers.allplayers[i].instance)
         {
-            //this.players.host = this.getplayers.allplayers[i];
-            console.log('remove host client', i, this.getplayers.allplayers[i].host);
-            this.getplayers.allplayers.splice(i, 1);
+            this.getplayers.allplayers[i].active = true;
+            this.getplayers.allplayers[i].visible = true;
         }
-        // else if (this.getplayers.allplayers[i].instance.hosting)
     }
 
     _.forEach(chests, function(chest)
