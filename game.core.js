@@ -4454,6 +4454,7 @@ game_core.prototype.client_process_net_updates = function()
         
         // _.forEach(_this.getplayers.allplayers, function(player, index)
         var player;
+        
         for (var j = this.getplayers.allplayers.length - 1; j >= 0; j--)
         {
             player = this.getplayers.allplayers[j];
@@ -4461,9 +4462,9 @@ game_core.prototype.client_process_net_updates = function()
             //console.log('i', player.mp, player);
             
             if (!player.userid) continue;//return;
-            // else console.log('#', player.userid);
+            // else console.log('#', player.userid, _this.players.self.userid);
             
-            
+            // "other" player, not local player "self"
             if (player.userid != _this.players.self.userid)// && previous[player.mp])
             {
                 //console.log('**', target[player.mp]);
@@ -4587,11 +4588,11 @@ game_core.prototype.client_process_net_updates = function()
                 //*/
                 // console.log('* p', player.pos);
                 
-                console.log(this.getplayers.allplayers[j]);
+                // console.log(this.getplayers.allplayers[j]);
             }
             else // local player
             {
-                console.log('local player');
+                // console.log('local player');
                 
                 var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);
@@ -4931,8 +4932,8 @@ game_core.prototype.addChest = function(chest)
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
 {
-    //if (glog)
-    //console.log('## client_onserverupdate_recieved', data);
+    if (glog)
+    console.log('## client_onserverupdate_recieved', data);
     //console.log(data);
     //if (data.hp.d === 0)
     //console.log('data', data);
@@ -5768,6 +5769,9 @@ game_core.prototype.client_onhostgame = function(data, callback)
     var playerName = alldata[4];
     var flags = JSON.parse(alldata[5]);
     var userid = alldata[6];
+    var others = JSON.parse(alldata[7]);
+    console.log('others', others);
+    
     //console.log('# startpos', startpos);
 
     //console.log('3',alldata[2]);
@@ -5789,15 +5793,16 @@ game_core.prototype.client_onhostgame = function(data, callback)
         //if (this.getplayers.allplayers[i].mp == data.mp && data.me)//.instance && this.getplayers.allplayers[i].instance.userid == data)
         if (this.getplayers.allplayers[i].mp == alldata[0])//'cp1')
         {
-            console.log('## found player', alldata[0], this.getplayers.allplayers[i]);
+            console.log('## found "self" player', alldata[0], this.getplayers.allplayers[i]);
             //console.log(this.getplayers.allplayers[i].instance.userid);
             //console.log(this.getplayers.allplayers[i].instance.hosting);
             //this.players.self.md = this.getplayers.allplayers[i].md;
             //this.players.self.mis = this.getplayers.allplayers[i].mis;
             //if (team > 0)
             this.getplayers.allplayers[i].team = team;
-            this.getplayers.allplayers[i].playerName = playerName;
             this.getplayers.allplayers[i].userid = userid;
+            if (playerName && playerName.length > 2)
+                this.getplayers.allplayers[i].playerName = playerName;
             /*/ set start position
             if (team == 1)
                 this.getplayers.allplayers[i].pos = this.gridToPixel(2, 2);
@@ -5866,12 +5871,21 @@ game_core.prototype.client_onhostgame = function(data, callback)
         //     console.log('remove host client', i, this.getplayers.allplayers[i].host);
         //     this.getplayers.allplayers.splice(i, 1);
         // }
-        else if (this.getplayers.allplayers[i].instance)
+        else if (!this.getplayers.allplayers[i].userid)
         {
             console.log('* found "other" player instance', this.getplayers.allplayers[i]);
             
-            this.getplayers.allplayers[i].active = true;
-            this.getplayers.allplayers[i].visible = true;
+            _.forEach(others, function(other)
+            {
+                if (other.mp == _this.getplayers.allplayers[i].mp)
+                {
+                    console.log('* assigning userid to other player...');
+                    
+                    _this.getplayers.allplayers[i].userid = other.userid
+                    _this.getplayers.allplayers[i].active = true;
+                    _this.getplayers.allplayers[i].visible = true;
+                }
+            })
         }
     }
 

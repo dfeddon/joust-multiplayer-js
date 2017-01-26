@@ -568,19 +568,24 @@ game_server.startGame = function(game, newplayer)
     // var host;
     // var nonhosts = [];
     // this.log('player_clients', game.player_clients.length);
-    // for (var i = 0; i < game.player_clients.length; i++)
-    // {
-    //     if (game.player_clients[i].hosting)
-    //     {
-    //         host = game.player_clients[i];
-    //         this.log("host client", host.mp, host.userid);
-    //     }
-    //     else
-    //     {
-    //         this.log("nonhost client", game.player_clients[i].mp, game.player_clients[i].userid);
-    //         nonhosts.push(game.player_clients[i]);
-    //     }
-    // }
+    var others = [];
+    var other;
+    for (var i = 0; i < game.player_clients.length; i++)
+    {
+        other = game.player_clients[i];
+        if (other.userid && other.userid != playerUserId)
+            others.push({mp: other.mp, userid: other.userid});
+        // if (game.player_clients[i].hosting)
+        // {
+        //     host = game.player_clients[i];
+        //     this.log("host client", host.mp, host.userid);
+        // }
+        // else
+        // {
+        //     this.log("nonhost client", game.player_clients[i].mp, game.player_clients[i].userid);
+        //     nonhosts.push(game.player_clients[i]);
+        // }
+    }
 
     var game_instance = this.games[game.id];
 
@@ -675,7 +680,8 @@ game_server.startGame = function(game, newplayer)
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //console.log('nonhosts[j]', nonhosts[j]);
                 this.log("hostgame", this.games[game.id].id);
-                nonhosts[j].emit('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId, function(err, success)
+                // TODO: onhostgame: id "other" players by sending array matching mp to players assigned a userid
+                nonhosts[j].emit('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
                 {
                     if (err)
                         this.log("ERROR:", err);
