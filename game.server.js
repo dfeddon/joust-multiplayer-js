@@ -573,6 +573,8 @@ game_server.startGame = function(game, newplayer)
     for (var i = 0; i < game.player_clients.length; i++)
     {
         other = game.player_clients[i];
+        console.log('@@ other', other.mp, other.userid, other.playerName, other.skin);
+        
         if (other.userid && other.userid != playerUserId)
             others.push({mp: other.mp, userid: other.userid});
         // if (game.player_clients[i].hosting)
@@ -783,9 +785,25 @@ game_server.findGame = function(client)
                             if (client_added === false)
                             {
                                 // use cp, as host's hp and his props are already defined
-                                console.log('*** found client', players[i].mp, client.userid, players[i].team);//players[i].id);
+                                console.log('*** found client', players[i].mp, client.userid, client.playerdata, players[i].team);//players[i].id);
+                                var split = client.playerdata.split("|");
                                 players[i].instance = client;
                                 players[i].id = client.userid;
+                                if (split[0] !== "undefined" && split[0].length > 2)
+                                {
+                                    console.log('@ got user-defined name', split[0]);
+                                    players[i].playerName = split[0];
+                                }
+                                else if (players[i].playerName == "undefined")
+                                {
+                                    console.log('@ auto-generating user name', players[i].playerName);
+                                    
+                                    players[i].playerName = game_instance.gamecore.nameGenerator();
+                                }
+                                else console.log('default player name is', players[i].playerName);
+                                
+                                if (split[1].length > 0)
+                                    players[i].skin = split[1];
                                 players[i].isLocal = true;
                                 players[i].gameid = gameid;
                                 client.mp = players[i].mp;
