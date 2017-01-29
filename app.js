@@ -17,6 +17,7 @@ var
     redishost       = "localhost",
     verbose         = false,
 
+    Primus          = require('primus'),
     io              = require('socket.io'),
     clientIo        = require('socket.io-client'),
     uws             = require('uws'),
@@ -494,12 +495,18 @@ http.globalAgent.maxSockets = Infinity;
 
 //Express and socket.io can work together to serve the socket.io client files for you.
 //This way, when the client requests '/socket.io/' files, socket.io determines what the client needs.
-var ioserver = http.createServer(function(req, res){ 
+var ioserver = http.createServer(function(req, res)
+{ 
     // Send HTML headers and message
     // res.writeHead(200,{ 'Content-Type': 'text/html' }); 
     // res.end('<h1>Hello Socket Lover!</h1>');
 });
 ioserver.listen(3000);
+/*var primus = new Primus(ioserver, 
+{
+    port: 4004,
+    transformer: 'webscokets'
+});*/
 //Create a socket.io instance using our express server
 //console.log('server prot', server);
 // var proxy = httpProxy.createProxyServer({target:'http://localhost:3000'});
