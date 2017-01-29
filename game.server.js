@@ -13,10 +13,11 @@ var MAX_GAMES_PER_SERVER = 20;
 
 var
     game_server = module.exports = { games : {}, game_count:0 },
-    UUID        = require('node-uuid'),
+    // UUID        = require('node-uuid'),
+    getUid      = require('get-uid'),
     //namegen     = require('./name_generator'),
     name_set    = require('./egyptian_set'),
-    _           = require('lodash'),
+    // _           = require('lodash'),
     //config      = require('./class.globals'),
     //getplayers  = require('./class.getplayers'),
     verbose     = true;
@@ -237,7 +238,7 @@ game_server.createGame = function(client)
 
     var thegame =
     {
-        id : UUID(),                 //generate a new id for the game
+        id : getUid(),                 //generate a new id for the game
         player_host: client,         //so we know who initiated the game
         player_client: null,         //nobody else joined yet, since its new
         player_clients: clients,
@@ -900,8 +901,11 @@ game_server.getTeams = function(game_instance)
     var rec;
 
     var players = game_instance.gamecore.getplayers.allplayers;
-    _.forEach(players, function(player)
+    var player;
+    //_.forEach(players, function(player)
+    for (var i = 0; i < players.length; i++)
     {
+        player = players[i];
         if (player.instance)
         {
             _this.log("player team", player.team);
@@ -912,7 +916,7 @@ game_server.getTeams = function(game_instance)
             
             total++;
         }
-    });
+    }
 
     //total--; // remove "host" player
     total--; // remove new player

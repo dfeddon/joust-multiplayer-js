@@ -1,178 +1,90 @@
-///////////////////////////////////
-// packages
-///////////////////////////////////
-var
-    gameport        = process.env.PORT || 4004,
-    socketport      = 3000,
-    redisport       = 6379,
-    redishost       = "localhost",
-    verbose         = false,
+var cluster  = require('cluster'), 
+_portSocket  = 4004, 
+_portRedis   = 6379, 
+_HostRedis   = 'localhost';
 
-    io              = require('socket.io'),
-    clientIo        = require('socket.io-client'),
-    uws             = require('uws'),
 
-    express         = require('express'),
-    http            = require('http'),
-    // net             = require('net'),
-
-    cluster         = require('cluster'),
-    os              = require('os'),
-
-    sio_redis       = require('socket.io-redis'),
-    sticky          = require('socketio-sticky-session'),
-    httpProxy       = require('http-proxy'),
-
-    // num_processes   = require('os').cpus().length,
-    UUID            = require('node-uuid'),
-
-    debug           = require('debug'),
-    winston         = require('winston'),
-    util            = require('util');
-
-///////////////////////////////////
-// webserver
-///////////////////////////////////
-var app = require('http').createServer(handler);
-app.listen(8088);
-console.log('@ http listening on port 8088');
-
-///////////////////////////////////
-// socket.io/redis
-///////////////////////////////////
-var io = require('socket.io').listen(app);
-
-var redis = require('redis');
-var redis2 = require('socket.io-redis');
-
-io.adapter(redis2({ host: 'localhost', port: 6379 }));
-
-var fs = require('fs');
-
-///////////////////////////////////
-// file handler
-///////////////////////////////////
-function handler(req,res)
-{
-    fs.readFile(__dirname + '/test.html', function(err,data)
-    {
-        if(err)
-        {
-            res.writeHead(500);
-            return res.end('Error loading index.html');
+if (cluster.isMaster) {	
+	var server = require('http').createServer(), 
+    socketIO = require('socket.io').listen(server), 
+    redis = require('socket.io-redis');	
+	socketIO.adapter(redis({ host: _HostRedis, port: _portRedis }));
+	
+	var numberOfCPUs = require('os').cpus().length;
+	for (var i = 0; i < numberOfCPUs; i++) {
+		cluster.fork();		
+	}
+	
+	cluster.on('fork', function(worker) {
+        console.log('Worker %s create', worker.id);
+    });
+    cluster.on('online', function(worker) {
+         console.log('Worker %s online', worker.id);
+    });
+    cluster.on('listening', function(worker, addr) {
+        console.log('Worker %s listening to %s:%d', worker.id, addr.address, addr.port);
+    });
+    cluster.on('disconnect', function(worker) {
+        console.log('Worker %s disconnect', worker.id);
+    });
+    cluster.on('exit', function(worker, code, signal) {
+        console.log('Worker %s died (%s)', worker.id, signal || code);
+        if (!worker.suicide) {
+            console.log('New worker %s create', worker.id);
+            cluster.fork();
         }
-        res.writeHead(200);
-        console.log("* test.html listening on port 8088");
-        res.end(data);
     });
 }
 
-///////////////////////////////////
-// redis init pub/sub
-///////////////////////////////////
-var store = redis.createClient();   
-var pub = redis.createClient();
-var sub = redis.createClient();
+if (cluster.isWorker) {	
 
-sub.on("message", function (channel, data) 
-{
-    data = JSON.parse(data);
-    console.log("Inside Redis_Sub: data from channel " + channel + ": " + (data.sendType));
-
-    switch(data.sendType)
+	var http = require('http');
+	
+	http.globalAgent.maxSockets = Infinity;	
+	
+	var app = require('express')(), 
+    ent = require('ent'), 
+    fs  = require('fs'), 
+    server = http.createServer(app).listen(_portSocket), 
+    socketIO = require('socket.io').listen(server), 
+    redis = require('socket.io-redis');
+	
+	socketIO.adapter(redis({ host: _HostRedis, port: _portRedis }));
+	
+	// app.get('/', function (req, res) { res.emitfile(__dirname + '/index.html');});
+    app.get( '/', function( req, res )
     {
-        // send to self
-        case "sendToSelf":
-            io.emit(data.method, data.data);
-            break;
-
-        // send to all clients
-        case "sendToAllConnectedClients":
-            io.sockets.emit(data.method, data.data);
-            break;
-
-        // send to all clients in room
-        case "sendToAllClientsInRoom":
-            io.sockets.in(channel).emit(data.method, data.data);
-            break;
-
-        // send to all clients in room
-        case "sendToOtherClientsInRoom":
-            // socket.broadcast.to(channel).emit(data.method, data.data);
-            break;
-
-        default: console.log('Error:', data);
-    }
-
-});
-
-///////////////////////////////////
-// io connection
-///////////////////////////////////
-io.sockets.on('connection', function (socket) 
-{
-    console.log('* io.sockets connection:', socket.connected);
-    
-    sub.on("subscribe", function(channel, count) 
-    {
-        console.log("Subscribed to " + channel + ". Now subscribed to " + count + " channel(s).");
+        console.log('trying to load %s', __dirname + '/index.html');
+        res.sendFile( '/index.html' , { root:__dirname });
     });
+	
+	socketIO.sockets.on('connection', function(socket, pseudo) {
 
-    socket.on("setUsername", function (data) 
-    {
-        console.log("Got 'setUsername' from client, " + JSON.stringify(data));
-        var reply = JSON.stringify({
-                method: 'message',
-                sendType: 'sendToSelf',
-                data: "You are now online"
-            });     
-    });
+		socket.setNoDelay(true);
+		
+		socket.on('new_client', function(pseudo) {
+			pseudo = ent.encode(pseudo);			
+			socket.pseudo = pseudo;
+			try {
+				socket.broadcast.to(socket.room).emit('new_client', pseudo);
+			} catch(e) {
+				socket.to(socket.room).emit('new_client', pseudo);
+			}
+			console.log('User : '+socket.pseudo+' logged in');
+		});	
 
-    socket.on("createRoom", function (data) 
-    {
-        console.log("Got 'createRoom' from client , " + JSON.stringify(data));
-        sub.subscribe(data.room);
-        socket.join(data.room);     
+		socket.on('message', function(data) {
+			socket.broadcast.to(socket.room).emit('dispatch', data);
+		});	
 
-        var reply = JSON.stringify({
-                method: 'message', 
-                sendType: 'sendToSelf',
-                data: "Share this room name with others to Join:" + data.room
-            });
-        pub.publish(data.room,reply);
-    });
-
-    socket.on("joinRooom", function (data) 
-    {
-        console.log("Got 'joinRooom' from client , " + JSON.stringify(data));
-        sub.subscribe(data.room);
-        socket.join(data.room);     
-    });
-
-    socket.on("sendMessage", function (data) 
-    {
-        console.log("Got 'sendMessage' from client , " + JSON.stringify(data));
-        var reply = JSON.stringify({
-                method: 'message', 
-                sendType: 'sendToAllClientsInRoom',
-                data: data.user + ":" + data.msg 
-            });
-        pub.publish(data.room,reply);
-    });
-
-    socket.on('connect', function () 
-    {
-        console.log('* new socket connected');
-        
-        // sub.quit();
-        // pub.publish("chatting","User is disconnected :" + socket.id);
-
-    });
-
-    socket.on('disconnect', function () 
-    {
-        sub.quit();
-        pub.publish("chatting","User is disconnected :" + socket.id);
-    });
-
-  });
+		socket.on('exit', function(data) { socket.close();});
+		
+		socket.on('room', function(newroom) {
+			socket.room = newroom;
+			socket.join(newroom);	
+			console.log('Member '+socket.pseudo+' has joined the room '+socket.room);
+			socket.broadcast.to(socket.room).emit('dispatch', 'User : '+socket.pseudo+' has joined the room : '+socket.room);
+		});
+	});
+	
+}

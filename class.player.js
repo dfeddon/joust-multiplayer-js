@@ -78,9 +78,12 @@ function game_player(player_instance, isHost, pindex, config)
 
     // TODO: default to invisible skin
     this.skin = "skin1";
+    this.bufferView = new Int16Array(16);
     if (!config.server)
     {
         this.sprite = new game_spritesheet(assets.skins[this.skin]);
+        this.buffer = new ArrayBuffer(16);
+        this.bufferView = new Int16Array(this.buffer, 16);
     }    
 
     //this.stunLen = 500; // 1.5 sec
@@ -148,440 +151,6 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.playerName = "";
     this.playerSprite = "roundRooster";
-    //return;
-    /*
-    if (!this.config.server)
-    {
-        // function transparency(img)
-        // {
-        //     var len = img.data.length;
-        //     console.log('len',len);
-        //     for (var i = 3; i < len; i+=4)
-        //         img.data[i] = 0;
-        //     return img;
-        // }
-        // var flipImage = function(image, ctx, flipH, flipV)
-        // {
-        //     var scaleH = flipH ? -1 : 1, // Set horizontal scale to -1 if flip horizontal
-        //         scaleV = flipV ? -1 : 1, // Set verical scale to -1 if flip vertical
-        //         posX = flipH ? 64 * -1 : 0, // Set x position to -100% if flip horizontal
-        //         posY = flipV ? 64 * -1 : 0; // Set y position to -100% if flip vertical
-        //
-        //     ctx.save(); // Save the current state
-        //     ctx.scale(scaleH, scaleV); // Set scale to flip the image
-        //     ctx.drawImage(image, posX, posY, 64, 64); // draw the image
-        //     ctx.restore(); // Restore the last saved state
-        //     return ctx;
-        // };
-
-        // function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight)
-        // {
-        //     var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-        //     return ratio;
-        // }
-        var src1 = assets.ss1;//document.getElementById('ss1');
-        var src2 = assets.ss2;//document.getElementById('ss2');
-
-        var cvs1 = document.createElement('canvas');//('canvas_' + y.toString());
-        cvs1.width = 2000;
-        cvs1.height = 2000;
-        cvs1.x=0;
-        cvs1.y=0;
-        var cvs2 = document.createElement('canvas');//('canvas_' + y.toString());
-        cvs2.width = 2000;
-        cvs2.height = 2000;
-        cvs2.x=0;
-        cvs2.y=0;
-
-        var ctx1 = cvs1.getContext('2d');
-        //ctx.scale(0.5,0.5);
-        ctx1.drawImage(src1, 0, 0);
-        var ctx2 = cvs2.getContext('2d');
-        ctx2.drawImage(src2, 0, 0);
-
-        var imgCvs = document.createElement('canvas');
-        imgCvs.width = 62;
-        imgCvs.height = 57;
-        imgCvsCtx = imgCvs.getContext('2d');
-
-        var getImg;
-        this.playerSprite = "brownDragon";
-        switch(this.playerSprite)
-        {
-            case "roundRooster":
-
-                // glide right
-                getImg=ctx1.getImageData(10,7,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(926,7,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(926,7,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(10,7,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(260,7,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(260,7,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(260,95,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(260,95,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-            break;
-
-            case "brownFishlike":
-
-                // glide right
-                getImg=ctx1.getImageData(10,173,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(926,173,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(926,173,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(10,173,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(260,173,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(260,173,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(260,266,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(260,266,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-            break;
-
-            case "greenRound":
-                // glide right
-                getImg=ctx1.getImageData(10,339,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(926,339,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(926,339,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(10,339,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(260,339,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(260,339,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(260,428,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(260,428,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-            break;
-
-            case "redScreamer":
-                // glide right
-                getImg=ctx1.getImageData(3,506,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-                // var ratio = calculateAspectRatioFit(this.glideRight.width,this.glideRight.height,64,64);
-                // console.log('ratio', ratio);
-                // this.glideRight.width*=ratio;
-                // this.glideRight.height*=ratio;
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(919,506,77,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(502,506,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(420,506,77,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(252,506,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(252,506,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(252,607,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(252,607,77,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                this.size.hx = 77;
-                this.size.hy = 57;
-
-            break;
-
-            case "brownDragon":
-                // glide right
-                getImg=ctx1.getImageData(10,673,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(926,673,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(926,673,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(10,673,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(260,673,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(260,673,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(260,768,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(260,768,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-            break;
-
-            case "greenSpotter":
-                // glide right
-                getImg=ctx1.getImageData(10,840,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideRight = new Image();
-                this.glideRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // glide left
-                //imgCvsCtx.clearRect(0, 0, imgCvs.width, imgCvs.height);
-                getImg = ctx2.getImageData(926,840,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.glideLeft = new Image();
-                this.glideLeft.src = imgCvs.toDataURL('image/png');
-
-                // flap right
-                getImg=ctx1.getImageData(926,840,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapRight = new Image();
-                this.flapRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // flap left
-                getImg = ctx2.getImageData(10,840,62,57);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.flapLeft = new Image();
-                this.flapLeft.src = imgCvs.toDataURL('image/png');
-
-                // stand right
-                getImg=ctx1.getImageData(260,840,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standRight = new Image();
-                this.standRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // stand left
-                getImg=ctx2.getImageData(260,840,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.standLeft = new Image();
-                this.standLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable right
-                getImg=ctx1.getImageData(260,943,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnRight = new Image();
-                this.vulnRight.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-                // vulnerable left
-                getImg=ctx2.getImageData(260,943,62,57);//35,13,128,128);
-                imgCvsCtx.putImageData(getImg, 0, 0);
-                this.vulnLeft = new Image();
-                this.vulnLeft.src = imgCvs.toDataURL('image/png');//cvs.toDataURL('image/png');
-
-            break;
-        }
-
-        // gc
-        cvs1 = null;
-        cvs2 = null;
-        imgCvs = null;
-        //src1.parentNode.removeChild(src1);
-        src1 = null;
-        src2 = null;
-        //console.log('::',src1);
-        //*/
-
-        /*
-        // spritesheet
-        var playerSheet = document.getElementById('ss1');
-        // cells
-        var playerCells = [ { left:1013, top:7, width:128, height:131} ];
-
-        // behaviors
-        var glideRightBehavior = new CellSwitchBehavior
-        (
-            playerCells, // array of rectangles in the sheet
-            1000, // duriation in ms
-            function(sprite, now, fps, lastAnimationFrameTime) // trigger
-            {
-                return this.glideRight;
-            },
-            function(sprite, animator) // callback
-            {
-                return this.glideRight;
-            }
-        );
-
-        // animation
-        this.animation = new Sprite(
-            'player', // type
-            new SpriteSheetArtist( // artist
-                playerSheet, // spritesheet
-                playerCells // *all* cells
-            ),
-            [ // behaviors
-                glideRightBehavior,
-                // this.glideLeft,
-                // this.flapRight,
-                // this.flapLeft,
-                // this.stunRight,
-                // this.stunLeft,
-                // this.dieRight,
-                // this.disabledLeftTrackImage
-            ]
-        );
-        console.log('animate', this.animation);*/
-    //}
-    //this.lastNamePlate = "YOU";
 } // end game_player constructor
 
 game_player.prototype.pos = { x: 0, y: 0 };
@@ -593,6 +162,51 @@ game_player.prototype.dead = false;
 //     console.log('player.setFlag', int);
 //     this.hasFlag = int;
 // };
+
+game_player.prototype.bufferWrite = function(view, i)
+{
+    // if (!view)
+    //     view = this.bufferView;
+    
+    view[0] = this.pos.x.fixed(0);
+    view[1] = this.pos.y.fixed(0);
+    view[2] = this.dir;
+    view[3] = (this.flap) ? 1 : 0;
+    view[4] = this.landed;
+    view[5] = (this.vuln) ? 1 : 0;
+    view[6] = this.a;
+    view[7] = this.vx;
+    view[8] = this.vy;
+    view[9] = this.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
+    view[10] = (this.bubble) ? 1 : 0;
+    view[11] = (this.visible) ? 1 : 0;
+    view[12] = i; // player's bufferIndex
+    view[13] = this.score;
+    view[14] = (this.active) ? 1 : 0;
+    view[15] = 16; // open item
+
+    return view;
+};
+game_player.prototype.bufferRead = function()
+{
+    return this.buffer;
+}
+game_player.prototype.setFromBuffer = function(data)
+{
+    this.dir = data[2];
+    this.flap = (data[3] === 1) ? true : false;
+    this.landed = data[4];
+    this.vuln = (data[5] === 1) ? true : false;
+    this.a = data[6];
+    this.vx = data[7];
+    this.vy = data[8];
+    this.hasFlag = data[9];
+    this.bubble = (data[10] === 1) ? true : false;
+    this.visible = (data[11] === 1) ? true : false;
+    this.bufferIndex = data[12]; // j
+    this.score = data[13];
+    this.active = (data[14] === 1) ? true : false;
+}
 
 game_player.prototype.reset = function()
 {

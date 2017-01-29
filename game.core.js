@@ -25,7 +25,8 @@ var MAX_GAMES_PER_SERVER = 20;
 // include modules
 var 
     _                   = require('./node_modules/lodash/lodash.min'),
-    UUID                = require('node-uuid'),
+    // UUID                = require('node-uuid'),
+    getUid              = require('get-uid'),
     config              = require('./class.globals'),
     getplayers          = require('./class.getplayers'),
     egyptian_set        = require('./egyptian_set'),
@@ -404,6 +405,13 @@ var game_core = function(game_instance, io)
     else // clients (browsers)
     {
         console.log('client instance', this.instance);
+
+        // workers
+        if (window.Worker)
+        {
+            this.clientWorker_tileCollision = new Worker("worker.client.tileCollision.js");
+        }
+        else this.clientWorker_tileCollision = null;
         
         //var assets = 
         //this._ = _;
@@ -2809,88 +2817,6 @@ game_core.prototype.check_collision = function( player )
             }
             //console.log(player.n, player.s, player.e, player.w);
         }
-        /*
-        else if (h.sw.t > 0) // landing
-        {
-            //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
-            //player.pos.x += b;
-            //player.pos.y -= b;
-            player.pos.y = parseInt((h.sw.y * 64) - 64);
-
-            // decelerate
-            if (player.vx > 0)
-            {
-                //console.log('slowing', player.vx);
-
-                // slow horizontal velocity
-                player.vx -= 200;
-
-                // set landing flag (moving)
-                player.landed = 2;
-
-                if (player.vx < 0)
-                {
-                    player.vx = 0;
-                    player.landed = 1;
-                }
-            }
-            else if (player.vx < 0)
-            {
-                player.vx += 200;
-                player.landed = 2;
-
-                if (player.vx > 0) player.vx = 0;
-            }
-            if (player.vx === 0)
-            {
-                // stuck landing (no velocity)
-                player.vx = 0;
-                // set landing flag (stationary)
-                player.landed = 1;
-            }
-        }
-        else if (h.se.t > 0) // landing
-        {
-            //console.log('stop se', player.mp);// h.sw.y * 64, player.pos.y + player.size.hy);
-            //player.pos.x -= b;
-            //player.pos.y -= b;
-            player.pos.y = parseInt((h.se.y * 64) - 64);
-            // decelerate
-            if (player.vx > 0 && player.vuln !== true)
-            {
-                //console.log('slowing', player.vx);
-
-                // slow horizontal velocity
-                player.vx = (player.vx + 200).fixed(3);
-                // set landing flag (moving)
-                player.landed = 2;
-
-                if (player.vx > 0)
-                {
-                    player.vx = 0;
-                    player.landed = 1;
-                }
-            }
-            else if (player.vx < 0 && player.vuln !== true)
-            {
-                player.vx = (player.vx + 200).fixed(3);
-                player.landed = 2;
-
-                if (player.vx > 0)
-                {
-                    player.vx = 0;
-                    player.landed = 1;
-                }
-            }
-            else
-            {
-                // stuck landing (no velocity)
-                player.vx = 0;
-                // set landing flag (stationary)
-                player.landed = 1;
-            }
-        }
-        //*/
     }
 }; //game_core.check_collision
 
@@ -3578,7 +3504,10 @@ game_core.prototype.server_update = function()
         // bufView.length = 16;
         //*
         if (player.pos.x === 0 && player.pos.y === 0) continue;//return;
+
+        bufView = player.bufferWrite(bufView, i);
         //player.pos.x = player.pox.x.toFixed(2);
+        /*
         bufView[0] = player.pos.x.fixed(0);
         bufView[1] = player.pos.y.fixed(0);//.fixed(2);
         bufView[2] = player.dir;
@@ -3595,6 +3524,7 @@ game_core.prototype.server_update = function()
         bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
         bufView[14] = (player.active) ? 1 : 0;
         bufView[15] = 16; // open item
+        //*/
         //bufView[11] = new Date();
         // if (player.mp == "cp2")
         //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
@@ -3626,7 +3556,7 @@ game_core.prototype.server_update = function()
             b:player.bubble
         };//*/
         // console.log('*', player.last_input_seq);
-        
+        /* {cis1: '3991'} */
         laststate[player.mis] = player.last_input_seq;
 
         // reset flap on server instance
@@ -3678,8 +3608,14 @@ game_core.prototype.server_update = function()
                 switch(evt.type)
                 {
                     case evt.TYPE_CHEST:
-                        var id = _this.getUID();
+                        var id = getUid();//_this.getUID();
                         console.log('adding chest', id);//, evt.spawn, 'with passive', evt.passive);
+                        /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
+                            x: '1152',
+                            y: '576',
+                            t: 1,
+                            d: 60,
+                            m: 50 }*/
                         if (evt.id == 'ec') // chest event
                             _this.addChest(
                                 {
@@ -3704,6 +3640,7 @@ game_core.prototype.server_update = function()
                     case evt.TYPE_FLAG_CARRIED_COOLDOWN:
 
                         console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
+                        // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
                         laststate[evt.id] =
                         {
                             t: evt.timer,
@@ -3715,6 +3652,7 @@ game_core.prototype.server_update = function()
                     case evt.TYPE_FLAG_SLOTTED_COOLDOWN:
 
                         console.log('evt active slotted cooldown', evt.id, evt.timer);
+                        // fc: { t: 6, f: 'midFlag' } }
                         laststate[evt.id] =
                         {
                             t: evt.timer,
@@ -3751,7 +3689,7 @@ game_core.prototype.server_update = function()
         //else console.log(flag);
     });
     //*/
-    // console.log('laststate', laststate, this.gameid);
+    console.log('laststate', laststate, this.gameid);
     //if (Object.keys(laststate).length === 0) return;
     
     laststate.t = this.config.server_time;
@@ -3851,21 +3789,17 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     //console.log('2',this.players.self.instance.userid);
     if (!this.server)
     {
-        console.log('client', client.userid);
-        console.log('instan', this.players.self.instance.userid); 
+        // console.log('client', client.userid);
+        // console.log('instan', this.players.self.instance.userid); 
     }
     if (!this.server && client.userid == this.players.self.instance.userid)
     {
         player_client = this.players.self;//.instance.userid);
-        console.log('self', this.players.self.instance);
-        
+        // console.log('self', this.players.self.instance);
     }
     else
     {
         //console.log('client.userid', client.userid);
-        
-        //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-        // _.forEach(this.getplayers.allplayers, function(player)
         var player;
         for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
         {
@@ -4547,7 +4481,8 @@ game_core.prototype.client_process_net_updates = function()
                     //return;
                 //}
                 //player.pos = _this.v_lerp(p.pos, ghostStub, _this._pdt * _this.client_smooth);
-
+                player.setFromBuffer(vt);
+                /*
                 player.dir = vt[2];
                 player.flap = (vt[3] === 1) ? true : false;
                 player.landed = vt[4];
@@ -4561,6 +4496,7 @@ game_core.prototype.client_process_net_updates = function()
                 player.bufferIndex = j;// -> vt[12]
                 player.score = vt[13];
                 player.active = (vt[14] === 1) ? true : false;
+                */
                 //player.dead = (vt[13] == 1) ? true : false;
                 // console.log(player.mp, player.active, player.visible);
                 //if (player.mp == "cp1")
@@ -4606,8 +4542,8 @@ game_core.prototype.client_process_net_updates = function()
                 player.bufferIndex = j;
                 // console.log('vt', self_vt);
                 
-
-                //*
+                _this.players.self.setFromBuffer(self_vt);
+                /*
                 //player.dir = vt[2];
                 //player.flap = (vt[3] === 1) ? true : false;
                 //if (this.players){
@@ -4729,7 +4665,7 @@ game_core.prototype.client_process_net_updates = function()
         if (_.has(target, 'ec'))
         {
             // avoid reduncancy
-            if (!target.ec) return false;
+            if (!target.ec) return false; // break
 
             //console.log('got chest event', this.events, target.ec);
             _this.addChest(target.ec);
@@ -4913,8 +4849,8 @@ game_core.prototype.addChest = function(chest)
 
     if (this.server)
     {
-        var game_chest_server = require('./class.chest');
-        this.chests.push(new game_chest_server(chest, false, this.getplayers, this.config));
+        // var game_chest_server = require('./class.chest');
+        this.chests.push(new game_chest(chest, false, this.getplayers, this.config));
         //console.log('newChest id', newChest.id);
 
         // _.forEach(this.getplayers.allplayers, function(ply)
@@ -5032,7 +4968,19 @@ game_core.prototype.client_update_local_position = function()
 
         //We handle collision on client if predicting.
         //if (this.players.self.landed === 1)
-        this.check_collision( this.players.self );
+        //this.check_collision( this.players.self );
+        /*
+        if (this.clientWorker_tileCollision)
+        {
+            var message = {player: this.players.self};
+            this.clientWorker_tileCollision.postMessage(message, [message.player]);
+            this.clientWorker_tileCollision.onmessage = evt => 
+            {
+                console.log('* got message from worker!', evt);    
+            }
+        }
+        else//*/ 
+        this.check_collision(this.players.self);
 
     //}  //if(this.client_predict)
 
@@ -6178,7 +6126,7 @@ game_core.prototype.client_connect_to_server = function()
     console.log('client_connect_to_server');
 
     //Store a local reference to our connection to the server
-    this.socket = io.connect("http://localhost:4004", 
+    this.socket = io.connect("http://192.168.86.106:4004", 
         {query: "playerdata=" + assets.playerName + "|" + assets.playerSkin});//"http://localhost:3000");
     // this.socket = io.connect();
 

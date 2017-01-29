@@ -33,7 +33,8 @@ var
     httpProxy       = require('http-proxy'),
 
     // num_processes   = require('os').cpus().length,
-    UUID            = require('node-uuid'),
+    // UUID            = require('node-uuid'),
+    getUid          = require('get-uid'),
 
     debug           = require('debug'),
     winston         = require('winston'),
@@ -51,6 +52,9 @@ var
 // init();
 // return;
 // 
+// for (var u = 0; u < 100; u++)
+//     console.log('uid', Math.floor(new Date().valueOf() * Math.random()));
+
 /*
 if (cluster.isMaster) {
 
@@ -259,7 +263,7 @@ else
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
     var client = connection;
-    client.userid = UUID();
+    client.userid = getUid();
     console.log('@@ new client connected', client.userid);//, client);
 
     //tell the player they connected, giving them their id
@@ -323,19 +327,168 @@ else
 }
 //*/
 
+//if (cluster.isMaster) {
+    console.log('@ MASTER');
 
-// function init(){
+    /////////////////////////////////////////////////
+    /////////////////////////////////////////////////
+    // app server
+    /////////////////////////////////////////////////
+    /////////////////////////////////////////////////
+    console.log('init!');
+
+    /////////////////////////////////////////////////
+    // server
+    /////////////////////////////////////////////////
+    var app = express();
+    var server = http.createServer(app);
+    //Tell the server to listen for incoming connections
+    server.listen(gameport);//, 'localhost');
+    console.log('\t :: Express :: Listening on port ' + gameport );
+
+    //By default, we forward the / path to index.html automatically.
+    app.get( '/', function( req, res )
+    {
+        console.log('trying to load %s', __dirname + '/index.html');
+        res.sendFile( '/index.html' , { root:__dirname });
+    });
+
+    // security
+
+    app.get('/app.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/package.json', function(req, res)
+    {
+        //console.log('stop!', req.headers);
+        res.status(404).end();
+    });
+    // app.get('/index.css', function(req, res)
+    // {
+    //     res.status(404).end();
+    // });
+    app.get('/class.chest.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.event.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.flag.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.getplayers.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.globals.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.platform.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.player.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.toast.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/egyptian_set.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/game.core.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/game.server.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/singleton.assets.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+
+    //This handler will listen for requests on /*, any file from the root of our server.
+    //See expressjs documentation for more info on routing.
+    app.get( '/*' , function( req, res, next )
+    {
+        //This is the current file they have requested
+        var file = req.params[0];
+
+        //For debugging, we can track what files are requested.
+        //if(verbose)
+        console.log(':: Express :: file requested : ' + file);
+
+        //Send the requesting client the file.
+        res.sendFile( __dirname + '/' + file );
+    }); //app.get *
+
+    app.post( '/api/orbs' , function( req, res, next )
+    {
+        console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
+        return res.send('hi', game_server.games.length);//[0]);
+    });
+    app.post( '/api/playernames', function(req, res, next)
+    {
+        console.log('api POST - app get player names', game_server[0]);
+    })
+
+    // clusters
+	
+    // var server = require('http').createServer(), 
+    // socketIO = require('socket.io').listen(server), 
+    // redis = require('socket.io-redis');	
+
+	// socketIO.adapter(redis({ host: redishost, port: redisport }));
+	
+	// var numberOfCPUs = require('os').cpus().length;
+	// for (var i = 0; i < numberOfCPUs; i++) {
+	// 	cluster.fork();		
+	// }
+	
+	// cluster.on('fork', function(worker) {
+    //     console.log('Worker created', worker.id);
+    // });
+    // cluster.on('online', function(worker) {
+    //      console.log('Workers online', worker.id);
+    // });
+    // cluster.on('listening', function(worker, addr) {
+    //     console.log('Workers listening on', worker.id, addr.address, addr.port);
+    // });
+    // cluster.on('disconnect', function(worker) {
+    //     console.log('Worker disconnected', worker.id);
+    // });
+    // cluster.on('exit', function(worker, code, signal) {
+    //     console.log('Dead worker', worker.id, signal || code);
+    //     if (!worker.suicide) {
+    //         console.log('New worker created', worker.id);
+    //         cluster.fork();
+    //     }
+    // });
+
+
+
+
+//} // end master
+
+//else if (cluster.isWorker) {
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// socket server
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+
 http.globalAgent.maxSockets = Infinity;
 /* Express server set up. */
-
-console.log('init!');
-
-var app = express();
-var server = http.createServer(app);
-
-//Tell the server to listen for incoming connections
-server.listen(gameport);//, 'localhost');
-console.log('\t :: Express :: Listening on port ' + gameport );
 
 /* Socket.IO server set up. */
 
@@ -423,7 +576,7 @@ sio.sockets.on('connection', function (client)
     //Generate a new UUID, looks something like
     //5b2ca132-64bd-4513-99da-90e838ca47d1
     //and store this on their socket/connection
-    client.userid = UUID();
+    client.userid = getUid();
     client.playerdata = client.handshake.query['playerdata'];
     console.log('@@ new client connected', client.userid, client.id, client.handshake.query['playerdata']);//, client);
 
@@ -474,104 +627,7 @@ sio.sockets.on('connection', function (client)
     }); //client.on disconnect
 }); //sio.sockets.on connection
 
-
-//By default, we forward the / path to index.html automatically.
-app.get( '/', function( req, res )
-{
-    console.log('trying to load %s', __dirname + '/index.html');
-    res.sendFile( '/index.html' , { root:__dirname });
-});
-
-// security
-
-app.get('/app.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/package.json', function(req, res)
-{
-    //console.log('stop!', req.headers);
-    res.status(404).end();
-});
-// app.get('/index.css', function(req, res)
-// {
-//     res.status(404).end();
-// });
-app.get('/class.chest.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.event.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.flag.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.getplayers.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.globals.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.platform.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.player.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/class.toast.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/egyptian_set.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/game.core.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/game.server.js', function(req, res)
-{
-    res.status(404).end();
-});
-app.get('/singleton.assets.js', function(req, res)
-{
-    res.status(404).end();
-});
-
-
-//This handler will listen for requests on /*, any file from the root of our server.
-//See expressjs documentation for more info on routing.
-app.get( '/*' , function( req, res, next )
-{
-    //This is the current file they have requested
-    var file = req.params[0];
-
-    //For debugging, we can track what files are requested.
-    //if(verbose)
-    console.log(':: Express :: file requested : ' + file);
-
-    //Send the requesting client the file.
-    res.sendFile( __dirname + '/' + file );
-}); //app.get *
-
-app.post( '/api/orbs' , function( req, res, next )
-{
-    console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
-    return res.send('hi', game_server.games.length);//[0]);
-});
-app.post( '/api/playernames', function(req, res, next)
-{
-    console.log('api POST - app get player names', game_server[0]);
-})
-
+//} // end isWorker
 
 //Enter the game server code. The game server handles
 //client connections looking for a game, creating games,
@@ -584,7 +640,7 @@ app.post( '/api/playernames', function(req, res, next)
 // });
 // auto-create host game
 /*
-var host = clientIo.connect(UUID());
+var host = clientIo.connect(getUid());
     , 
     {
         'transports':['websocket']
@@ -675,6 +731,8 @@ throng(
     start: startWorker
 });
 //*/
+
+/*
 var vp = 0;
 var tot = 29;
 var vplayer = function()
@@ -685,10 +743,10 @@ var vplayer = function()
         clearInterval(vplayer);
         return;
     }
-    var c = new clientIo.connect('http://localhost:4004');//.connect(UUID());//, {"force new connection":true});
+    var c = new clientIo.connect('http://localhost:4004');//.connect(getUid());//, {"force new connection":true});
     console.log('new autoplayer...');
     // clientIo.connect();
-    // c.userid = UUID();
+    // c.userid = getUid();
     // c.on('connect', function(){console.log('cnct')});
     
     // c.hosting = false;
@@ -702,8 +760,8 @@ var totalGames = 0;
 //var host;
 for (var i = 0; i < totalGames; i++)
 {
-    var host = clientIo.connect(UUID());
-    host.userid = UUID();
+    var host = clientIo.connect(getUid());
+    host.userid = getUid();
     host.hosting = true;
     console.log('host', host.userid);
     game_server.createGame(host);
@@ -711,3 +769,4 @@ for (var i = 0; i < totalGames; i++)
 }
 // return game_server;
 // }
+//*/
