@@ -23,6 +23,9 @@ var MAX_PLAYERS_PER_GAME = 30;
 var MAX_GAMES_PER_SERVER = 20;
 
 // include modules
+// var WebSocket         = require('ws');
+// var Primus            = require('primus');
+
 var 
     _                   = require('./node_modules/lodash/lodash.min'),
     // UUID                = require('node-uuid'),
@@ -554,10 +557,12 @@ var game_core = function(game_instance, io)
     //Start a physics loop, this is separate to the rendering
     //as this happens at a fixed frequency
 
+    /* TODO: Uncomment this when server_update is working!!!
     this.create_physics_simulation();
 
     //Start a fast paced timer for measuring time easier
     this.create_timer();
+    */
 
     //Client specific initialisation
     if(!this.server)
@@ -3706,7 +3711,7 @@ game_core.prototype.server_update = function()
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
     // if (player)
-    this.io.to(this.gameid).emit('onserverupdate', laststate);
+    this.io.room(this.gameid).write('onserverupdate', laststate);
     /*
     for (var k = 0; k < this.getplayers.allplayers.length; k++)
     {
@@ -5271,7 +5276,7 @@ game_core.prototype.create_physics_simulation = function() {
 game_core.prototype.pingFnc = function()
 {
     this.last_ping_time = new Date().getTime() - this.fake_lag;
-    this.socket.send('p.' + (this.last_ping_time) );
+    this.socket.emit('p.' + (this.last_ping_time) );
 }
 game_core.prototype.client_create_ping_timer = function() {
     var _this = this;
@@ -5923,7 +5928,8 @@ game_core.prototype.client_onhostgame_orig = function(data) {
 
 game_core.prototype.client_onconnected = function(data) {
     //if (glog)
-    console.log('## client_onconnected', data, '(self.id=' + data.id + ") ##");
+    console.log('## client_onconnected')
+    console.log(data, '(self.id=' + data.id + ") ##");
     //console.log('data', data);
     
     var playerdata = data.playerdata.split("|");
@@ -6126,13 +6132,51 @@ game_core.prototype.client_connect_to_server = function()
     console.log('client_connect_to_server');
 
     //Store a local reference to our connection to the server
-    this.socket = io.connect("http://192.168.86.106:4004", 
-        {query: "playerdata=" + assets.playerName + "|" + assets.playerSkin});//"http://localhost:3000");
+    // this.socket = io.connect("http://192.168.86.106:4004", 
+    /*
+    var primus = new Primus(server, { transformer: 'websockets' });
+    this.Socket = primus.Socket;
+    this.socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);//,
+    */
+
+    /*
+    this.socket = new WebSocket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin,
+    {
+        perMessageDeflate: false            
+    });
+    //*/
+    //*
+    var url = "ws://localhost:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
+    // this.socket = new WebSocket(url);
+    this.socket = Primus.connect(url, 
+    {
+        reconnect: 
+        {
+            max: Infinity // Number: The max delay before we try to reconnect.
+            , min: 500 // Number: The minimum delay before we try reconnect.
+            , retries: 10 // Number: How many times we should try to reconnect.
+        }
+    });
+    // this.socket.open();
+    this.socket.write({init: assets.playerName + "|" + assets.playerSkin});
+    // var primus = Primus.createSocket({transformer:'uws'});
+    // var socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
+    // this.socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
+    //*/
+    // var primus = Primus.connect('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
+    
+    //"http://localhost:3000");
     // this.socket = io.connect();
+    console.log('socket', this.socket);
+    // this.socket.on('open', function open()
+    // {
+    //     console.log('we are open!');
+        
+    // })
 
     //When we connect, we are not 'connected' until we have a server id
     //and are placed in a game by the server. The server sends us a message for that.
-    this.socket.on('connect', function()
+    this.socket.on('open', function open()
     {
         console.log('== client_connect_to_server ==');
         
@@ -6140,6 +6184,37 @@ game_core.prototype.client_connect_to_server = function()
 
     }.bind(this));
 
+    this.socket.on('data', function message(data)
+    {
+        console.log('Received message from server', data);
+    });
+
+    this.socket.on('error', function error(err)
+    {
+        console.log('* primus error', err.stack);
+    });
+
+    this.socket.on('reconnect', function error(opts)
+    {
+        console.log('* primus attempting reconnect...', opts);
+    });
+
+    this.socket.on('end', function end()
+    {
+        console.log('* Connection closed!');
+    });
+
+    this.socket.emits('event', function parser(next, structure) 
+    {
+        next(undefined, structure.data);
+    });
+    //There are cases where it is necessary to retrieve the spark.id 
+    // from the client. To make this easier, we added a primus.id() method 
+    // that takes a callback function to which the id will be passed.
+    this.socket.id(function (id) 
+    {
+        console.log(id);
+    });
     //Sent when we are disconnected (network, server down, etc)
     this.socket.on('disconnect', this.client_ondisconnect.bind(this));
     //Sent each tick of the server simulation. This is our authoritive update

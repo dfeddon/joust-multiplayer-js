@@ -8,6 +8,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */ /*global define */
 'use strict';
 
+// const WebSocket = require('ws');
+
 var domready = require('domready');
 //var config = require('./class.globals');
 var assets = require('./singleton.assets');

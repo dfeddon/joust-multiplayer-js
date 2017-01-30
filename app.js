@@ -18,8 +18,9 @@ var
     verbose         = false,
 
     Primus          = require('primus'),
-    io              = require('socket.io'),
-    clientIo        = require('socket.io-client'),
+    Rooms           = require('primus-rooms'),
+    // io              = require('socket.io'),
+    // clientIo        = require('socket.io-client'),
     uws             = require('uws'),
 
     express         = require('express'),
@@ -29,8 +30,8 @@ var
     cluster         = require('cluster'),
     os              = require('os'),
 
-    sio_redis       = require('socket.io-redis'),
-    sticky          = require('socketio-sticky-session'),
+    // sio_redis       = require('socket.io-redis'),
+    // sticky          = require('socketio-sticky-session'),
     httpProxy       = require('http-proxy'),
 
     // num_processes   = require('os').cpus().length,
@@ -488,13 +489,14 @@ else
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 
-http.globalAgent.maxSockets = Infinity;
+// http.globalAgent.maxSockets = Infinity;
 /* Express server set up. */
 
 /* Socket.IO server set up. */
 
 //Express and socket.io can work together to serve the socket.io client files for you.
 //This way, when the client requests '/socket.io/' files, socket.io determines what the client needs.
+/*
 var ioserver = http.createServer(function(req, res)
 { 
     // Send HTML headers and message
@@ -502,137 +504,77 @@ var ioserver = http.createServer(function(req, res)
     // res.end('<h1>Hello Socket Lover!</h1>');
 });
 ioserver.listen(3000);
-/*var primus = new Primus(ioserver, 
+*/
+var socketServer = http.createServer(function connection(spark)
 {
-    port: 4004,
-    transformer: 'webscokets'
-});*/
-//Create a socket.io instance using our express server
-//console.log('server prot', server);
-// var proxy = httpProxy.createProxyServer({target:'http://localhost:3000'});
-//var netserver = net.createServer({ pauseOnConnect: true }, function(){}).listen(3000);
-var sio = io.listen(server);//server);
-var events = require('events');//, {transports:['websocket']});
-var serverEmitter = new events.EventEmitter();
-game_server.setIO(sio, serverEmitter);
-
-    // var netserver = net.createServer({ pauseOnConnect: true }, function(connection) 
-    // {}).listen(3000);
-
-
-// using uws module
-// https://github.com/uWebSockets/uWebSockets
-//*
-//sio.set('transports', ['websocket']);
-
-//console.log('engine', sio.engine);
-sio.engine.ws = new (uws.Server)(
-{
-    noServer: true,
-    perMessageDeflate: false
+    // console.log('socketServer', spark);//, req, res);
 });
-//*/
-
-//Configure the socket.io connection settings.
-//See http://socket.io/
-//sio.set('transports', ['websocket']);
-//clientIo.set('transports', ['websocket']);
-/*
-sio.configure(function ()
+var primus = new Primus(socketServer, 
 {
-    //sio.set('log level', 0);
-    // force websocket transport (disable fallback to xhr-polling)
-    sio.set('transports', ['websocket']);
+    port: socketport,
+    transformer: 'uws'
+});
+// add rooms plugin
+primus.plugin('rooms', Rooms);
 
-    // sio.set('authorization', function (handshakeData, callback)
+// generate client wrapper
+primus.save(__dirname + '/primus.js');
+
+// connection
+primus.on('connection', function (spark)
+{
+    console.log('@ client connected');//, spark);
+    // console.log('connection has the following headers', spark.headers);
+    console.log('@ connection was made from', spark.address);
+    console.log('@ connection id', spark.id);
+    // spark.on('open', function open()
     // {
-    //   callback(null, true); // error first callback style
+    //     console.log('@ Connection is alive and kicking');
     // });
+    /*console.log('@ client.connection', Rooms);//, client.conn.transport);
+    spark.userid = getUid();
+    // client.playerdata = client.handshake.query['playerdata'];
+    // console.log('@@ new client connected', client.userid, client.id, client.handshake.query['playerdata']);//, client);
 
-});
-//*/
-//sio.set('log level', 0);
-// sio.set('transports', ['websocket']);
-// sio.set('authorization', function (handshakeData, callback)
-// {
-//     console.log('handshakeData', handshakeData);
-    
-//   callback(null, true); // error first callback style
-// });
+    spark.write('onconnected', { id: spark.userid, playerdata: spark.playerdata });
 
-sio.use(function(socket, next) 
-{
-var handshakeData = socket.request;
-//console.log('handshakedata', socket.request);
-
-// make sure the handshake data looks good as before
-// if error do this:
-    // next(new Error('not authorized');
-// else just call next
-next();
-});
-
-//Socket.io will call this function when a client connects,
-//So we can send that client looking for a game to play,
-//as well as give that client a unique ID to use so we can
-//maintain the list if players.
-sio.sockets.on('connection', function (client)
-{
-    console.log('client.connection');//, client.conn.transport);
-    
-    //Generate a new UUID, looks something like
-    //5b2ca132-64bd-4513-99da-90e838ca47d1
-    //and store this on their socket/connection
-    client.userid = getUid();
-    client.playerdata = client.handshake.query['playerdata'];
-    console.log('@@ new client connected', client.userid, client.id, client.handshake.query['playerdata']);//, client);
-
-    //tell the player they connected, giving them their id
-    client.emit('onconnected', { id: client.userid, playerdata: client.playerdata });
-
-    //now we can find them a game to play with someone.
-    //if no game exists with someone waiting, they create one and wait.
-    game_server.findGame(client);
+    game_server.setSpark(spark);
+    game_server.findGame(spark);
 
     //Useful to know when someone connects
-    console.log('\t socket.io:: player ' + client.userid + ' connected');
+    console.log('spark :: player ' + spark.userid + ' connected');*/
 
-    //Now we want to handle some of the messages that clients will send.
     //They send messages here, and we send them to the game_server to handle.
-    client.on('message', function(m)
+    spark.on('data', function(data)
     {
+        console.log('spark.on', data);
+        
         //console.log('client-to-server message', m);
-        game_server.onMessage(client, m);
+        game_server.onMessage(spark, data);
     }); //client.on message
 
-    //When this client disconnects, we want to tell the game server
-    //about that as well, so it can remove them from the game they are
-    //in, and make sure the other player knows that they left and so on.
-    client.on('disconnect', function ()
+    spark.on('disconnect', function ()
     {
         //Useful to know when soomeone disconnects
-        console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.gameid);//client.game.id);
+        console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
         
-        // remove player from allplayers array
-        //console.log('game', client.game.gamecore);
-        // for (var i = 0; i < client.game.gamecore.allplayers.length; i++)
-        // {
-        //     console.log('::', client.userid, (client.game.gamecore.allplayers[i].instance) ? client.game.gamecore.allplayers[i].instance.userid : "nope");
-            
-        // }
-        
-
         //If the client was in a game, set by game_server.findGame,
         //we can tell the game server to update that game state.
-        if(client.game && client.gameid)//game.id)
+        if(spark.game && spark.gameid)//game.id)
         {
             //player leaving a game should destroy that game
-            //game_server.endGame(client.game.id, client.userid);
-            game_server.endGame(client.gameid, client.userid);
-        } //client.game_id
+            game_server.endGame(spark.gameid, spark.userid);
+        }
 
-    }); //client.on disconnect
-}); //sio.sockets.on connection
+    }); 
+}); // connection
+
+primus.on('disconnection', function(spark)
+{
+    console.log('@ client has disconnected!');
+});
+
+socketServer.listen(socketport);
 
 //} // end isWorker
 

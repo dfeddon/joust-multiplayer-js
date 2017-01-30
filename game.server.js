@@ -57,21 +57,22 @@ setInterval(function()
     // game_server.local_time += game_server._dt/1000.0;
 }, 4);
 
-game_server.setIO = function(io, emitter)
+game_server.setSpark = function(spark)//, emitter)
 {
-    this.io = io;
-    this.emitter = emitter;
+    this.log("@ setting spark", spark);
+    this.spark = spark;
+    // this.emitter = emitter;
     // console.log('setIO', io);
     
 }
 
-game_server.onMessage = function(client,message)
+game_server.onMessage = function(spark,message)
 {
-    //console.log('@@ onMessage', client, message);
+    console.log('@@ onMessage', message);
     if(this.fake_latency && message.split('.')[0].substr(0,1) == 'i')
     {
         //store all input message
-        game_server.messages.push({client:client, message:message});
+        game_server.messages.push({client:spark, message:message});
 
         setTimeout(function()
         {
@@ -84,14 +85,25 @@ game_server.onMessage = function(client,message)
     }
     else
     {
-        game_server._onMessage(client, message);
+        game_server._onMessage(spark, message);
     }
 };
 
-game_server._onMessage = function(client,message)
+game_server._onMessage = function(spark,message)
 {
-    //this.log('@@ _onMessage', message, client.mp);
+    this.log('@@ _onMessage', message);//, client.mp);
 
+    if (message.init)
+    {
+        spark.userid = getUid();
+        spark.playerdata = message.init;
+
+        spark.write('onconnected', { id: spark.userid, playerdata: spark.playerdata });
+
+        game_server.setSpark(spark);
+        game_server.findGame(spark);
+        return;
+    }
     //Cut the message up into sub components
     var message_parts = message.split('.');
     //The first is always the type of message
@@ -105,21 +117,21 @@ game_server._onMessage = function(client,message)
     {
         //Input handler will forward this
         //this.log('@@ _onMessage', message, client);
-        this.onInput(client, message_parts);
+        this.onInput(spark, message_parts);
     }
     else if(message_type == 'p')
     {
-        client.send('s.p.' + message_parts[1]);
+        spark.send('s.p.' + message_parts[1]);
     }
     else if(message_type == 'c')
     {    //Client changed their color!
         //if(other_client)
         var other_clients = [];
 
-        for (var i = 0; i < client.game.player_clients.length; i++)
+        for (var i = 0; i < spark.game.player_clients.length; i++)
         {
-            if (client.game.player_clients[i].userid != client.userid)
-                other_clients.push(client.game.player_clients[i]);
+            if (spark.game.player_clients[i].userid != spark.userid)
+                other_clients.push(spark.game.player_clients[i]);
         }
 
         if (other_clients.length > 0)
@@ -143,7 +155,7 @@ game_server._onMessage = function(client,message)
         var playerName = split[0];
         var playerSkin = split[1];
         this.log('getting player names for', message_parts);// '...');
-        var p = client.game.gamecore.getplayers.allplayers;
+        var p = spark.game.gamecore.getplayers.allplayers;
         var arr = [];
         var source;
         for (var j = 0; j < p.length; j++)
@@ -255,7 +267,7 @@ game_server.createGame = function(client)
 
     //Create a new game core instance, this actually runs the
     //game code like collisions and such.
-    thegame.gamecore = new game_core( thegame, this.io );
+    thegame.gamecore = new game_core( thegame, this.spark );
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -274,7 +286,7 @@ game_server.createGame = function(client)
     //tell the player that they are now the host
     //s=server message, h=you are hosting
     // client.send('s.h.'+ String(thegame.gamecore.local_time).replace('.','-'));
-    client.send('s.r.'+ String(thegame.gamecore.local_time).replace('.','-'));
+    client.write('s.r.'+ String(thegame.gamecore.local_time).replace('.','-'));
     // console.log('@@ inform client that we are hosting (client.hosting=true) at  ' + thegame.gamecore.local_time);
     client.game = thegame;
     // client.hosting = true;
@@ -693,8 +705,9 @@ game_server.startGame = function(game, newplayer)
 
                 // let others know player has joined their 
                 console.log('player', nonhosts[j].userid, 'sending joingame to other...');
+                // nonhosts[j].broadcast.to(game.id).emit('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                nonhosts[j].room(game.id).except(nonhosts[j].id).write('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 
-                nonhosts[j].broadcast.to(game.id).emit('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //this.io.in(game.id).emit('hostgame' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
             // nonhosts[j].game = game;
@@ -703,7 +716,7 @@ game_server.startGame = function(game, newplayer)
 
     // send readyup to *all* players
     this.log('sending readyup to all', nonhosts.length);
-    this.io.in(game.id).emit('onreadygame', String(game.gamecore.local_time).replace('.','-'));
+    this.spark.write('onreadygame', String(game.gamecore.local_time).replace('.','-'));
     // for (var k = 0; k < nonhosts.length; k++)
     // {
     //     //this.log("readyup!", nonhosts[k].userid);
@@ -787,6 +800,7 @@ game_server.findGame = function(client)
                             {
                                 // use cp, as host's hp and his props are already defined
                                 console.log('*** found client', players[i].mp, client.userid, client.playerdata, players[i].team);//players[i].id);
+                                this.log("* client", client);
                                 var split = client.playerdata.split("|");
                                 players[i].instance = client;
                                 players[i].id = client.userid;
