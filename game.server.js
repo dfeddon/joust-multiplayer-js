@@ -66,9 +66,15 @@ game_server.setSpark = function(spark)//, emitter)
     
 }
 
+game_server.b64EncodeUnicode = function(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        return String.fromCharCode('0x' + p1);
+    }));
+}
+
 game_server.onMessage = function(spark,message)
 {
-    console.log('@@ onMessage', message);
+    // console.log('@@ onMessage', message);
     if(this.fake_latency && message.split('.')[0].substr(0,1) == 'i')
     {
         //store all input message
@@ -91,34 +97,59 @@ game_server.onMessage = function(spark,message)
 
 game_server._onMessage = function(spark,message)
 {
-    this.log('@@ _onMessage', message);//, client.mp);
-
-    if (message.init)
+    // this.log('@@ _onMessage', message);//, spark);//, client.mp);
+    if (message.cc) // client connected
     {
+        // deprecated
+
+        // /end
         spark.userid = getUid();
-        spark.playerdata = message.init;
+        spark.playerdata = message.cc;
+        // split string on delimiter
+        var split = message.cc.split("|");
+        // get player name
+        var playerName = 0;
+        if (split[0] != "undefined")
+            playerName = split[0];
+        // get player skin
+        var playerSkin = split[1];
+        // strip alpha chars and convert to int
+        var skinNum = parseInt(playerSkin.replace(/\D/g,''));
+        this.log(playerName, playerSkin, skinNum, spark.userid);
 
-        spark.write('onconnected', { id: spark.userid, playerdata: spark.playerdata });
-
+        spark.send('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
+        // var buffer = new ArrayBuffer(16);
+        // var view = new Int32Array(buffer);
+        // view[0] = spark.userid;
+        // view[1] = playerName;
+        // view[2] = skinNum;
+        // console.log('1buffer',typeof(spark.userid), view, buffer);
+        
+        // spark.write(buffer);//{id: spark.userid, playerdata: spark.playerdata });
         game_server.setSpark(spark);
         game_server.findGame(spark);
-        return;
+        //return;
     }
     //Cut the message up into sub components
-    var message_parts = message.split('.');
+    // var message_parts = message.split('.');
     //The first is always the type of message
-    var message_type = message_parts[0];
+    // var message_type = message_parts[0];
 
     /*var other_client =
         (client.game.player_host.userid == client.userid) ?
             client.game.player_client : client.game.player_host;*/
 
-    if(message_type == 'i')
+    // if(message_type == 'i')
+    else if (message.is)
     {
+        var message_parts = message.is.split('.');
+        var message_type = message_parts[0];
+
         //Input handler will forward this
         //this.log('@@ _onMessage', message, client);
-        this.onInput(spark, message_parts);
+        this.onInput(spark, message_parts);//message.is);//_parts);
     }
+    //return;
     else if(message_type == 'p')
     {
         spark.send('s.p.' + message_parts[1]);
@@ -220,14 +251,14 @@ game_server._onMessage = function(spark,message)
 
 game_server.onInput = function(client, parts)
 {
-    //this.log('@@ onInput', client.userid, parts);
+    // this.log('@@ onInput', client.userid, parts);
     //The input commands come in like u-l,
     //so we split them up into separate commands,
     //and then update the players
     var input_commands = parts[1].split('-');
     var input_time = parts[2].replace('-','.');
     var input_seq = parts[3];
-
+    // this.log(parts, input_commands, input_time, input_seq);
     //the client should be in a game, so
     //we can tell that game to handle the input
     if(client && client.game && client.game.gamecore)
@@ -691,17 +722,28 @@ game_server.startGame = function(game, newplayer)
                 nonhosts[j].visible = true;
                 nonhosts[j].join(game.id);
                 this.log("player joined game", game.id);
+                this.log("player", nonhosts[j]);
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //console.log('nonhosts[j]', nonhosts[j]);
                 this.log("hostgame", this.games[game.id].id);
                 // TODO: onhostgame: id "other" players by sending array matching mp to players assigned a userid
-                nonhosts[j].emit('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
-                {
-                    if (err)
-                        this.log("ERROR:", err);
-                    else this.log("Success", success);
-                });
+                var data = [];
+                data[0] = playerMP;
+                data[1] = this.games[game.id].id;
+                data[2] = JSON.stringify(chestsarray);
+                data[3] = team;
+                data[4] = playerName;
+                data[5] = JSON.stringify(flagsArray);
+                data[6] = playerUserId;
+                data[7] = JSON.stringify(others);
+                nonhosts[j].send('onhostgame', data);
+                // nonhosts[j].send('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
+                // {
+                //     if (err)
+                //         this.log("ERROR:", err);
+                //     else this.log("Success", success);
+                // });
 
                 // let others know player has joined their 
                 console.log('player', nonhosts[j].userid, 'sending joingame to other...');

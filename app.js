@@ -19,6 +19,8 @@ var
 
     Primus          = require('primus'),
     Rooms           = require('primus-rooms'),
+    Emitter         = require('primus-emitter'),
+    // binarypack      = require('binarypack'),
     // io              = require('socket.io'),
     // clientIo        = require('socket.io-client'),
     uws             = require('uws'),
@@ -512,10 +514,12 @@ var socketServer = http.createServer(function connection(spark)
 var primus = new Primus(socketServer, 
 {
     port: socketport,
-    transformer: 'uws'
-});
+    transformer: 'uws',
+    parser: 'binary'
+}); 
 // add rooms plugin
 primus.plugin('rooms', Rooms);
+primus.plugin('emitter', Emitter);
 
 // generate client wrapper
 primus.save(__dirname + '/primus.js');
@@ -547,7 +551,7 @@ primus.on('connection', function (spark)
     //They send messages here, and we send them to the game_server to handle.
     spark.on('data', function(data)
     {
-        console.log('spark.on', data);
+        // console.log('spark.on', data);
         
         //console.log('client-to-server message', m);
         game_server.onMessage(spark, data);

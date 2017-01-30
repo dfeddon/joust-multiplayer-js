@@ -30,6 +30,8 @@ var
     _                   = require('./node_modules/lodash/lodash.min'),
     // UUID                = require('node-uuid'),
     getUid              = require('get-uid'),
+    // assert              = require('assert'),
+    // duplex              = require('duplex'),
     config              = require('./class.globals'),
     getplayers          = require('./class.getplayers'),
     egyptian_set        = require('./egyptian_set'),
@@ -557,12 +559,12 @@ var game_core = function(game_instance, io)
     //Start a physics loop, this is separate to the rendering
     //as this happens at a fixed frequency
 
-    /* TODO: Uncomment this when server_update is working!!!
+    //* TODO: Uncomment this when server_update is working!!!
     this.create_physics_simulation();
 
     //Start a fast paced timer for measuring time easier
     this.create_timer();
-    */
+    //*/
 
     //Client specific initialisation
     if(!this.server)
@@ -3484,14 +3486,14 @@ game_core.prototype.server_update = function()
     //console.log('=====================');
     //var bufArr = new ArrayBuffer(768);
     // _.forEach(_this.getplayers.allplayers, function(player, index)
-    var player;
+    var player//, inst;
     for (var i = this.getplayers.allplayers.length - 1; i >= 0 ; i--)
     {
         //console.log('active', player.active, player.visible);
         player = this.getplayers.allplayers[i];
-        
+        var bufView = [];
         if (!player.instance) continue;//return;
-
+        //inst = player.instance;
         //console.log(_this.getplayers.allplayers.length);
         // set player's bufferIndex
         //player.bufferIndex = index;
@@ -3501,18 +3503,20 @@ game_core.prototype.server_update = function()
         //console.log(_this.serverPool);
         
         //_this.serverPool[index].prototype.byteLength = 768;
-        var buffer = pool.malloc(768, "arraybuffer");
-        var bufView = new Int16Array(buffer, (i * 16), 16);
+
+        /*var buffer = pool.malloc(768, "arraybuffer");
+        var bufView = new Int16Array(buffer, (i * 16), 16);*/
+        
         //var bufView = _this.serverPool;//(_this.bufArr, (index * 16), 16);
         // bufView.buffer = _this.bufArr;
         // bufView.byteOffset = index * 16;
         // bufView.length = 16;
         //*
         if (player.pos.x === 0 && player.pos.y === 0) continue;//return;
+        // bufView = player.bufferWrite(bufView, i);
 
-        bufView = player.bufferWrite(bufView, i);
-        //player.pos.x = player.pox.x.toFixed(2);
-        /*
+        bufView.length = 0;
+        //*
         bufView[0] = player.pos.x.fixed(0);
         bufView[1] = player.pos.y.fixed(0);//.fixed(2);
         bufView[2] = player.dir;
@@ -3536,8 +3540,8 @@ game_core.prototype.server_update = function()
         //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
         // console.log('bufView', player.mp, bufView);
         
-        laststate[player.instance.userid] = buffer;//_this.serverPool;//bufArr;
-        // console.log('buffer', buffer);
+        laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
+        // console.log('buffer', laststate);
         
         //pool.free(buffer);
         // if (player.mp == "cp1")
@@ -3694,7 +3698,7 @@ game_core.prototype.server_update = function()
         //else console.log(flag);
     });
     //*/
-    console.log('laststate', laststate, this.gameid);
+    // console.log('laststate', laststate, this.gameid);
     //if (Object.keys(laststate).length === 0) return;
     
     laststate.t = this.config.server_time;
@@ -3711,7 +3715,17 @@ game_core.prototype.server_update = function()
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
     // if (player)
-    this.io.room(this.gameid).write('onserverupdate', laststate);
+    
+    // if (this.io)
+    this.io.room(this.gameid).write(laststate);
+    // else console.log('no io');
+    
+    // if (inst)
+    // {
+    //     console.log('emit');
+        
+    // inst.emit('onserverupdate', laststate);
+    // }
     /*
     for (var k = 0; k < this.getplayers.allplayers.length; k++)
     {
@@ -3971,12 +3985,15 @@ game_core.prototype.client_handle_input = function(key){
             //Send the packet of information to the server.
             //The input packets are labelled with an 'i' in front.
         var server_packet = 'i.';
+        // var server_packet = '';
             server_packet += input.join('-') + '.';
             server_packet += this.local_time.toFixed(3).replace('.','-') + '.';
             server_packet += this.input_seq;
 
             //Go
-        this.socket.send(  server_packet  );
+            // console.log('socket.server_packet', server_packet);
+            
+        this.socket.write({is: server_packet});
 
         // release
         server_packet = null;
@@ -4271,6 +4288,8 @@ game_core.prototype.client_process_net_updates = function()
     // }
 
     //No updates...
+    // console.log('server_updates', this.server_updates.length);
+    
     if(!this.server_updates.length) return;
 
     var _this = this;
@@ -4873,8 +4892,8 @@ game_core.prototype.addChest = function(chest)
 
 game_core.prototype.client_onserverupdate_recieved = function(data)
 {
-    if (glog)
-    console.log('## client_onserverupdate_recieved', data);
+    // if (glog)
+    // console.log('## client_onserverupdate_recieved', data);
     //console.log(data);
     //if (data.hp.d === 0)
     //console.log('data', data);
@@ -5706,7 +5725,7 @@ game_core.prototype.client_onhostgame = function(data, callback)
 
     // console.log('derek', data);
 
-    var alldata = data.split("|");
+    var alldata = data;//.split("|");
 
     this.mp = alldata[0];
     this.gameid = alldata[1];
@@ -5802,7 +5821,7 @@ game_core.prototype.client_onhostgame = function(data, callback)
             // get other players' names
             //this.socket.emit('message', {data:"n.hello!"});
 
-            this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
+            // this.socket.emit('message', 'n.' + this.players.self.mp + '.' + this.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
 
             /*
             var url = "http://localhost:4004/api/playernames/";
@@ -5929,21 +5948,29 @@ game_core.prototype.client_onhostgame_orig = function(data) {
 game_core.prototype.client_onconnected = function(data) {
     //if (glog)
     console.log('## client_onconnected')
-    console.log(data, '(self.id=' + data.id + ") ##");
+    console.log(data, '(self.id=' + data[0] + ") ##");
     //console.log('data', data);
+
+    this.players.self.id = data[0];
+    this.players.self.userid = data[0];
+    if (data[1] !== 0)
+        this.players.self.playerName = data[1];
+    this.players.self.skin = "skin" + data[2].toString();
     
-    var playerdata = data.playerdata.split("|");
+    /*var playerdata = data.playerdata.split("|");
 
     this.players.self.id = data.id;
     this.players.self.userid = data.id;
     if (playerdata[0] !== "undefined" && playerdata[0].length > 2)
         this.players.self.playerName = playerdata[0];
-    this.players.self.skin = playerdata[1];
+    this.players.self.skin = playerdata[1];*/
     
     //this.players.self.playerName = client
     this.players.self.info_color = '#cc0000';
     this.players.self.state = 'connected';
     this.players.self.online = true;
+    console.log('self:', this.players.self);
+    
 
     // for (var i = 0; i < this.getplayers.allplayers.length; i++)
     // {
@@ -5963,11 +5990,11 @@ game_core.prototype.client_onconnected = function(data) {
     //The server responded that we are now in a game,
     //this lets us store the information about ourselves and set the colors
     //to show we are now ready to be playing.
-    this.players.self.id = data.id;
-    this.players.self.userid = data.id;
-    //this.players.self.info_color = '#cc0000';
-    this.players.self.state = 'connected';
-    this.players.self.online = true;
+    // this.players.self.id = data.id;
+    // this.players.self.userid = data.id;
+    // //this.players.self.info_color = '#cc0000';
+    // this.players.self.state = 'connected';
+    // this.players.self.online = true;
 
 }; //client_onconnected
 
@@ -6131,6 +6158,8 @@ game_core.prototype.client_connect_to_server = function()
     //if (glog)
     console.log('client_connect_to_server');
 
+    var _this = this;
+
     //Store a local reference to our connection to the server
     // this.socket = io.connect("http://192.168.86.106:4004", 
     /*
@@ -6150,6 +6179,7 @@ game_core.prototype.client_connect_to_server = function()
     // this.socket = new WebSocket(url);
     this.socket = Primus.connect(url, 
     {
+        parser: 'binary',
         reconnect: 
         {
             max: Infinity // Number: The max delay before we try to reconnect.
@@ -6158,7 +6188,7 @@ game_core.prototype.client_connect_to_server = function()
         }
     });
     // this.socket.open();
-    this.socket.write({init: assets.playerName + "|" + assets.playerSkin});
+    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin});
     // var primus = Primus.createSocket({transformer:'uws'});
     // var socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
     // this.socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
@@ -6186,7 +6216,16 @@ game_core.prototype.client_connect_to_server = function()
 
     this.socket.on('data', function message(data)
     {
-        console.log('Received message from server', data);
+        // console.log('* Received @data message from server', data);
+
+        switch(data.type)
+        {
+            case "onconnected": _this.client_onconnected(data);//.bind(this);
+            break;
+
+            default: _this.client_onserverupdate_recieved(data);//console.log('default!');
+            
+        }
     });
 
     this.socket.on('error', function error(err)
@@ -6206,6 +6245,8 @@ game_core.prototype.client_connect_to_server = function()
 
     this.socket.emits('event', function parser(next, structure) 
     {
+        console.log('socket.emits');
+        
         next(undefined, structure.data);
     });
     //There are cases where it is necessary to retrieve the spark.id 
@@ -6213,8 +6254,13 @@ game_core.prototype.client_connect_to_server = function()
     // that takes a callback function to which the id will be passed.
     this.socket.id(function (id) 
     {
-        console.log(id);
+        console.log('* requesting socket id', id);
     });
+    // this.socket.on('onconnected', function(data)
+    // {
+    //     console.log('ONconnected!', data);
+        
+    // })
     //Sent when we are disconnected (network, server down, etc)
     this.socket.on('disconnect', this.client_ondisconnect.bind(this));
     //Sent each tick of the server simulation. This is our authoritive update
