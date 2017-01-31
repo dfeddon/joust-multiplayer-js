@@ -364,15 +364,16 @@ game_player.prototype.doLand = function()
 
         if (this.config.server)
         {
-            this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
-            {
-                if (p.instance)// && p.mp != "hp")
-                {
-                    console.log('sending...', p.mp);
+            this.instance.room(this.instance.game.id).send('p.k.' + this.mp + '|' + "");
+            // this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
+            // {
+            //     if (p.instance)// && p.mp != "hp")
+            //     {
+            //         console.log('sending...', p.mp);
                     
-                    p.instance.send('p.k.' + _this.mp + '|' + "");
-                }
-            });
+            //         p.instance.send('p.k.' + _this.mp + '|' + "");
+            //     }
+            // });
         }
         this.doKill();
         return;

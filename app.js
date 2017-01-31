@@ -557,25 +557,27 @@ primus.on('connection', function (spark)
         game_server.onMessage(spark, data);
     }); //client.on message
 
-    spark.on('disconnect', function ()
-    {
-        //Useful to know when soomeone disconnects
-        console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
+    // spark.on('disconnect', function ()
+    // {
+    //     //Useful to know when soomeone disconnects
+    //     console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
         
-        //If the client was in a game, set by game_server.findGame,
-        //we can tell the game server to update that game state.
-        if(spark.game && spark.gameid)//game.id)
-        {
-            //player leaving a game should destroy that game
-            game_server.endGame(spark.gameid, spark.userid);
-        }
+    //     //If the client was in a game, set by game_server.findGame,
+    //     //we can tell the game server to update that game state.
+    //     if(spark.game && spark.gameid)//game.id)
+    //     {
+    //         //player leaving a game should destroy that game
+    //         game_server.endGame(spark.gameid, spark.userid);
+    //     }
 
-    }); 
+    // }); 
 }); // connection
 
 primus.on('disconnection', function(spark)
 {
     console.log('@ client has disconnected!');
+    if (spark.game && spark.gameid)
+        game_server.endGame(spark.gameid, spark.userid);
 });
 
 socketServer.listen(socketport);

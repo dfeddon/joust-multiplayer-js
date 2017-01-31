@@ -109,7 +109,7 @@ var game_core = function(game_instance, io)
     console.log('## game_core instantiated');//, game_instance);
     //Store the instance, if any
     this.instance = game_instance;
-    this.io = io;
+    // this.io = io;
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
     
@@ -422,8 +422,12 @@ var game_core = function(game_instance, io)
         //this._ = _;
         this.players = {};
         this.players.self = {};
+        this.players.self.pos = {x:0,y:0};
         this.players.self.old_state = {};
         this.players.self.old_state.pos = {x:0,y:0};
+        this.players.self.cur_state = {};
+        this.players.self.cur_state.pos = {x:0,y:0};
+        this.players.self.inputs = [];
         // this.players.self.last
         this.players.self.mp = "hp";
         console.log('self', this.players.self);
@@ -2148,7 +2152,7 @@ game_core.prototype.pk = function(victor, victim)
     
     victim.active = false;
 
-    this.io.to(this.gameid).emit("onplayerkill", victim.mp + '|' + victor.mp);
+    victor.instance.room(this.gameid).send("onplayerkill", victim.mp + '|' + victor.mp);
     // _.forEach(this.getplayers.allplayers, function(p, i)
     // {
     //     if (p.instance)// && p.mp != "hp")
@@ -3714,10 +3718,8 @@ game_core.prototype.server_update = function()
     // var ply;
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
-    // if (player)
-    
-    // if (this.io)
-    this.io.room(this.gameid).write(laststate);
+    if (player.instance)
+        player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');
     
     // if (inst)
@@ -4027,7 +4029,10 @@ game_core.prototype.client_process_net_prediction_correction2 = function()
     //console.log('bufferIndex', this.players.self.bufferIndex);
     console.log('lsd:', latest_server_data);
     console.log('userid', tihs.players.self.userid);
-    var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
+
+    //var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
+    var self_sp = latest_server_data[this.players.self.userid];
+
     //console.log('self_sp', self_sp);
     
     var my_server_pos = {x:self_sp[0], y:self_sp[1]};
@@ -4115,10 +4120,18 @@ game_core.prototype.client_process_net_prediction_correction = function()
     //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
     //console.log('bufferIndex', this.players.self.bufferIndex);
     // console.log('*', this.clientPool, latest_server_data[this.players.self.mp], this.players.self.bufferIndex);
+
+    // console.log('userid', this.players.self.userid, latest_server_data);
     
-    var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
+    if (Object.keys(latest_server_data).length === 0) return;
+    
+    var self_sp = latest_server_data[this.players.self.userid];  
+    // var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
+
     // if (this.players.self.bufferIndex)
     // var self_sp = this.clientPool.set(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
+    if (self_sp === undefined) return;
+    // console.log('len:', self_sp);
     
     var my_server_pos = {x:self_sp[0], y:self_sp[1]};
     //var my_server_pos = latest_server_data[this.players.self.mp];
@@ -4441,14 +4454,13 @@ game_core.prototype.client_process_net_updates = function()
                         previous[player.userid] = target[player.userid];
                     else break;//return;
                 }
-                //try{
-                vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
-                // vt = _this.clientPool.set(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
-                //}catch(err){console.log(err, index, target[player.mp]);}
-                vp = new Int16Array(previous[player.userid], (j * 16), 16);
+                vt = target[player.userid];
+                vp = previous[player.userid];
+                /*vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
                 // vp = _this.clientPool.set(previous[player.mp], (index * 16), 16);
-                  //console.log(vt);
-                  //console.log(vp);
+                //console.log(vt);
+                //console.log(vp);
 
                   // check for invalid values (bad socket?)
                   //if (!(vt[0]>0)) return;
@@ -4554,8 +4566,14 @@ game_core.prototype.client_process_net_updates = function()
             {
                 // console.log('local player');
                 
-                var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
-                var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);
+                var self_vt = target[player.userid];
+                var self_vp = target[player.userid];
+
+                if (self_vt === undefined) return;
+
+                /*var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
+                var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
+                
                 // var self_vt = _this.clientPool(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 // var self_vp = _this.clientPool(previous[player.mp], (index * 16), 16);
                 // console.log('vt', target[player.userid]);
@@ -6175,7 +6193,7 @@ game_core.prototype.client_connect_to_server = function()
     });
     //*/
     //*
-    var url = "ws://localhost:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
+    var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
     // this.socket = new WebSocket(url);
     this.socket = Primus.connect(url, 
     {

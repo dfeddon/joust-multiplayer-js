@@ -298,7 +298,7 @@ game_server.createGame = function(client)
 
     //Create a new game core instance, this actually runs the
     //game code like collisions and such.
-    thegame.gamecore = new game_core( thegame, this.spark );
+    thegame.gamecore = new game_core(thegame);//, this.spark );
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -368,7 +368,7 @@ game_server.endGame = function(gameid, userid)
                     // inform other players
                     this.log('mp', thegame.player_clients[i].mp);
                     //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
-                    thegame.player_clients[i].broadcast.to(thegame.id).emit('ondisconnect', thegame.player_clients[i].mp);
+                    thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
                     // leaving game
                     thegame.player_clients[i].leave(gameid);
 
