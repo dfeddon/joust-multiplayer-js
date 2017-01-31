@@ -81,10 +81,12 @@ function game_player(player_instance, isHost, pindex, config)
     this.bufferView = new Int16Array(16);
     if (!config.server)
     {
+        this.id = 1;
         this.sprite = new game_spritesheet(assets.skins[this.skin]);
         this.buffer = new ArrayBuffer(16);
         this.bufferView = new Int16Array(this.buffer, 16);
-    }    
+    }
+    else if (this.instance) this.id = this.instance.userid;
 
     //this.stunLen = 500; // 1.5 sec
 
@@ -364,7 +366,10 @@ game_player.prototype.doLand = function()
 
         if (this.config.server)
         {
-            this.instance.room(this.instance.game.id).send('p.k.' + this.mp + '|' + "");
+            console.log('dead!', this.instance.game.id);
+            
+            // this.instance.room(this.instance.game.id).write({type:'pk', action: this.mp + '|' + ""});
+            this.instance.room(this.instance.game.id).write([5, this.id, 0]);//this.mp + '|' + ""]));
             // this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
             // {
             //     if (p.instance)// && p.mp != "hp")

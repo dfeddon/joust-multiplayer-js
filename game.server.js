@@ -117,7 +117,7 @@ game_server._onMessage = function(spark,message)
         var skinNum = parseInt(playerSkin.replace(/\D/g,''));
         this.log(playerName, playerSkin, skinNum, spark.userid);
 
-        spark.send('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
+        spark.emit('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
         // var buffer = new ArrayBuffer(16);
         // var view = new Int32Array(buffer);
         // view[0] = spark.userid;
@@ -563,7 +563,7 @@ game_server.startGame = function(game, newplayer)
     //tell the other client they are joining a game
     //s=server message, j=you are joining, send them the host id
 
-    var newplayerInstance, playerName, playerMP, team, playerUserId;
+    var newplayerInstance, playerName, playerMP, team, playerUserId, playerSkin;
     var p = game.gamecore.getplayers.allplayers;
     // get host client and all non-hosting clients
     var host;
@@ -574,7 +574,7 @@ game_server.startGame = function(game, newplayer)
         // p[x].gameid = game.id;
         if (p[x].mp == newplayer.mp)
         {
-            //this.log("found HOST");//this.log("p:", p[x].mp);
+            this.log("found HOST", p[x].skin);
             this.log("* found server newplayer instance", p[x].playerName);
             p[x].instance.gameid = game.id;
             p[x].active = true;
@@ -586,6 +586,7 @@ game_server.startGame = function(game, newplayer)
             playerName = p[x].playerName;
             playerMP = p[x].mp;
             playerUserId = p[x].instance.userid;
+            playerSkin = p[x].skin;
             //team = team;//Math.floor(Math.random() * 2) + 1; // 1 = red, 2 = blue
             // only assign team if team has not yet been assigned
             //if (p[x].team == 0)
@@ -614,13 +615,26 @@ game_server.startGame = function(game, newplayer)
     // this.log('player_clients', game.player_clients.length);
     var others = [];
     var other;
+    var pd;
+    var players = this.games[game.id].gamecore.getplayers.allplayers;
     for (var i = 0; i < game.player_clients.length; i++)
     {
         other = game.player_clients[i];
         console.log('@@ other', other.mp, other.userid, other.playerName, other.skin);
         
         if (other.userid && other.userid != playerUserId)
-            others.push({mp: other.mp, userid: other.userid});
+        {
+            //playerdata: 'undefined|skin1'
+            pd = other.playerdata.split['|'];
+            for (var a = 0; a < players.length; a++)
+            {
+                // get data from player
+                if (players[a].mp == other.mp)
+                {
+                    others.push({mp: other.mp, userid: other.userid, skin:players[a].skin, playerName:players[a].playerName, team:players[a].team});
+                }
+            }
+        }
         // if (game.player_clients[i].hosting)
         // {
         //     host = game.player_clients[i];
@@ -712,7 +726,7 @@ game_server.startGame = function(game, newplayer)
             if (nonhosts[j].mp == newplayer.mp)
             {
                 this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
-                this.log("* data:", playerMP, playerName);
+                this.log("* data:", playerMP, playerName, playerSkin);
 
                 // joing game/room
                 // this.log('****', nonhosts[j]);
@@ -731,13 +745,15 @@ game_server.startGame = function(game, newplayer)
                 var data = [];
                 data[0] = playerMP;
                 data[1] = this.games[game.id].id;
-                data[2] = JSON.stringify(chestsarray);
+                data[2] = chestsarray;
                 data[3] = team;
                 data[4] = playerName;
-                data[5] = JSON.stringify(flagsArray);
+                data[5] = flagsArray;
                 data[6] = playerUserId;
-                data[7] = JSON.stringify(others);
+                data[7] = others;
+                data[8] = playerSkin;
                 nonhosts[j].send('onhostgame', data);
+                
                 // nonhosts[j].send('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
                 // {
                 //     if (err)
@@ -748,7 +764,19 @@ game_server.startGame = function(game, newplayer)
                 // let others know player has joined their 
                 console.log('player', nonhosts[j].userid, 'sending joingame to other...');
                 // nonhosts[j].broadcast.to(game.id).emit('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
-                nonhosts[j].room(game.id).except(nonhosts[j].id).write('onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                var joindata = 
+                [
+                    10,//'onjoingame', 
+                    playerUserId,//playerMP,
+                    this.games[game.id].id,
+                    chestsarray,//JSON.stringify(chestsarray),
+                    team,
+                    playerName,
+                    flagsArray,//JSON.stringify(flagsArray),
+                    playerMP,
+                    playerSkin
+                ];
+                nonhosts[j].room(game.id).except(nonhosts[j].id).write(joindata);//'onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 
                 //this.io.in(game.id).emit('hostgame' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
