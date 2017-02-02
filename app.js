@@ -19,10 +19,8 @@ var
 
     Primus          = require('primus'),
     Rooms           = require('primus-rooms'),
+    // PrimusCluster   = require('primus-cluster'),//require('primus-redis-rooms'),
     Emitter         = require('primus-emitter'),
-    // binarypack      = require('binarypack'),
-    // io              = require('socket.io'),
-    // clientIo        = require('socket.io-client'),
     uws             = require('uws'),
 
     express         = require('express'),
@@ -32,8 +30,6 @@ var
     cluster         = require('cluster'),
     os              = require('os'),
 
-    // sio_redis       = require('socket.io-redis'),
-    // sticky          = require('socketio-sticky-session'),
     httpProxy       = require('http-proxy'),
 
     // num_processes   = require('os').cpus().length,
@@ -513,13 +509,24 @@ var socketServer = http.createServer(function connection(spark)
 });
 var primus = new Primus(socketServer, 
 {
+    cluster:
+    {
+        redis:
+        {
+            port: redisport,
+            host: redishost
+        },
+    },
     port: socketport,
     transformer: 'uws',
     parser: 'binary'
-}); 
+});
 // add rooms plugin
 primus.plugin('rooms', Rooms);
 primus.plugin('emitter', Emitter);
+
+// use redis
+// primus.use('cluster', PrimusCluster);
 
 // generate client wrapper
 primus.save(__dirname + '/primus.js');

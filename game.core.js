@@ -2959,17 +2959,19 @@ game_core.prototype.client_onflagadd = function(data)
     this.updateTerritory();
 };
 // take flag from placque
-game_core.prototype.client_onflagremove = function(data)
+game_core.prototype.client_onflagremove = function(player_id, flagName, flagTakenAt)
 {
-    console.log('client_onflagremove', data);
+    console.log('client_onflagremove', player_id, flagName, flagTakenAt);
 
     var _this = this;
 
     //data: player.mp|flag.name
+    /*
     var split = data.split("|");
     var mp = split[0];
     var flagName = split[1];
     var flagTakenAt = split[2];
+    */
     var playerSource, flagTaken;
 
     /////////////////////////////////////
@@ -2977,7 +2979,7 @@ game_core.prototype.client_onflagremove = function(data)
     /////////////////////////////////////
     _.forEach(this.getplayers.allplayers, function(ply)
     {
-        if (ply.mp == mp)
+        if (ply.id == player_id)
         {
             playerSource = ply;
             return false; // break
@@ -6044,9 +6046,9 @@ game_core.prototype.client_onnetmessage = function(data) {
                 switch(subcommand)
                 {
                     // take
-                    case 't' : this.client_on_chesttake(commanddata); break;
+                    // case 't' : this.client_on_chesttake(commanddata); break;
                     // remove
-                    case 'r' : this.client_on_chestremove(commanddata); break;
+                    // case 'r' : this.client_on_chestremove(commanddata); break;
                 }
 
             break;
@@ -6200,19 +6202,28 @@ game_core.prototype.client_connect_to_server = function()
             
             // player killed
             // 1: victim id, 2: victor id
-            case 5: _this.client_onplayerkilled(data[1], data[2]);//(data.action);
-            break;
+            case 5: _this.client_onplayerkilled(data[1], data[2]); break;
 
-            case 10: _this.client_onjoingame(data);
-            break;
+            // join game
+            case 10: _this.client_onjoingame(data); break;
 
-            case 15: _this.client_on_chesttake(data[1], data[2]);
-            break;
+            // take chest
+            case 15: _this.client_on_chesttake(data[1], data[2]); break;
 
-            case 16: _this.client_on_chestremove(data[1], data[2]);
-            break;
+            // chest removed
+            case 16: _this.client_on_chestremove(data[1], data[2]); break;
 
-            default: _this.client_onserverupdate_recieved(data);//console.log('default!');
+            // flag slotted in plaque (player)
+            case 20: _this.client_onflagadd(commanddata); break;
+
+            // flag taken from plaque (player)
+            case 21: _this.client_onflagremove(data[1], data[2], data[3]); break;
+
+            // flag visibility changed (map)
+            case 22: _this.client_onflagchange(commanddata); break;
+
+            // onserverupdate (streaming)
+            default: _this.client_onserverupdate_recieved(data); break;
             
         }
     });
@@ -6262,7 +6273,7 @@ game_core.prototype.client_connect_to_server = function()
     this.socket.on('message', this.client_onnetmessage.bind(this));
 
     this.socket.on('onhostgame', this.client_onhostgame.bind(this));
-    this.socket.on('onjoingame', this.client_onjoingame.bind(this));
+    // this.socket.on('onjoingame', this.client_onjoingame.bind(this));
     this.socket.on('onreadygame', this.client_onreadygame.bind(this));
     this.socket.on('onplayerkill', this.client_onplayerkilled.bind(this));
     this.socket.on('ondisconnect', this.client_ondisconnect.bind(this));
@@ -6323,7 +6334,7 @@ game_core.prototype.client_draw_info = function()
     // } //reached 10 frames
     var pingTxt = document.getElementById('txtPing');
     if (this.socket && this.socket.primus)
-    pingTxt.innerHTML = this.socket.primus.latency;//net_ping;// + "/" + this.last_ping_time;
+        pingTxt.innerHTML = this.socket.primus.latency;//net_ping;// + "/" + this.last_ping_time;
 
     /////////////////////////////////
     // fps

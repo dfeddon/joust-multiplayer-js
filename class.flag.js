@@ -432,11 +432,12 @@ game_flag.prototype.doTake = function(player)
     // show toast
     new game_toast().show(data);
   }
-  else
+  else // server
   {
       console.log('* socket emit', this.targetSlot);
-      // inform socket
-      for (var l = 0; l < this.getplayers.allplayers.length; l++)
+      // inform sockets
+      player.instance.room(player.instance.gameid).write([21, player.id, this.name, player.flagTakenAt]);
+      /*for (var l = 0; l < this.getplayers.allplayers.length; l++)
       {
           // dispatch flagremove socket event
           if (this.getplayers.allplayers[l].instance)// && this.getplayers.allplayers[l].mp != player.mp)
@@ -445,7 +446,7 @@ game_flag.prototype.doTake = function(player)
               //this.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
               this.getplayers.allplayers[l].instance.send('f.r.'+player.mp+"|"+this.name+"|"+player.flagTakenAt);//_this.laststate);
           }
-      }
+    }*/
       // update clientCooldowns objs
       var cd = this.config._.find(_this.config.clientCooldowns, {"name":_this.name});
       //console.log(this.game.clientCooldowns);
