@@ -553,7 +553,7 @@ primus.on('connection', function (spark)
     {
         // console.log('spark.on', data);
         
-        //console.log('client-to-server message', m);
+        // console.log('client-to-server message', spark.primus.latency);
         game_server.onMessage(spark, data);
     }); //client.on message
 

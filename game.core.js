@@ -591,7 +591,8 @@ var game_core = function(game_instance, io)
         this.client_connect_to_server();
 
         //We start pinging the server to determine latency
-        this.client_create_ping_timer();
+        // TODO: Replaced ping timer with this.socket.primus.latency
+        //this.client_create_ping_timer();
 
         //Set their colors from the storage or locally
         // this.color = localStorage.getItem('color') || '#cc8822' ;
@@ -2609,22 +2610,25 @@ game_core.prototype.check_collision = function( player )
 
     //console.log('chests', this.chests.length, player.mp);
     // _.forEach(this.chests, function(chest)
-    var chest;
-    for (var j = this.chests.length - 1; j >= 0; j--)
+    if (this.config.server)
     {
-        chest = this.chests[j];
-        //console.log('collision().chests', chest);
-        // Note: hy + 10 below accounts for birds unseen legs.
-        if (
-            chest && chest.taken===false && player.pos.x < (chest.x + chest.width) &&
-            (player.pos.x + player.size.hx) > chest.x &&
-            player.pos.y < (chest.y + chest.height) &&
-            (player.pos.y + player.size.hy) > chest.y
-        )
+        var chest;
+        for (var j = this.chests.length - 1; j >= 0; j--)
         {
-            console.log('chest hit');
-            chest.doTake(player);//, _this.chests);
-            //_.pull(_this.chests, chest);
+            chest = this.chests[j];
+            //console.log('collision().chests', chest);
+            // Note: hy + 10 below accounts for birds unseen legs.
+            if (
+                chest && chest.taken===false && player.pos.x < (chest.x + chest.width) &&
+                (player.pos.x + player.size.hx) > chest.x &&
+                player.pos.y < (chest.y + chest.height) &&
+                (player.pos.y + player.size.hy) > chest.y
+            )
+            {
+                console.log('chest hit');
+                chest.doTake(player);//, _this.chests);
+                //_.pull(_this.chests, chest);
+            }
         }
     }
 
@@ -2839,12 +2843,12 @@ game_core.prototype.check_collision = function( player )
 
 // };
 
-game_core.prototype.client_on_chesttake = function(data)
+game_core.prototype.client_on_chesttake = function(id, player)
 {
-    console.log('client_on_chesttake', data);
-    var split = data.split("|");
-    var id = split[0];
-    var player = split[1];
+    console.log('client_on_chesttake', id, player);
+    // var split = data.split("|");
+    // var id = split[0];
+    // var player = split[1];
     _.forEach(this.chests, function(chest)
     {
         console.log('chest id', chest.id);
@@ -2855,14 +2859,14 @@ game_core.prototype.client_on_chesttake = function(data)
         }
     });
 };
-game_core.prototype.client_on_chestremove = function(data)
+game_core.prototype.client_on_chestremove = function(id, player)
 {
-    console.log('=== client_on_chestremove', data, '===');
+    console.log('=== client_on_chestremove ===');
     var _this = this;
 
-    var split = data.split("|");
-    var id = split[0];
-    var player = split[1];
+    // var split = data.split("|");
+    // var id = split[0];
+    // var player = split[1];
 
     _.forEach(this.chests, function(chest)
     {
@@ -5502,7 +5506,7 @@ game_core.prototype.client_onreadygame = function(data) {
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
     */
-    this.local_time = server_time + this.net_latency;
+    this.local_time = server_time + this.socket.primus.latency;//this.net_latency;
     console.log('## server time is about ' + this.local_time);
     /*
     //Store their info colors for clarity. server is always blue
@@ -5883,7 +5887,7 @@ game_core.prototype.client_onhostgame_orig = function(data) {
     var server_time = parseFloat(data.replace('-','.'));
 
     //Get an estimate of the current time on the server
-    this.local_time = server_time + this.net_latency;
+    this.local_time = server_time + this.socket.primus.latency;//this.net_latency;
 
     //Set the flag that we are hosting, this helps us position respawns correctly
     this.players.self.host = true;
@@ -6159,34 +6163,20 @@ game_core.prototype.client_connect_to_server = function()
     });
     //*/
     //*
-    var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
-    // this.socket = new WebSocket(url);
+    // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
+    // url = "ws://localhost:3000";
+    var url = "ws://" + window.location.hostname + ":3000";
     this.socket = Primus.connect(url, 
     {
         parser: 'binary',
         reconnect: 
         {
-            max: Infinity // Number: The max delay before we try to reconnect.
-            , min: 500 // Number: The minimum delay before we try reconnect.
-            , retries: 10 // Number: How many times we should try to reconnect.
+            max: Infinity, // Number: The max delay before we try to reconnect.
+            min: 500, // Number: The minimum delay before we try reconnect.
+            retries: 10 // Number: How many times we should try to reconnect.
         }
     });
-    // this.socket.open();
     this.socket.write({cc: assets.playerName + "|" + assets.playerSkin});
-    // var primus = Primus.createSocket({transformer:'uws'});
-    // var socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
-    // this.socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
-    //*/
-    // var primus = Primus.connect('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);
-    
-    //"http://localhost:3000");
-    // this.socket = io.connect();
-    console.log('socket', this.socket);
-    // this.socket.on('open', function open()
-    // {
-    //     console.log('we are open!');
-        
-    // })
 
     //When we connect, we are not 'connected' until we have a server id
     //and are placed in a game by the server. The server sends us a message for that.
@@ -6195,12 +6185,13 @@ game_core.prototype.client_connect_to_server = function()
         console.log('== client_connect_to_server ==');
         
         this.players.self.state = 'connecting';
+        // console.log(this.socket.primus.latency);
 
     }.bind(this));
 
     this.socket.on('data', function message(data)
     {
-        // console.log('* Received @data message from server', data);
+        // console.log('* Received @data message from server', this.socket.latency, data);
 
         switch(data[0])
         {
@@ -6213,6 +6204,12 @@ game_core.prototype.client_connect_to_server = function()
             break;
 
             case 10: _this.client_onjoingame(data);
+            break;
+
+            case 15: _this.client_on_chesttake(data[1], data[2]);
+            break;
+
+            case 16: _this.client_on_chestremove(data[1], data[2]);
             break;
 
             default: _this.client_onserverupdate_recieved(data);//console.log('default!');
@@ -6325,7 +6322,8 @@ game_core.prototype.client_draw_info = function()
     //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
     // } //reached 10 frames
     var pingTxt = document.getElementById('txtPing');
-    pingTxt.innerHTML = this.net_ping;// + "/" + this.last_ping_time;
+    if (this.socket && this.socket.primus)
+    pingTxt.innerHTML = this.socket.primus.latency;//net_ping;// + "/" + this.last_ping_time;
 
     /////////////////////////////////
     // fps

@@ -6,7 +6,7 @@
   "version": "0.8.0",
   "main": "app.js",
   "scripts": {
-    "start": "node --expose-gc app.js",
+    "start": "node app.js",
     "start_forever": "forever start app.js -c 'node –-nouse-idle-notification --expose-gc'",
     "local": "nodemon --watch app.js"
   },
@@ -25,10 +25,6 @@
     "primus": "^6.0.8",
     "primus-emitter": "^3.1.1",
     "primus-rooms": "^3.4.1",
-    "socket.io": "^1.7.2",
-    "socket.io-parser": "^2.3.2",
-    "socket.io-redis": "^3.1.0",
-    "socketio-sticky-session": "^0.4.2",
     "throng": "^4.0.0",
     "typedarray-pool": "^1.1.0",
     "utf-8-validate": "^2.0.0",

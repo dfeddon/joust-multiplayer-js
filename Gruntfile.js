@@ -107,6 +107,7 @@ module.exports = function(grunt)
                     { src: ['./package.json'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.css'], dest: '../wingdom-server-dist/' },
+                    { src: ['./primus.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./privacy.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./terms.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./sitemap.xml'], dest: '../wingdom-server-dist/' },

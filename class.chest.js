@@ -69,30 +69,18 @@ function game_chest(data, client, getplayers, config)
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('=== chest.doTake', player.mp, this.taken, '===');
+  console.log('=== chest.doTake', player.id, this.taken, '===');
 
   var _this = this;
   if (this.taken === true) return;
   else this.taken = true;
 
-  this.takenBy = player.mp;
+  this.takenBy = player;//.mp;
 
   // send to server
-  // console.log('len', getplayers.allplayers.length);
-
-  _.forEach(_this.getplayers.allplayers, function(ply)
-  {
-    // console.log('* instance', ply.instance, ply.mp, player.mp);
-
-    if (ply.instance && ply.mp != player.mp && ply.mp != "hp")
-    {
-      // console.log('* send', _this.id, ply.mp);
-
-      ply.instance.send('c.t.' + _this.id + '|' + player.mp);//, k );
-      //_this.config.socket.send('c.t.' + _this.id + '|' + player.mp);//, k );
-    }
-  });
-
+  // player.instance.room(player.instance.gameid).write('c.t.' + this.id + '|' + player.mp);
+  player.instance.room(player.instance.gameid).write([15, this.id, player.id]);
+  
   // no double-takes!
 
   // assign passive to player
@@ -146,15 +134,7 @@ game_chest.prototype.doRemove = function(player)
 
   var _this = this;
   _.pull(this.config.chests, this);
-  _.forEach(_this.getplayers.allplayers, function(ply)
-  {
-    if (ply.instance && ply.mp != _this.takenBy && ply.mp != "hp")
-    {
-      // console.log('* sending c.r. to', ply.mp);
-      ply.instance.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
-      //_this.config.socket.send('c.r.' + _this.id + '|' + _this.takenBy);//, k );
-    }
-  });
+  this.takenBy.instance.room(this.takenBy.instance.gameid).write([16, this.id, this.takenBy.id]);
 };
 
 game_chest.prototype.update = function()

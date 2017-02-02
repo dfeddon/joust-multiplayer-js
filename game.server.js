@@ -146,14 +146,20 @@ game_server._onMessage = function(spark,message)
         var message_type = message_parts[0];
 
         //Input handler will forward this
-        //this.log('@@ _onMessage', message, client);
+        // this.log('@@ _onMessage', message);//, client);
+        /*
+        @@ _onMessage { is: 'i.r-x.11-003.475' }
+        @@ _onMessage { is: 'i.r-x.11-032.476' }
+        @@ _onMessage { is: 'i.r-u-x.11-063.477' }
+        @@ _onMessage { is: 'i.r-u-x.11-084.478' }
+        */
         this.onInput(spark, message_parts);//message.is);//_parts);
     }
     //return;
-    else if(message_type == 'p')
-    {
-        spark.send('s.p.' + message_parts[1]);
-    }
+    // else if(message_type == 'p')
+    // {
+    //     spark.send('s.p.' + message_parts[1]);
+    // }
     else if(message_type == 'c')
     {    //Client changed their color!
         //if(other_client)
@@ -259,6 +265,14 @@ game_server.onInput = function(client, parts)
     var input_time = parts[2].replace('-','.');
     var input_seq = parts[3];
     // this.log(parts, input_commands, input_time, input_seq);
+    /*
+    [ 'i', 'r-x', '88-868', '4437' ] [ 'r', 'x' ] '88.868' '4437'
+    [ 'i', 'r-x', '88-887', '4438' ] [ 'r', 'x' ] '88.887' '4438'
+    [ 'i', 'r-x', '88-904', '4439' ] [ 'r', 'x' ] '88.904' '4439'
+    [ 'i', 'x', '88-919', '4440' ] [ 'x' ] '88.919' '4440'
+    [ 'i', 'x', '88-936', '4441' ] [ 'x' ] '88.936' '4441'
+    [ 'i', 'x', '88-963', '4442' ] [ 'x' ] '88.963' '4442'
+    */
     //the client should be in a game, so
     //we can tell that game to handle the input
     if(client && client.game && client.game.gamecore)
@@ -753,7 +767,7 @@ game_server.startGame = function(game, newplayer)
                 data[7] = others;
                 data[8] = playerSkin;
                 nonhosts[j].send('onhostgame', data);
-                
+
                 // nonhosts[j].send('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
                 // {
                 //     if (err)
