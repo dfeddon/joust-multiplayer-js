@@ -2,7 +2,7 @@ var _ = require('./node_modules/lodash/lodash.min');
 
 function game_spritesheet(img)
 {
-  console.log('== spritesheet() ==', img);
+  // console.log('== spritesheet() ==', img);
   //this.t = 0;
 
   //this.type = null;
