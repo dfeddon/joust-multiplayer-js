@@ -2,6 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node2",
+            "request": "attach",
+            "name": "Attach to Port",
+            "port": 4004
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome",
+            "url": "http://localhost:4004",
+            "webRoot": "${workspaceRoot}"
+        },
+        {
             "name": "Launch Firefox against localhost, with sourcemaps",
             "type": "firefox",
             "request": "launch",
@@ -15,7 +28,8 @@
             "request": "attach",
             "port": 4004,
             "sourceMaps": true,
-            "webRoot": "${workspaceRoot}"
+            "webRoot": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}"
         }
     ]
 }

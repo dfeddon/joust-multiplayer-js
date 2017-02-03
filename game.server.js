@@ -60,6 +60,7 @@ setInterval(function()
 game_server.setSpark = function(spark)//, emitter)
 {
     this.log("@ setting spark", spark);
+    this.log("@Primus", spark.Primus);
     this.spark = spark;
     // this.emitter = emitter;
     // console.log('setIO', io);
@@ -312,7 +313,7 @@ game_server.createGame = function(client)
 
     //Create a new game core instance, this actually runs the
     //game code like collisions and such.
-    thegame.gamecore = new game_core(thegame);//, this.spark );
+    thegame.gamecore = new game_core(thegame, this.spark );
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -699,8 +700,8 @@ game_server.startGame = function(game, newplayer)
                     d: chest.data.d,
                     m: chest.data.m,
                     t: chest.data.t,
-                    x: chest.data.x,
-                    y: chest.data.y
+                    x: parseInt(chest.data.x),
+                    y: parseInt(chest.data.y)
                 };
                 chestsarray.push(obj);
             }
@@ -717,8 +718,8 @@ game_server.startGame = function(game, newplayer)
                     flag = 
                     {
                         name: fo[l].name,
-                        x: fo[l].x,
-                        y: fo[l].y,
+                        x: parseInt(fo[l].x),
+                        y: parseInt(fo[l].y),
                         sourceSlot: fo[l].sourceSlot,
                         visible: fo[l].visible,
                         isActive: fo[l].isActive

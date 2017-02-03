@@ -404,6 +404,7 @@ game_flag.prototype.doTake = function(player)
 
   // update clientCooldown source and target
   var cd = this.config._.find(_this.config.clientCooldowns, {"name":this.name});
+  console.log('cd:', this.config.clientCooldowns);
   cd.heldBy = player.mp;
   cd.src = this.sourceSlot;
   cd.target = this.targetSlot;

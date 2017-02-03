@@ -228,6 +228,15 @@ var game_core = function(game_instance, io)
     if(this.server) // only for server, not clients (browsers)
     {
         this.gameid = game_instance.id;
+
+        // setup socket worker
+        this.sparkWorker = new Worker('worker.spark.js');
+        var message = {player: this.players.self};
+        this.sparkWorker.postMessage(message, [message.player]);
+        this.sparkWorker.onmessage = evt => 
+        {
+            console.log('* got message from worker!', evt);    
+        }
         // // include modules
         // var UUID            = require('node-uuid'),
         // egyptian_set            = require('./egyptian_set'),
@@ -478,7 +487,7 @@ if( 'undefined' != typeof global )
     module.exports = global.game_core = game_core;
 }
 
-game_core.prototype.getKeyboard = function() { return this.keyboard };
+game_core.prototype.getKeyboard = function() { return this.core_client.keyboard };
 game_core.prototype.nameGenerator = function()
 {
     // name generator
@@ -610,7 +619,7 @@ game_core.prototype.addTouchHandlers = function()
     //var dirL = document.getElementById('dirL');
     //var dirR = document.getElementById('dirR');
 
-    //*
+    /*
     //var mc = new Hammer(cv);
     var dl = new Hammer(dirL);
     var dr = new Hammer(dirR);

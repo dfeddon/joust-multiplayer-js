@@ -5,6 +5,7 @@ var _                   = require('lodash'),
     game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
     game_chest          = require('./class.chest'),
+    game_toast          = require('./class.toast'),
     getplayers          = require('./class.getplayers'),
     pool                = require('typedarray-pool');
 
@@ -17,12 +18,17 @@ function core_client(core, config)
     this.ctx = this.viewport.getContext('2d');
     this.cam = {x:0,y:0};
 
-
     this.core = core;
     this.config = config;
 
     this.getplayers = new getplayers();
     this.chests = [];
+
+    // this.clientCooldowns = [
+    //     {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
+    //     {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
+    //     {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
+    // ];
 
     // workers
     if (window.Worker)
@@ -163,6 +169,7 @@ core_client.prototype.pingFnc = function()
     this.last_ping_time = new Date().getTime() - this.fake_lag;
     this.socket.emit('p.' + (this.last_ping_time) );
 }
+
 core_client.prototype.client_create_ping_timer = function() {
     var _this = this;
         //Set a ping timer to 1 second, to maintain the ping/latency between
@@ -546,11 +553,11 @@ core_client.prototype.client_onjoingame = function(data)
     });
 
     var cflag;
-    //console.log('flags', flags, this.config.flagObjects);
+    //console.log('flags', flags, this.core.config.flagObjects);
     this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
-        cflag = _.find(_this.config.flagObjects, {'name': flag.name});
+        cflag = _.find(_this.core.config.flagObjects, {'name': flag.name});
         //console.log('cflag', cflag);
         if (cflag)
             cflag.visible = flag.visible;
@@ -705,11 +712,11 @@ core_client.prototype.client_onhostgame = function(data, callback)
     });
 
     var cflag;
-    console.log('flags', flags);//, this.config.flagObjects);
+    console.log('flags', flags);//, this.core.config.flagObjects);
     this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
-        cflag = _.find(_this.config.flagObjects, {'name': flag.name});
+        cflag = _.find(_this.core.config.flagObjects, {'name': flag.name});
         console.log('* cflag', cflag);
         if (cflag)
         {
@@ -1288,6 +1295,7 @@ core_client.prototype.client_on_chesttake = function(id, player)
         }
     });
 };
+
 core_client.prototype.client_on_chestremove = function(id, player)
 {
     console.log('=== client_on_chestremove ===');
@@ -1342,7 +1350,7 @@ core_client.prototype.client_onflagadd = function(data)
     // show flag in slot
     /////////////////////////////////////
     var targetSlot, flagSlotted;
-    _.forEach(this.config.flagObjects, function(fo)
+    _.forEach(this.core.config.flagObjects, function(fo)
     {
         //console.log(fo.name, slotName);
         if (fo.name == slotName)
@@ -1387,6 +1395,7 @@ core_client.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     this.updateTerritory();
 };
+
 // take flag from placque
 core_client.prototype.client_onflagremove = function(player_id, flagName, flagTakenAt)
 {
@@ -1420,7 +1429,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     // hide flag taken
     /////////////////////////////////////
     var targetSlot;
-    _.forEach(this.config.flagObjects, function(flag)
+    _.forEach(this.core.config.flagObjects, function(flag)
     {
         console.log(flag.name, flagName);
         if (flag.name == flagName)
@@ -1474,7 +1483,7 @@ core_client.prototype.client_onflagchange = function(data)
     var flagName = split[0];
     var flagVisible = (split[1] == 'true');
     var toastMsg = JSON.parse(split[2]);
-    var flagObj = this.config._.find(this.config.flagObjects, {"name":flagName});//this.name});
+    var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});//this.name});
     flagObj.visible = flagVisible;
     //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
 
@@ -1485,7 +1494,6 @@ core_client.prototype.client_onflagchange = function(data)
         new game_toast().show(toastMsg);
     }
 }
-
 
 core_client.prototype.client_on_orbremoval = function(data)
 {
@@ -1528,7 +1536,8 @@ core_client.prototype.client_on_orbremoval = function(data)
     //else console.log('orb id', id, 'not found!');
 };
 
-core_client.prototype.client_handle_input = function(key){
+core_client.prototype.client_handle_input = function(key)
+{
     //if (glog)
     // console.log('## client_handle_input', this.players.self.active);//this.keyboard);//this.keyboard.pressed('up'));
 
@@ -2141,7 +2150,7 @@ core_client.prototype.client_process_net_updates = function()
 
         // process flags
         /*
-        _.forEach(this.config.flagObjects, function(flag)
+        _.forEach(this.core.config.flagObjects, function(flag)
         {
             //console.log(target);
             if (target[flag.id])// && (target[plat.id].p != _this.players.self.mp))
@@ -2189,12 +2198,12 @@ core_client.prototype.client_process_net_updates = function()
             //console.log('* fc evt', target.fc);
 
             // get client flag (clientCooldown)
-            var cflag = _.find(_this.clientCooldowns, {'name':target.fc.f});
+            var cflag = _.find(_this.core.clientCooldowns, {'name':target.fc.f});
             cflag.heldBy = target.fc.p;
             cflag.timer = target.fc.t;
 
             // get flag obj
-            var flag = _.find(this.config.flagObjects, {'name':target.fc.f});
+            var flag = _.find(_this.core.config.flagObjects, {'name':target.fc.f});
 
             // set client flag target slot
             cflag.target = flag.targetSlot;
@@ -2228,7 +2237,7 @@ core_client.prototype.client_process_net_updates = function()
             /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
             cflag.timer = target.fs.t;
             console.log('cflag', cflag);*/
-            var flg = _.find(this.config.flagObjects, {'name':target.fs.f});
+            var flg = _.find(this.core.config.flagObjects, {'name':target.fs.f});
             flg.timer = target.fs.t;//cflag.timer;
 
             // add flg.isActive check to ensure it runs only once
@@ -2353,7 +2362,6 @@ core_client.prototype.client_process_net_updates = function()
     
 
 }; //game_core.client_process_net_updates
-
 
 core_client.prototype.client_onserverupdate_recieved = function(data)
 {
@@ -2683,7 +2691,7 @@ core_client.prototype.client_update = function()
     });
 
     // flags
-    _.forEach(this.config.flagObjects, function(flagObj)
+    _.forEach(this.core.config.flagObjects, function(flagObj)
     {
         //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
         if (flagObj.type == "flag")
@@ -2720,7 +2728,6 @@ core_client.prototype.client_update = function()
     this.client_refresh_fps();
 
 }; //game_core.update_client
-
 
 core_client.prototype.tilemapper = function()
 {
@@ -2833,14 +2840,14 @@ core_client.prototype.tilemapper = function()
                     //if (flagObjectsObj.type == "flag")
                     //{
                         //flg = new game_flag(flagObjectsObj.type, _this.viewport.getContext('2d'));
-                        //this.config.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
+                        //this.core.config.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
                         //flg.setter(flagObjectsObj);
                     //}
                     //else {
                     //    flg = new game_flag(flagObjectsObj.type, null);
                         //flg.setter(flagObjectsObj);
                     //}
-                    //this.config.flagObjects.push(flg);
+                    //this.core.config.flagObjects.push(flg);
                 });
                 // for (var k in flagObjectsObj)
                 //     delete flagObjectsObj[k];
@@ -2849,7 +2856,7 @@ core_client.prototype.tilemapper = function()
                 _.forEach(objsArray, function(i)
                 {
                     //console.log(i);
-                    this.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
+                    this.core.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
                 });*/
                 break;
             } // switch
@@ -2858,7 +2865,7 @@ core_client.prototype.tilemapper = function()
         // for (var k in flagObjectsObj)
         //     delete flagObjectsObj[k];
         //console.log('chests', this.chestSpawnPoints);
-        //console.log('players', this.config.flagObjects);
+        //console.log('players', this.core.config.flagObjects);
 
         ///////////////////////////////////
         // layers
@@ -3083,18 +3090,18 @@ core_client.prototype.tilemapper = function()
                         flag.x = pre[fo.name].x;
                         flag.y = pre[fo.name].y;
                     }
-                    _this.config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
+                    _this.core.config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
                 }
                 else if (fo.type == "slot")
                 {
                     var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.getplayers, _this.config);
                     //slot.setter(fo);
-                    _this.config.flagObjects.push(slot);
+                    _this.core.config.flagObjects.push(slot);
                     slot.draw();
 
                     /*console.log('revising ctx');
                     //fo.setCtx(_this.fg.getContext('2d'));
-                    this.config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
+                    this.core.config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
                     //fo.draw();
                 }
                 //else fo.draw();
@@ -3336,7 +3343,7 @@ function clamp(value, min, max)
 
 core_client.prototype.updateTerritory = function()
 {
-    console.log('== game_core.updateTerrotiroy', this.bg, this.config.flagObjects.length, "==");
+    console.log('== game_core.updateTerrotiroy', this.bg, this.core.config.flagObjects.length, "==");
 
     if (this.config.bg == null)
     //if (this.bg == null)
@@ -3393,9 +3400,9 @@ core_client.prototype.updateTerritory = function()
     }*/
 
     // flags
-    var red = _.find(this.config.flagObjects, {'name':'redFlag'});
-    var mid = _.find(this.config.flagObjects, {'name':'midFlag'});
-    var blue = _.find(this.config.flagObjects, {'name':'blueFlag'});
+    var red = _.find(this.core.config.flagObjects, {'name':'redFlag'});
+    var mid = _.find(this.core.config.flagObjects, {'name':'midFlag'});
+    var blue = _.find(this.core.config.flagObjects, {'name':'blueFlag'});
     //console.log(red, mid, blue);
     //console.log('territory', red, mid.x, blue.x);
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
@@ -3751,7 +3758,5 @@ core_client.prototype.flagToScore = function(flag, slot)
 
     return {red: red, blue:blue};
 };
-
-
 
 module.exports = core_client;

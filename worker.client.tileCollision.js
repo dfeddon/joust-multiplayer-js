@@ -1,6 +1,6 @@
 onmessage = function(e)
 {
-    // console.log('worker is wokring!');
+    console.log('worker is working!');
     
     var player = e.data[0];
 
