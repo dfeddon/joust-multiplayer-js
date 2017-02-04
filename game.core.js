@@ -230,13 +230,13 @@ var game_core = function(game_instance, io)
         this.gameid = game_instance.id;
 
         // setup socket worker
-        this.sparkWorker = new Worker('worker.spark.js');
+        /*this.sparkWorker = new Worker('worker.spark.js');
         var message = {player: this.players.self};
         this.sparkWorker.postMessage(message, [message.player]);
         this.sparkWorker.onmessage = evt => 
         {
             console.log('* got message from worker!', evt);    
-        }
+        }*/
         // // include modules
         // var UUID            = require('node-uuid'),
         // egyptian_set            = require('./egyptian_set'),

@@ -31,11 +31,12 @@ function core_client(core, config)
     // ];
 
     // workers
-    if (window.Worker)
+    /*if (window.Worker)
     {
         this.clientWorker_tileCollision = new Worker("worker.client.tileCollision.js");
     }
     else this.clientWorker_tileCollision = null;
+    */
     
     //var assets = 
     //this._ = _;
@@ -1020,6 +1021,8 @@ core_client.prototype.client_connect_to_server = function()
     // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
     // url = "ws://localhost:3000";
     var url = "ws://" + window.location.hostname + ":3000";
+    if (window.location.hostname == "www.wingdom.io")
+        url = "ws://localhost:3000";
     this.socket = Primus.connect(url, 
     {
         parser: 'binary',
