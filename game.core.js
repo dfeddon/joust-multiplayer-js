@@ -137,7 +137,7 @@ var game_core = function(game_instance, io)
         this.core_client = new core_client(this, this.config);
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
 
-    this.bufArr = new ArrayBuffer(768);//480);
+    // this.bufArr = new ArrayBuffer(768);//480);
     
     var _this = this;
 
@@ -162,7 +162,7 @@ var game_core = function(game_instance, io)
 
     // this.cam = {x:0,y:0};
 
-    this.mp = null;
+    // this.mp = null;
     this.gameid = null;
 
     this.last_hscore = []; // last high score
@@ -229,6 +229,9 @@ var game_core = function(game_instance, io)
     {
         this.gameid = game_instance.id;
 
+        this.config.server_time = 0;
+        this.laststate = {};
+
         // setup socket worker
         /*this.sparkWorker = new Worker('worker.spark.js');
         var message = {player: this.players.self};
@@ -237,27 +240,6 @@ var game_core = function(game_instance, io)
         {
             console.log('* got message from worker!', evt);    
         }*/
-        // // include modules
-        // var UUID            = require('node-uuid'),
-        // egyptian_set            = require('./egyptian_set'),
-        // game_player         = require('./class.player'),
-        // platformClass       = require('./class.platform'),
-        // //transformClass      = require('./class.transform'),
-        // game_event_server   = require('./class.event'),
-        // game_chest          = require('./class.chest');
-        // /*collisionObject     = require('./class.collision'),
-        // PhysicsEntity       = require('./class.physicsEntity'),
-        // CollisionDetector   = require('./class.collisionDetector'),
-        // CollisionSolver     = require('./class.collisionSolver');*/
-        // this._                   = require('./node_modules/lodash/lodash.min');
-
-        //var co = collisionObject;
-        // phy 2.0
-        // var pe1 = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        // var pe2 = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        // this.entities = [pe1,pe2];
-        // console.log('entities', this.entities.length, this.entities);
-        //console.log('physent', this.collisionDetector);
 
         console.log("##-@@ adding server player and assigning client instance...");
 
@@ -266,12 +248,6 @@ var game_core = function(game_instance, io)
         var other;
         for (var i = this.config.world.totalplayers - 1; i >= 0; i--)
         {
-            // if (!other.instance)
-            // {
-            //     other = new game_player(this.instance.player_host, true, NaN, this.config);
-            //     console.log('@ new client added to player', other.mp);                
-            // }
-            // else 
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
             other.pos = this.gridToPixel(i, 0);
             other.playerName = this.nameGenerator();// + " [" + other.mp + "]"; 
@@ -279,35 +255,8 @@ var game_core = function(game_instance, io)
             other.visible = false;
             other.active = false;
             
-            // other.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-            //other.playerName = this.nameGenerator();
-            //if (other.mp != "cp1") other.isBot = true;
             this.getplayers.allplayers.push(other);
-            // this.entities.push(other);
         }
-        /*
-        // host player starts game loop on startup
-        var hp = new game_player(this.instance.player_host, true, NaN, this.config);
-        console.log('server host player (hp)', this.instance.player_host.userid);
-        
-        // hp.ent = new PhysicsEntity(PhysicsEntity.ELASTIC);
-        this.getplayers.allplayers.push(hp);
-        */
-        // this.entities.push(hp);
-
-        // this.players = {};
-        // this.players.self = {};
-        // this.players.self.old_state = {};
-        // this.players.self.old_state.pos = {x:0,y:0};
-        // // this.players.self.last
-        // this.players.self.mp = "hp";
-        //this.players.hostGame = hp.game;
-
-        // add player (host)
-        /*console.log('len', this.getplayers.allplayers.length);
-        for (var j in this.getplayers.allplayers)
-            console.log(this.getplayers.allplayers[j].mp, this.getplayers.allplayers[j].pos);
-        */
 
         // add typedarray-pool
         //this.serverPool = pool.malloc(768, "arraybuffer");
@@ -341,9 +290,6 @@ var game_core = function(game_instance, io)
         console.log("##-@@ orbs built", this.orbs.length);
         //*/
 
-        // setup collision detect/solve pattern (decorator)
-        // this.collisionDetector = new CollisionDetector();
-        // this.collisionSolver = new CollisionSolver();
         /*
         var t = 0;
         function rndInterval()
@@ -418,9 +364,6 @@ var game_core = function(game_instance, io)
         this.events.push(evt);
         //console.log('startup events', this.events);
     }
-    else // clients (browsers)
-    {
-    }
 
     //The speed at which the clients move.
     this.playerspeed = 275;//120;
@@ -443,22 +386,6 @@ var game_core = function(game_instance, io)
     this.create_timer();
     //*/
 
-    //Client specific initialisation
-    if(!this.server)
-    {
-    }
-    else
-    { //if !server
-
-        this.config.server_time = 0;
-        this.laststate = {};
-
-    }
-
-    // assign global refs to config singleton pattern
-    if (!this.server)
-    {
-    }
     //this.config.flagObjects = this.config.flagObjects;
     //this.getplayers.allplayers = this.getplayers.allplayers;
     //this.config.world = this.config.world;
@@ -477,17 +404,15 @@ var game_core = function(game_instance, io)
     this.config.gridToPixel = this.gridToPixel;
 
     //console.log('config', config);
-    
-
 }; //game_core.constructor
 
-//server side we set the 'game_core' class to a global type, so that it can use it anywhere.
 if( 'undefined' != typeof global )
 {
     module.exports = global.game_core = game_core;
 }
 
-game_core.prototype.getKeyboard = function() { return this.core_client.keyboard };
+game_core.prototype.getKeyboard = function() { return this.core_client.keyboard; };
+
 game_core.prototype.nameGenerator = function()
 {
     // name generator
@@ -521,8 +446,6 @@ game_core.prototype.buildPlatforms = function()
         console.log('drawing platform', this.platforms[i]);
         this.platforms[i].draw();
     }*/
-
-
 };
 
 game_core.prototype.addTouchHandlers = function()
@@ -614,41 +537,7 @@ game_core.prototype.addTouchHandlers = function()
         //alert('move');
         e.preventDefault();
     }
-    //var cv = document.getElementById('viewport');
-    
-    //var dirL = document.getElementById('dirL');
-    //var dirR = document.getElementById('dirR');
 
-    /*
-    //var mc = new Hammer(cv);
-    var dl = new Hammer(dirL);
-    var dr = new Hammer(dirR);
-    var flap = new Hammer(dirF);
-    // mc.on('swipe', function(e)
-    // {
-    //     console.log('swipe', e.direction);
-    // });
-    /*
-    mc.on('press', function(e)
-    {
-        console.log('press',e.changedPointers[0].clientX);
-        if (e.changedPointers[0].clientX < 150)
-            handleStart('dirL');
-        else if (e.changedPointers[0].clientX > 350  && (e.changedPointers[0].clientX < 550))
-            handleStart('dirR');
-        else handleStart('flap');
-    });
-    mc.on('pressup', function(e)
-    {
-        console.log('pressup');
-        console.log('press',e.changedPointers[0].clientX);
-        if (e.changedPointers[0].clientX < 150)
-            handleEnd('dirL');
-        else if (e.changedPointers[0].clientX > 350 && (e.changedPointers[0].clientX < 550))
-            handleEnd('dirR');
-        else handleEnd('flap');
-    });
-    //*/
     dl.on('press', function(e)
     {
         handleStart('dirL');
@@ -673,20 +562,6 @@ game_core.prototype.addTouchHandlers = function()
     {
         handleEnd('flap');
     });
-    //*/
-
-    
-    // dirL.addEventListener('mousedown', handleStart, false);
-    // dirL.addEventListener('mouseup', handleEnd, false);
-    // dirR.addEventListener('mousedown', handleStart, false);
-    // dirR.addEventListener('mouseup', handleEnd, false);
-
-    /*
-    cv.addEventListener('touchstart', handleStart, false);
-    cv.addEventListener('touchend', handleEnd, false);
-    cv.addEventListener('touchcancel', handleCancel, false);
-    cv.addEventListener('touchmove', handleMove, false);
-    //*/
 }
 
 game_core.prototype.apiNode = function()

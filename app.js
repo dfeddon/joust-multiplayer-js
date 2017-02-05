@@ -12,7 +12,7 @@
  
 var
     gameport        = process.env.PORT || 4004,
-    socketport      = 3000,
+    socketport      = process.env.PORT || 3000,
     redisport       = 6379,
     redishost       = "localhost",
     verbose         = false,
@@ -343,7 +343,7 @@ else
     var app = express();
     var server = http.createServer(app);
     //Tell the server to listen for incoming connections
-    server.listen(gameport);//, 'localhost');
+    // server.listen(gameport);//, 'localhost');
     console.log('\t :: Express :: Listening on port ' + gameport );
 
     //By default, we forward the / path to index.html automatically.
@@ -511,17 +511,17 @@ var socketServer = http.createServer(function connection(spark)
 {
     // console.log('socketServer', spark);//, req, res);
 });
-var primus = new Primus(socketServer, 
+var primus = new Primus(server, 
 {
-    cluster:
-    {
-        redis:
-        {
-            port: redisport,
-            host: redishost
-        },
-    },
-    port: socketport,
+    // cluster:
+    // {
+    //     redis:
+    //     {
+    //         port: redisport,
+    //         host: redishost
+    //     },
+    // },
+    port: gameport,
     transformer: 'uws',
     parser: 'binary'
 });
@@ -591,7 +591,8 @@ primus.on('disconnection', function(spark)
         game_server.endGame(spark.gameid, spark.userid);
 });
 
-socketServer.listen(socketport);
+server.listen(gameport);//socketport);
+// console.log('\t :: Express :: Listening on port ' + socketport );
 
 //} // end isWorker
 

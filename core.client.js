@@ -1020,9 +1020,10 @@ core_client.prototype.client_connect_to_server = function()
     //*
     // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
     // url = "ws://localhost:3000";
-    var url = "ws://" + window.location.hostname + ":3000";
-    if (window.location.hostname == "www.wingdom.io")
-        url = "ws://localhost:3000";
+    var url = "ws://" + location.hostname + ":" + location.port;//3000";
+    // if (window.location.hostname == "www.wingdom.io")
+    // url = location.origin.replace(/^http/, 'ws') + ":3000";//"ws://localhost:3000";
+    console.log("socket url:", url, location.port);
     this.socket = Primus.connect(url, 
     {
         parser: 'binary',
@@ -1154,7 +1155,7 @@ core_client.prototype.client_connect_to_server = function()
 core_client.prototype.client_refresh_fps = function() 
 {
     //We store the fps for 10 frames, by adding it to this accumulator
-    this.fps = 1/this.dt;
+    this.fps = 1 / this.core.dt;
     this.fps_avg_acc += this.fps;
     this.fps_avg_count++;
 
