@@ -10,7 +10,7 @@
 
 'use strict';
  
-var
+const
     gameport        = process.env.PORT || 4004,
     socketport      = process.env.PORT || 3000,
     redisport       = 6379,
@@ -25,14 +25,14 @@ var
 
     express         = require('express'),
     http            = require('http'),
-    // net             = require('net'),
+    net             = require('net'),
 
     cluster         = require('cluster'),
-    os              = require('os'),
+    // os              = require('os'),
+    num_processes   = require('os').cpus().length,
 
     httpProxy       = require('http-proxy'),
 
-    // num_processes   = require('os').cpus().length,
     // UUID            = require('node-uuid'),
     getUid          = require('get-uid'),
 
@@ -42,12 +42,13 @@ var
     // xml2js          = require('xml2js'),
     //app             = express(),
     //server          = http.createServer(app),
-    //throng          = require('throng'),
     // memwatch        = require('memwatch-next'),
     //heapdump        = require('heapdump'),
-    // WORKERS         = process.env.WEB_CONCURRENCY || 1;
 
-    game_server     = require('./game.server.js');
+    // throng          = require('throng'),
+    WORKERS         = process.env.WEB_CONCURRENCY || 4;
+
+    var game_server     = require('./game.server.js');
     //game_server_instance = init();//new Object();
 // init();
 // return;
@@ -115,9 +116,9 @@ if (cluster.isMaster)
         // workers[i].game_server_instance = game_server_instance;
 
         // Optional: Restart worker on exit
-        workers[i].on('exit', function(code, signal) {
-            console.log('respawning worker', i);
-            
+        workers[i].on('exit', function(code, signal) 
+        {
+            console.log('respawning worker', i);    
         });
     };
 
@@ -137,10 +138,13 @@ if (cluster.isMaster)
     // Compared against "real" hashing (from the sticky-session code) and
     // "real" IP number conversion, this function is on par in terms of
     // worker index distribution only much faster.
-    var worker_index = function(ip, len) {
+    var worker_index = function(ip, len) 
+    {
         var s = '';
-        for (var i = 0, _len = ip.length; i < _len; i++) {
-            if (!isNaN(ip[i])) {
+        for (var i = 0, _len = ip.length; i < _len; i++) 
+        {
+            if (!isNaN(ip[i])) 
+            {
                 s += ip[i];
             }
         }
@@ -157,8 +161,8 @@ if (cluster.isMaster)
     //     res.sendFile( '/index.html' , { root:__dirname });
     // });
     
-        var game_server_instance = init();
-        //console.log('game_server:', game_server_instance);
+    // var game_server_instance = init();
+    //console.log('game_server:', game_server_instance);
     var netserver = net.createServer({ pauseOnConnect: true }, function(connection) 
     {
         console.log('@ master passing connection to worker...', connection.remoteAddress, num_processes);
@@ -172,7 +176,7 @@ if (cluster.isMaster)
         console.log('@ worker id to receive is', worker.id);
         
         worker.send('sticky-session:connection', connection);
-    }).listen(masterport);
+    }).listen(gameport);
 
 
 
@@ -207,7 +211,7 @@ if (cluster.isMaster)
     //     }
     // });
 }
-else
+else // worker
 {
     // console.log('* worker initialized...', this.game_server_instance);
     // Note we don't use a port here because the master listens on it for us.
@@ -217,17 +221,19 @@ else
 
     // Don't expose our internal server to the outside.
     var server = app.listen(0, 'localhost');
+    return;
     // app.get( '/', function( req, res )
     // {
     //     console.log('trying to load %s', __dirname + '/index.html');
     //     res.sendFile( '/index.html' , { root:__dirname });
     // });
-    var io = io(server);
+    
+    // var io = io(server);
 
     // Tell Socket.IO to use the redis adapter. By default, the redis
     // server is assumed to be on localhost:6379. You don't have to
     // specify them explicitly unless you want to change them.
-    io.adapter(sio_redis({ host: 'localhost', port: 6379 }));
+    // io.adapter(sio_redis({ host: 'localhost', port: 6379 }));
 
     // Here you might use Socket.IO middleware for authorization etc.
 
@@ -324,7 +330,8 @@ else
         });
     // });
     
-}
+} // end worker
+return;
 //*/
 
 //if (cluster.isMaster) {
@@ -675,10 +682,10 @@ memwatch.on('stats', function(stats)
 /*
 function startWorker(id)
 {
-    console.log('app.startWorker id ${id} concurrency workers...');
+    console.log('app.startWorker id', id, 'concurrency workers...');
 
     process.on('SIGTERM', () => {
-        console.log(`Worker ${ id } exiting...`);
+        console.log('Worker', id, ' exiting...');
         console.log('(cleanup would happen here)');
         process.exit();
     });

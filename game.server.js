@@ -8,7 +8,7 @@ MIT Licensed.
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 30;
+var MAX_PLAYERS_PER_GAME = 2;//30;
 var MAX_GAMES_PER_SERVER = 20;
 
 var
