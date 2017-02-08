@@ -13,8 +13,8 @@
 const
     gameport        = process.env.PORT || 4004,
     socketport      = process.env.PORT || 3000,
-    redisport       = 6379,
-    redishost       = "localhost",
+    // redisport       = 6379,
+    // redishost       = "localhost",
     verbose         = false,
 
     Primus          = require('primus'),
@@ -23,13 +23,18 @@ const
     Emitter         = require('primus-emitter'),
     uws             = require('uws'),
 
+    Redis           = require('ioredis'),
+    metroplex       = require('metroplex'),
+    omega_supreme   = require('omega-supreme'),
+    omega_middleware = require('omega-supreme-rooms-middleware'),
+
     express         = require('express'),
     http            = require('http'),
     net             = require('net'),
 
-    cluster         = require('cluster'),
+    // cluster         = require('cluster'),
     // os              = require('os'),
-    num_processes   = require('os').cpus().length,
+    // num_processes   = require('os').cpus().length,
 
     httpProxy       = require('http-proxy'),
 
@@ -48,6 +53,16 @@ const
     // throng          = require('throng'),
     WORKERS         = process.env.WEB_CONCURRENCY || 4;
 
+    var pmx = require('pmx').init(
+    {
+        http          : true, // HTTP routes logging (default: true)
+        ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
+        errors        : true, // Exceptions loggin (default: true)
+        custom_probes : true, // Auto expose JS Loop Latency and HTTP req/s as custom metrics
+        network       : true, // Network monitoring at the application level
+        ports         : true  // Shows which ports your app is listening on (default: false)
+    });
+    
     var game_server     = require('./game.server.js');
     //game_server_instance = init();//new Object();
 // init();
@@ -530,14 +545,26 @@ var primus = new Primus(server,
     // },
     port: gameport,
     transformer: 'uws',
-    parser: 'binary'
+    parser: 'binary',
+    middleware: omega_middleware,//require('omega-supreme-rooms-middleware'),
+    namespace: 'metroplex',
+    redis: new Redis()//require('redis').createClient()
 });
-// add rooms plugin
+
+// add plugins
 primus.plugin('rooms', Rooms);
 primus.plugin('emitter', Emitter);
+primus.plugin('metroplex', metroplex);//require('metroplex'));
+primus.plugin('omega-supreme', omega_supreme);//require('omega-supreme'));
 
+primus.options.middleware = omega_middleware();
 // use redis
 // primus.use('cluster', PrimusCluster);
+
+primus.metroplex.servers(function(err, servers)
+{
+    console.log('registered servers:', servers);
+})
 
 // generate client wrapper
 primus.save(__dirname + '/primus.js');

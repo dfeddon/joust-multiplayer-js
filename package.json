@@ -21,9 +21,14 @@
     "forever": "^0.15.3",
     "get-uid": "^1.0.1",
     "http-proxy": "^1.16.2",
+    "ioredis": "^2.5.0",
     "lodash": "^4.17.4",
     "memwatch-next": "^0.3.0",
+    "metroplex": "^1.0.0",
     "node-uuid": "^1.4.7",
+    "omega-supreme": "^2.1.1",
+    "omega-supreme-rooms-middleware": "^1.0.1",
+    "pmx": "^1.0.1",
     "primus": "^6.0.9",
     "primus-emitter": "^3.1.1",
     "primus-rooms": "^3.4.1",
@@ -31,15 +36,16 @@
     "typedarray-pool": "^1.1.0",
     "utf-8-validate": "^3.0.1",
     "uws": "^0.12.0",
+    "v8-profiler": "^5.6.5",
     "winston": "^2.3.0",
     "ws": "^2.0.2",
     "xml2js": "^0.4.17"
   },
   "optionalDependencies": {
-    "fsevents": "1.0.17"
+    "fsevents": "*"
   },
   "engine": {
-    "node": "6.2.0"
+    "node": "7.5.0"
   },
   "devDependencies": {
     "grunt": "^1.0.1",

@@ -1020,7 +1020,7 @@ core_client.prototype.client_connect_to_server = function()
     //*
     // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
     // url = "ws://localhost:3000";
-    var url = "ws://" + location.hostname + ":" + location.port;//3000";
+    var url = "ws://" + location.hostname + ":4004";//location.port;//3000";
     // if (window.location.hostname == "www.wingdom.io")
     // url = location.origin.replace(/^http/, 'ws') + ":3000";//"ws://localhost:3000";
     console.log("socket url:", url, location.port);
