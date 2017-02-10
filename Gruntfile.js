@@ -1,9 +1,19 @@
 module.exports = function(grunt)
 {
+    // grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.initConfig(
     {
         // package.json
         pkg: grunt.file.readJSON('package.json'),
+
+        // grunt watch
+        // watch:
+        // {
+        //     scripts: {
+        //         files: '**/*.js',
+        //         tasks: ['jshint'],
+        //     }
+        // },
 
         // clean
         clean: ['../wingdom-server-dist/*', '!../wingdom-server-dist/.git'],

@@ -23,10 +23,11 @@ const
     Emitter         = require('primus-emitter'),
     uws             = require('uws'),
 
-    Redis           = require('ioredis'),
+    ioredis         = require('ioredis')(),
     metroplex       = require('metroplex'),
-    omega_supreme   = require('omega-supreme'),
-    omega_middleware = require('omega-supreme-rooms-middleware'),
+    // omega_supreme   = require('omega-supreme'),
+    // omega_supreme_rooms_middleware = require('omega-supreme-rooms-middleware'),
+    // roomsAdapter    = new (require('primus-rooms-redis-adapter'))(ioredis, {omegaSupreme: true, metroplex: true});
 
     express         = require('express'),
     http            = require('http'),
@@ -529,42 +530,34 @@ var ioserver = http.createServer(function(req, res)
 });
 ioserver.listen(3000);
 */
-var socketServer = http.createServer(function connection(spark)
-{
-    // console.log('socketServer', spark);//, req, res);
-});
+// var socketServer = http.createServer(function connection(spark)
+// {
+//     // console.log('socketServer', spark);//, req, res);
+// });
 var primus = new Primus(server, 
 {
-    // cluster:
-    // {
-    //     redis:
-    //     {
-    //         port: redisport,
-    //         host: redishost
-    //     },
-    // },
     port: gameport,
     transformer: 'uws',
     parser: 'binary',
-    middleware: omega_middleware,//require('omega-supreme-rooms-middleware'),
-    namespace: 'metroplex',
-    redis: new Redis()//require('redis').createClient()
+    // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
+    // namespace: 'metroplex'
+    // redis: new Redis()//require('redis').createClient()
 });
 
 // add plugins
 primus.plugin('rooms', Rooms);
 primus.plugin('emitter', Emitter);
-primus.plugin('metroplex', metroplex);//require('metroplex'));
-primus.plugin('omega-supreme', omega_supreme);//require('omega-supreme'));
+// primus.plugin('omega-supreme', omega_supreme); // * must be loaded _before_ metroplex!
+// primus.plugin('metroplex', metroplex);//require('metroplex'));
 
-primus.options.middleware = omega_middleware();
+// primus.options.middleware = omega_supreme_rooms_middleware();
 // use redis
 // primus.use('cluster', PrimusCluster);
 
-primus.metroplex.servers(function(err, servers)
-{
-    console.log('registered servers:', servers);
-})
+// primus.metroplex.servers(function(err, servers)
+// {
+//     console.log('registered servers:', servers);
+// });
 
 // generate client wrapper
 primus.save(__dirname + '/primus.js');
