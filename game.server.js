@@ -12,7 +12,7 @@ var MAX_PLAYERS_PER_GAME = 30;
 var MAX_GAMES_PER_SERVER = 20;
 
 var
-    game_server = module.exports = { games : {}, game_count:0 },
+    // game_server = module.exports = { games : {}, game_count:0 },
     // UUID        = require('node-uuid'),
     getUid      = require('get-uid'),
     //namegen     = require('./name_generator'),
@@ -27,81 +27,93 @@ var
 global.window = global.document = global;
 
 //Import shared game library code.
-require('./game.core.js');
+// var game_core = require('./game.core.js');
 
+function game_server(game_core)
+{
+    var _this = this;
+    console.log('game_server constructor');
+
+    this.fake_latency = 0;
+    this.local_time = 0;
+    this._dt = new Date().getTime();
+    this._dte = new Date().getTime();
+        //a local queue of messages we delay if faking latency
+    this.messages = [];
+
+    this.games = {};
+    this.game_count = 0;
+
+    this.game_core = game_core;
+
+    setInterval(function()
+    {
+        _this.gameservertime();
+        // game_server._dt = new Date().getTime() - game_server._dte;
+        // game_server._dte = new Date().getTime();
+        // game_server.local_time += game_server._dt/1000.0;
+    }, 4);
+
+}
 //A simple wrapper for logging so we can toggle it,
 //and augment it for clarity.
-game_server.log = function()
+game_server.prototype.log = function()
 {
     if(verbose) console.log.apply(this,arguments);
 };
 
-game_server.fake_latency = 0;
-game_server.local_time = 0;
-game_server._dt = new Date().getTime();
-game_server._dte = new Date().getTime();
-    //a local queue of messages we delay if faking latency
-game_server.messages = [];
-
-var gameservertime = function()
+game_server.prototype.gameservertime = function()
 {
-    game_server._dt = new Date().getTime() - game_server._dte;
-    game_server._dte = new Date().getTime();
-    game_server.local_time += game_server._dt/1000.0;
+    this._dt = new Date().getTime() - this._dte;
+    this._dte = new Date().getTime();
+    this.local_time += this._dt/1000.0;
 }
-setInterval(function()
-{
-    gameservertime();
-    // game_server._dt = new Date().getTime() - game_server._dte;
-    // game_server._dte = new Date().getTime();
-    // game_server.local_time += game_server._dt/1000.0;
-}, 4);
 
-game_server.setSpark = function(spark)//, emitter)
+game_server.prototype.setSpark = function(spark)//, emitter)
 {
-    this.log("@ setting spark", spark);
-    this.log("@Primus", spark.Primus);
+    this.log("@ setting spark");//, spark);
+    // this.log("@Primus", spark._rooms.primus.server);
     this.spark = spark;
     // this.emitter = emitter;
     // console.log('setIO', io);
     
 }
 
-game_server.b64EncodeUnicode = function(str) {
+game_server.prototype.b64EncodeUnicode = function(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
         return String.fromCharCode('0x' + p1);
     }));
 }
 
-game_server.onMessage = function(spark,message)
+game_server.prototype.onMessage = function(spark,message)
 {
-    // console.log('@@ onMessage', message);
     if(this.fake_latency && message.split('.')[0].substr(0,1) == 'i')
     {
         //store all input message
-        game_server.messages.push({client:spark, message:message});
+        this.messages.push({client:spark, message:message});
 
         setTimeout(function()
         {
-            if(game_server.messages.length)
+            if(this.messages.length)
             {
-                game_server._onMessage( game_server.messages[0].client, game_server.messages[0].message );
-                game_server.messages.splice(0,1);
+                this._onMessage( this.messages[0].client, this.messages[0].message );
+                this.messages.splice(0,1);
             }
         }.bind(this), this.fake_latency);
     }
     else
     {
-        game_server._onMessage(spark, message);
+        console.log('@@ onMessage', message);
+        this._onMessage(spark, message);
     }
 };
 
-game_server._onMessage = function(spark,message)
+game_server.prototype._onMessage = function(spark,message)
 {
     // this.log('@@ _onMessage', message);//, spark);//, client.mp);
     if (message.cc) // client connected
     {
-        // deprecated
+        // add new user to newClient array
 
         // /end
         spark.userid = getUid();
@@ -114,9 +126,10 @@ game_server._onMessage = function(spark,message)
             playerName = split[0];
         // get player skin
         var playerSkin = split[1];
+        var playerPort = split[2];
         // strip alpha chars and convert to int
         var skinNum = parseInt(playerSkin.replace(/\D/g,''));
-        this.log(playerName, playerSkin, skinNum, spark.userid);
+        this.log('player cc:', playerName, playerSkin, skinNum, spark.userid, playerPort);
 
         spark.emit('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
         // var buffer = new ArrayBuffer(16);
@@ -127,8 +140,8 @@ game_server._onMessage = function(spark,message)
         // console.log('1buffer',typeof(spark.userid), view, buffer);
         
         // spark.write(buffer);//{id: spark.userid, playerdata: spark.playerdata });
-        game_server.setSpark(spark);
-        game_server.findGame(spark);
+        this.setSpark(spark); // <-- omit this, use this.newClients array (see above)
+        this.findGame(spark);
         //return;
     }
     //Cut the message up into sub components
@@ -256,7 +269,7 @@ game_server._onMessage = function(spark,message)
 
 }; //game_server.onMessage
 
-game_server.onInput = function(client, parts)
+game_server.prototype.onInput = function(client, parts)
 {
     // this.log('@@ onInput', client.userid, parts);
     //The input commands come in like u-l,
@@ -284,7 +297,7 @@ game_server.onInput = function(client, parts)
 }; //game_server.onInput
 
 //Define some required functions
-game_server.createGame = function(client)
+game_server.prototype.createGame = function(client)
 {
     this.log('@@ createGame by HOST id', client.userid);
     //Create a new game instance
@@ -313,7 +326,9 @@ game_server.createGame = function(client)
 
     //Create a new game core instance, this actually runs the
     //game code like collisions and such.
-    thegame.gamecore = new game_core(thegame, this.spark );
+    this.log('gamecount', this.game_count);
+    // thegame.gamecore = new this.game_core(thegame, this.spark );
+    thegame.gamecore = this.game_core.init(thegame, this.spark);
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -346,7 +361,7 @@ game_server.createGame = function(client)
 }; //game_server.createGame
 
     //we are requesting to kill a game in progress.
-game_server.endGame = function(gameid, userid)
+game_server.prototype.endGame = function(gameid, userid)
 {
     this.log("@@ endGame", gameid, 'for user', userid);
 
@@ -531,7 +546,7 @@ game_server.endGame = function(gameid, userid)
 
 }; //game_server.endGame
 
-game_server.startGame = function(game, newplayer)
+game_server.prototype.startGame = function(game, newplayer)
 {
     this.log('@@ startGame', game.id, newplayer.mp, newplayer.userid);
     this.log('* total clients', game.player_clients.length);
@@ -751,7 +766,7 @@ game_server.startGame = function(game, newplayer)
                 nonhosts[j].visible = true;
                 nonhosts[j].join(game.id);
                 this.log("player joined game", game.id);
-                this.log("player", nonhosts[j]);
+                // this.log("player", nonhosts[j]);
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //console.log('nonhosts[j]', nonhosts[j]);
@@ -819,7 +834,7 @@ game_server.startGame = function(game, newplayer)
 
 }; //game_server.startGame
 
-game_server.findGame = function(client)
+game_server.prototype.findGame = function(client)
 {
     this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
 
@@ -885,7 +900,7 @@ game_server.findGame = function(client)
                             {
                                 // use cp, as host's hp and his props are already defined
                                 console.log('*** found client', players[i].mp, client.userid, client.playerdata, players[i].team);//players[i].id);
-                                this.log("* client", client);
+                                // this.log("* client", client);
                                 var split = client.playerdata.split("|");
                                 players[i].instance = client;
                                 players[i].id = client.userid;
@@ -989,7 +1004,7 @@ game_server.findGame = function(client)
 
 }; //game_server.findGame
 
-game_server.getTeams = function(game_instance)
+game_server.prototype.getTeams = function(game_instance)
 {
     this.log("== getTeams ==");
     var _this = this;
@@ -1065,3 +1080,4 @@ game_server.getTeams = function(game_instance)
 //
 //     return pname;
 // }
+module.exports = game_server;

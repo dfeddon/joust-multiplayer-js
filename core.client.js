@@ -359,7 +359,7 @@ core_client.prototype.client_onreadygame = function(data) {
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
     */
-    this.core.local_time = server_time + this.socket.primus.latency;//this.net_latency;
+    this.core.local_time = server_time + this.socket.latency;//this.net_latency;
     console.log('## server time is about ' + this.core.local_time);
     /*
     //Store their info colors for clarity. server is always blue
@@ -742,7 +742,7 @@ core_client.prototype.client_onhostgame_orig = function(data) {
     var server_time = parseFloat(data.replace('-','.'));
 
     //Get an estimate of the current time on the server
-    this.core.local_time = server_time + this.socket.primus.latency;//this.net_latency;
+    this.core.local_time = server_time + this.socket.latency;//this.net_latency;
 
     //Set the flag that we are hosting, this helps us position respawns correctly
     this.players.self.host = true;
@@ -996,10 +996,10 @@ core_client.prototype.client_ondisconnect = function(data) {
 
 }; //client_ondisconnect
 
-core_client.prototype.client_connect_to_server = function()
+core_client.prototype.client_connect_to_server = function(data)
 {
     //if (glog)
-    console.log('client_connect_to_server');
+    console.log('client_connect_to_server', data);
 
     var _this = this;
 
@@ -1020,10 +1020,43 @@ core_client.prototype.client_connect_to_server = function()
     //*
     // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
     // url = "ws://localhost:3000";
-    var url = "ws://" + location.hostname + ":4004";//location.port;//3000";
-    // if (window.location.hostname == "www.wingdom.io")
-    // url = location.origin.replace(/^http/, 'ws') + ":3000";//"ws://localhost:3000";
-    console.log("socket url:", url, location.port);
+    // var x_port = document.getElementById('portCall');
+    // console.log('x_port:', x_port);
+    console.log('xport', xport);
+    
+    
+    console.log('server port', location.port, location.hostname, location.host);
+    console.log('request header', navigator.userAgent, document.referer);
+    console.log('cookie', document.cookie);
+    console.log('header', location);
+    console.log('nav', navigator);
+    console.log('doc', document);
+    
+    
+    var socketPort = "3000";
+    // switch(parseInt(location.port))
+    // {
+    //     case 4004:
+    //         socketPort = "3000";
+    //         break;
+
+    //     case 4005:
+    //         socketPort = "3000";
+    //         break;
+    // }
+
+    var hostname = location.hostname;
+    if (hostname == "192.168.86.108");
+        hostname = 'localhost';
+    // dynamic, server/port-based endpoint
+    var dynamicUrl = "ws://" + hostname + ":" + xport;
+
+    // static, single-instanced based endpoint
+    var staticEndpoint = "ws://" + hostname + ":" + socketPort;
+
+    var url = staticEndpoint;
+
+    console.log("socket url:", url);//, location.port, location);
     this.socket = Primus.connect(url, 
     {
         parser: 'binary',
@@ -1034,7 +1067,9 @@ core_client.prototype.client_connect_to_server = function()
             retries: 10 // Number: How many times we should try to reconnect.
         }
     });
-    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin});
+    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin + "|" + xport});
+
+    console.log('primus', this.socket);
 
     //When we connect, we are not 'connected' until we have a server id
     //and are placed in a game by the server. The server sends us a message for that.
@@ -1188,9 +1223,10 @@ core_client.prototype.client_draw_info = function()
     //     var pingTxt = document.getElementById('txtPing');
     //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
     // } //reached 10 frames
+    // console.log('latency', this.socket.latency);
     var pingTxt = document.getElementById('txtPing');
-    if (this.socket && this.socket.primus)
-        pingTxt.innerHTML = this.socket.primus.latency;//net_ping;// + "/" + this.last_ping_time;
+    if (this.socket)// && this.socket.primus)
+        pingTxt.innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
 
     /////////////////////////////////
     // fps
@@ -1603,7 +1639,8 @@ core_client.prototype.client_handle_input = function(key)
 
         } //up
     
-    if (this.keyboard.pressed('x') || (!this.keyboard.pressed('up')))
+    // TODO: Forcing input every milisecond HACK
+    if (this.keyboard.pressed('x'))// || (!this.keyboard.pressed('up')))
     {
         // if (this.flapUp == true)
             input.push('x');

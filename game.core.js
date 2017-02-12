@@ -104,8 +104,12 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 //for itself to play the game.
 
 /* The game_core class */
+function game_core()
+{
+    console.log('game_core constructor');
+};
 
-var game_core = function(game_instance, io)
+game_core.prototype.init = function(game_instance, io)
 {
     console.log('## game_core instantiated');//, game_instance);
     //Store the instance, if any
@@ -403,6 +407,7 @@ var game_core = function(game_instance, io)
     this.config._ = _;
     this.config.gridToPixel = this.gridToPixel;
 
+    return this;
     //console.log('config', config);
 }; //game_core.constructor
 

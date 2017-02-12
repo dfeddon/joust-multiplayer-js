@@ -12,19 +12,42 @@
  
 const
     gameport        = process.env.PORT || 4004,
+
+    server_port_1   = process.env.POST || 4004,
+    server_port_2   = process.env.POST || 4005,
+    server_port_3   = process.env.POST || 4006,
+    server_port_4   = process.env.POST || 4007,
+    server_port_5   = process.env.POST || 4008,
+    server_port_6   = process.env.POST || 4009,
+    server_port_7   = process.env.POST || 4010,
+    server_port_8   = process.env.POST || 4011,
+    server_port_9   = process.env.POST || 4012,
+    server_port_10  = process.env.POST || 4013,
+
+    socket_port_1   = process.env.POST || 5004,
+    socket_port_2   = process.env.POST || 5005,
+    socket_port_3   = process.env.POST || 5006,
+    socket_port_4   = process.env.POST || 5007,
+    socket_port_5   = process.env.POST || 5008,
+    socket_port_6   = process.env.POST || 5009,
+    socket_port_7   = process.env.POST || 5010,
+    socket_port_8   = process.env.POST || 5011,
+    socket_port_9   = process.env.POST || 5012,
+    socket_port_10  = process.env.POST || 5013,
+    
     socketport      = process.env.PORT || 3000,
     // redisport       = 6379,
     // redishost       = "localhost",
     verbose         = false,
 
-    Primus          = require('primus'),
-    Rooms           = require('primus-rooms'),
-    // PrimusCluster   = require('primus-cluster'),//require('primus-redis-rooms'),
-    Emitter         = require('primus-emitter'),
-    uws             = require('uws'),
+    // Primus          = require('primus'),
+    // Rooms           = require('primus-rooms'),
+    // // PrimusCluster   = require('primus-cluster'),//require('primus-redis-rooms'),
+    // Emitter         = require('primus-emitter'),
+    // uws             = require('uws'),
 
-    ioredis         = require('ioredis')(),
-    metroplex       = require('metroplex'),
+    // ioredis         = require('ioredis'),//(),
+    // metroplex       = require('metroplex'),
     // omega_supreme   = require('omega-supreme'),
     // omega_supreme_rooms_middleware = require('omega-supreme-rooms-middleware'),
     // roomsAdapter    = new (require('primus-rooms-redis-adapter'))(ioredis, {omegaSupreme: true, metroplex: true});
@@ -32,6 +55,7 @@ const
     express         = require('express'),
     http            = require('http'),
     net             = require('net'),
+    vhost           = require('vhost'),
 
     // cluster         = require('cluster'),
     // os              = require('os'),
@@ -64,7 +88,9 @@ const
         ports         : true  // Shows which ports your app is listening on (default: false)
     });
     
-    var game_server     = require('./game.server.js');
+    // var game_server     = require('./game.server.js');
+    var game_connections = require('./game.connections');
+    var game_core = require('./game.core');
     //game_server_instance = init();//new Object();
 // init();
 // return;
@@ -364,16 +390,36 @@ return;
     // server
     /////////////////////////////////////////////////
     var app = express();
-    var server = http.createServer(app);
-    //Tell the server to listen for incoming connections
-    // server.listen(gameport);//, 'localhost');
-    console.log('\t :: Express :: Listening on port ' + gameport );
+    var server1 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_1 );
+
+    var server2 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_2 );
+
+    // app.use(vhost('svr1.localhost', function(req, res) {
+    //     console.log('SVR1!');
+    //     server1.emit('request', req, res)
+    // }));
+    // app.use(vhost('svr1.localhost', server1));
 
     //By default, we forward the / path to index.html automatically.
+    app.engine('.html', require('ejs').__express);
+    app.set('views', __dirname);
+    app.set('view engine', 'html');
     app.get( '/', function( req, res )
     {
-        console.log('trying to load %s', __dirname + '/index.html');
-        res.sendFile( '/index.html' , { root:__dirname });
+        // console.log('trying to load %s', __dirname + '/index.html', req.headers, req.socket.server._connectionKey, req.socket.localPort, req.socket.remotePort);
+        // res.set({'x_port': "4000"});
+        // res.sendFile( '/index.html' , { root:__dirname, headers: {'x-port': req.socket.localPort} });
+        // res.status(200).json({port:2000});
+        // res.redirect(200, '/index.html?port=' + req.socket.localPort);
+
+        // we're rending index.html via ebs module so that we can pass the
+        // proxied port number over to the client.
+        res.render('index', 
+        {
+           xport: req.socket.localPort 
+        });
     });
 
     // security
@@ -530,95 +576,119 @@ var ioserver = http.createServer(function(req, res)
 });
 ioserver.listen(3000);
 */
+
+// the *single* game instance across *all* servers
+var gameInstanceType = 2; // 1: single instance game / 2: multi-instance per server
+// establish primus connections
+var connectionType = 1; // 1: single proxy connection / 2: multi/server-based proxies
+
+var gamecore = new game_core();
+var proxy1, proxy2, gamecore2;
+
+proxy1 = new game_connections().createConnection(server1, gamecore);
+
+if (gameInstanceType === 2)
+    gamecore2 = new game_core();
+else gamecore2 = gamecore;
+if (connectionType !== 1)
+    proxy2 = proxy1.createConnection(server1, gamecore2);
+// else proxy2 = game_connections().createConnection(server2, gamecore);
 // var socketServer = http.createServer(function connection(spark)
 // {
 //     // console.log('socketServer', spark);//, req, res);
 // });
-var primus = new Primus(server, 
-{
-    port: gameport,
-    transformer: 'uws',
-    parser: 'binary',
-    // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
-    // namespace: 'metroplex'
-    // redis: new Redis()//require('redis').createClient()
-});
+// var primus = new Primus(server2, 
+// {
+//     // port: 4005,
+//     transformer: 'uws',
+//     parser: 'binary',
+//     iknowhttpsisbetter: true,
+//     // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
+//     namespace: 'metroplex',
+//     redis: ioredis.createClient()
+// });
 
-// add plugins
-primus.plugin('rooms', Rooms);
-primus.plugin('emitter', Emitter);
-// primus.plugin('omega-supreme', omega_supreme); // * must be loaded _before_ metroplex!
+// // add plugins
+// primus.plugin('rooms', Rooms);
+// primus.plugin('emitter', Emitter);
+// // primus.plugin('omega-supreme', omega_supreme); // * must be loaded _before_ metroplex!
 // primus.plugin('metroplex', metroplex);//require('metroplex'));
 
-// primus.options.middleware = omega_supreme_rooms_middleware();
-// use redis
-// primus.use('cluster', PrimusCluster);
+// // primus.options.middleware = omega_supreme_rooms_middleware();
+// // use redis
+// // primus.use('cluster', PrimusCluster);
 
 // primus.metroplex.servers(function(err, servers)
 // {
 //     console.log('registered servers:', servers);
 // });
 
-// generate client wrapper
-primus.save(__dirname + '/primus.js');
+// // generate client wrapper
+// primus.save(__dirname + '/primus/primus.js');
 
-// connection
-primus.on('connection', function (spark)
-{
-    console.log('@ client connected');//, spark);
-    // console.log('connection has the following headers', spark.headers);
-    console.log('@ connection was made from', spark.address);
-    console.log('@ connection id', spark.id);
-    // spark.on('open', function open()
-    // {
-    //     console.log('@ Connection is alive and kicking');
-    // });
-    /*console.log('@ client.connection', Rooms);//, client.conn.transport);
-    spark.userid = getUid();
-    // client.playerdata = client.handshake.query['playerdata'];
-    // console.log('@@ new client connected', client.userid, client.id, client.handshake.query['playerdata']);//, client);
+// // connection
+// primus.on('connection', function (spark)
+// {
+//     console.log('@ client connected');//, spark);
+//     // console.log('connection has the following headers', spark.headers);
+//     console.log('@ connection was made from', spark.address);
+//     console.log('@ connection id', spark.id);
+//     primus.metroplex.spark(spark.id, function(err, server)
+//     {
+//         console.log('@spark server', server);   
+//     });
+//     // console.log('@ current port', )
+//     // spark.on('open', function open()
+//     // {
+//     //     console.log('@ Connection is alive and kicking');
+//     // });
+//     /*console.log('@ client.connection', Rooms);//, client.conn.transport);
+//     spark.userid = getUid();
+//     // client.playerdata = client.handshake.query['playerdata'];
+//     // console.log('@@ new client connected', client.userid, client.id, client.handshake.query['playerdata']);//, client);
 
-    spark.write('onconnected', { id: spark.userid, playerdata: spark.playerdata });
+//     spark.write('onconnected', { id: spark.userid, playerdata: spark.playerdata });
 
-    game_server.setSpark(spark);
-    game_server.findGame(spark);
+//     game_server.setSpark(spark);
+//     game_server.findGame(spark);
 
-    //Useful to know when someone connects
-    console.log('spark :: player ' + spark.userid + ' connected');*/
+//     //Useful to know when someone connects
+//     console.log('spark :: player ' + spark.userid + ' connected');*/
 
-    //They send messages here, and we send them to the game_server to handle.
-    spark.on('data', function(data)
-    {
-        // console.log('spark.on', data);
+//     //They send messages here, and we send them to the game_server to handle.
+//     spark.on('data', function(data)
+//     {
+//         // console.log('spark.on', data);
         
-        // console.log('client-to-server message', spark.primus.latency);
-        game_server.onMessage(spark, data);
-    }); //client.on message
+//         // console.log('client-to-server message', spark.primus.latency);
+//         game_server.onMessage(spark, data);
+//     }); //client.on message
 
-    // spark.on('disconnect', function ()
-    // {
-    //     //Useful to know when soomeone disconnects
-    //     console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
+//     // spark.on('disconnect', function ()
+//     // {
+//     //     //Useful to know when soomeone disconnects
+//     //     console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
         
-    //     //If the client was in a game, set by game_server.findGame,
-    //     //we can tell the game server to update that game state.
-    //     if(spark.game && spark.gameid)//game.id)
-    //     {
-    //         //player leaving a game should destroy that game
-    //         game_server.endGame(spark.gameid, spark.userid);
-    //     }
+//     //     //If the client was in a game, set by game_server.findGame,
+//     //     //we can tell the game server to update that game state.
+//     //     if(spark.game && spark.gameid)//game.id)
+//     //     {
+//     //         //player leaving a game should destroy that game
+//     //         game_server.endGame(spark.gameid, spark.userid);
+//     //     }
 
-    // }); 
-}); // connection
+//     // }); 
+// }); // connection
 
-primus.on('disconnection', function(spark)
-{
-    console.log('@ client has disconnected!');
-    if (spark.game && spark.gameid)
-        game_server.endGame(spark.gameid, spark.userid);
-});
+// primus.on('disconnection', function(spark)
+// {
+//     console.log('@ client has disconnected!');
+//     if (spark.game && spark.gameid)
+//         game_server.endGame(spark.gameid, spark.userid);
+// });
 
-server.listen(gameport);//socketport);
+server1.listen(server_port_1);//socketport);
+server2.listen(server_port_2);
 // console.log('\t :: Express :: Listening on port ' + socketport );
 
 //} // end isWorker

@@ -778,6 +778,7 @@ domready(function()
 
 		//Create our game client instance.
 		game = new game_core();
+		game.init();
 
 		//Fetch the viewport (primary game canvas )
 		game.viewport = document.getElementById('viewport');
