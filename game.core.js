@@ -109,7 +109,7 @@ function game_core()
     console.log('game_core constructor');
 };
 
-game_core.prototype.init = function(game_instance, io)
+game_core.prototype.init = function(game_instance)//, io)
 {
     console.log('## game_core instantiated');//, game_instance);
     //Store the instance, if any
@@ -118,12 +118,13 @@ game_core.prototype.init = function(game_instance, io)
     //Store a flag if we are the server
     this.server = this.instance !== undefined;
     
-    this.getplayers = new getplayers(game_instance);
     this.config = new config();
     this.config.server = (this.server) ? true : false;
 
-    var worldWidth = 50*64;//3200;//420;
-    var worldHeight = 37*64;//3200;//720;
+    this.getplayers = new getplayers(game_instance, MAX_PLAYERS_PER_GAME, null, this.config);
+
+    var worldWidth = 50 * 64; // 50 tiles 3200;//420;
+    var worldHeight = 37 * 64;// 37 tiles 3200;//720;
 
     //Used in collision etc.
     this.config.world = {
@@ -249,7 +250,7 @@ game_core.prototype.init = function(game_instance, io)
 
         this.apiNode(); // load tilemap data
 
-        var other;
+        /*var other;
         for (var i = this.config.world.totalplayers - 1; i >= 0; i--)
         {
             other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
@@ -260,7 +261,7 @@ game_core.prototype.init = function(game_instance, io)
             other.active = false;
             
             this.getplayers.allplayers.push(other);
-        }
+        }*/
 
         // add typedarray-pool
         //this.serverPool = pool.malloc(768, "arraybuffer");
@@ -816,7 +817,10 @@ game_core.prototype.pk = function(victor, victim)
 
     // victor.instance.room(this.gameid).send("onplayerkill", victim.mp + '|' + victor.mp);
     //victor.instance.room(this.gameid).write({type:"pk", action: victim.mp + '|' + victor.mp});
-    victor.instance.room(victor.instance.game.id).write([5, victim.id, victor.id]);
+
+    // victor.instance.room(victor.instance.game.id).write([5, victim.id, victor.id]);
+    victor.instance.room(victor.playerPort).write([5, victim.id, victor.id]);
+
     // _.forEach(this.getplayers.allplayers, function(p, i)
     // {
     //     if (p.instance)// && p.mp != "hp")
@@ -1876,7 +1880,7 @@ game_core.prototype.server_update = function()
     if (glog)
     console.log('##-@@ server_update', this.getplayers.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
 
-    var _this = this;
+    // var _this = this;
     //Update the state of our local clock to match the timer
     this.config.server_time = this.local_time;
 
@@ -1896,96 +1900,103 @@ game_core.prototype.server_update = function()
     //console.log('=====================');
     //var bufArr = new ArrayBuffer(768);
     // _.forEach(_this.getplayers.allplayers, function(player, index)
-    var player//, inst;
-    for (var i = this.getplayers.allplayers.length - 1; i >= 0 ; i--)
+    var room, player;
+    var allrooms = Object.keys(this.getplayers.fromAllRooms());
+    for (var h = allrooms.length - 1; h >= 0; h--)
     {
-        //console.log('active', player.active, player.visible);
-        player = this.getplayers.allplayers[i];
-        var bufView = [];
-        if (!player.instance) continue;//return;
-        //inst = player.instance;
-        //console.log(_this.getplayers.allplayers.length);
-        // set player's bufferIndex
-        //player.bufferIndex = index;
-        //var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
-        //var bufArr = new ArrayBuffer(16 * _this.getplayers.allplayers.length);
-        //var bufView = new Int16Array(bufArr, (index * 16), 16);
-        //console.log(_this.serverPool);
-        
-        //_this.serverPool[index].prototype.byteLength = 768;
-
-        /*var buffer = pool.malloc(768, "arraybuffer");
-        var bufView = new Int16Array(buffer, (i * 16), 16);*/
-        
-        //var bufView = _this.serverPool;//(_this.bufArr, (index * 16), 16);
-        // bufView.buffer = _this.bufArr;
-        // bufView.byteOffset = index * 16;
-        // bufView.length = 16;
-        //*
-        if (player.pos.x === 0 && player.pos.y === 0) continue;//return;
-        // bufView = player.bufferWrite(bufView, i);
-
-        bufView.length = 0;
-        //*
-        bufView[0] = player.pos.x.fixed(0);
-        bufView[1] = player.pos.y.fixed(0);//.fixed(2);
-        bufView[2] = player.dir;
-        bufView[3] = (player.flap) ? 1 : 0;
-        bufView[4] = player.landed;
-        bufView[5] = (player.vuln) ? 1 : 0;
-        bufView[6] = player.a;//.fixed(2);
-        bufView[7] = player.vx;//.fixed(2);//.fixed(2);
-        bufView[8] = player.vy;//.fixed(2);//.fixed(2);
-        bufView[9] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
-        bufView[10] = (player.bubble) ? 1 : 0;
-        bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
-        bufView[12] = i; // player's bufferIndex
-        bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
-        bufView[14] = (player.active) ? 1 : 0;
-        bufView[15] = 16; // open item
-        //*/
-        //bufView[11] = new Date();
-        // if (player.mp == "cp2")
-        //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
-        //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
-        // console.log('bufView', player.mp, bufView);
-        
-        laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
-        // console.log('buffer', laststate);
-        
-        //pool.free(buffer);
-        // if (player.mp == "cp1")
-        // console.log(player.playerName, player.instance.userid, _this.instance.id, bufView);
-        
-        //*/
-        /*
-        _this.laststate[player.mp] = 
+        room = this.getplayers.fromRoom(allrooms[h]);
+        for (var i = room.length - 1; i >= 0; i--)
         {
-            x:player.pos.x,
-            y:player.pos.y,
-            //pos:player.pos,
-            d:player.dir,
-            f:player.flap,
-            l:player.landed,
-            v:player.vuln,
-            a:player.a,//player.abil,
-            vx:player.vx,
-            vy:player.vy,
-            g:player.hasFlag,
-            b:player.bubble
-        };//*/
-        // console.log('*', player.last_input_seq);
-        /* {cis1: '3991'} */
-        laststate[player.mis] = player.last_input_seq;
+            player = room[i];
+            // console.log('================\n' + player.playerName);//player.playerName);
+            var bufView = [];
+            if (!player.instance) continue;//return;
+            //inst = player.instance;
+            //console.log(_this.getplayers.allplayers.length);
+            // set player's bufferIndex
+            //player.bufferIndex = index;
+            //var bufArr = new ArrayBuffer(768);//16 * this.getplayers.allplayers.length); // 16 * numplayers
+            //var bufArr = new ArrayBuffer(16 * _this.getplayers.allplayers.length);
+            //var bufView = new Int16Array(bufArr, (index * 16), 16);
+            //console.log(_this.serverPool);
+            
+            //_this.serverPool[index].prototype.byteLength = 768;
 
-        // reset flap on server instance
-        if (player.flap === true) player.flap = false;
-        // rest abil on server instance
-        if (player.abil > 0) player.abil = 0;
-        // reset killedBy
-        //if (player.killedBy > 0) player.killedBy = 0;
-        ///console.log(':::', player.pos);
+            /*var buffer = pool.malloc(768, "arraybuffer");
+            var bufView = new Int16Array(buffer, (i * 16), 16);*/
+            
+            //var bufView = _this.serverPool;//(_this.bufArr, (index * 16), 16);
+            // bufView.buffer = _this.bufArr;
+            // bufView.byteOffset = index * 16;
+            // bufView.length = 16;
+            //*
+            if (player.pos.x === 0 && player.pos.y === 0) continue;//return;
+            // bufView = player.bufferWrite(bufView, i);
+
+            bufView.length = 0;
+            //*
+            bufView[0] = player.pos.x.fixed(0);
+            bufView[1] = player.pos.y.fixed(0);//.fixed(2);
+            bufView[2] = player.dir;
+            bufView[3] = (player.flap) ? 1 : 0;
+            bufView[4] = player.landed;
+            bufView[5] = (player.vuln) ? 1 : 0;
+            bufView[6] = player.a;//.fixed(2);
+            bufView[7] = player.vx;//.fixed(2);//.fixed(2);
+            bufView[8] = player.vy;//.fixed(2);//.fixed(2);
+            bufView[9] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
+            bufView[10] = (player.bubble) ? 1 : 0;
+            bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
+            bufView[12] = i; // player's bufferIndex
+            bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
+            bufView[14] = (player.active) ? 1 : 0;
+            bufView[15] = 16; // open item
+            //*/
+            //bufView[11] = new Date();
+            // if (player.mp == "cp2")
+            //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
+            //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
+            // console.log('bufView', player.mp, bufView);
+            
+            laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
+            // console.log('buffer', laststate);
+            
+            //pool.free(buffer);
+            // if (player.mp == "cp1")
+            // console.log(player.playerName, player.instance.userid, _this.instance.id, bufView);
+            
+            //*/
+            /*
+            _this.laststate[player.mp] = 
+            {
+                x:player.pos.x,
+                y:player.pos.y,
+                //pos:player.pos,
+                d:player.dir,
+                f:player.flap,
+                l:player.landed,
+                v:player.vuln,
+                a:player.a,//player.abil,
+                vx:player.vx,
+                vy:player.vy,
+                g:player.hasFlag,
+                b:player.bubble
+            };//*/
+            // console.log('*', player.last_input_seq);
+            /* {cis1: '3991'} */
+            laststate[player.mis] = player.last_input_seq;
+
+            // reset flap on server instance
+            if (player.flap === true) player.flap = false;
+            // rest abil on server instance
+            if (player.abil > 0) player.abil = 0;
+            // reset killedBy
+            //if (player.killedBy > 0) player.killedBy = 0;
+            ///console.log(':::', player.pos);
+        }
     }
+
+    if (!player) return;
     // pool.free(this.serverPool);
 
     /////////////////////////////////
@@ -2036,7 +2047,7 @@ game_core.prototype.server_update = function()
                             d: 60,
                             m: 50 }*/
                         if (evt.id == 'ec') // chest event
-                            _this.addChest(
+                            this.addChest(
                                 {
                                     i:id,
                                     x:evt.spawn.x,
@@ -2120,12 +2131,13 @@ game_core.prototype.server_update = function()
     
     //console.log('len', this.getplayers.allplayers.length);
     //for (var j = 0; j < this.getplayers.allplayers.length; j++)
-    //console.log('ls', laststate);
+    // console.log('ls', laststate);
     // var ply;
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
     if (player.instance)
-        player.instance.room(this.gameid).write(laststate);
+        player.instance.room(player.playerPort).write(laststate);
+        // player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');
     
     // if (inst)

@@ -8,16 +8,16 @@ MIT Licensed.
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 30;
-var MAX_GAMES_PER_SERVER = 20;
+const MAX_PLAYERS_PER_GAME = 30;
+const MAX_GAMES_PER_SERVER = 20;
 
-var
+const
     // game_server = module.exports = { games : {}, game_count:0 },
     // UUID        = require('node-uuid'),
     getUid      = require('get-uid'),
     //namegen     = require('./name_generator'),
     name_set    = require('./egyptian_set'),
-    // _           = require('lodash'),
+    _           = require('lodash'),
     //config      = require('./class.globals'),
     //getplayers  = require('./class.getplayers'),
     verbose     = true;
@@ -33,6 +33,8 @@ function game_server(game_core)
 {
     var _this = this;
     console.log('game_server constructor');
+
+    this.newClientConnection = [];
 
     this.fake_latency = 0;
     this.local_time = 0;
@@ -69,16 +71,6 @@ game_server.prototype.gameservertime = function()
     this.local_time += this._dt/1000.0;
 }
 
-game_server.prototype.setSpark = function(spark)//, emitter)
-{
-    this.log("@ setting spark");//, spark);
-    // this.log("@Primus", spark._rooms.primus.server);
-    this.spark = spark;
-    // this.emitter = emitter;
-    // console.log('setIO', io);
-    
-}
-
 game_server.prototype.b64EncodeUnicode = function(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
         return String.fromCharCode('0x' + p1);
@@ -111,9 +103,8 @@ game_server.prototype.onMessage = function(spark,message)
 game_server.prototype._onMessage = function(spark,message)
 {
     // this.log('@@ _onMessage', message);//, spark);//, client.mp);
-    if (message.cc) // client connected
+    if (message.cc) // new client connected
     {
-        // add new user to newClient array
 
         // /end
         spark.userid = getUid();
@@ -127,9 +118,27 @@ game_server.prototype._onMessage = function(spark,message)
         // get player skin
         var playerSkin = split[1];
         var playerPort = split[2];
+        spark.playerPort = playerPort;
+
+        // see if port room exists?
+        // if ()
+        // if not, create one
+        // add room array to getplayers class by server's port number
+        //this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
         // strip alpha chars and convert to int
         var skinNum = parseInt(playerSkin.replace(/\D/g,''));
         this.log('player cc:', playerName, playerSkin, skinNum, spark.userid, playerPort);
+
+        // add new user to newClient array (spark, ip)
+        this.newClientConnection.push(
+        {
+            spark:spark, 
+            port:playerPort, 
+            userid:spark.userid,
+            createdGame: false,
+            readyGame: false
+        });
+        // also, we will sort rooms by port (split[2])
 
         spark.emit('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
         // var buffer = new ArrayBuffer(16);
@@ -140,7 +149,6 @@ game_server.prototype._onMessage = function(spark,message)
         // console.log('1buffer',typeof(spark.userid), view, buffer);
         
         // spark.write(buffer);//{id: spark.userid, playerdata: spark.playerdata });
-        this.setSpark(spark); // <-- omit this, use this.newClients array (see above)
         this.findGame(spark);
         //return;
     }
@@ -328,7 +336,21 @@ game_server.prototype.createGame = function(client)
     //game code like collisions and such.
     this.log('gamecount', this.game_count);
     // thegame.gamecore = new this.game_core(thegame, this.spark );
-    thegame.gamecore = this.game_core.init(thegame, this.spark);
+
+    // take first new connection is newClientConnection array
+    var newconnect = this.newClientConnection[0];
+    newconnect.createdGame = true;
+    thegame.gamecore = this.game_core.init(thegame);//, newconnect.spark);//this.spark);
+
+    // add room array to getplayers class by server's port number
+    // this.log("newconnect", thegame.gamecore.getplayers);
+    if (thegame.gamecore.getplayers.fromRoom(newconnect.port) === undefined)
+    {
+        this.log('@ room doesnt exist -- creating...', newconnect.port);
+        thegame.gamecore.getplayers.addRoom(newconnect.port);//, MAX_PLAYERS_PER_GAME);
+    }
+    // this.log("::", thegame.gamecore.getplayers.game_instance.inRoom);
+
     //Start updating the game loop on the server
     //thegame.gamecore.update( new Date().getTime() );
 
@@ -398,7 +420,8 @@ game_server.prototype.endGame = function(gameid, userid)
                     // inform other players
                     this.log('mp', thegame.player_clients[i].mp);
                     //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
-                    thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
+                    // thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
+                    thegame.player_clients[i].room(thegame.player_clients[i].playerPort).send('ondisconnect', thegame.player_clients[i].mp);
                     // leaving game
                     thegame.player_clients[i].leave(gameid);
 
@@ -593,8 +616,8 @@ game_server.prototype.startGame = function(game, newplayer)
     //tell the other client they are joining a game
     //s=server message, j=you are joining, send them the host id
 
-    var newplayerInstance, playerName, playerMP, team, playerUserId, playerSkin;
-    var p = game.gamecore.getplayers.allplayers;
+    var newplayerInstance, playerName, playerMP, team, playerUserId, playerSkin, playerPort;
+    var p = game.gamecore.getplayers.fromRoom(newplayer.playerPort);//.allplayers;
     // get host client and all non-hosting clients
     var host;
     var nonhosts = [];
@@ -605,7 +628,7 @@ game_server.prototype.startGame = function(game, newplayer)
         if (p[x].mp == newplayer.mp)
         {
             this.log("found HOST", p[x].skin);
-            this.log("* found server newplayer instance", p[x].playerName);
+            this.log("* found server newplayer instance", p[x].mp);//.playerName);
             p[x].instance.gameid = game.id;
             p[x].active = true;
             p[x].visible = true;
@@ -617,6 +640,7 @@ game_server.prototype.startGame = function(game, newplayer)
             playerMP = p[x].mp;
             playerUserId = p[x].instance.userid;
             playerSkin = p[x].skin;
+            playerPort = p[x].playerPort;
             //team = team;//Math.floor(Math.random() * 2) + 1; // 1 = red, 2 = blue
             // only assign team if team has not yet been assigned
             //if (p[x].team == 0)
@@ -756,7 +780,7 @@ game_server.prototype.startGame = function(game, newplayer)
             if (nonhosts[j].mp == newplayer.mp)
             {
                 this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
-                this.log("* data:", playerMP, playerName, playerSkin);
+                this.log("* data:", playerMP, playerName, playerSkin, playerPort);
 
                 // joing game/room
                 // this.log('****', nonhosts[j]);
@@ -764,8 +788,14 @@ game_server.prototype.startGame = function(game, newplayer)
                 nonhosts[j].game = game;
                 nonhosts[j].active = true;
                 nonhosts[j].visible = true;
-                nonhosts[j].join(game.id);
-                this.log("player joined game", game.id);
+
+                // joining port-based room
+                nonhosts[j].join(playerPort);//game.id); // <- port/ip address
+
+                // add room array to getplayers class by server's port number
+                // this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
+
+                this.log("player joined game", playerPort, game.id);
                 // this.log("player", nonhosts[j]);
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
@@ -806,7 +836,8 @@ game_server.prototype.startGame = function(game, newplayer)
                     playerMP,
                     playerSkin
                 ];
-                nonhosts[j].room(game.id).except(nonhosts[j].id).write(joindata);//'onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                //nonhosts[j].room(game.id).except(nonhosts[j].id).write(joindata);//'onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
+                nonhosts[j].room(playerPort).except(nonhosts[j].id).write(joindata);//'onjoingame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 
                 //this.io.in(game.id).emit('hostgame' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
             }
@@ -816,7 +847,16 @@ game_server.prototype.startGame = function(game, newplayer)
 
     // send readyup to *all* players
     this.log('sending readyup to all', nonhosts.length);
-    this.spark.write('onreadygame', String(game.gamecore.local_time).replace('.','-'));
+
+    // remove new connection from newClientConnection array, return the removed client
+
+    this.log(playerUserId);
+    var clientReady = _.remove(this.newClientConnection, {userid: playerUserId});
+    // if (clientReady.length > 0)
+    clientReady[0].spark.write('onreadygame', String(game.gamecore.local_time).replace('.','-'));
+
+    // remove new client from newClientConnection array
+
     // for (var k = 0; k < nonhosts.length; k++)
     // {
     //     //this.log("readyup!", nonhosts[k].userid);
@@ -889,7 +929,8 @@ game_server.prototype.findGame = function(client)
                 for (var j = 0; j < game_instance.player_clients.length; j++)
                 {
                     //console.log('^', game_instance.player_clients[j].userid, game_instance.player_clients[j].hosting);
-                    players = game_instance.gamecore.getplayers.allplayers;
+                    // players = game_instance.gamecore.getplayers.allplayers;
+                    players = game_instance.gamecore.getplayers.fromRoom(client.playerPort);
                     for (var i = 0; i < players.length; i++)
                     {
                         // find null instance
@@ -899,11 +940,12 @@ game_server.prototype.findGame = function(client)
                             if (client_added === false)
                             {
                                 // use cp, as host's hp and his props are already defined
-                                console.log('*** found client', players[i].mp, client.userid, client.playerdata, players[i].team);//players[i].id);
+                                console.log('*** found client', players[i].mp, client.userid, client.playerdata, client.playerPort, players[i].team);//players[i].id);
                                 // this.log("* client", client);
                                 var split = client.playerdata.split("|");
                                 players[i].instance = client;
                                 players[i].id = client.userid;
+                                players[i].playerPort = client.playerPort;
                                 if (split[0] !== "undefined" && split[0].length > 2)
                                 {
                                     console.log('@ got user-defined name', split[0]);

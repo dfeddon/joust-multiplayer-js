@@ -1,11 +1,81 @@
 'use strict';
 
-function getplayers(game_instance)
+const game_player = require('./class.player');
+
+function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {
+    this.totalPlayersPerGame = total_players_per_game;
+    this.config = config;
+
+    // if server
     if (game_instance)
-        game_instance.allplayers = [];
-    else this.allplayers = [];
+    {
+        this.game_instance = game_instance;
+        
+        game_instance.allplayers = []; // <- deprecating
+        game_instance.inRoom = {};
+    }
+    else // client
+    {
+        this.core = client_gamecore_instance;
+        this.allplayers = []; // <- deprecating
+        this.inRoom = {};
+    }
 }
-getplayers.prototype.allplayers = [];
+getplayers.prototype.allplayers = []; // <- 
+
+getplayers.prototype.fromRoom = function(port)
+{
+    // console.log('getting players from room', port);
+
+    if (this.game_instance)
+        return this.game_instance.inRoom[port];
+    else return this.inRoom[port];
+};
+
+getplayers.prototype.addRoom = function(port)
+{
+    console.log('adding room to getplayers by port id', port, typeof(port));
+    var room;
+
+    if (this.game_instance)
+        room = this.game_instance.inRoom[port] = [];
+    else room = this.inRoom[port] = [];
+
+    var count = 0;
+    if (this.game_instance)
+    {
+        var other;
+        for (var i = this.totalPlayersPerGame - 1; i >= 0; i--)
+        {
+            other = new game_player(null, false, count++, this.config);
+            other.pos = this.game_instance.gamecore.gridToPixel(i, 0);
+            other.playerName = this.game_instance.gamecore.nameGenerator(); 
+            
+            other.visible = false;
+            other.active = false;
+            
+            this.game_instance.inRoom[port].push(other);
+        }
+    }
+    else
+    {
+        var p;
+        for (var l = 1; l < this.totalPlayersPerGame; l++)
+        {
+            p = new game_player(null, false, count++, this.config);
+            p.pos = this.core.gridToPixel(l, 0);
+            // console.log('getplayers.pos:', p.pos);
+            this.inRoom[port].push(p);
+        }
+    }
+};
+
+getplayers.prototype.fromAllRooms = function()
+{
+    if (this.game_instance)
+        return this.game_instance.inRoom;
+    else return this.inRoom;
+};
 
 module.exports = getplayers;

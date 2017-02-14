@@ -22,6 +22,7 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.instance = player_instance;
     this.config = config;
+    this.playerPort = null;
     // if (this.instance)
     //     this.game = this.instance.game;
     this.isBot = false;
