@@ -26,11 +26,29 @@ getplayers.prototype.allplayers = []; // <-
 
 getplayers.prototype.fromRoom = function(port)
 {
-    // console.log('getting players from room', port);
-
+    // console.log('getting players from room', port, typeof(port), this.inRoom);
+    function isEmpty(obj) 
+    {
+        for (var x in obj) { return false; }
+        return true;
+    }
     if (this.game_instance)
-        return this.game_instance.inRoom[port];
-    else return this.inRoom[port];
+    {
+        // if (!isEmpty(this.game_instance.inRoom[port]))
+        if (Array.isArray(this.game_instance.inRoom[port]))
+            return this.game_instance.inRoom[port];
+        else if (this.game_instance.inRoom[port] !== undefined)
+            return [];
+        // else return [];
+    }
+    else
+    {
+        if (Array.isArray(this.inRoom[port]))
+            return this.inRoom[port];
+        else if (this.inRoom[port] !== undefined)
+            return [];
+        // else return [];
+    }
 };
 
 getplayers.prototype.addRoom = function(port)
@@ -50,7 +68,8 @@ getplayers.prototype.addRoom = function(port)
         {
             other = new game_player(null, false, count++, this.config);
             other.pos = this.game_instance.gamecore.gridToPixel(i, 0);
-            other.playerName = this.game_instance.gamecore.nameGenerator(); 
+            other.playerName = this.game_instance.gamecore.nameGenerator();
+            other.playerPort = port; 
             
             other.visible = false;
             other.active = false;
@@ -64,6 +83,7 @@ getplayers.prototype.addRoom = function(port)
         for (var l = 1; l < this.totalPlayersPerGame; l++)
         {
             p = new game_player(null, false, count++, this.config);
+            p.playerPort = port;
             p.pos = this.core.gridToPixel(l, 0);
             // console.log('getplayers.pos:', p.pos);
             this.inRoom[port].push(p);
@@ -76,6 +96,18 @@ getplayers.prototype.fromAllRooms = function()
     if (this.game_instance)
         return this.game_instance.inRoom;
     else return this.inRoom;
+};
+
+getplayers.prototype.roomExists = function(port)
+{
+    if (this.game_instance)
+    {
+        return (this.game_instance.inRoom[port] !== undefined)
+    }
+    else
+    {
+        return (this.inRoom[port] !== undefined)
+    }
 };
 
 module.exports = getplayers;

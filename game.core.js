@@ -172,7 +172,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
     this.last_hscore = []; // last high score
 
-    this.getplayers.allplayers = []; // client/server players store
+    // this.getplayers.allplayers = []; // client/server players store
     //this.entities = [];
     this.player_abilities_enabled = false;
 
@@ -246,22 +246,9 @@ game_core.prototype.init = function(game_instance)//, io)
             console.log('* got message from worker!', evt);    
         }*/
 
-        console.log("##-@@ adding server player and assigning client instance...");
-
+        console.log("##-@@ loading tilemap data...");
+        // load tilemap data
         this.apiNode(); // load tilemap data
-
-        /*var other;
-        for (var i = this.config.world.totalplayers - 1; i >= 0; i--)
-        {
-            other = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
-            other.pos = this.gridToPixel(i, 0);
-            other.playerName = this.nameGenerator();// + " [" + other.mp + "]"; 
-            
-            other.visible = false;
-            other.active = false;
-            
-            this.getplayers.allplayers.push(other);
-        }*/
 
         // add typedarray-pool
         //this.serverPool = pool.malloc(768, "arraybuffer");
@@ -916,9 +903,10 @@ game_core.prototype.check_collision = function( player )
     {
         var other;
         // _.forEach(_this.getplayers.allplayers, function(other)
-        for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
+        var room = this.getplayers.fromRoom(player.playerPort);
+        for (var i = room.length - 1; i >= 0; i--)
         {
-            other = this.getplayers.allplayers[i];
+            other = room[i];//this.getplayers.allplayers[i];
             //console.log('->', other.team, player.team);
             //other.pos.x = other.pos.x.fixed(4);
             //other.pos.y = other.pos.y.fixed(4);
@@ -1748,21 +1736,48 @@ game_core.prototype.update_physics = function()
     // iterate players
     ////////////////////////////////////////////////////////
     // _.forEach(this.getplayers.allplayers, function(player)
-    var player;
-    for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
+    var player, room;
+    if (this.server)
     {
-        player = this.getplayers.allplayers[i];
-        //if (_this.players.self)
-        //console.log('p:', player.mp, player.active);
-        
-        if (player.active)
-            player.update();
+        var allrooms = Object.keys(this.getplayers.fromAllRooms());
+        for (var h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.getplayers.fromRoom(allrooms[h]);
+            for (var i = room.length - 1; i >= 0; i--)
+            {
+                player = room[i];
+                if (player.active)
+                    player.update();
 
-        // degrade player angle
-        if (player.a > 0)
-            player.a-=0.5;
-        else if (player.a < 0)
-            player.a+=0.5;
+                // degrade player angle
+                if (player.a > 0)
+                    player.a-=0.5;
+                else if (player.a < 0)
+                    player.a+=0.5;
+            }
+        }
+    }
+    else
+    {
+        // console.log('client_xport:', this.core_client.xport);
+        
+        room = this.getplayers.fromRoom(this.core_client.xport.toString());
+        if (room === undefined) room = []; // <-- TODO: stub
+        for (var j = room.length - 1; j >= 0; j--)
+        {
+            player = room[j];
+            //if (_this.players.self)
+            //console.log('p:', player.mp, player.active);
+            
+            if (player.active)
+                player.update();
+
+            // degrade player angle
+            if (player.a > 0)
+                player.a-=0.5;
+            else if (player.a < 0)
+                player.a+=0.5;
+        }
     }
 
     ////////////////////////////////////////////////////////
@@ -1797,7 +1812,7 @@ game_core.prototype.server_update_physics = function() {
     //if (glog)
     //console.log('##-@@ server_update_physics');
 
-    var _this = this;
+    // var _this = this;
 
     /*
     //Handle player one
@@ -1822,25 +1837,33 @@ game_core.prototype.server_update_physics = function() {
     //for (var i = 0; i < this.getplayers.allplayers.length; i++)
     var new_dir;
     // _.forEach(this.getplayers.allplayers, function(ply)
-    var ply;
-    for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
+    var ply, room;
+    // var room = this.getplayers.fromRoom(player.playerPort);
+    // for (var i = room.length - 1; i >= 0; i--)
+    var allrooms = Object.keys(this.getplayers.fromAllRooms());
+    for (var h = allrooms.length - 1; h >= 0; h--)
     {
-        ply = this.getplayers.allplayers[i];
-        //if (ply.mp != "hp")//_this.players.self.mp)
-        //{
-        ply.old_state.pos = _this.pos( ply.pos );
-        new_dir = _this.process_input(ply);
-        ply.pos = _this.v_add( ply.old_state.pos, new_dir);
+        room = this.getplayers.fromRoom(allrooms[h]);
+        for (var i = room.length - 1; i >= 0; i--)
+        {
+            ply = room[i];
+            //if (ply.mp != "hp")//_this.players.self.mp)
+            //{
+            ply.old_state.pos = this.pos( ply.pos );
+            new_dir = this.process_input(ply);
+            ply.pos = this.v_add( ply.old_state.pos, new_dir);
 
-        //ply.update();
+            //ply.update();
 
-        //Keep the physics position in the world
-        _this.check_collision( ply );
-        
+            //Keep the physics position in the world
+            
+            this.check_collision( ply );
+            
 
-        //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
-        ply.inputs = []; //we have cleared the input buffer, so remove this
-        //}//else console.log("HIHIHIHIHIHIH", ply.mp);
+            //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
+            ply.inputs = []; //we have cleared the input buffer, so remove this
+            //}//else console.log("HIHIHIHIHIHIH", ply.mp);
+        }
     }
 
     // platform collisions (minus player)
@@ -1878,7 +1901,7 @@ game_core.prototype.server_update_physics = function() {
 game_core.prototype.server_update = function()
 {
     if (glog)
-    console.log('##-@@ server_update', this.getplayers.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
+    console.log('##-@@ server_update');//, this.getplayers.allplayers.length);//this.players.self.instance.userid, this.players.self.instance.hosting, this.players.self.host);
 
     // var _this = this;
     //Update the state of our local clock to match the timer
@@ -1902,9 +1925,12 @@ game_core.prototype.server_update = function()
     // _.forEach(_this.getplayers.allplayers, function(player, index)
     var room, player;
     var allrooms = Object.keys(this.getplayers.fromAllRooms());
+    var roomsArray = [];
     for (var h = allrooms.length - 1; h >= 0; h--)
     {
         room = this.getplayers.fromRoom(allrooms[h]);
+        // create object for *each* room to hold players
+        laststate[allrooms[h]] = {};
         for (var i = room.length - 1; i >= 0; i--)
         {
             player = room[i];
@@ -1958,7 +1984,9 @@ game_core.prototype.server_update = function()
             //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
             // console.log('bufView', player.mp, bufView);
             
-            laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
+            // laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
+            laststate[allrooms[h]][player.instance.userid] = bufView;
+            
             // console.log('buffer', laststate);
             
             //pool.free(buffer);
@@ -1984,7 +2012,7 @@ game_core.prototype.server_update = function()
             };//*/
             // console.log('*', player.last_input_seq);
             /* {cis1: '3991'} */
-            laststate[player.mis] = player.last_input_seq;
+            laststate[allrooms[h]][player.mis] = player.last_input_seq;
 
             // reset flap on server instance
             if (player.flap === true) player.flap = false;
@@ -2122,7 +2150,6 @@ game_core.prototype.server_update = function()
     // console.log('laststate', laststate, this.gameid);
     //if (Object.keys(laststate).length === 0) return;
     
-    laststate.t = this.config.server_time;
     // console.log(laststate);
     // var view = new Int16Array(this.laststate.cp1, 0, 16);
     // console.log('view', view);
@@ -2136,7 +2163,14 @@ game_core.prototype.server_update = function()
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
     if (player.instance)
-        player.instance.room(player.playerPort).write(laststate);
+    {
+        for (var x in laststate)
+        {
+            // console.log(x, laststate[x]);
+            laststate[x].t = this.config.server_time;        
+            player.instance.room(x).write(laststate[x]);
+        }
+    }
         // player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');
     
@@ -2218,44 +2252,28 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
 {
     //if (glog)
     //console.log('##-@@ handle_server_input');
-    //Fetch which client this refers to out of the two
-    /*var player_client =
-        (client.userid == this.players.self.instance.userid) ?
-            this.players.self : this.players.other;*/
-    // set default
-    //var player_client;
-    //console.log('1',client.userid);
-    //console.log('2',this.players.self.instance.userid);
-    if (!this.server)
+    if (this.server)
     {
-        // console.log('client', client.userid);
-        // console.log('instan', this.players.self.instance.userid); 
+        var player, room;
+        room = this.getplayers.fromRoom(client.playerPort);
+
+        for (var h = room.length - 1; h >= 0; h--)
+        {
+            player = room[h];
+            
+            if (player.instance && player.instance.userid == client.userid)
+            {
+                //Store the input on the player instance for processing in the physics loop
+                player.inputs.push({inputs:input, time:input_time, seq:input_seq});
+                break;
+            }
+        }
     }
     if (!this.server && client.userid == this.players.self.instance.userid)
     {
         player_client = this.players.self;//.instance.userid);
         // console.log('self', this.players.self.instance);
     }
-    else
-    {
-        //console.log('client.userid', client.userid);
-        var player;
-        for (var i = this.getplayers.allplayers.length - 1; i >= 0; i--)
-        {
-            player = this.getplayers.allplayers[i];
-            if (player.instance && player.instance.userid == client.userid)
-            {
-                //player_client = player;
-                //Store the input on the player instance for processing in the physics loop
-                player.inputs.push({inputs:input, time:input_time, seq:input_seq});
-                break; //return false;//break;
-            }
-        }
-    }
-
-    //Store the input on the player instance for processing in the physics loop
-    //player_client.inputs.push({inputs:input, time:input_time, seq:input_seq});
-
 }; //game_core.handle_server_input
 
 

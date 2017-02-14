@@ -578,7 +578,7 @@ ioserver.listen(3000);
 */
 
 // the *single* game instance across *all* servers
-var gameInstanceType = 2; // 1: single instance game / 2: multi-instance per server
+var gameInstanceType = 1; // 1: single instance game / 2: multi-instance per server
 // establish primus connections
 var connectionType = 1; // 1: single proxy connection / 2: multi/server-based proxies
 

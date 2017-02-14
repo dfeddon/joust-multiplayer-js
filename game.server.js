@@ -628,7 +628,7 @@ game_server.prototype.startGame = function(game, newplayer)
         if (p[x].mp == newplayer.mp)
         {
             this.log("found HOST", p[x].skin);
-            this.log("* found server newplayer instance", p[x].mp);//.playerName);
+            this.log("* found server newplayer instance", p[x].instance.userid);//.mp);//.playerName);
             p[x].instance.gameid = game.id;
             p[x].active = true;
             p[x].visible = true;
@@ -910,8 +910,18 @@ game_server.prototype.findGame = function(client)
                 this.log("@@ player", client.userid, "joining game", gameid);
                 //someone wants us to join!
                 joined_a_game = true;
+
+                // ensure room exists (port-based)
+                if (!game_instance.gamecore.getplayers.roomExists(client.playerPort))
+                {
+                    this.log("@ room", client.playerPort, 'does not exist -- creating room!');
+                    game_instance.gamecore.getplayers.addRoom(client.playerPort);
+                }
+                else this.log('@ room', client.playerPort, 'exists!');
+                
                 //increase the player count and store
                 //the player as the client of this game (into array)
+                this.log('@ adding client', client.userid, 'to game_instance.player_clients array...');
                 game_instance.player_clients.push(client);
                 //game_instance.player_client = client; // <- remove this later
 
@@ -919,7 +929,7 @@ game_server.prototype.findGame = function(client)
                 //getplayers.allplayers.push(game_instance.gamecore.newPlayer(client, false));
 
                 // add client to player instance
-                this.log("@@ assigning client to MY (other, client-based) player instance!");
+                this.log("@@ assigning client to player instance!");
 
                 // assign player_clients to allplayers (client var is new player)
                 var client_added = false;
@@ -1035,15 +1045,14 @@ game_server.prototype.findGame = function(client)
             this.startGame(game, client);
             // this.findGame(client);
         } //if no join already
-
-    }
+    } // if game_count
     else
     { //if there are any games at all
 
         //no games? create one!
+        this.log("@ there are NO GAMES at all, so create one...");
         this.createGame(client);
     }
-
 }; //game_server.findGame
 
 game_server.prototype.getTeams = function(game_instance)
