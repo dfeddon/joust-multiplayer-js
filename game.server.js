@@ -95,7 +95,7 @@ game_server.prototype.onMessage = function(spark,message)
     }
     else
     {
-        console.log('@@ onMessage', message);
+        // console.log('@@ onMessage', message);
         this._onMessage(spark, message);
     }
 };
@@ -670,21 +670,24 @@ game_server.prototype.startGame = function(game, newplayer)
     var others = [];
     var other;
     var pd;
-    var players = this.games[game.id].gamecore.getplayers.allplayers;
+    var players = this.games[game.id].gamecore.getplayers.fromRoom(playerPort);
     for (var i = 0; i < game.player_clients.length; i++)
     {
         other = game.player_clients[i];
-        console.log('@@ other', other.mp, other.userid, other.playerName, other.skin);
+        console.log('@@ other', other.mp, other.userid, playerUserId, other.playerName, other.skin);
         
         if (other.userid && other.userid != playerUserId)
         {
             //playerdata: 'undefined|skin1'
+            this.log('@ others len', players.length);
             pd = other.playerdata.split['|'];
             for (var a = 0; a < players.length; a++)
             {
                 // get data from player
+                this.log('@ mps', players[a].mp, other.mp);
                 if (players[a].mp == other.mp)
                 {
+                    this.log('@ adding "other" player', other.playerName, other.userid);
                     others.push({mp: other.mp, userid: other.userid, skin:players[a].skin, playerName:players[a].playerName, team:players[a].team});
                 }
             }

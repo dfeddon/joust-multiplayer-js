@@ -538,7 +538,7 @@ core_client.prototype.client_onjoingame = function(data)
         console.log("----->", room[i].id, playerId);//room[i].team);//.instance);
         if (room[i].mp == playerMp)//alldata[0])//'cp1')
         {
-            console.log('## found player', playerMp, room[i]);
+            console.log('## found player')//, playerMp, room[i], room[i].playerName);
             
             room[i].team = team;
             room[i].userid = playerId;
@@ -692,18 +692,19 @@ core_client.prototype.client_onhostgame = function(data, callback)
             
             _.forEach(others, function(other)
             {
-                if (other.mp == _p[i].mp)
+                console.log('->', other.mp, p[i].mp);
+                if (other.mp == p[i].mp)
                 {
                     console.log('* assigning userid to other player...', other);
                     
-                    _p[i].userid = other.userid;
-                    _p[i].id = other.userid;
-                    _p[i].active = true;
-                    _p[i].visible = true;
+                    p[i].userid = other.userid;
+                    p[i].id = other.userid;
+                    p[i].active = true;
+                    p[i].visible = true;
                     // if (other.playerName != 'undefined')
-                    _p[i].playerName = other.playerName;
-                    _p[i].setSkin(other.skin);
-                    _p[i].team = other.team;
+                    p[i].playerName = other.playerName;
+                    p[i].setSkin(other.skin);
+                    p[i].team = other.team;
                     
                 }
             });
@@ -1955,19 +1956,20 @@ core_client.prototype.client_process_net_updates = function()
         // _.forEach(_this.getplayers.allplayers, function(player, index)
         var player;
         var room = this.getplayers.fromRoom(this.xport);
+        // console.log('room', room);
         for (var j = room.length - 1; j >= 0; j--)
         {
             player = room[j];//this.getplayers.allplayers[j];
             //console.log('=', player.mp, _this.players.self.mp);
-            //console.log('i', player.mp, player);
+            // console.log('i', player.name, player.userid, player.isLocal);
             
             if (!player.userid) continue;//return;
             // else console.log('#', player.userid, _this.players.self.userid);
             
             // "other" player, not local player "self"
-            if (player.userid != _this.players.self.userid)// && previous[player.mp])
+            if (!player.isLocal)//userid != _this.players.self.userid)// && previous[player.mp])
             {
-                //console.log('**', target[player.mp]);
+                // console.log('**', target[player.mp]);
                 // check for bad objects
                 if (target[player.userid] === undefined)
                 {
@@ -1988,8 +1990,8 @@ core_client.prototype.client_process_net_updates = function()
                 /*vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
                 // vp = _this.clientPool.set(previous[player.mp], (index * 16), 16);
-                //console.log(vt);
-                //console.log(vp);
+                // console.log('vt', vt);
+                // console.log('vp', vp);
 
                   // check for invalid values (bad socket?)
                   //if (!(vt[0]>0)) return;
@@ -2039,7 +2041,7 @@ core_client.prototype.client_process_net_updates = function()
                 //if (ghostStub.x > 0 && ghostStub.y > 0)
                 //if (p.pos.x > 0 && p.pos.y > 0)
                     //player.pos = p.pos;
-                    player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
+                player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
                 //else
                 //{ 
                     //window.alert(p.pos);
@@ -2675,11 +2677,12 @@ core_client.prototype.client_update = function()
     
     //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
     //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
-    _.forEach(this.getplayers.allplayers, function(ply)
+    // console.log("# players", this.getplayers.fromRoom(this.xport));
+    _.forEach(this.getplayers.fromRoom(_this.xport), function(ply)
     {
-        if (ply != _this.players.self)// && room[i].active===true)
+        if (ply.active && !ply.isLocal)//ply != _this.players.self)// && room[i].active===true)
         {
-            // console.log(ply.pos);
+            // console.log('#p', ply.pos);
             //ply.draw();
             if 
             (
