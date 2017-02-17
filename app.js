@@ -387,14 +387,39 @@ return;
     console.log('init!');
 
     /////////////////////////////////////////////////
-    // server
+    // servers
     /////////////////////////////////////////////////
     var app = express();
+
     var server1 = http.createServer(app);
     console.log('\t :: Express :: Listening on port ' + server_port_1 );
 
     var server2 = http.createServer(app);
     console.log('\t :: Express :: Listening on port ' + server_port_2 );
+
+    var server3 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_3 );
+
+    var server4 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_4 );
+
+    var server5 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_5 );
+
+    var server6 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_6 );
+
+    var server7 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_7 );
+
+    var server8 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_8 );
+
+    var server9 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_9 );
+
+    var server10 = http.createServer(app);
+    console.log('\t :: Express :: Listening on port ' + server_port_10 );
 
     // app.use(vhost('svr1.localhost', function(req, res) {
     //     console.log('SVR1!');
@@ -582,16 +607,19 @@ var gameInstanceType = 1; // 1: single instance game / 2: multi-instance per ser
 // establish primus connections
 var connectionType = 1; // 1: single proxy connection / 2: multi/server-based proxies
 
-var gamecore = new game_core();
-var proxy1, proxy2, gamecore2;
+var gamecore = new game_core(1);
+var proxy, proxy2, gamecore2;
 
-proxy1 = new game_connections().createConnection(server1, gamecore);
+proxy = new game_connections().createConnection(server1, gamecore);
 
 if (gameInstanceType === 2)
-    gamecore2 = new game_core();
+    gamecore2 = new game_core(1);
 else gamecore2 = gamecore;
 if (connectionType !== 1)
+{
     proxy2 = proxy1.createConnection(server1, gamecore2);
+    // etc...
+}
 // else proxy2 = game_connections().createConnection(server2, gamecore);
 // var socketServer = http.createServer(function connection(spark)
 // {
@@ -689,6 +717,14 @@ if (connectionType !== 1)
 
 server1.listen(server_port_1);//socketport);
 server2.listen(server_port_2);
+server3.listen(server_port_3);
+server4.listen(server_port_4);
+server5.listen(server_port_5);
+server6.listen(server_port_6);
+server7.listen(server_port_7);
+server8.listen(server_port_8);
+server9.listen(server_port_9);
+server10.listen(server_port_10);
 // console.log('\t :: Express :: Listening on port ' + socketport );
 
 //} // end isWorker

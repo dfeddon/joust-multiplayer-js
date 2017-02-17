@@ -56,6 +56,18 @@ getplayers.prototype.addRoom = function(port)
     console.log('adding room to getplayers by port id', port, typeof(port));
     var room;
 
+    // first, ensure room doesn't already exist
+    if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
+    {
+        console.log('Server room port', port, 'already exists!');
+        return;
+    }
+    else if (!this.game_instance && this.inRoom[port] !== undefined)
+    {
+        console.log('Client room port', port, 'already exists!');
+        return;
+    }
+
     if (this.game_instance)
         room = this.game_instance.inRoom[port] = [];
     else room = this.inRoom[port] = [];
@@ -107,6 +119,112 @@ getplayers.prototype.roomExists = function(port)
     else
     {
         return (this.inRoom[port] !== undefined)
+    }
+};
+
+getplayers.prototype.fromRoomByUserId = function(userid)
+{
+    console.log('==getplayers.fromRoomByUserId', userid, '==');
+
+    // we don't know the room, so we'll check them all
+    var allrooms = Object.keys(this.fromAllRooms());
+    var room;
+    if (this.game_instance)
+    {
+        for (var h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.fromRoom(allrooms[h]);
+            for (var j = 0; j < room.length; j++)
+            {
+                if (room[j].instance && room[j].instance.userid == userid)
+                {
+                    console.log("* found room!");//, room);
+                    return room;
+                }
+            }
+        }
+    }
+}
+
+getplayers.prototype.getRoomNameByUserId = function(userid)
+{
+    console.log('== getplayers.getRoomNameByUserId', userid, '==');
+    // we don't know the room, so we'll check them all
+    var allrooms = Object.keys(this.fromAllRooms());
+    var room;
+    if (this.game_instance)
+    {
+        for (var h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.fromRoom(allrooms[h]);
+            for (var j = 0; j < room.length; j++)
+            {
+                if (room[j].instance && room[j].instance.userid == userid)
+                {
+                    console.log("* found room name", allrooms[h]);
+                    return allrooms[h];
+                }
+            }
+        }
+    }
+    else
+    {
+        for (var h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.fromRoom(allrooms[h]);
+            for (var j = 0; j < room.length; j++)
+            {
+                if (room[j].userid == userid)
+                {
+                    console.log("* found room name", allrooms[h]);
+                    return allrooms[h];
+                }
+            }
+        }
+    }
+};
+
+getplayers.prototype.getPlayerByUserId = function(userid)
+{
+    console.log('== getplayers.getPlayerByUserId', userid, '==');
+    // we don't know the room, so we'll check them all
+    var allrooms = Object.keys(this.fromAllRooms());
+    console.log('allrooms', allrooms);
+    var room, h, j;
+
+    if (this.game_instance)
+    {
+        for (h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.fromRoom(allrooms[h]);
+            console.log("* room", room);
+            for (j = 0; j < room.length; j++)
+            {
+                console.log(room[j]);
+                if (room[j].instance && room[j].instance.userid == userid)
+                {
+                    console.log("* found room name", allrooms[h]);
+                    return allrooms[h];
+                }
+            }
+        }
+    }
+    else
+    {
+        for (h = allrooms.length - 1; h >= 0; h--)
+        {
+            room = this.fromRoom(allrooms[h]);
+            console.log("* room", room);
+            for (j = 0; j < room.length; j++)
+            {
+                console.log("*", room[j].userid, userid);
+                if (room[j].userid == userid)
+                {
+                    console.log("* found room name", allrooms[h]);
+                    return allrooms[h];
+                }
+            }
+        }
     }
 };
 

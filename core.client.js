@@ -59,7 +59,7 @@ function core_client(core, config)
     // tilemap
     this.api(); // load and build tilemap
 
-    console.log("## adding client players...", this.config.world.totalplayers);
+    // console.log("## adding client players...", this.config.world.totalplayers);
 
     // this.players = {};
     /*var p;
@@ -73,8 +73,9 @@ function core_client(core, config)
         this.getplayers.allplayers.push(p);//,null,false));
         // this.entities.push(p);
     }*/
-    this.clientPool = pool.malloc(16, "int16");
-    console.log('pool', this.clientPool);
+    
+    /*this.clientPool = pool.malloc(16, "int16");
+    console.log('pool', this.clientPool);*/
 
     this.spritesheets = [];
     this.spritesheetsData = [];
@@ -1377,7 +1378,7 @@ core_client.prototype.client_onflagadd = function(data)
 
     //data: player.mp|flag.name
     var split = data.split("|");
-    var mp = split[0];
+    var userid = split[0];
     var slotName = split[1];
     var flagName = split[2];
     var playerSource, slotUsed;
@@ -1387,7 +1388,7 @@ core_client.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     _.forEach(this.getplayers.allplayers, function(ply)
     {
-        if (ply.mp == mp)
+        if (ply.userid == userid)
         {
             playerSource = ply;
             return false; // break
@@ -1428,7 +1429,7 @@ core_client.prototype.client_onflagadd = function(data)
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
-    if (playerSource.mp != this.players.self.mp)
+    if (playerSource.userid != this.players.self.userid)
     {
         var msg =
         {
@@ -1465,7 +1466,8 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    _.forEach(this.getplayers.allplayers, function(ply)
+    var room = this.getplayers.fromRoom(this.xport);
+    _.forEach(room, function(ply)
     {
         if (ply.id == player_id)
         {
@@ -1495,7 +1497,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     flagTaken.visible = false;
     flagTaken.isHeld = true;
     flagTaken.isActive = false;
-    flagTaken.heldBy = playerSource.mp;
+    flagTaken.heldBy = playerSource.userid;//mp;
 
     // set player's has flag attribute // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     if (flagTaken.name == "midFlag")
@@ -2233,7 +2235,8 @@ core_client.prototype.client_process_net_updates = function()
         //*/
 
         // process events
-        //console.log('got evt flag', _.has(target, 'fc'), this.events.length);
+        // console.log(target);
+        // console.log('got evt flag', _.has(target, 'fc'), this.events.length);
         // first, check for chest events (dynamic)
         if (_.has(target, 'ec'))
         {
@@ -2247,7 +2250,7 @@ core_client.prototype.client_process_net_updates = function()
         }
         if (_.has(target, 'fc'))
         {
-            //console.log('* fc evt', target.fc);
+            console.log('* fc evt', target.fc);
 
             // get client flag (clientCooldown)
             var cflag = _.find(_this.core.clientCooldowns, {'name':target.fc.f});
@@ -2260,9 +2263,8 @@ core_client.prototype.client_process_net_updates = function()
             // set client flag target slot
             cflag.target = flag.targetSlot;
             cflag.src = flag.sourceSlot;
-            //console.log(":::", cflag);
+            console.log(":::", cflag);
             //console.log('flag', flag);
-            //cflag.
 
             // get player
             var ply = _.find(this.getplayers.allplayers, {"mp":target.fc.p});

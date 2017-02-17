@@ -104,14 +104,16 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 //for itself to play the game.
 
 /* The game_core class */
-function game_core()
+function game_core(from)
 {
-    console.log('game_core constructor');
+    console.log('# game_core constructor', from);
+    if (from === 1) console.log('* from server');
+    else if (from === 2) console.log("* from client");
 };
 
 game_core.prototype.init = function(game_instance)//, io)
 {
-    console.log('## game_core instantiated');//, game_instance);
+    console.log('== game_core.init()');//, game_instance);
     //Store the instance, if any
     this.instance = game_instance;
     // this.io = io;
@@ -2099,23 +2101,34 @@ game_core.prototype.server_update = function()
 
                         console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
                         // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
-                        laststate[evt.id] =
+   
+                        if (evt.flag.heldBy)
                         {
-                            t: evt.timer,
-                            f: evt.flag.name,
-                            p: evt.flag.heldBy
-                        };
+                            // store evt.id in fromRoomByUserId
+                            var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                            laststate[room][evt.id] =
+                            {
+                                t: evt.timer,
+                                f: evt.flag.name,
+                                p: evt.flag.heldBy
+                            };
+                        }
                     break;
 
                     case evt.TYPE_FLAG_SLOTTED_COOLDOWN:
 
-                        console.log('evt active slotted cooldown', evt.id, evt.timer);
+                        console.log('evt active slotted cooldown', evt.id, evt.timer);//, evt);
                         // fc: { t: 6, f: 'midFlag' } }
-                        laststate[evt.id] =
+
+                        if (evt.flag.heldBy)
                         {
-                            t: evt.timer,
-                            f: evt.flag.name
-                        };
+                            var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                            laststate[room1][evt.id] =
+                            {
+                                t: evt.timer,
+                                f: evt.flag.name
+                            };
+                        }
                         break;
                 }
             }

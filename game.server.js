@@ -8,8 +8,9 @@ MIT Licensed.
 
 'use strict';
 
-const MAX_PLAYERS_PER_GAME = 30;
-const MAX_GAMES_PER_SERVER = 20;
+const MAX_PLAYERS_PER_LOCAL_SERVER = 30;
+const MAX_PLAYERS_PER_GAME_INSTANCE = MAX_PLAYERS_PER_LOCAL_SERVER * 10;
+const MAX_GAMES_PER_SUPER_SERVER = 1;
 
 const
     // game_server = module.exports = { games : {}, game_count:0 },
@@ -124,7 +125,7 @@ game_server.prototype._onMessage = function(spark,message)
         // if ()
         // if not, create one
         // add room array to getplayers class by server's port number
-        //this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
+        //this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME_INSTANCE);
         // strip alpha chars and convert to int
         var skinNum = parseInt(playerSkin.replace(/\D/g,''));
         this.log('player cc:', playerName, playerSkin, skinNum, spark.userid, playerPort);
@@ -347,7 +348,7 @@ game_server.prototype.createGame = function(client)
     if (thegame.gamecore.getplayers.fromRoom(newconnect.port) === undefined)
     {
         this.log('@ room doesnt exist -- creating...', newconnect.port);
-        thegame.gamecore.getplayers.addRoom(newconnect.port);//, MAX_PLAYERS_PER_GAME);
+        thegame.gamecore.getplayers.addRoom(newconnect.port);//, MAX_PLAYERS_PER_GAME_INSTANCE);
     }
     // this.log("::", thegame.gamecore.getplayers.game_instance.inRoom);
 
@@ -676,7 +677,7 @@ game_server.prototype.startGame = function(game, newplayer)
         other = game.player_clients[i];
         console.log('@@ other', other.mp, other.userid, playerUserId, other.playerName, other.skin);
         
-        if (other.userid && other.userid != playerUserId)
+        if (other.userid && other.userid != playerUserId && other.playerPort == playerPort)
         {
             //playerdata: 'undefined|skin1'
             this.log('@ others len', players.length);
@@ -796,7 +797,7 @@ game_server.prototype.startGame = function(game, newplayer)
                 nonhosts[j].join(playerPort);//game.id); // <- port/ip address
 
                 // add room array to getplayers class by server's port number
-                // this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
+                // this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME_INSTANCE);
 
                 this.log("player joined game", playerPort, game.id);
                 // this.log("player", nonhosts[j]);
@@ -879,9 +880,21 @@ game_server.prototype.startGame = function(game, newplayer)
 
 game_server.prototype.findGame = function(client)
 {
-    this.log('@@ findGame', client.userid, 'looking for a game. We have : ' + this.game_count);
+    var localGames = 0;
 
-    // if (this.game_count && this.game_count === MAX_GAMES_PER_SERVER)
+    // get players on local port
+    if (this.game_count > 0)
+    {
+        if (game_instance !== undefined)
+        {
+            var playersOnPort = game_instance.gamecore.getplayers.fromGame(client.playerPort);
+            if (playersOnPort === undefined) localGames = 0; // port game not yet instantiated
+            else localGames = playersOnPort.length;
+        }
+    }
+    this.log('@@ findGame for userid', client.userid, 'on port', client.playerPort, 'looking for a game. We have : ', localGames, ' local games and ', this.game_count, ' total games on server');
+
+    // if (this.game_count && this.game_count === MAX_GAMES_PER_SUPER_SERVER)
     // {
     //     this.log("game count maxed", this.game_count);
     //     return;
@@ -906,9 +919,9 @@ game_server.prototype.findGame = function(client)
             var game_instance = this.games[gameid];
 
             //If the game is a player short
-            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME, game_instance.player_clients.length);
+            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME_INSTANCE, game_instance.player_clients.length);
 
-            if(game_instance.player_count < MAX_PLAYERS_PER_GAME)
+            if(game_instance.player_count < MAX_PLAYERS_PER_GAME_INSTANCE)
             {
                 this.log("@@ player", client.userid, "joining game", gameid);
                 //someone wants us to join!
@@ -1091,7 +1104,7 @@ game_server.prototype.getTeams = function(game_instance)
 
     _this.log('red', red, 'blue', blue);
 
-    if (total === MAX_PLAYERS_PER_GAME)
+    if (total === MAX_PLAYERS_PER_GAME_INSTANCE)
         full = true;
     else
     {

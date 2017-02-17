@@ -1683,7 +1683,7 @@ game_player.prototype.draw = function()
     //console.log('this.hasFlag', this.hasFlag);
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
-        var flag = this.config._.find(this.config.clientCooldowns, {'heldBy':this.mp});
+        var flag = this.config._.find(this.config.clientCooldowns, {'heldBy':this.userid});
         //console.log('gotflag', flag, this.config.clientCooldowns);
 
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.config.server_time - this.flagTakenAt));

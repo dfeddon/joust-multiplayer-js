@@ -90,16 +90,28 @@ game_event.prototype.update = function()
     switch(this.type)
     {
       case this.TYPE_FLAG_CARRIED_COOLDOWN:
-        console.log('cooldown complete!', this.flag);//flag_carried_cooldown_event_update');
-        var mp = this.flag.heldBy;
+        console.log('* cooldown complete!', this.flag.name);//flag_carried_cooldown_event_update');
+        var userid = this.flag.heldBy;
         // server reset vars
         this.flag.isHeld = false;
         this.flag.isActive = true;
         this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
-        console.log('mp=',mp);
-        var player = this.config._.find(_this.getplayers.allplayers, {"mp":mp});
-        console.log('player', player.mp);
+        console.log('* userid', userid);
+        var room = this.getplayers.fromRoomByUserId(userid);
+        var player;
+        for (var i = 0; i < room.length; i++)
+        {
+          // console.log('**', room[i]);
+          if (room[i].instance.userid == userid)
+          {
+            console.log("* found player", room[i].instance.userid);
+            player = room[i];
+            break;
+          }
+        }
+        // var player = this.config._.filter(room, ["instance.userid", userid]);
+        // console.log('player', player.instance.userid);
         player.hasFlag = 0;
 
         // change state to complete
@@ -108,10 +120,12 @@ game_event.prototype.update = function()
       break;
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
-        console.log('evt update slotted cooldown complete');
+        // console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
-        var mp = this.flag.heldBy;
-        var player = this.config._.find(_this.getplayers.allplayers, {"mp":mp});
+        var userid = this.flag.heldBy;
+        var player = this.getplayers.getPlayerByUserId(userid);
+        // var room = this.getplayers.fromRoom(roomName);
+        // var player = this.config._.find(room, {"userid":userid});
         
         this.flag.isActive = true;
         this.flag.heldBy = null;
