@@ -416,15 +416,18 @@ game_server.prototype.endGame = function(gameid, userid)
                 {
                     console.log('@@ removing client id', userid);//, thegame.player_clients[i].hosting);
 
+                    var p = thegame.player_clients[i];
+
                     // tell client game is ended
-                    thegame.player_clients[i].emit('ondisconnect');
+                    //p.emit('ondisconnect');
                     // inform other players
-                    this.log('mp', thegame.player_clients[i].mp);
+                    this.log('userid', p.userid, p.playerPort, p);//mp);
                     //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
                     // thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
-                    thegame.player_clients[i].room(thegame.player_clients[i].playerPort).send('ondisconnect', thegame.player_clients[i].mp);
+                    // p.room(p.playerPort).send('ondisconnect', p.mp);
+                    p._rooms.primus.room(p.playerPort).write([25, p.userid]);
                     // leaving game
-                    thegame.player_clients[i].leave(gameid);
+                    p.leave(gameid);
 
                     // remove client socket
                     //console.log("* is client host?, player_client", thegame.player_clients[i]);//.hosting, thegame.gamecore.players.self.host);
@@ -971,6 +974,7 @@ game_server.prototype.findGame = function(client)
                                 var split = client.playerdata.split("|");
                                 players[i].instance = client;
                                 players[i].id = client.userid;
+                                players[i].userid = client.userid;
                                 players[i].playerPort = client.playerPort;
                                 if (split[0] !== "undefined" && split[0].length > 2)
                                 {

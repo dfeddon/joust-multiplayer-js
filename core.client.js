@@ -52,6 +52,12 @@ function core_client(core, config)
     // this.players.self.last
     this.players.self.mp = "hp";
     console.log('self', this.players.self);
+
+    // assign self to core's config obj
+    console.log('setself:', this.core.config);
+    this.core.config.players = this.players;
+    this.config.players = this.players;
+    console.log('setself2:', this.core.config);
     
     //this.canvasPlatforms = null;
     this.flashBang = 0;
@@ -968,18 +974,18 @@ core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
     else victim.doKill();
 }
 
-core_client.prototype.client_ondisconnect = function(data) {
+core_client.prototype.client_ondisconnect = function(userid) {
     //if (glog)
-    console.log('client_ondisconnect', data);
+    console.log('client_ondisconnect', userid);
 
     // remove player from client (data is disconnected player.mp)
     var room = this.getplayers.fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--)
     {
         console.log(room[i]);
-        if (room[i].mp == data)
+        if (room[i].userid == userid)
         {
-            console.log('* removing player', room[i].mp, data);
+            console.log('* removing player', room[i].mp);//, data);
             room[i].disconnected = true;
             room[i].doKill();//active = false;
             //room[i].visible = false;
@@ -1116,13 +1122,16 @@ core_client.prototype.client_connect_to_server = function(data)
             case 16: _this.client_on_chestremove(data[1], data[2]); break;
 
             // flag slotted in plaque (player)
-            case 20: _this.client_onflagadd(commanddata); break;
+            case 20: _this.client_onflagadd(data[1], data[2], data[3]); break;
 
             // flag taken from plaque (player)
             case 21: _this.client_onflagremove(data[1], data[2], data[3]); break;
 
             // flag visibility changed (map)
-            case 22: _this.client_onflagchange(commanddata); break;
+            case 22: _this.client_onflagchange(data[1], data[2], data[3]); break;
+
+            // disconnect
+            case 25: _this.client_ondisconnect(data[1]); break;
 
             // onserverupdate (streaming)
             default: _this.client_onserverupdate_recieved(data); break;
@@ -1255,7 +1264,7 @@ core_client.prototype.client_draw_info = function()
     // leaderboard
     /////////////////////////////////
     var hscore = [];
-    _.forEach(_this.getplayers.allplayers, function(p)
+    _.forEach(_this.getplayers.fromRoom(this.xport), function(p)
     {
         if (p.active)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
@@ -1370,23 +1379,24 @@ core_client.prototype.client_on_chestremove = function(id, player)
 };
 
 // slot flag in placque
-core_client.prototype.client_onflagadd = function(data)
+core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
 {
-    console.log('client_onflagadd', data);
+    console.log('client_onflagadd', userid, slotName, flagName);
 
     var _this = this;
 
     //data: player.mp|flag.name
-    var split = data.split("|");
-    var userid = split[0];
-    var slotName = split[1];
-    var flagName = split[2];
-    var playerSource, slotUsed;
+    // var split = data.split("|");
+    // var userid = player_id;//split[0];
+    // var slotName = split[1];
+    // var flagName = split[2];
+    // var playerSource, slotUsed;
 
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    _.forEach(this.getplayers.allplayers, function(ply)
+    var room = this.getplayers.getRoomNameByUserId(userid);
+    _.forEach(this.getplayers.fromRoom(room), function(ply)
     {
         if (ply.userid == userid)
         {
@@ -1403,7 +1413,7 @@ core_client.prototype.client_onflagadd = function(data)
     var targetSlot, flagSlotted;
     _.forEach(this.core.config.flagObjects, function(fo)
     {
-        //console.log(fo.name, slotName);
+        console.log('*', fo.name, slotName, flagName);
         if (fo.name == slotName)
         {
             targetSlot = fo;
@@ -1528,13 +1538,13 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 };
 
 // take flag from placque
-core_client.prototype.client_onflagchange = function(data)
+core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsgRaw)
 {
-    console.log('client_onflagchange', data);
-    var split = data.split("|");
-    var flagName = split[0];
-    var flagVisible = (split[1] == 'true');
-    var toastMsg = JSON.parse(split[2]);
+    console.log('client_onflagchange', flagName, flagVisible, toastMsg);
+    // var split = data.split("|");
+    // var flagName = split[0];
+    // var flagVisible = (split[1] == 'true');
+    var toastMsg = JSON.parse(toastMsgRaw);
     var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});//this.name});
     flagObj.visible = flagVisible;
     //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
@@ -2267,7 +2277,8 @@ core_client.prototype.client_process_net_updates = function()
             //console.log('flag', flag);
 
             // get player
-            var ply = _.find(this.getplayers.allplayers, {"mp":target.fc.p});
+            // var ply = _.find(this.getplayers.allplayers, {"mp":target.fc.p});
+            var ply = this.getplayers.getPlayerByUserId(target.fc.p);
             if (ply)
             {
                 if (cflag.name == "midFlag") ply.hasFlag = 1; // mid

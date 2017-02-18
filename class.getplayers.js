@@ -189,7 +189,7 @@ getplayers.prototype.getPlayerByUserId = function(userid)
     console.log('== getplayers.getPlayerByUserId', userid, '==');
     // we don't know the room, so we'll check them all
     var allrooms = Object.keys(this.fromAllRooms());
-    console.log('allrooms', allrooms);
+    // console.log('allrooms', allrooms);
     var room, h, j;
 
     if (this.game_instance)
@@ -197,13 +197,13 @@ getplayers.prototype.getPlayerByUserId = function(userid)
         for (h = allrooms.length - 1; h >= 0; h--)
         {
             room = this.fromRoom(allrooms[h]);
-            console.log("* room", room);
+            // console.log("* room", room);
             for (j = 0; j < room.length; j++)
             {
-                console.log(room[j]);
+                // console.log(room[j]);
                 if (room[j].instance && room[j].instance.userid == userid)
                 {
-                    console.log("* found room name", allrooms[h]);
+                    // console.log("* found room name", allrooms[h]);
                     return allrooms[h];
                 }
             }
@@ -214,18 +214,31 @@ getplayers.prototype.getPlayerByUserId = function(userid)
         for (h = allrooms.length - 1; h >= 0; h--)
         {
             room = this.fromRoom(allrooms[h]);
-            console.log("* room", room);
+            // console.log("* room", room);
             for (j = 0; j < room.length; j++)
             {
-                console.log("*", room[j].userid, userid);
+                // console.log("*", room[j].userid, userid);
                 if (room[j].userid == userid)
                 {
-                    console.log("* found room name", allrooms[h]);
+                    // console.log("* found room name", allrooms[h]);
                     return allrooms[h];
                 }
             }
         }
     }
+};
+
+getplayers.prototype.fromRoomLocalPlayer = function(port)
+{
+    console.log('== fromRoomLocalPlayer', port, '==');
+
+    var room = this.fromRoom(port);
+    for (var i = 0; i < room.length; i++)
+    {
+        if (room[i].isLocal)
+            return room[i];
+    }
+    return null;
 };
 
 module.exports = getplayers;

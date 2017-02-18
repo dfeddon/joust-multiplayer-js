@@ -358,6 +358,7 @@ game_core.prototype.init = function(game_instance)//, io)
         this.events.push(evt);
         //console.log('startup events', this.events);
     }
+    // else this.players.self =
 
     //The speed at which the clients move.
     this.playerspeed = 275;//120;
@@ -388,7 +389,7 @@ game_core.prototype.init = function(game_instance)//, io)
     this.config.updateTerritory = this.updateTerritory;
     this.config.flagToScore = this.flagToScore;
     //this.config.tilemapData = this.config.tilemapData;
-    this.config.players = this.players;
+    this.config.players = {};//this.players;
     this.config.events = this.events;
     this.config.clientCooldowns = this.clientCooldowns;
     this.config.chests = this.chests;
@@ -2175,15 +2176,14 @@ game_core.prototype.server_update = function()
     // var ply;
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
-    if (player.instance)
-    {
         for (var x in laststate)
         {
             // console.log(x, laststate[x]);
             laststate[x].t = this.config.server_time;        
-            player.instance.room(x).write(laststate[x]);
+            if (player.instance)
+                player.instance.room(x).write(laststate[x]);
         }
-    }
+    //}
         // player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');
     

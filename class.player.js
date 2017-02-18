@@ -860,15 +860,15 @@ game_player.prototype.doStand = function(id)
 
 game_player.prototype.doKill = function(victor)
 {
-    console.log('playerKill', this.mp);
-    if (victor) console.log('by', victor.mp, 'dead?', this.dead);
-    this.active = false;
+    console.log('playerKill', this.name);
+    if (victor) console.log('by', victor.name, 'dead?', this.dead);
+    // this.active = false;
 
     // avoid reduncancy
     if (this.dying === true) return;
     else this.dying = true;
 
-    console.log('player dying', this.mp);
+    console.log('player dying', this.name);
 
     // // update all players
     // this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
@@ -901,14 +901,14 @@ game_player.prototype.doKill = function(victor)
 
     // remove bubble
     this.bubble = false;
-
-    if (!this.config.server && this.mp == this.config.players.self.mp)
+    // console.log(this.getplayers);
+    if (!this.config.server && this.isLocal)//this.config.players.self.mp)
     {
-        this.config.players.self.vx = 0;
-        this.config.players.self.vy = 0;
-        this.config.players.self.a = 0;
-        this.config.players.self.dead = true;
-        this.config.players.self.vuln = true;
+        this.vx = 0;
+        this.vy = 0;
+        this.a = 0;
+        this.dead = true;
+        this.vuln = true;
     }
 
     // if carrying flag, drop it
@@ -918,8 +918,8 @@ game_player.prototype.doKill = function(victor)
         this.dropFlag();
         hadFlag = true; // needed for victor scoring below
 
-        if (!this.config.server && this.mp == this.config.players.self.mp)
-            this.config.players.self.dropFlag();
+        if (!this.config.server && this.isLocal)//this.mp == this.config.players.self.mp)
+            this.dropFlag();
     }
 
     //this.pos = this.config.gridToPixel(2, 2);
@@ -1026,11 +1026,11 @@ game_player.prototype.timeoutRespawn = function(victor)
     // this.score = 0;
     // //this.pos = this.config.gridToPixel(3,4);
 
-    if (!this.config.server && this.mp == this.config.players.self.mp)
+    if (!this.config.server && this.isLocal)//this.mp == this.config.players.self.mp)
     {
         console.log('* dead player is self (me)...');
         
-        this.config.players.self = this;
+        //this.config.players.self = this;
         // this.config.players.self.visible = false;
         // this.config.players.self.pos = this.config.gridToPixel(3,4);
         // this.config.players.self.dead = false;
@@ -1099,7 +1099,7 @@ game_player.prototype.doAbility = function()
     console.log('doAbility', this.mp);
     // first ensure player is not vulnerable, has no abilities, or on global cooldown
     console.log(this.vuln, this.ability, this.cooldown);
-    if (this.vuln === true || this.ability === -1 || this.cooldown === true) return;
+    if (this.vuln === true || this.dead === true || this.ability === -1 || this.cooldown === true) return;
 
     // check for ability cooldown
     //console.log(new Date(this.abilities[this.ability].t).getTime(), new Date().getTime());//.getSeconds());

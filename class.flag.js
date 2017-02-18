@@ -355,7 +355,7 @@ game_flag.prototype.setter = function(obj)
 
 game_flag.prototype.doTake = function(player)
 {
-  console.log('===flag.doTake', this.name, 'p', player.instance.userid, 'hasFlag', player.hasFlag, 'isheld', this.isHeld, 'team', player.team, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
+  console.log('===flag.doTake', this.name, 'p', player.userid, 'hasFlag', player.hasFlag, 'isheld', this.isHeld, 'team', player.team, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
   if (this.isActive === false || this.onCooldown === true) return;
 
   var _this = this;
@@ -398,7 +398,7 @@ game_flag.prototype.doTake = function(player)
   }
 
   // update flag target
-  console.log('* flag.sourceSlot', this.sourceSlot, player.instance.userid);
+  console.log('* flag.sourceSlot', this.sourceSlot, player.userid);
   this.targetSlot = this.getTargetSlot(player.team, this.sourceSlot);
   console.log('flag.targetSlot', this.targetSlot);
 
@@ -413,7 +413,7 @@ game_flag.prototype.doTake = function(player)
   this.visible = false;
   this.isActive = false;
   this.isHeld = true;
-  this.heldBy = player.instance.userid;//mp;
+  this.heldBy = player.userid;//mp;
 
   // set player states
   player.hasFlag = flagType
@@ -451,7 +451,7 @@ game_flag.prototype.doTake = function(player)
       // update clientCooldowns objs
       var cd = this.config._.find(_this.config.clientCooldowns, {"name":_this.name});
       //console.log(this.game.clientCooldowns);
-      cd.heldBy = player.instance.userid;//mp;
+      cd.heldBy = player.userid;//mp;
       cd.src = this.sourceSlot;
       cd.target = this.targetSlot;
       //console.log('cooldown obj');
@@ -483,7 +483,7 @@ game_flag.prototype.typeToName = function(type)
 
 game_flag.prototype.slotFlag = function(player)
 {
-  console.log("== flag.slotFlag", player.instance.userid, this.name, player.hasFlag, "==");
+  console.log("== flag.slotFlag", player.userid, this.name, player.hasFlag, "==");
 
   var _this = this;
   // TODO: Resolve issue with targetSlot and sourceSlot values, both
@@ -514,7 +514,9 @@ game_flag.prototype.slotFlag = function(player)
     this.sourceSlot = this.name;
     console.log('flag.name:', this.name);
     flg.sourceSlot = this.name;
-    flg.targetSlot = this.getTargetSlot(player.team, this.sourceSlot);
+    flg.targetSlot = this.getTargetSlot(player.team, flg.sourceSlot);
+    console.log('flag new src/trg', flg.sourceSlot, flg.targetSlot);
+    
     // stop cooldown (clientFlag)
 
     // stop flag-carried event (server-side only)
@@ -553,7 +555,8 @@ game_flag.prototype.slotFlag = function(player)
 
     console.log('* socket emit', this);
     // inform socket
-    player.instance.room(player.playerPort).write('f.a.'+player.instance.userid+"|"+this.name+"|"+flg.name);
+    //player.instance.room(player.playerPort).write('f.a.'+player.userid+"|"+this.name+"|"+flg.name);
+    player.instance.room(player.playerPort).write([20, player.userid, this.name, flg.name]);//player.flagTakenAt]);
     /*
     var room = this.getplayers.fromRoom(player.playerPort);
     for (var l = 0; l < this.getplayers.allplayers.length; l++)
@@ -619,7 +622,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     var opponent;
     if (playerSource.killedBy)
     {
-      opponent = this.config._.find(_this.getplayers.allplayers, {'userid': playerSource.killedBy});
+      opponent = this.config._.find(_this.getplayers.fromRoom(playerSource.playerPort), {'userid': playerSource.killedBy});
       opponentName = opponent.playerName;
     }
     
@@ -657,19 +660,23 @@ game_flag.prototype.reset = function(success, game)//, server_time)
   {
     this.isActive = true;
     // clear flag-carried (fc) event
-    console.log('*', this.config.events);
+    // console.log('*', this.config.events);
 
     if (this.config.server)
     {
       var fcEvent = _.find(_this.config.events, {"type":2});
       fcEvent.doStop();
-
-      _.forEach(_this.getplayers.allplayers, function(ply)
+      console.log('room port', playerSource.playerPort);
+      
+      _.forEach(_this.getplayers.fromRoom(playerSource.playerPort), function(ply)
       {
         // TODO: omit self if self was failed carrier
         if (ply.instance)
         {
-          ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
+          console.log('* fc to player', ply.userid);
+          
+          ply.instance.room(ply.playerPort).write([22, _this.name, _this.visible, msg]);
+          // ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
         }
       });
     }
