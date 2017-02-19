@@ -439,20 +439,21 @@ game_server.prototype.endGame = function(gameid, userid)
 
             // remove player from allplayer array
             var disconnected_mp;
-            for (var j = 0; j < allplayers.length; j++)
+            var room = thegame.gamecore.getplayers.fromRoom(p.playerPort);
+            for (var j = 0; j < room.length; j++)
             {
-                if (allplayers[j].id == userid)
+                if (room[j].id == userid)
                 {
-                    console.log('@@ removing player', allplayers[j].mp, userid);//, allplayers[j].host);
+                    console.log('@@ removing player', room[j].mp, userid);//, allplayers[j].host);
                     
-                    disconnected_mp = allplayers[j].mp;
+                    disconnected_mp = room[j].mp;
                     // if (!allplayers[j].host)
-                    allplayers[j].instance = null;//.splice(j, 1);
+                    room[j].instance = null;//.splice(j, 1);
                     // else this.log("* not disconnecting host player...");
-                    allplayers[j].disconnected = true;
+                    room[j].disconnected = true;
                     // allplayers[j].active = false;
                     // allplayers[j].pos = {x:0, y:0};
-                    allplayers[j].reset();
+                    room[j].reset();
                     game_instance.player_count--;
                     break;
                 }
@@ -537,15 +538,15 @@ game_server.prototype.endGame = function(gameid, userid)
 
             this.log('mp', thegame.player_clients[0].mp);
             // the allplayer instance
-            var allplayers = thegame.gamecore.getplayers.allplayers;
-            for (var j = 0; j < allplayers.length; j++)
+            var room = thegame.gamecore.getplayers.fromRoom(thegame.player_clients[0].playerPort);
+            for (var j = 0; j < room.length; j++)
             {
-                if (allplayers[j].mp == thegame.player_clients[0].mp)
+                if (room[j].userid == thegame.player_clients[0].userid)
                 {
                     this.log("* found player, removing from canvas");
-                    allplayers[j].instance = null;
-                    allplayers[j].disconnected = true;
-                    allplayers[j].reset();
+                    room[j].instance = null;
+                    room[j].disconnected = true;
+                    room[j].reset();
                 }
             }
             // leaving game

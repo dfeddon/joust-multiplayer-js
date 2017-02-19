@@ -1,6 +1,5 @@
 /*jslint
-    this
-*/
+    this*/
 
 /*  Copyright 2012-2016 Sven "underscorediscovery" Bergström
 
@@ -155,11 +154,24 @@ game_core.prototype.init = function(game_instance)//, io)
     // global delay flag for change ability input
     this.inputDelay = false;
 
+    // orbs
     this.orbs = [];
 
+    // tilemap
     this.tilemap = null;
     this.config.tilemapData = null;
+
+    // chests
+    this.chests = [];
     this.chestSpawnPoints = [];
+    // chest rewards
+    this.passives = [
+        {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
+        {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
+        //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
+    ];
+
+    // flags
     this.config.flagObjects = [];
     this.clientCooldowns = [
         {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
@@ -167,15 +179,12 @@ game_core.prototype.init = function(game_instance)//, io)
         {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
     ];
 
-    // this.cam = {x:0,y:0};
+    // events (includes chests [spawn] and flags [cooldowns])
+    this.events = [];
 
-    // this.mp = null;
     this.gameid = null;
-
     this.last_hscore = []; // last high score
 
-    // this.getplayers.allplayers = []; // client/server players store
-    //this.entities = [];
     this.player_abilities_enabled = false;
 
     //this.platforms = [];
@@ -218,15 +227,6 @@ game_core.prototype.init = function(game_instance)//, io)
     // this.platforms.push({x:this.config.world.width/4,y:300,w:256,h:64});
     // this.platforms.push({x:this.config.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
-
-
-    this.events = [];
-    this.passives = [
-        {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
-        {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
-        //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
-    ];
-    this.chests = [];
 
     //We create a player set, passing them
     //the game that is running them, as well
@@ -2180,7 +2180,7 @@ game_core.prototype.server_update = function()
         {
             // console.log(x, laststate[x]);
             laststate[x].t = this.config.server_time;        
-            if (player.instance)
+            if (Boolean(player.instance))
                 player.instance.room(x).write(laststate[x]);
         }
     //}
