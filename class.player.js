@@ -153,6 +153,7 @@ function game_player(player_instance, isHost, pindex, config)
     //this.carryingFlag = null;
 
     this.playerName = "";
+    this.playerNameImage = null;
     this.playerSprite = "roundRooster";
 } // end game_player constructor
 
@@ -229,6 +230,37 @@ game_player.prototype.reset = function()
     else if (this.config.server) 
         this.respawn();
 
+};
+game_player.prototype.setPlayerName = function(name)
+{
+    console.log('== player.setPlayerName', name, '==');
+
+    // omit setter if new name is same as old name
+    // if (name == this.playerName) return;
+
+    this.playerName = name;
+
+    if (this.config.server) return;
+
+    // create name-based image
+    // var textLabel = document.createElement('Label');
+    // textLabel.value = name;
+    // console.log('team', this.team);
+    this.playerNameImage = new Image();//document.createElement('Image');
+    var textCanvas = document.createElement('canvas');
+    textCanvas.width = 150;
+    var tCtx = textCanvas.getContext('2d');
+    // textCanvas.style.border = "1px solid #000000";
+    if (this.team === 1)
+        tCtx.fillStyle = '#FF6961';
+    else tCtx.fillStyle = '#6ebee6';
+    tCtx.font = "16px Mirza";
+    // tCtx.textAlign = 'center';
+    tCtx.width = 200;//tCtx.measureText(name).width;
+    tCtx.fillText(name, 10, 10, 200);
+    // this.playerNameImage.width = tCtx.measureText(name).width;//textCanvas.width;//200;//tCtx.width;
+    this.playerNameImage.src = tCtx.canvas.toDataURL();
+    console.log('* text image src', this.playerNameImage.src);
 };
 
 game_player.prototype.setSkin = function(skin)
@@ -1523,7 +1555,7 @@ game_player.prototype.draw = function()
     //     5);
 
     // nameplate
-    this.config.ctx.font = "16px Mirza";
+    /*this.config.ctx.font = "16px Mirza";
     this.config.ctx.textAlign = 'center';
     //var txt = "[" + this.level + "] " + this.playerName;//+ "(" + this.mana.toString() + ")";
     var txt = this.playerName;// + this.team.toString();//+ "(" + this.mana.toString() + ")";
@@ -1533,7 +1565,10 @@ game_player.prototype.draw = function()
         this.pos.y - txtOffset
         //100
     );
-    this.config.ctx.restore();
+    this.config.ctx.restore();*/
+    // console.log('* ', typeof(this.playerNameImage));
+    // if (this.playerNameImage)
+    this.config.ctx.drawImage(this.playerNameImage, this.pos.x, this.pos.y - 30, this.playerNameImage.width, this.playerNameImage.height);
 
     // draw rank circle
     /*

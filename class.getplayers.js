@@ -80,7 +80,7 @@ getplayers.prototype.addRoom = function(port)
         {
             other = new game_player(null, false, count++, this.config);
             other.pos = this.game_instance.gamecore.gridToPixel(i, 0);
-            other.playerName = this.game_instance.gamecore.nameGenerator();
+            other.setPlayerName = this.game_instance.gamecore.nameGenerator();
             other.playerPort = port; 
             
             other.visible = false;

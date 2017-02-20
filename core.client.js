@@ -449,7 +449,7 @@ core_client.prototype.client_onplayernames = function(data)
         
         p = _.find(this.getplayers.allplayers, {'mp':data.mp});
         if (data.name && data.name !== "undefined")
-            p.playerName = data.name;
+            p.setPlayerName(data.name);
         if (data.skin)
             p.setSkin(data.skin);
     }
@@ -463,7 +463,7 @@ core_client.prototype.client_onplayernames = function(data)
             {
                 console.log('* settings player', data[i].name, data[i].team, data[i].skin);
                 if (data[i].name != undefined)
-                    p.playerName = data[i].name;
+                    p.setPlayerName(data[i].name);
                 if (data[i].team > 0 && p.team === 0)
                     p.team = parseInt(data[i].team);
                 if (data[i].skin != "")
@@ -482,7 +482,7 @@ core_client.prototype.client_onplayernames = function(data)
         this.players.self.vuln = false;
         console.log("* my player name", assets.playerName);
         if (assets.playerName !== undefined)
-            this.players.self.playerName = assets.playerName;
+            this.players.self.setPlayerName(assets.playerName);
         else console.log("* player name is undefined", this.players.self.playerName);
         if (assets.playerSkin)
             this.players.self.setSkin(assets.playerSkin);
@@ -550,7 +550,7 @@ core_client.prototype.client_onjoingame = function(data)
             room[i].team = team;
             room[i].userid = playerId;
             room[i].id = playerId;
-            room[i].playerName = playerName;
+            room[i].setPlayerName(playerName);
             room[i].setSkin(playerSkin);
             room[i].active = true;
             room[i].visible = true;
@@ -675,7 +675,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
             */
             p[i].active = true;
             p[i].visible = true;
-            p[i].playerName = playerName;
+            p[i].setPlayerName(playerName);
             p[i].setSkin(playerSkin);
             //p[i].playerName = "Jouster";
             // if self.mp == "hp", player is the NEW player!
@@ -709,7 +709,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
                     p[i].active = true;
                     p[i].visible = true;
                     // if (other.playerName != 'undefined')
-                    p[i].playerName = other.playerName;
+                    p[i].setPlayerName(other.playerName);
                     p[i].setSkin(other.skin);
                     p[i].team = other.team;
                     
@@ -796,7 +796,7 @@ core_client.prototype.client_onconnected = function(data) {
     this.players.self.id = data[0];
     this.players.self.userid = data[0];
     if (data[1] !== 0)
-        this.players.self.playerName = data[1];
+        this.players.self.setPlayerName(data[1]);
     this.players.self.skin = "skin" + data[2].toString();
     
     /*var playerdata = data.playerdata.split("|");
