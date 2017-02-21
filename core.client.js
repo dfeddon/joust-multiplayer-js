@@ -709,9 +709,9 @@ core_client.prototype.client_onhostgame = function(data, callback)
                     p[i].active = true;
                     p[i].visible = true;
                     // if (other.playerName != 'undefined')
+                    p[i].team = other.team;
                     p[i].setPlayerName(other.playerName);
                     p[i].setSkin(other.skin);
-                    p[i].team = other.team;
                     
                 }
             });

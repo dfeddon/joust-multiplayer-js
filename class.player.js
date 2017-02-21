@@ -246,21 +246,28 @@ game_player.prototype.setPlayerName = function(name)
     // var textLabel = document.createElement('Label');
     // textLabel.value = name;
     // console.log('team', this.team);
-    this.playerNameImage = new Image();//document.createElement('Image');
+    if (!this.playerNameImage)
+        this.playerNameImage = new Image();//document.createElement('Image');
     var textCanvas = document.createElement('canvas');
-    textCanvas.width = 150;
-    var tCtx = textCanvas.getContext('2d');
+    // textCanvas.width = 150;
+    var ctx = textCanvas.getContext('2d');
+    ctx.font = "18px sans"; // set font *before* measuring
+    ctx.canvas.width = ctx.measureText(name).width;
     // textCanvas.style.border = "1px solid #000000";
     if (this.team === 1)
-        tCtx.fillStyle = '#FF6961';
-    else tCtx.fillStyle = '#6ebee6';
-    tCtx.font = "16px Mirza";
+        ctx.fillStyle = '#FF6961';
+    else if (this.team === 2)
+        ctx.fillStyle = '#6ebee6';
+    else ctx.fillStyle = 'white';
+    ctx.font = "16px Mirza";
     // tCtx.textAlign = 'center';
-    tCtx.width = 200;//tCtx.measureText(name).width;
-    tCtx.fillText(name, 10, 10, 200);
+    ctx.fillText(name, 10, 10);//, 300);
     // this.playerNameImage.width = tCtx.measureText(name).width;//textCanvas.width;//200;//tCtx.width;
-    this.playerNameImage.src = tCtx.canvas.toDataURL();
+    this.playerNameImage.src = ctx.canvas.toDataURL();
     console.log('* text image src', this.playerNameImage.src);
+
+    // gc cleanup
+    textCanvas = null;
 };
 
 game_player.prototype.setSkin = function(skin)
@@ -1519,6 +1526,7 @@ game_player.prototype.draw = function()
     // player nametags (temp)
     // mana bar bg
     var txtOffset = 20;
+    if (this.isLocal) txtOffset += 10;
     if (this.vuln) txtOffset = 10;
     //var abil;
     if (this.isLocal === true)
@@ -1534,7 +1542,7 @@ game_player.prototype.draw = function()
     // else
     // {
     // nameplate color
-    this.config.ctx.save();
+    /*this.config.ctx.save();
     if (this.team == 1) // 1 = red, 2 = blue
     {
         this.config.ctx.fillStyle = '#FF6961';
@@ -1545,7 +1553,7 @@ game_player.prototype.draw = function()
         this.config.ctx.fillStyle = '#6ebee6';
         //game.ctx.save();
     }
-    else this.config.ctx.fillStyle = 'white';
+    else this.config.ctx.fillStyle = 'white';*/
     //this.config.ctx.font = "small-caps 15px serif";
     // }
     // game.ctx.strokeRect(
@@ -1566,9 +1574,12 @@ game_player.prototype.draw = function()
         //100
     );
     this.config.ctx.restore();*/
-    // console.log('* ', typeof(this.playerNameImage));
+    // console.log('* pi:', this.playerNameImage, typeof(this.playerNameImage));
+    // if (this.playerNameImage === undefined)
+    //     this.setPlayerName(this.playerName);
     // if (this.playerNameImage)
-    this.config.ctx.drawImage(this.playerNameImage, this.pos.x, this.pos.y - 30, this.playerNameImage.width, this.playerNameImage.height);
+    // if (!this.vuln)
+    this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - txtOffset, this.playerNameImage.width, this.playerNameImage.height);
 
     // draw rank circle
     /*

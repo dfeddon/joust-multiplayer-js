@@ -54,7 +54,7 @@ getplayers.prototype.fromRoom = function(port)
 getplayers.prototype.addRoom = function(port)
 {
     console.log('adding room to getplayers by port id', port, typeof(port));
-    var room;
+    var room, events;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -69,12 +69,22 @@ getplayers.prototype.addRoom = function(port)
     }
 
     if (this.game_instance)
+    {
+        // players
         room = this.game_instance.inRoom[port] = [];
-    else room = this.inRoom[port] = [];
+        // events = this.game_instance.inRoomEvents[port] = [];
+    }
+    else
+    {
+        // players
+        room = this.inRoom[port] = [];
+        // events = this.inRoomEvents[port] = [];
+    }
 
     var count = 0;
     if (this.game_instance)
     {
+        // create players
         var other;
         for (var i = this.totalPlayersPerGame - 1; i >= 0; i--)
         {
@@ -88,9 +98,12 @@ getplayers.prototype.addRoom = function(port)
             
             this.game_instance.inRoom[port].push(other);
         }
+        // create events
+        // create chests
     }
     else
     {
+        // create players
         var p;
         for (var l = 1; l < this.totalPlayersPerGame; l++)
         {
@@ -100,6 +113,8 @@ getplayers.prototype.addRoom = function(port)
             // console.log('getplayers.pos:', p.pos);
             this.inRoom[port].push(p);
         }
+        // create events // inRoomEvents[port]
+        // create chests // inRoomChests[port]
     }
 };
 

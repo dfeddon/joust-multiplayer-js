@@ -977,12 +977,13 @@ game_server.prototype.findGame = function(client)
                                 players[i].id = client.userid;
                                 players[i].userid = client.userid;
                                 players[i].playerPort = client.playerPort;
+                                this.log('@ playerName', split[0], '/', players[i].playerName);
                                 if (split[0] !== "undefined" && split[0].length > 2)
                                 {
                                     console.log('@ got user-defined name', split[0]);
                                     players[i].playerName = split[0];
                                 }
-                                else if (players[i].playerName == "undefined")
+                                else if (players[i].playerName === undefined || players[i].playerName.length === 0)
                                 {
                                     console.log('@ auto-generating user name', players[i].playerName);
                                     

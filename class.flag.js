@@ -612,7 +612,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     var roomName = this.getplayers.getRoomNameByUserId(this.heldBy);
     console.log("room name", roomName);
     var room = this.getplayers.fromRoom(roomName);
-    console.log("room:", room);
+    // console.log("room:", room);
     var playerSource = _.find(room, {'userid':_this.heldBy});
     console.log('* playerSource', playerSource.userid, this.heldBy);//, this);
     

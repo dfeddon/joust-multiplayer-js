@@ -2027,7 +2027,8 @@ game_core.prototype.server_update = function()
         }
     }
 
-    if (!player) return;
+    // if (!player) return;
+
     // pool.free(this.serverPool);
 
     /////////////////////////////////
@@ -2058,6 +2059,16 @@ game_core.prototype.server_update = function()
 
     var evt;
     // _.forEach(this.events, function(evt)
+/*
+    for (var h = allrooms.length - 1; h >= 0; h--)
+    {
+        room = this.getplayers.fromRoom(allrooms[h]);
+        // create object for *each* room to hold players
+        laststate[allrooms[h]] = {};
+        for (var i = room.length - 1; i >= 0; i--)
+        {
+            player = room[i];
+*/    
     for (var j = this.events.length - 1; j >= 0; j--)
     {
         evt = this.events[j];
@@ -2087,7 +2098,8 @@ game_core.prototype.server_update = function()
                                     d:evt.passive.duration,
                                     m:evt.passive.modifier
                                 });
-                        laststate[evt.id] =
+                        var room = this.getplayers.getRoomNameByUserId(player.userid);
+                        laststate[room][evt.id] =
                         {
                             i: id,
                             x: evt.spawn.x,
