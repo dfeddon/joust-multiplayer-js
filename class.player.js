@@ -30,7 +30,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.player_abilities_enabled = false;
 
     //Set up initial values for our state information
-    //this.pos = { x:0, y:0 };
+    this.pos = { x:0, y:0 };
 
     this.lpos = this.pos;
     this.size = { x:48, y:48, hx:48, hy:48, offset:16 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 };
@@ -124,7 +124,7 @@ function game_player(player_instance, isHost, pindex, config)
     //the server already knows who they are. If the server starts a game
     //with only a host, the other player is set up in the 'else' below
     //this.pos = { x:Math.floor((Math.random() * this.config.world.width - 64) + 64), y:128};//this.config.world.height-this.size.hy };
-    this.pos = {x: 0, y: 0};
+    //this.pos = {x: 0, y: 0};
     //These are used in moving us around later
     this.old_state = {pos:this.pos};
     this.cur_state = {pos:this.pos};
@@ -157,9 +157,9 @@ function game_player(player_instance, isHost, pindex, config)
     this.playerSprite = "roundRooster";
 } // end game_player constructor
 
-game_player.prototype.pos = { x: 0, y: 0 };
-game_player.prototype.pos.x = 0;
-game_player.prototype.pos.y = 0;
+// game_player.prototype.pos = { x: 0, y: 0 };
+// game_player.prototype.pos.x = 0;
+// game_player.prototype.pos.y = 0;
 game_player.prototype.dead = false;
 // game_player.prototype.setFlag = function(int) // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
 // {

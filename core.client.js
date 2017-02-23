@@ -21,9 +21,9 @@ function core_client(core, config)
     this.core = core;
     this.config = config;
 
-    this.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
+    // this.core.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
     this.playerPort = null;
-    this.chests = [];
+    this.core.chests = [];
 
     // this.clientCooldowns = [
     //     {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
@@ -71,12 +71,12 @@ function core_client(core, config)
     /*var p;
     for (var l = 1; l < this.config.world.totalplayers; l++)
     {
-        p = new game_player(null, false, this.getplayers.allplayers.length+1, this.config);
+        p = new game_player(null, false, this.core.getplayers.allplayers.length+1, this.config);
         // p.ent = new physicsEntity(physicsEntity.ELASTIC);
         console.log(l, p.mp);
         p.pos = this.core.gridToPixel(l, 0);
         //p.playerName = this.nameGenerator() + " [" + p.mp + "/" + p.team + "]";
-        this.getplayers.allplayers.push(p);//,null,false));
+        this.core.getplayers.allplayers.push(p);//,null,false));
         // this.entities.push(p);
     }*/
     
@@ -297,10 +297,10 @@ core_client.prototype.client_reset_positions = function()
 {
     console.log('## client_reset_positions');
 
-    // console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.getplayers.allplayers.length);
+    // console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.core.getplayers.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
     //*
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0 ; i--)
     {
         //console.log('pos:', room[i].pos, room[i].instance);
@@ -447,7 +447,7 @@ core_client.prototype.client_onplayernames = function(data)
     {
         console.log('updating extant clients...', data.name, data.skin);
         
-        p = _.find(this.getplayers.allplayers, {'mp':data.mp});
+        p = _.find(this.core.getplayers.allplayers, {'mp':data.mp});
         if (data.name && data.name !== "undefined")
             p.setPlayerName(data.name);
         if (data.skin)
@@ -458,7 +458,7 @@ core_client.prototype.client_onplayernames = function(data)
 
         for (var i = data.length - 1; i >= 0; i--)
         {
-            p = _.find(this.getplayers.allplayers, {'mp':data[i].mp});
+            p = _.find(this.core.getplayers.allplayers, {'mp':data[i].mp});
             if (p)
             {
                 console.log('* settings player', data[i].name, data[i].team, data[i].skin);
@@ -516,7 +516,7 @@ core_client.prototype.client_onjoingame = function(data)
     // console.log(alldata[2]);
     //this.orbs = JSON.parse(alldata[2]);
     var chests = JSON.parse(alldata[2]);
-    //console.log('chestz',this.chests);
+    //console.log('chestz',this.core.chests);
 
     var team = parseInt(alldata[3]);
     var playerName = alldata[4];
@@ -530,7 +530,7 @@ core_client.prototype.client_onjoingame = function(data)
 
     //console.log('3',alldata[2]);
 
-    console.log('len', this.getplayers.allplayers.length);
+    console.log('len', this.core.getplayers.allplayers.length);
     //console.log('vp', this.viewport);
     */
 
@@ -539,13 +539,13 @@ core_client.prototype.client_onjoingame = function(data)
     // //Update the local state
     // this.players.self.state = 'connected.joined.waiting';
     // this.players.self.info_color = '#00bb00';
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--)
     {
         console.log("----->", room[i].id, playerId);//room[i].team);//.instance);
         if (room[i].mp == playerMp)//alldata[0])//'cp1')
         {
-            console.log('## found player')//, playerMp, room[i], room[i].playerName);
+            console.log('## found player', room[i], room[i].playerName);
             
             room[i].team = team;
             room[i].userid = playerId;
@@ -554,12 +554,15 @@ core_client.prototype.client_onjoingame = function(data)
             room[i].setSkin(playerSkin);
             room[i].active = true;
             room[i].visible = true;
+            // room[i].pos = {x:0, y:0};
         }
     }
 
     _.forEach(chests, function(chest)
     {
-        _this.chests.push(new game_chest(chest, true, _this.getplayers, _this.config));
+        console.log('adding chest to game!');
+        
+        _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     });
 
     var cflag;
@@ -576,8 +579,8 @@ core_client.prototype.client_onjoingame = function(data)
 
     // console.log('local player mp =', this.players.self.mp);
     // set mp val
-    // this.players.self.mp = 'cp' + this.getplayers.allplayers.length;
-    // this.players.self.mis = 'cis' + this.getplayers.allplayers.length;
+    // this.players.self.mp = 'cp' + this.core.getplayers.allplayers.length;
+    // this.players.self.mis = 'cis' + this.core.getplayers.allplayers.length;
     // TODO: Remove below
     // this.players.other.mp = 'hp';
     // this.players.other.mis = 'his';
@@ -624,7 +627,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     console.log(alldata[2]);
     //this.orbs = JSON.parse(alldata[2]);
     var chests = alldata[2];
-    //console.log('chestz',this.chests);
+    //console.log('chestz',this.core.chests);
 
     var team = parseInt(alldata[3]);
     var playerName = alldata[4];
@@ -638,7 +641,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
 
     //console.log('3',alldata[2]);
 
-    console.log('len', this.getplayers.fromRoom(this.xport).length);
+    console.log('len', this.core.getplayers.fromRoom(this.xport).length);
     //console.log('vp', this.viewport);
 
     //We are not the host
@@ -647,7 +650,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     this.players.self.state = 'connected.joined.waiting';
     this.players.self.info_color = '#00bb00';
 
-    var p = this.getplayers.fromRoom(this.playerPort);
+    var p = this.core.getplayers.fromRoom(this.playerPort);
     for (var i = p.length - 1; i >= 0; i--)
     {
         console.log("----->", p[i].mp, p[i].team);//.instance);
@@ -691,6 +694,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
             this.players.self.dead = false;
             this.players.self.vuln = false;
             this.players.self.landed = 0;
+            this.players.self.pos = {x:0,y:0};
             this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
         }
         else if (!p[i].userid)
@@ -720,7 +724,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
 
     _.forEach(chests, function(chest)
     {
-        _this.chests.push(new game_chest(chest, true, _this.getplayers, _this.config));
+        _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     });
 
     var cflag;
@@ -764,7 +768,7 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 
     this.players.self.mp = "hp";
     this.players.self.mis = "his";
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--)
     {
         //console.log("##", room[i]);//.mp, room[i].id);
@@ -773,7 +777,7 @@ core_client.prototype.client_onhostgame_orig = function(data) {
         {
             console.log('## found host player', i);
             this.players.self = room[i];
-            //this.getplayers.allplayers.splice(i, 1);
+            //this.core.getplayers.allplayers.splice(i, 1);
 
         }
     }
@@ -814,7 +818,7 @@ core_client.prototype.client_onconnected = function(data) {
     console.log('self:', this.players.self);
     
 
-    // for (var i = 0; i < this.getplayers.allplayers.length; i++)
+    // for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
     // {
     //     if (!room[i].instance) continue;
     //     console.log(room[i].instance.userid, data.id);
@@ -951,7 +955,7 @@ core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
     console.log('client player killed', victim_id, victor_id);
 
     var victim, victor;
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     for (var i = 0; i < room.length; i++)
     {
         console.log('id', room[i].id);
@@ -963,8 +967,8 @@ core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
 
     // var _this = this;
     // var split = data.split("|");
-    // var victim = _.find(_this.getplayers.allplayers, 'id', victim);
-    // var victor = _.find(_this.getplayers.allplayers, {'id':victor});
+    // var victim = _.find(_this.core.getplayers.allplayers, 'id', victim);
+    // var victor = _.find(_this.core.getplayers.allplayers, {'id':victor});
     console.log('victim', victim);
     if (victor)
     {
@@ -979,7 +983,7 @@ core_client.prototype.client_ondisconnect = function(userid) {
     console.log('client_ondisconnect', userid);
 
     // remove player from client (data is disconnected player.mp)
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--)
     {
         console.log(room[i]);
@@ -990,7 +994,7 @@ core_client.prototype.client_ondisconnect = function(userid) {
             room[i].doKill();//active = false;
             //room[i].visible = false;
             //room[i].pos = {x:0, y:0};
-            //this.getplayers.allplayers.splice(i, 1);
+            //this.core.getplayers.allplayers.splice(i, 1);
             //break;
         }
     }
@@ -1038,8 +1042,9 @@ core_client.prototype.client_connect_to_server = function(data)
     console.log('xport', xport);
 
     this.xport = xport.toString();
+    // this.core.chests = this.core.getplayers.fromRoom()
     
-    this.getplayers.addRoom(this.xport);
+    this.core.getplayers.addRoom(this.xport.toString());
     
     console.log('server port', location.port, location.hostname, location.host);
     console.log('request header', navigator.userAgent, document.referer);
@@ -1264,7 +1269,7 @@ core_client.prototype.client_draw_info = function()
     // leaderboard
     /////////////////////////////////
     var hscore = [];
-    _.forEach(_this.getplayers.fromRoom(this.xport), function(p)
+    _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
     {
         if (p.active)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
@@ -1345,7 +1350,7 @@ core_client.prototype.client_on_chesttake = function(id, player)
     // var split = data.split("|");
     // var id = split[0];
     // var player = split[1];
-    _.forEach(this.chests, function(chest)
+    _.forEach(this.core.chests, function(chest)
     {
         console.log('chest id', chest.id);
         if (chest.id == id)
@@ -1365,14 +1370,14 @@ core_client.prototype.client_on_chestremove = function(id, player)
     // var id = split[0];
     // var player = split[1];
 
-    _.forEach(this.chests, function(chest)
+    _.forEach(this.core.chests, function(chest)
     {
         //console.log('chest id', chest.id);
         if (chest.id == id)
         {
             // chest is opened
-            _.remove(_this.chests, {id: chest.id});
-            console.log('* chest removed', id, _this.chests);
+            _.remove(_this.core.chests, {id: chest.id});
+            console.log('* chest removed', id, _this.core.chests);
             return false; // break
         }
     });
@@ -1395,8 +1400,8 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    var room = this.getplayers.getRoomNameByUserId(userid);
-    _.forEach(this.getplayers.fromRoom(room), function(ply)
+    var room = this.core.getplayers.getRoomNameByUserId(userid);
+    _.forEach(this.core.getplayers.fromRoom(room), function(ply)
     {
         if (ply.userid == userid)
         {
@@ -1476,7 +1481,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    var room = this.getplayers.fromRoom(this.xport);
+    var room = this.core.getplayers.fromRoom(this.xport);
     _.forEach(room, function(ply)
     {
         if (ply.id == player_id)
@@ -1837,7 +1842,7 @@ core_client.prototype.client_process_net_updates = function()
 {
     //if (glog)
     //console.log('## client_process_net_updates');//, this.client_predict);
-    // for (var i = 0; i < this.getplayers.allplayers.length; i++)
+    // for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
     // {
     //     console.log('::', room[i].host, room[i].id);
     // }
@@ -1955,23 +1960,23 @@ core_client.prototype.client_process_net_updates = function()
         var ghostStub;
         //console.log('->:', target.cp1[0], this.players.self.x);
         
-        //console.log('len', this.getplayers.allplayers.length, this.players.self.mp);
-        //for (var j = 0; j < this.getplayers.allplayers.length; j++)
+        //console.log('len', this.core.getplayers.allplayers.length, this.players.self.mp);
+        //for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
         var vt; // view target
         var vp; // view previous
         var lerp_t={x:NaN,y:NaN};// = {x:0, y:0};
         var lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
         var self_pp;
         var self_tp;
-        //console.log('len', this.getplayers.allplayers[0]);//.length);
+        //console.log('len', this.core.getplayers.allplayers[0]);//.length);
         
-        // _.forEach(_this.getplayers.allplayers, function(player, index)
+        // _.forEach(_this.core.getplayers.allplayers, function(player, index)
         var player;
-        var room = this.getplayers.fromRoom(this.xport);
+        var room = this.core.getplayers.fromRoom(this.xport);
         // console.log('room', room);
         for (var j = room.length - 1; j >= 0; j--)
         {
-            player = room[j];//this.getplayers.allplayers[j];
+            player = room[j];//this.core.getplayers.allplayers[j];
             //console.log('=', player.mp, _this.players.self.mp);
             // console.log('i', player.name, player.userid, player.isLocal);
             
@@ -2103,7 +2108,7 @@ core_client.prototype.client_process_net_updates = function()
                 //*/
                 // console.log('* p', player.pos);
                 
-                // console.log(this.getplayers.allplayers[j]);
+                // console.log(this.core.getplayers.allplayers[j]);
             }
             else // local player
             {
@@ -2199,7 +2204,7 @@ core_client.prototype.client_process_net_updates = function()
                     target[plat.id],//other_target_pos2,
                     time_point
                 );
-                //console.log(previous[this.getplayers.allplayers[j].mp]);
+                //console.log(previous[this.core.getplayers.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this.core._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:plat.x,y:plat.y}, ghostStub, _this.core._pdt * _this.client_smooth);
                 //console.log(target[plat.id]);
@@ -2226,7 +2231,7 @@ core_client.prototype.client_process_net_updates = function()
                     target[flag.id],
                     time_point
                 );
-                //console.log(previous[this.getplayers.allplayers[j].mp]);
+                //console.log(previous[this.core.getplayers.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this.core._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this.core._pdt * _this.client_smooth);
                 *//*
@@ -2254,7 +2259,7 @@ core_client.prototype.client_process_net_updates = function()
             if (!target.ec) return false; // break
 
             //console.log('got chest event', this.events, target.ec);
-            _this.core.addChest(target.ec);
+            _this.core.addChest(target.ec, this.xport);
             // clear it to avoid duplicate reads
             target.ec = null;
         }
@@ -2277,8 +2282,8 @@ core_client.prototype.client_process_net_updates = function()
             //console.log('flag', flag);
 
             // get player
-            // var ply = _.find(this.getplayers.allplayers, {"mp":target.fc.p});
-            var ply = this.getplayers.getPlayerByUserId(target.fc.p);
+            // var ply = _.find(this.core.getplayers.allplayers, {"mp":target.fc.p});
+            var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
             if (ply)
             {
                 if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
@@ -2611,6 +2616,7 @@ core_client.prototype.client_update = function()
     if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
     {
         var pad = 0;
+        
         this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
         this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
@@ -2684,15 +2690,17 @@ core_client.prototype.client_update = function()
     //////////////////////////////////////////
     //Now they should have updated, we can draw the entity
     //this.players.other.draw();
-    //for (var i = 0; i < this.getplayers.allplayers.length; i++)
+    //for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
     // TODO: Only draw 'onscreen' players
     // console.log('p', this.players.self.pos);
     
     //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
     //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
-    // console.log("# players", this.getplayers.fromRoom(this.xport));
-    _.forEach(this.getplayers.fromRoom(_this.xport), function(ply)
+    // console.log("# players", this.core.getplayers.fromRoom(this.xport));
+    _.forEach(this.core.getplayers.fromRoom(_this.xport), function(ply)
     {
+        // console.log('ply', ply);
+        
         if (ply.active && !ply.isLocal)//ply != _this.players.self)// && room[i].active===true)
         {
             // console.log('#p', ply.pos);
@@ -2751,8 +2759,10 @@ core_client.prototype.client_update = function()
     });
 
     // chests
-    _.forEach(this.chests, function(chest)
+    // _.forEach(this.core.getplayers.fromRoom(this.xport, 2), function(chest)
+    _.forEach(_this.core.chests, function(chest)
     {
+        // console.log("chest.draw()", chest);
         chest.draw();
     });
 
@@ -2880,7 +2890,7 @@ core_client.prototype.tilemapper = function()
                             chestSpawnObj[item.name] = item.value
                         });
                         //console.log('chestSpawn', chestSpawnObj);
-                        _this.chestSpawnPoints.push(chestSpawnObj);
+                        _this.core.chestspawnPoints.push(chestSpawnObj);
                     }*/
                 break;
 
@@ -2930,7 +2940,7 @@ core_client.prototype.tilemapper = function()
 
         // for (var k in flagObjectsObj)
         //     delete flagObjectsObj[k];
-        //console.log('chests', this.chestSpawnPoints);
+        //console.log('chests', this.core.chestspawnPoints);
         //console.log('players', this.core.config.flagObjects);
 
         ///////////////////////////////////
@@ -3148,7 +3158,7 @@ core_client.prototype.tilemapper = function()
                 //console.log('fog', fo);
                 if (fo.type == "flag")
                 {
-                    var flag = new game_flag(fo, _this.config.ctx, _this.getplayers, _this.config);
+                    var flag = new game_flag(fo, _this.config.ctx, _this.core.getplayers, _this.config);
                     //console.log('vis name', vis[fo.name]);
                     if (_this.config.preflags)
                     {
@@ -3160,7 +3170,7 @@ core_client.prototype.tilemapper = function()
                 }
                 else if (fo.type == "slot")
                 {
-                    var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.getplayers, _this.config);
+                    var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.core.getplayers, _this.config);
                     //slot.setter(fo);
                     _this.core.config.flagObjects.push(slot);
                     slot.draw();

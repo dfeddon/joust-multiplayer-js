@@ -122,6 +122,7 @@ game_core.prototype.init = function(game_instance)//, io)
     this.config = new config();
     this.config.server = (this.server) ? true : false;
 
+    //if (this.server)
     this.getplayers = new getplayers(game_instance, MAX_PLAYERS_PER_GAME, null, this.config);
 
     var worldWidth = 50 * 64; // 50 tiles 3200;//420;
@@ -140,7 +141,10 @@ game_core.prototype.init = function(game_instance)//, io)
     this.config.world.maxOrbs = 0;//150;
 
     if (!game_instance)
+    {
         this.core_client = new core_client(this, this.config);
+        // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
+    }
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
 
     // this.bufArr = new ArrayBuffer(768);//480);
@@ -324,9 +328,9 @@ game_core.prototype.init = function(game_instance)//, io)
         }*/
 
         ///////////////////////////////////
-        // create startup events
+        // create startup events (moved to getplayers class)
         ///////////////////////////////////
-        //*
+        /*
         // create chest spawn event
         var evt = new game_event_server(this.getplayers, this.config);//this);
         evt.type = evt.TYPE_CHEST;
@@ -357,6 +361,7 @@ game_core.prototype.init = function(game_instance)//, io)
         //evt.setRandomTriggerTime(25, 45);
         this.events.push(evt);
         //console.log('startup events', this.events);
+        */
     }
     // else this.players.self =
 
@@ -617,6 +622,7 @@ game_core.prototype.apiNode = function()
                 console.log(objectgroupNode[j].$.name);
                 switch(objectgroupNode[j].$.name)
                 {
+                    // chest spawn locations (global)
                     case "chestSpawn":
                         if (objectgroupNode[j].object.length === undefined)
                             _this.chestSpawnPoints.push(objectgroupNode[j].object);
@@ -630,6 +636,7 @@ game_core.prototype.apiNode = function()
                         }
                     break;
 
+                    // flag starting positions
                     case "flagObjects":
                         //console.log('flagobjs', objectgroupNode[j].object.length);
                         //var game_flag_server = require('./class.flag');
@@ -692,6 +699,8 @@ game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x,
 // Grid helpers
 game_core.prototype.gridToPixel = function(x, y)
 {
+    console.log('== gridToPixel', x, y, '==');
+    
     return {x: x * 64, y: y * 64};
 };
 // UID
@@ -1269,9 +1278,12 @@ game_core.prototype.check_collision = function( player )
     if (this.config.server)
     {
         var chest;
-        for (var j = this.chests.length - 1; j >= 0; j--)
+        var room = this.getplayers.fromRoom(player.playerPort, 2);
+        // console.log('room', room, player.userid);
+        
+        for (var j = room.length - 1; j >= 0; j--)
         {
-            chest = this.chests[j];
+            chest = room[j];
             //console.log('collision().chests', chest);
             // Note: hy + 10 below accounts for birds unseen legs.
             if (
@@ -2059,94 +2071,95 @@ game_core.prototype.server_update = function()
 
     var evt;
     // _.forEach(this.events, function(evt)
-/*
-    for (var h = allrooms.length - 1; h >= 0; h--)
+//*
+    for (var m = allrooms.length - 1; m >= 0; m--)
     {
-        room = this.getplayers.fromRoom(allrooms[h]);
+        // fromRoom: param 1: port number, param2: retreive events array
+        room = this.getplayers.fromRoom(allrooms[m], 1);
         // create object for *each* room to hold players
-        laststate[allrooms[h]] = {};
-        for (var i = room.length - 1; i >= 0; i--)
+        // laststate[allrooms[m]] = {};
+        for (var n = room.length - 1; n >= 0; n--)
         {
-            player = room[i];
-*/    
-    for (var j = this.events.length - 1; j >= 0; j--)
-    {
-        evt = this.events[j];
-        if (evt.state !== evt.STATE_STOPPED)
-        {
-            if (evt.update() === true)
+            evt = room[n];
+            // evt = this.events[j];
+            if (evt.state !== evt.STATE_STOPPED)
             {
-                //console.log('add event to socket!', evt.type);
-                switch(evt.type)
+                if (evt.update() === true)
                 {
-                    case evt.TYPE_CHEST:
-                        var id = getUid();//_this.getUID();
-                        console.log('adding chest', id);//, evt.spawn, 'with passive', evt.passive);
-                        /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
-                            x: '1152',
-                            y: '576',
-                            t: 1,
-                            d: 60,
-                            m: 50 }*/
-                        if (evt.id == 'ec') // chest event
-                            this.addChest(
-                                {
-                                    i:id,
-                                    x:evt.spawn.x,
-                                    y:evt.spawn.y,
-                                    t:evt.passive.type,
-                                    d:evt.passive.duration,
-                                    m:evt.passive.modifier
-                                });
-                        var room = this.getplayers.getRoomNameByUserId(player.userid);
-                        laststate[room][evt.id] =
-                        {
-                            i: id,
-                            x: evt.spawn.x,
-                            y: evt.spawn.y,
-                            t: evt.passive.type,
-                            d: evt.passive.duration,
-                            m: evt.passive.modifier
-                        };
-                    break;
-
-                    case evt.TYPE_FLAG_CARRIED_COOLDOWN:
-
-                        console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
-                        // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
-   
-                        if (evt.flag.heldBy)
-                        {
-                            // store evt.id in fromRoomByUserId
-                            var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                            laststate[room][evt.id] =
+                    //console.log('add event to socket!', evt.type);
+                    switch(evt.type)
+                    {
+                        case evt.TYPE_CHEST:
+                            var id = getUid();//_this.getUID();
+                            console.log('event:adding chest', id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                            /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
+                                x: '1152',
+                                y: '576',
+                                t: 1,
+                                d: 60,
+                                m: 50 }*/
+                            if (evt.id == 'ec') // chest event
+                                this.addChest(
+                                    {
+                                        i:id,
+                                        x:evt.spawn.x,
+                                        y:evt.spawn.y,
+                                        t:evt.passive.type,
+                                        d:evt.passive.duration,
+                                        m:evt.passive.modifier
+                                    }, allrooms[m]);
+                            // var room = this.getplayers.getRoomNameByUserId(player.userid);
+                            // console.log('room:', room);
+                            // console.log('ls:', laststate);
+                            laststate[allrooms[m]][evt.id] =
                             {
-                                t: evt.timer,
-                                f: evt.flag.name,
-                                p: evt.flag.heldBy
+                                i: id,
+                                x: evt.spawn.x,
+                                y: evt.spawn.y,
+                                t: evt.passive.type,
+                                d: evt.passive.duration,
+                                m: evt.passive.modifier
                             };
-                        }
-                    break;
-
-                    case evt.TYPE_FLAG_SLOTTED_COOLDOWN:
-
-                        console.log('evt active slotted cooldown', evt.id, evt.timer);//, evt);
-                        // fc: { t: 6, f: 'midFlag' } }
-
-                        if (evt.flag.heldBy)
-                        {
-                            var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                            laststate[room1][evt.id] =
-                            {
-                                t: evt.timer,
-                                f: evt.flag.name
-                            };
-                        }
                         break;
-                }
-            }
-        }
-    }
+
+                        case evt.TYPE_FLAG_CARRIED_COOLDOWN:
+
+                            console.log('evt active carried cooldown...', evt.id, evt.timer, evt.flag.name, evt.flag.heldBy);
+                            // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
+    
+                            if (evt.flag.heldBy)
+                            {
+                                // store evt.id in fromRoomByUserId
+                                var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                laststate[room][evt.id] =
+                                {
+                                    t: evt.timer,
+                                    f: evt.flag.name,
+                                    p: evt.flag.heldBy
+                                };
+                            }
+                        break;
+
+                        case evt.TYPE_FLAG_SLOTTED_COOLDOWN:
+
+                            console.log('evt active slotted cooldown', evt.id, evt.timer);//, evt);
+                            // fc: { t: 6, f: 'midFlag' } }
+
+                            if (evt.flag.heldBy)
+                            {
+                                var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                laststate[room1][evt.id] =
+                                {
+                                    t: evt.timer,
+                                    f: evt.flag.name
+                                };
+                            }
+                            break;
+                    } // end switch
+                } // end update() === true
+            } // end !== STATE_STOPPED
+        } // end room length
+    } // end allrooms length
     // process flags
     /*
     _.forEach(this.config.flagObjects, function(flag)
@@ -2188,13 +2201,15 @@ game_core.prototype.server_update = function()
     // var ply;
     // _.forEach(this.getplayers.allplayers, function(ply)
     //console.log(player);
-        for (var x in laststate)
-        {
-            // console.log(x, laststate[x]);
-            laststate[x].t = this.config.server_time;        
-            if (Boolean(player.instance))
-                player.instance.room(x).write(laststate[x]);
-        }
+
+    // ensure room tags are removed
+    for (var x in laststate)
+    {
+        // console.log(x, laststate[x]);
+        laststate[x].t = this.config.server_time;        
+        if (Boolean(player.instance))
+            player.instance.room(x).write(laststate[x]);
+    }
     //}
         // player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');
@@ -2428,16 +2443,18 @@ game_core.prototype.wipe = function(obj)
     }
 };
 
-game_core.prototype.addChest = function(chest)
+game_core.prototype.addChest = function(chest, room)
 {
-    //console.log('adding chest...', chest);
+    console.log('== addChest', chest.id, room, '==');
 
     if (this.server)
     {
-        // var game_chest_server = require('./class.chest');
-        this.chests.push(new game_chest(chest, false, this.getplayers, this.config));
-        //console.log('newChest id', newChest.id);
+        // var room = this.getplayers.fromRoom(room, 2);
+        this.getplayers.addToRoom(new game_chest(chest, false, this.getplayers, this.config), room, 2);
 
+        // this.chests.push(new game_chest(chest, false, this.getplayers, this.config));
+
+        //console.log('newChest id', newChest.id);
         // _.forEach(this.getplayers.allplayers, function(ply)
         // {
         //     if (ply.instance)
@@ -2447,8 +2464,13 @@ game_core.prototype.addChest = function(chest)
         // });
 
     }
-    else this.chests.push(new game_chest(chest, true, this.getplayers, this.config));
-    //console.log(this.chests);
+    else
+    { 
+        console.log('# chest', this.chests.length);
+        
+        // this.getplayers.addToRoom(new game_chest(chest, true, this.getplayers, this.config), room, 2);
+        this.chests.push(new game_chest(chest, true, this.getplayers, this.config));
+    }
 };
 game_core.prototype.timerFnc = function()
 {

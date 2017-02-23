@@ -1,9 +1,11 @@
 'use strict';
 
 const game_player = require('./class.player');
+const game_event_server = require('./class.event');
 
 function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {
+    console.log('== getplayers constructor ==');
     this.totalPlayersPerGame = total_players_per_game;
     this.config = config;
 
@@ -14,47 +16,109 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         
         game_instance.allplayers = []; // <- deprecating
         game_instance.inRoom = {};
+        game_instance.inRoomEvents = {};
+        game_instance.inRoomChests = {};
     }
     else // client
     {
         this.core = client_gamecore_instance;
         this.allplayers = []; // <- deprecating
         this.inRoom = {};
+        this.inRoomEvents = {};
+        this.inRoomChests = {};
     }
 }
-getplayers.prototype.allplayers = []; // <- 
+getplayers.prototype.allplayers = []; // <- deprecating
 
-getplayers.prototype.fromRoom = function(port)
+getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events / 2 = chests
 {
-    // console.log('getting players from room', port, typeof(port), this.inRoom);
-    function isEmpty(obj) 
-    {
-        for (var x in obj) { return false; }
-        return true;
-    }
+    if (type === undefined)
+        type = 0;
+
+    // console.log('== fromRoom', port, type, '==');// (port===0) ? this.inRoom : this.inRoomEvents);
+    // function isEmpty(obj) 
+    // {
+    //     for (var x in obj) { return false; }
+    //     return true;
+    // }
     if (this.game_instance)
     {
         // if (!isEmpty(this.game_instance.inRoom[port]))
-        if (Array.isArray(this.game_instance.inRoom[port]))
-            return this.game_instance.inRoom[port];
-        else if (this.game_instance.inRoom[port] !== undefined)
-            return [];
-        // else return [];
+        switch(type)
+        {
+            case 0: // players
+
+                if (Array.isArray(this.game_instance.inRoom[port]))
+                    return this.game_instance.inRoom[port];
+                else if (this.game_instance.inRoom[port] !== undefined)
+                    return [];
+
+            break;
+
+            case 1: // events
+
+                if (Array.isArray(this.game_instance.inRoomEvents[port]))
+                    return this.game_instance.inRoomEvents[port];
+                else if (this.game_instance.inRoomEvents[port] !== undefined)
+                    return [];
+            
+            break;
+
+            case 2: // chests
+                // console.log('getting room chests:', this.game_instance.inRoomChests);
+                
+                if (Array.isArray(this.game_instance.inRoomChests[port]))
+                {
+                    return this.game_instance.inRoomChests[port];
+                }
+                else if (this.game_instance.inRoomChests[port] !== undefined)
+                {
+                    return [];
+                }
+            
+            break;
+            
+        }
     }
     else
     {
-        if (Array.isArray(this.inRoom[port]))
-            return this.inRoom[port];
-        else if (this.inRoom[port] !== undefined)
-            return [];
-        // else return [];
+        switch(type)
+        {
+            case 0: // players
+
+                if (Array.isArray(this.inRoom[port]))
+                    return this.inRoom[port];
+                else if (this.inRoom[port] !== undefined)
+                    return [];
+
+            break;
+
+            case 1: // events
+
+                if (Array.isArray(this.inRoomEvents[port]))
+                    return this.inRoomEvents[port];
+                else if (this.inRoomEvents[port] !== undefined)
+                    return [];
+                    
+            break;
+
+            case 2: // chests
+
+                if (Array.isArray(this.inRoomChests[port]))
+                    return this.inRoomChests[port];
+                else if (this.inRoomChests[port] !== undefined)
+                    return [];
+                    
+            break;
+            
+        }
     }
 };
 
 getplayers.prototype.addRoom = function(port)
 {
-    console.log('adding room to getplayers by port id', port, typeof(port));
-    var room, events;
+    console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
+    var room, events, chests;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -70,15 +134,22 @@ getplayers.prototype.addRoom = function(port)
 
     if (this.game_instance)
     {
+        console.log('* creating server objs...');
+        
         // players
         room = this.game_instance.inRoom[port] = [];
-        // events = this.game_instance.inRoomEvents[port] = [];
+        events = this.game_instance.inRoomEvents[port] = [];
+        chests = this.game_instance.inRoomChests[port] = [];
     }
     else
     {
+        console.log('* creating client objs...');
+        port = port.toString();
         // players
         room = this.inRoom[port] = [];
-        // events = this.inRoomEvents[port] = [];
+        events = this.inRoomEvents[port] = [];
+        this.inRoomChests[port] = [];
+        console.log('* chests', this.inRoomChests, this.inRoom);   
     }
 
     var count = 0;
@@ -89,7 +160,7 @@ getplayers.prototype.addRoom = function(port)
         for (var i = this.totalPlayersPerGame - 1; i >= 0; i--)
         {
             other = new game_player(null, false, count++, this.config);
-            other.pos = this.game_instance.gamecore.gridToPixel(i, 0);
+            other.pos = this.config.gridToPixel(i, 0);
             other.setPlayerName = this.game_instance.gamecore.nameGenerator();
             other.playerPort = port; 
             
@@ -98,23 +169,61 @@ getplayers.prototype.addRoom = function(port)
             
             this.game_instance.inRoom[port].push(other);
         }
-        // create events
-        // create chests
+
+        // create server-based events (inRoomEvents)
+        ///////////////////////////////////
+        // create startup events
+        ///////////////////////////////////
+
+        // create chest spawn event
+        var evt = new game_event_server(this.getplayers, this.config);//this);
+        evt.type = evt.TYPE_CHEST;
+        evt.id = "ec"; // event chest
+        //console.log('evt type', evt.type);
+        evt.setRandomTriggerTime(25, 45);
+        this.game_instance.inRoomEvents[port].push(evt);
+        //console.log('chest event',this.events);
+
+        // create flag carried cooldown event
+        evt = new game_event_server(this.getplayers, this.config);//this);
+        evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
+        evt.state = evt.STATE_STOPPED;
+        evt.id = "fc"; // event flag carried
+        evt.repeatable = false;
+        //console.log('evt type', evt.type);
+        //evt.setRandomTriggerTime(25, 45);
+        this.game_instance.inRoomEvents[port].push(evt);
+
+        // create flag slotted cooldown event
+        // create flag carried cooldown event
+        evt = new game_event_server(this.getplayers, this.config);//this);
+        evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
+        evt.state = evt.STATE_STOPPED;
+        evt.id = "fs"; // event flag slotted
+        evt.repeatable = false;
+        //console.log('evt type', evt.type);
+        //evt.setRandomTriggerTime(25, 45);
+        this.game_instance.inRoomEvents[port].push(evt);
+        //console.log('startup events', this.events);
+
+        // create server-based chests inRoomChests[port]
+        // create server-based flags inRoomFlags [port]
     }
     else
     {
-        // create players
+        // create players on client
         var p;
         for (var l = 1; l < this.totalPlayersPerGame; l++)
         {
             p = new game_player(null, false, count++, this.config);
             p.playerPort = port;
-            p.pos = this.core.gridToPixel(l, 0);
-            // console.log('getplayers.pos:', p.pos);
+            p.pos.x = l * 64;
+            p.pos.y = 0;
             this.inRoom[port].push(p);
         }
         // create events // inRoomEvents[port]
         // create chests // inRoomChests[port]
+        // create flags // inRoomFlags[port]
     }
 };
 
@@ -254,6 +363,40 @@ getplayers.prototype.fromRoomLocalPlayer = function(port)
             return room[i];
     }
     return null;
+};
+
+getplayers.prototype.addToRoom = function(obj, port, type)
+{
+    // type 1 = event
+    // type 2 = chest
+
+    console.log('== addToRoom', obj.id, port, type, '==');
+
+    var instance;
+
+    if (this.game_instance !== undefined)
+    {
+        // console.log('server!');
+        
+        instance = this.game_instance;
+    }
+    else
+    { 
+        // console.log('client!', this);
+        
+        instance = this;
+    }
+    
+    switch(type)
+    {
+        case 2: // chests
+            console.log('-->', instance.inRoomChests);
+            
+            instance.inRoomChests[port].push(obj);
+            console.log('total chests', instance.inRoomChests[port].length);
+        
+        break;
+    }
 };
 
 module.exports = getplayers;

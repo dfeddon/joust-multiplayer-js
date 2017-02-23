@@ -14,6 +14,8 @@ var _ = require('./node_modules/lodash/lodash.min');
 
 function game_chest(data, client, getplayers, config)
 {
+  console.log('== game_chest constructor', data, '==');
+  
   var _this = this;
   //this.game = game_instance;
   this.data = data;
@@ -71,15 +73,17 @@ game_chest.prototype.doTake = function(player)//, chests)
 {
   console.log('=== chest.doTake', player.id, this.taken, '===');
 
-  var _this = this;
   if (this.taken === true) return;
   else this.taken = true;
+
+  var _this = this;
 
   this.takenBy = player;//.mp;
 
   // send to server
   // player.instance.room(player.instance.gameid).write('c.t.' + this.id + '|' + player.mp);
-  player.instance.room(player.instance.gameid).write([15, this.id, player.id]);
+  // player.instance.room(player.instance.gameid).write([15, this.id, player.id]);
+  player.instance.room(player.playerSocket).write([15, this.id, player.id]);
   
   // no double-takes!
 
@@ -130,11 +134,11 @@ game_chest.prototype.timeoutOpened = function()
 
 game_chest.prototype.doRemove = function(player)
 {
-  console.log('=== chest.doRemove ===');//, player.mp, '===');
+  console.log('=== chest.doRemove', player, '===');//, player.mp, '===');
 
   var _this = this;
   _.pull(this.config.chests, this);
-  this.takenBy.instance.room(this.takenBy.instance.gameid).write([16, this.id, this.takenBy.id]);
+  this.takenBy.instance.room(this.takenBy.playerSocket).write([16, this.id, this.takenBy.id]);
 };
 
 game_chest.prototype.update = function()
