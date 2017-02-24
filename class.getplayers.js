@@ -176,9 +176,15 @@ getplayers.prototype.addRoom = function(port)
         ///////////////////////////////////
 
         // create chest spawn event
-        var evt = new game_event_server(this.getplayers, this.config);//this);
+        var evt = new game_event_server(this, this.config);//this);
         evt.type = evt.TYPE_CHEST;
         evt.id = "ec"; // event chest
+        
+        // NOTE: evt.chestSpawnPoints defined asyncronously in game_core (culled from Tiled xml file)
+        if (this.config.chestSpawnPoints && this.config.chestSpawnPoints.length > 0)
+            evt.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
+        // else its defined once chestSpawnPoints creation (see note above!)
+        
         //console.log('evt type', evt.type);
         evt.setRandomTriggerTime(25, 45);
         this.game_instance.inRoomEvents[port].push(evt);
@@ -227,6 +233,20 @@ getplayers.prototype.addRoom = function(port)
     }
 };
 
+getplayers.prototype.totalRooms = function()
+{
+    console.log('== totalRooms ==');
+
+    if (this.game_instance)
+    {
+        return Object.keys(this.game_instance.inRoom).length;
+    }
+    else
+    { 
+        return Object.keys(this.inRoom).length;
+    }
+
+};
 getplayers.prototype.fromAllRooms = function()
 {
     if (this.game_instance)
@@ -390,7 +410,7 @@ getplayers.prototype.addToRoom = function(obj, port, type)
     switch(type)
     {
         case 2: // chests
-            console.log('-->', instance.inRoomChests);
+            console.log('-->', port, obj.x, obj.y);
             
             instance.inRoomChests[port].push(obj);
             console.log('total chests', instance.inRoomChests[port].length);

@@ -15,6 +15,8 @@ console.log('diff ' + (e.getTime() - now.getTime())/1000);
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
 
+const MAX_CHESTS = 6;
+
 function game_event(getplayers, config)//game_instance)
 {
   // console.log('game event constructor');
@@ -69,6 +71,7 @@ function game_event(getplayers, config)//game_instance)
   this.dif = undefined;
 
   this.spawn = null;
+  this.chestSpawnPoints = []; // chest event (list of avialable spawn points)
   this.passive = null;
 
   this.flag = null;
@@ -76,6 +79,8 @@ function game_event(getplayers, config)//game_instance)
 
 game_event.prototype.update = function()
 {
+  // console.log('== event.update() ==');
+  
   var _this = this;
   //console.log('event.update');
   this.dif = Math.floor(this.config.server_time - this.triggerOn);
@@ -84,7 +89,7 @@ game_event.prototype.update = function()
 
   if (this.dif >= 1)
   {
-    //console.log('TRIGGER EVENT!!!!', this.type);
+    console.log('* new event triggered!', this.type);
 
     // prep data for the getEvent() fnc
     switch(this.type)
@@ -120,7 +125,7 @@ game_event.prototype.update = function()
       break;
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
-        // console.log('evt update slotted cooldown complete');
+        console.log('evt update slotted cooldown complete');
         //this.flag.isHeld = false;
         var userid = this.flag.heldBy;
         var player = this.getplayers.getPlayerByUserId(userid);
@@ -137,23 +142,51 @@ game_event.prototype.update = function()
 
       case this.TYPE_CHEST:
 
-        //console.log('prep chest', this.config.chestSpawnPoints.length);
+        /*var room, chest;
+        var allrooms = Object.keys(this.getplayers.fromAllRooms());
+        var chestsArray = [];
+        for (var h = allrooms.length - 1; h >= 0; h--)
+        {
+            // first, ensure room total is less than maximum chests
+            // if total reached, continue to next room (return false to cancel?)
+            room = this.getplayers.fromRoom(allrooms[h], 2); // <-- 2 denotes object type
+
+            for (var p = room.length - 1; p >= 0; p--)
+            {
+              // ensure new chest location isn't already occupied
+              chest = room[p];
+            }
+        }*/
+
+        console.log('* prep chest', this.chestSpawnPoints.length);
 
         // 1. ensure a new chest is acceptable (max number?)
         var ct = 0;
         var availChests = [];
-        for (var i = 0; i < this.config.chestSpawnPoints.length; i++)
+        // iterate through all available chest spawn locations
+        // comparing locations to locations of existing chests
+        // add new chest to first vacant location
+        for (var i = 0; i < this.chestSpawnPoints.length; i++)
         {
-          if (this.config.chestSpawnPoints[i].active === true)
+          if (this.chestSpawnPoints[i].active === true)
             ct++;
-          else availChests.push(this.config.chestSpawnPoints[i]);
+          else availChests.push(this.chestSpawnPoints[i]);
         }
-        //console.log('num active chests', ct);
-        // no more than 3
-        if (ct > 3) return false;
+        console.log('* num active chests', ct, 'of', MAX_CHESTS);// * this.getplayers.totalRooms()));
+        // no more than n
+        if (ct > MAX_CHESTS)// * this.getplayers.totalRooms()))
+        {
+          console.log('* max chests reached...');
+          
+          // resart rnd timer
+          this.setRandomTriggerTime(5, 15);
+          // cancel event (for this cycle)
+          return false;
+        }
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         // rng
+        console.log('*availChests', availChests.length);
         this.spawn = this.shuffle(availChests)[0];
         // set active
         this.spawn.active = true;

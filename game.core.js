@@ -666,8 +666,27 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
+            // add instance of these objects to each room in this.getplayers class (server instance)
             //console.log('chests:', _this.chestSpawnPoints);
+            // clone this.chestSpawnPoints to each room's 
             //console.log('flagObjects:', this.config.flagObjects);
+            var roomEvents, chest;
+            var allrooms = Object.keys(_this.getplayers.fromAllRooms());
+            // var chestsArray = [];
+            for (var h = allrooms.length - 1; h >= 0; h--)
+            {
+                // first, ensure room total is less than maximum chests
+                // if total reached, continue to next room (return false to cancel?)
+                roomEvents = _this.getplayers.fromRoom(allrooms[h], 1); // <-- 1 denotes object type 'events'
+                for (var j = 0; j < roomEvents.length; j++)
+                {
+                    if (roomEvents[j].id == "ec")
+                    {
+                        roomEvents[j].chestSpawnPoints = _this.config._.cloneDeep(_this.chestSpawnPoints);
+                        console.log('* chestSpawnPoints', roomEvents[j]);
+                    }
+                }
+            }
         });
     });
 };
@@ -2091,7 +2110,7 @@ game_core.prototype.server_update = function()
                     {
                         case evt.TYPE_CHEST:
                             var id = getUid();//_this.getUID();
-                            console.log('event:adding chest', id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                            console.log('* event:adding chest', id);//, evt);//, evt.spawn, 'with passive', evt.passive);
                             /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
                                 x: '1152',
                                 y: '576',

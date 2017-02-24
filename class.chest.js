@@ -102,7 +102,8 @@ game_chest.prototype.doTake = function(player)//, chests)
 
   // resset chestSpawnPoints.active to false
   //console.log(this.config.chestSpawnPoints.length);
-  _.forEach(this.config.chestSpawnPoints, function(spawn, key)
+  var room = this.getplayers.fromRoom(player.playerPort, 1); // <- returns inRoomEvents array
+  _.forEach(room.chestSpawnPoints, function(spawn, key)
   {
     //console.log('->', spawn.x, _this.x, spawn.y, _this.y);
     if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
@@ -132,9 +133,9 @@ game_chest.prototype.timeoutOpened = function()
   this.doRemove();
 };
 
-game_chest.prototype.doRemove = function(player)
+game_chest.prototype.doRemove = function()
 {
-  console.log('=== chest.doRemove', player, '===');//, player.mp, '===');
+  console.log('=== chest.doRemove', this.takenBy.playerSocket, '===');//, player.mp, '===');
 
   var _this = this;
   _.pull(this.config.chests, this);
