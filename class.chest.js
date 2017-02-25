@@ -71,7 +71,7 @@ function game_chest(data, client, getplayers, config)
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('=== chest.doTake', player.id, this.taken, '===');
+  console.log('=== chest.doTake', player.id, this.taken, this.id, '===');
 
   if (this.taken === true) return;
   else this.taken = true;
@@ -88,7 +88,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   // no double-takes!
 
   // assign passive to player
-  // console.log('passive', this.data, this.type, this.duration, this.modifier);
+  console.log('passive', this.data, this.type, this.duration, this.modifier);
   switch(this.type)
   {
     case 1: // acceleration boost
@@ -100,21 +100,60 @@ game_chest.prototype.doTake = function(player)//, chests)
     break;
   }
 
+  // first, remove chest from room
+  var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomEvents array
+  for (var c = roomChests.length - 1; c >= 0; c--)
+  {
+    if (roomChests[c].id == this.id)
+    {
+      console.log('* removing chest!', roomChests.length);
+      roomChests.splice(i, 1);
+      console.log('* removed...', roomChests.length);
+    }
+  }
+  
+
+  // next, reset chest spawnpoint
+
   // resset chestSpawnPoints.active to false
   //console.log(this.config.chestSpawnPoints.length);
-  var room = this.getplayers.fromRoom(player.playerPort, 1); // <- returns inRoomEvents array
-  _.forEach(room.chestSpawnPoints, function(spawn, key)
+  var roomEvents = this.getplayers.fromRoom(player.playerPort, 1); // <- returns inRoomEvents array
+  // console.log('* roomEvents', roomEvents);
+  for (var i = roomEvents.length - 1; i >= 0; i--)
   {
-    //console.log('->', spawn.x, _this.x, spawn.y, _this.y);
-    if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
+    if (roomEvents[i].id == "ec")
     {
-      spawn.active = false;
-      // console.log('set spawn active to FALSE!');
-      //return false;
+      console.log('* found chest event', roomEvents[i].id);
+      // console.log('* chestSpawnPoints:', roomEvents[i].chestSpawnPoints);
+      
+      // search roomEvents spawn points
+      for (var j = roomEvents[i].chestSpawnPoints.length - 1; j >= 0; j--)
+      {
+        // find chest by id
+        if (roomEvents[i].chestSpawnPoints[j].active && roomEvents[i].chestSpawnPoints[j].x == this.x && roomEvents[i].chestSpawnPoints[j].y == this.y)
+        {
+          console.log("* resetting chest spawn!", this.id);
+          // set active param to false
+          roomEvents[i].chestSpawnPoints[j].active = false;
+          break;
+        }
+      }
     }
-  });
+  }
+  // _.forEach(roomEvents.chestSpawnPoints, function(spawn, key)
+  // {
+  //   console.log('->', spawn.x, _this.x, spawn.y, _this.y);
+  //   if (parseInt(spawn.x) === _this.x && parseInt(spawn.y) === _this.y)
+  //   {
+  //     spawn.active = false;
+  //     // console.log('set spawn active to FALSE!');
+  //     //return false;
+  //   }
+  // });
 
   this.opening = true;
+
+  // callout animation
   if (!this.config.server)
   {
     // start pos

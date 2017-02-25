@@ -1492,7 +1492,7 @@ game_player.prototype.drawAbilities = function()
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
         this.config.ctx.moveTo(this.pos.x, this.pos.y-10);
-        this.config.ctx.lineTo(this.pos.x + progressVal, this.pos.y-10);
+        this.config.ctx.lineTo(this.pos.x + progressVal, this.pos.y - 10);
         this.config.ctx.lineWidth = 3;
         this.config.ctx.stroke();
         this.config.ctx.closePath();

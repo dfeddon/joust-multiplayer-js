@@ -738,9 +738,11 @@ game_server.prototype.startGame = function(game, newplayer)
             var chestsarray = [];
             var chest;
             var obj;
-            for (var k = 0; k < game_instance.gamecore.chests.length; k++)
+            // for (var k = 0; k < game_instance.gamecore.chests.length; k++)
+            var roomChests = game_instance.gamecore.getplayers.fromRoom(playerPort, 2); // <- returns inRoomEvents array
+            for (var k = roomChests.length - 1; k >= 0; k--)
             {
-                chest = game_instance.gamecore.chests[k];
+                chest = roomChests[k];//game_instance.gamecore.chests[k];
                 obj =
                 {
                     i: chest.data.i,
