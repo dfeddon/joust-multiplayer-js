@@ -9,6 +9,8 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
     this.totalPlayersPerGame = total_players_per_game;
     this.config = config;
 
+    this.flagsOrig;
+
     // if server
     if (game_instance)
     {
@@ -18,6 +20,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         game_instance.inRoom = {};
         game_instance.inRoomEvents = {};
         game_instance.inRoomChests = {};
+        game_instance.inRoomFlags = {};
     }
     else // client
     {
@@ -26,11 +29,12 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         this.inRoom = {};
         this.inRoomEvents = {};
         this.inRoomChests = {};
+        this.inRoomFlags = {};
     }
 }
 getplayers.prototype.allplayers = []; // <- deprecating
 
-getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events / 2 = chests
+getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events / 2 = chests / 3 = flags
 {
     if (type === undefined)
         type = 0;
@@ -77,6 +81,20 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                 }
             
             break;
+
+            case 3: // flags
+                // console.log('getting room flags:', this.game_instance.inRoomFlags);
+                
+                if (Array.isArray(this.game_instance.inRoomFlags[port]))
+                {
+                    return this.game_instance.inRoomFlags[port];
+                }
+                else if (this.game_instance.inRoomFlags[port] !== undefined)
+                {
+                    return [];
+                }
+            
+            break;
             
         }
     }
@@ -110,6 +128,15 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                     return [];
                     
             break;
+
+            case 3: // flags
+
+                if (Array.isArray(this.inRoomFlags[port]))
+                    return this.inRoomFlags[port];
+                else if (this.inRoomFlags[port] !== undefined)
+                    return [];
+                    
+            break;
             
         }
     }
@@ -118,7 +145,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 getplayers.prototype.addRoom = function(port)
 {
     console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
-    var room, events, chests;
+    var room, events, chests, flags;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -140,6 +167,7 @@ getplayers.prototype.addRoom = function(port)
         room = this.game_instance.inRoom[port] = [];
         events = this.game_instance.inRoomEvents[port] = [];
         chests = this.game_instance.inRoomChests[port] = [];
+        flags = this.game_instance.inRoomFlags[port] = [];
     }
     else
     {
@@ -148,8 +176,9 @@ getplayers.prototype.addRoom = function(port)
         // players
         room = this.inRoom[port] = [];
         events = this.inRoomEvents[port] = [];
-        this.inRoomChests[port] = [];
-        console.log('* chests', this.inRoomChests, this.inRoom);   
+        chests = this.inRoomChests[port] = [];
+        flags = this.inRoomFlags[port] = [];
+        // console.log('* chests', this.inRoomChests, this.inRoom);   
     }
 
     var count = 0;
@@ -191,7 +220,7 @@ getplayers.prototype.addRoom = function(port)
         //console.log('chest event',this.events);
 
         // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers, this.config);//this);
+        evt = new game_event_server(this, this.config);//this);
         evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fc"; // event flag carried
@@ -202,7 +231,7 @@ getplayers.prototype.addRoom = function(port)
 
         // create flag slotted cooldown event
         // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers, this.config);//this);
+        evt = new game_event_server(this, this.config);//this);
         evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
         evt.state = evt.STATE_STOPPED;
         evt.id = "fs"; // event flag slotted
@@ -213,7 +242,13 @@ getplayers.prototype.addRoom = function(port)
         //console.log('startup events', this.events);
 
         // create server-based chests inRoomChests[port]
+
         // create server-based flags inRoomFlags [port]
+        // NOTE: flagObjects defined asyncronously in game_core (culled from Tiled xml file)
+        if (this.config.chestSpawnPoints && this.config.chestSpawnPoints.length > 0)
+            evt.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
+        // else its pre-defined once chestSpawnPoints creation (see note above!)
+
     }
     else
     {

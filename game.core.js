@@ -666,13 +666,13 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
-            // add instance of these objects to each room in this.getplayers class (server instance)
-            //console.log('chests:', _this.chestSpawnPoints);
-            // clone this.chestSpawnPoints to each room's 
-            //console.log('flagObjects:', this.config.flagObjects);
-            var roomEvents, chest;
+
+            // store default flag object in getplayers for cloning into rooms
+            _this.getplayers.flagsDefault = _.cloneDeep(_this.config.flagObjects);
+            
+            // clone this.chestSpawnPoints to each room's ec event
+            var roomEvents, roomFlags;//, chest;
             var allrooms = Object.keys(_this.getplayers.fromAllRooms());
-            // var chestsArray = [];
             for (var h = allrooms.length - 1; h >= 0; h--)
             {
                 // first, ensure room total is less than maximum chests

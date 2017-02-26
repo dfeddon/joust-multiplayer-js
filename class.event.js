@@ -102,7 +102,7 @@ game_event.prototype.update = function()
         this.flag.isActive = true;
         this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
-        console.log('* userid', userid);
+        // console.log('getplayers', this.config.getplayers);
         var room = this.getplayers.fromRoomByUserId(userid);
         var player;
         for (var i = 0; i < room.length; i++)

@@ -63,7 +63,7 @@ module.exports = function(grunt)
                 {
                     compress: 
                     {
-                        drop_console: true
+                        drop_console: false
                     },
                     mangle: true,
                     beautify: false
@@ -72,6 +72,7 @@ module.exports = function(grunt)
                 {
                     'bundle.client.min.js': ['bundle.client.min.js'],
                     '../wingdom-server-dist/app.js': ['app.js'],
+                    '../wingdom-server-dist/game.connections.js': ['game.connections.js'],
                     '../wingdom-server-dist/game.server.js': ['game.server.js'],
                     '../wingdom-server-dist/game.core.js': ['game.core.js'],
                     '../wingdom-server-dist/core.client.js': ['core.client.js'],
@@ -119,6 +120,7 @@ module.exports = function(grunt)
                     { src: ['./index.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.css'], dest: '../wingdom-server-dist/' },
                     { src: ['./primus.js'], dest: '../wingdom-server-dist/' },
+                    { src: ['./primus.js'], dest: '../wingdom-server-dist/primus/' },
                     { src: ['./privacy.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./terms.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./sitemap.xml'], dest: '../wingdom-server-dist/' },

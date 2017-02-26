@@ -458,7 +458,8 @@ game_flag.prototype.doTake = function(player)
 
       // start cooldown
       // get event by id "fc" (flag carried)
-      var evt = this.config._.find(_this.config.events, {'id':"fc"});
+      var roomEvents = this.getplayers.fromRoom(player.playerPort, 1); // <- get events
+      var evt = this.config._.find(roomEvents, {'id':"fc"});
       evt.flag = this;
       //console.log('got evt', evt);
       evt.doStart();
@@ -523,13 +524,14 @@ game_flag.prototype.slotFlag = function(player)
     if (this.config.server)
     {
       // stop flag-carried event
-      var evt = this.config._.find(_this.config.events, {"id":"fc"});
+      var roomEvents = this.getplayers.fromRoom(player.playerPort, 1);
+      var evt = this.config._.find(roomEvents, {"id":"fc"});
       //console.log(this.config.events);
       //console.log('*evt', evt.type, evt.timer);
       evt.doStop();
 
       // ... and start flag slotted cooldown event
-      var cd = this.config._.find(_this.config.events, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
+      var cd = this.config._.find(roomEvents, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
       console.log('* evt cd', cd);
       var flg = this.config._.find(_this.config.flagObjects, {"name":clientFlag.name});
       cd.flag = flg;//clientFlag; // TODO: <- should be flag class NOT clientCooldown flag
@@ -664,7 +666,8 @@ game_flag.prototype.reset = function(success, game)//, server_time)
 
     if (this.config.server)
     {
-      var fcEvent = _.find(_this.config.events, {"type":2});
+      var roomEvents = this.getplayers.fromRoom(playerSource.playerPort, 1);
+      var fcEvent = _.find(roomEvents, {"type":2});
       fcEvent.doStop();
       console.log('room port', playerSource.playerPort);
       
