@@ -1350,15 +1350,19 @@ core_client.prototype.client_on_chesttake = function(id, player)
     // var split = data.split("|");
     // var id = split[0];
     // var player = split[1];
-    _.forEach(this.core.chests, function(chest)
+    // _.forEach(this.core.chests, function(chest)
+    var chest;
+    for (var i = this.core.chests.length - 1; i >= 0; i--)
     {
-        console.log('chest id', chest.id);
+        chest = this.core.chests[i];
+        console.log('chest id', chest.id, id);
         if (chest.id == id)
         {
             // chest is opened
             chest.opening = true;
+            break;
         }
-    });
+    }
 };
 
 core_client.prototype.client_on_chestremove = function(id, player)
@@ -2258,7 +2262,7 @@ core_client.prototype.client_process_net_updates = function()
             // avoid reduncancy
             if (!target.ec) return false; // break
 
-            //console.log('got chest event', this.events, target.ec);
+            console.log('got chest event', target.ec.i);
             _this.core.addChest(target.ec, this.xport);
             // clear it to avoid duplicate reads
             target.ec = null;

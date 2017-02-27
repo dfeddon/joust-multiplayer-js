@@ -1298,12 +1298,12 @@ game_core.prototype.check_collision = function( player )
     {
         var chest;
         var room = this.getplayers.fromRoom(player.playerPort, 2);
-        // console.log('room', room, player.userid);
+        // console.log('@ chests len', room.length);//, player.userid);
         
         for (var j = room.length - 1; j >= 0; j--)
         {
             chest = room[j];
-            //console.log('collision().chests', chest);
+            // console.log('collision().chests', chest);
             // Note: hy + 10 below accounts for birds unseen legs.
             if (
                 chest && chest.taken===false && player.pos.x < (chest.x + chest.width) &&
@@ -2464,7 +2464,7 @@ game_core.prototype.wipe = function(obj)
 
 game_core.prototype.addChest = function(chest, room)
 {
-    console.log('== addChest', chest.id, room, '==');
+    console.log('== addChest', chest.i, room, '==');
 
     if (this.server)
     {
@@ -2485,7 +2485,7 @@ game_core.prototype.addChest = function(chest, room)
     }
     else
     { 
-        console.log('# chest', this.chests.length);
+        console.log('# total chests:', this.chests.length + 1);
         
         // this.getplayers.addToRoom(new game_chest(chest, true, this.getplayers, this.config), room, 2);
         this.chests.push(new game_chest(chest, true, this.getplayers, this.config));

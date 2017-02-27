@@ -448,7 +448,7 @@ getplayers.prototype.addToRoom = function(obj, port, type)
             console.log('-->', port, obj.x, obj.y);
             
             instance.inRoomChests[port].push(obj);
-            console.log('total chests', instance.inRoomChests[port].length);
+            console.log('@ total chests:', instance.inRoomChests[port].length);
         
         break;
     }

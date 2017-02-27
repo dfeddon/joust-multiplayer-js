@@ -186,7 +186,7 @@ game_event.prototype.update = function()
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         // rng
-        console.log('*availChests', availChests.length);
+        console.log('* available spawn points...', availChests.length);
         this.spawn = this.shuffle(availChests)[0];
         // set active
         this.spawn.active = true;

@@ -579,7 +579,7 @@ game_server.prototype.startGame = function(game, newplayer)
     this.log('@@ startGame', game.id, newplayer.mp, newplayer.userid);
     this.log('* total clients', game.player_clients.length);
 
-    var teamObj = this.getTeams(game);
+    var teamObj = this.getTeams(newplayer.playerPort, game);//game);
     this.log('* team obj', teamObj);
     if (teamObj.isfull)
     {
@@ -739,7 +739,7 @@ game_server.prototype.startGame = function(game, newplayer)
             var chest;
             var obj;
             // for (var k = 0; k < game_instance.gamecore.chests.length; k++)
-            var roomChests = game_instance.gamecore.getplayers.fromRoom(playerPort, 2); // <- returns inRoomEvents array
+            var roomChests = game_instance.gamecore.getplayers.fromRoom(playerPort, 2); // <- returns inRoomChests array
             for (var k = roomChests.length - 1; k >= 0; k--)
             {
                 chest = roomChests[k];//game_instance.gamecore.chests[k];
@@ -1079,7 +1079,7 @@ game_server.prototype.findGame = function(client)
     }
 }; //game_server.findGame
 
-game_server.prototype.getTeams = function(game_instance)
+game_server.prototype.getTeams = function(port, game_instance)
 {
     this.log("== getTeams ==");
     var _this = this;
@@ -1089,7 +1089,7 @@ game_server.prototype.getTeams = function(game_instance)
     var full = false;
     var rec;
 
-    var players = game_instance.gamecore.getplayers.allplayers;
+    var players = game_instance.gamecore.getplayers.fromRoom(port);//allplayers;
     var player;
     //_.forEach(players, function(player)
     for (var i = 0; i < players.length; i++)

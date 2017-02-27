@@ -83,7 +83,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   // send to server
   // player.instance.room(player.instance.gameid).write('c.t.' + this.id + '|' + player.mp);
   // player.instance.room(player.instance.gameid).write([15, this.id, player.id]);
-  player.instance.room(player.playerSocket).write([15, this.id, player.id]);
+  player.instance.room(player.playerPort).write([15, this.id, player.id]);
   
   // no double-takes!
 
@@ -104,11 +104,13 @@ game_chest.prototype.doTake = function(player)//, chests)
   var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomEvents array
   for (var c = roomChests.length - 1; c >= 0; c--)
   {
+    console.log(roomChests[c].id, this.id);
     if (roomChests[c].id == this.id)
     {
       console.log('* removing chest!', roomChests.length);
       roomChests.splice(i, 1);
       console.log('* removed...', roomChests.length);
+      break;
     }
   }
   
@@ -174,11 +176,11 @@ game_chest.prototype.timeoutOpened = function()
 
 game_chest.prototype.doRemove = function()
 {
-  console.log('=== chest.doRemove', this.takenBy.playerSocket, '===');//, player.mp, '===');
+  console.log('=== chest.doRemove', this.takenBy.playerPort, '===');//, player.mp, '===');
 
   var _this = this;
   _.pull(this.config.chests, this);
-  this.takenBy.instance.room(this.takenBy.playerSocket).write([16, this.id, this.takenBy.id]);
+  this.takenBy.instance.room(this.takenBy.playerPort).write([16, this.id, this.takenBy.id]);
 };
 
 game_chest.prototype.update = function()
