@@ -25,7 +25,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
     else // client
     {
         this.core = client_gamecore_instance;
-        this.allplayers = []; // <- deprecating
+        this.allplayers = []; // <- *NOT* deprecating on client
         this.inRoom = {};
         this.inRoomEvents = {};
         this.inRoomChests = {};
@@ -260,7 +260,8 @@ getplayers.prototype.addRoom = function(port)
             p.playerPort = port;
             p.pos.x = l * 64;
             p.pos.y = 0;
-            this.inRoom[port].push(p);
+            // this.inRoom[port].push(p);
+            this.allplayers.push(p);
         }
         // create events // inRoomEvents[port]
         // create chests // inRoomChests[port]
