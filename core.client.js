@@ -2284,11 +2284,11 @@ core_client.prototype.client_process_net_updates = function()
             // set client flag target slot
             cflag.target = flag.targetSlot;
             cflag.src = flag.sourceSlot;
-            console.log(":::", cflag);
+            // console.log(":::", cflag);
             //console.log('flag', flag);
 
             // get player
-            var ply = _.find(this.core.getplayers.allplayers, {"mp":target.fc.p});
+            var ply = _.find(this.core.getplayers.allplayers, {"userid":target.fc.p});
             // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
             if (ply)
             {

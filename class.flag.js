@@ -50,6 +50,7 @@ function game_flag(data, context, getplayers, config)
   this.isActive = (this.type == "flag") ? true : false;
   this.validHolder = undefined;
   this.heldBy = null;
+  this.port = undefined;
   //this.targetSlot = null;
   this.timer = '';
   this.onCooldown = false;
@@ -355,7 +356,7 @@ game_flag.prototype.setter = function(obj)
 
 game_flag.prototype.doTake = function(player)
 {
-  console.log('===flag.doTake', this.name, 'p', player.userid, 'hasFlag', player.hasFlag, 'isheld', this.isHeld, 'team', player.team, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
+  console.log('===flag.doTake', this.name, 'p', player.userid, 'hasFlag', player.hasFlag, 'isheld', this.isHeld, 'team', player.team, this.port, '===');//, this.name, 'by', player.mp, 'isHeld', this.isHeld, 'hasFlag', player.hasFlag, 'isActive', this.isActive, 'onCooldown', this.onCooldown);
   if (this.isActive === false || this.onCooldown === true) return;
 
   var _this = this;
@@ -666,12 +667,13 @@ game_flag.prototype.reset = function(success, game)//, server_time)
 
     if (this.config.server)
     {
-      var roomEvents = this.getplayers.fromRoom(playerSource.playerPort, 1);
+      var roomEvents = this.getplayers.fromRoom(this.port, 1);
+      console.log('re:', roomEvents, this.port);
       var fcEvent = _.find(roomEvents, {"type":2});
       fcEvent.doStop();
-      console.log('room port', playerSource.playerPort);
+      console.log('room port', this.port);
       
-      _.forEach(_this.getplayers.fromRoom(playerSource.playerPort), function(ply)
+      _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
       {
         // TODO: omit self if self was failed carrier
         if (ply.instance)

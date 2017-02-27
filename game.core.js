@@ -144,6 +144,7 @@ game_core.prototype.init = function(game_instance)//, io)
     {
         this.core_client = new core_client(this, this.config);
         // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
+        this.chests = [];
     }
     //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
 
@@ -166,7 +167,6 @@ game_core.prototype.init = function(game_instance)//, io)
     this.config.tilemapData = null;
 
     // chests
-    this.chests = [];
     this.chestSpawnPoints = [];
     // chest rewards
     this.passives = [
@@ -669,7 +669,7 @@ game_core.prototype.apiNode = function()
 
             // store default flag object in getplayers for cloning into rooms
             _this.getplayers.flagsDefault = _.cloneDeep(_this.config.flagObjects);
-            
+            // console.log('flagsDefault', _this.getplayers.flagsDefault);
             // clone this.chestSpawnPoints to each room's ec event
             var roomEvents, roomFlags;//, chest;
             var allrooms = Object.keys(_this.getplayers.fromAllRooms());
@@ -686,6 +686,18 @@ game_core.prototype.apiNode = function()
                         console.log('* chestSpawnPoints', roomEvents[j]);
                     }
                 }
+                // // add flags to roomFlags[port]
+                roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
+                _.forEach(_this.getplayers.flagsDefault, function(flag)
+                {
+                    // assign home port to flag
+                    flag.port = allrooms[h];
+                    console.log('flag port:', flag.port);
+                    
+                    roomFlags.push(flag);
+                });
+                // _this.getplayers.inRoomFlags[allrooms[h]] = _this.getplayers.flagsDefaut;
+                // console.log('* roomFlags', roomFlags);                
             }
         });
     });
@@ -1324,9 +1336,13 @@ game_core.prototype.check_collision = function( player )
     {
         // _.forEach(this.config.flagObjects, function(fo)
         var fo;
-        for (var k = this.config.flagObjects.length - 1; k >= 0; k--)
+        var roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
+        // for (var k = this.config.flagObjects.length - 1; k >= 0; k--)
+        // console.log('flags! len', roomFlags.length);
+        for (var x = roomFlags.length - 1; x >= 0; x--)
         {
-            fo = this.config.flagObjects[k];
+            fo = roomFlags[x];//this.config.flagObjects[k];
+            // console.log('======= flag ======\n', fo.id, fo.name, fo.x, fo.y, '\n=======');
             if (
                 //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
                 player.pos.x < (fo.x + (fo.width/2)) &&

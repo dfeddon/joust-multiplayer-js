@@ -9,7 +9,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
     this.totalPlayersPerGame = total_players_per_game;
     this.config = config;
 
-    this.flagsOrig;
+    this.flagsDefault = null; // hold default flags objects, for cloning into each room
 
     // if server
     if (game_instance)
@@ -204,51 +204,57 @@ getplayers.prototype.addRoom = function(port)
         // create startup events
         ///////////////////////////////////
 
-        // create chest spawn event
-        var evt = new game_event_server(this, this.config);//this);
-        evt.type = evt.TYPE_CHEST;
-        evt.id = "ec"; // event chest
+        var evt_ec, evt_fc, evt_fs;
+
+        // create chest spawn event        
+        evt_ec = new game_event_server(this, this.config);//this);
+        evt_ec.type = evt_ec.TYPE_CHEST;
+        evt_ec.id = "ec"; // event chest
         
         // NOTE: evt.chestSpawnPoints defined asyncronously in game_core (culled from Tiled xml file)
         if (this.config.chestSpawnPoints && this.config.chestSpawnPoints.length > 0)
-            evt.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
+            evt_ec.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
         // else its defined once chestSpawnPoints creation (see note above!)
         
         //console.log('evt type', evt.type);
-        evt.setRandomTriggerTime(25, 45);
-        this.game_instance.inRoomEvents[port].push(evt);
+        evt_ec.setRandomTriggerTime(25, 45);
+        this.game_instance.inRoomEvents[port].push(evt_ec);
         //console.log('chest event',this.events);
 
         // create flag carried cooldown event
-        evt = new game_event_server(this, this.config);//this);
-        evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
-        evt.state = evt.STATE_STOPPED;
-        evt.id = "fc"; // event flag carried
-        evt.repeatable = false;
+        evt_fc = new game_event_server(this, this.config);//this);
+        evt_fc.type = evt_fc.TYPE_FLAG_CARRIED_COOLDOWN;
+        evt_fc.state = evt_fc.STATE_STOPPED;
+        evt_fc.id = "fc"; // event flag carried
+        evt_fc.repeatable = false;
         //console.log('evt type', evt.type);
         //evt.setRandomTriggerTime(25, 45);
-        this.game_instance.inRoomEvents[port].push(evt);
+        this.game_instance.inRoomEvents[port].push(evt_fc);
 
         // create flag slotted cooldown event
         // create flag carried cooldown event
-        evt = new game_event_server(this, this.config);//this);
-        evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
-        evt.state = evt.STATE_STOPPED;
-        evt.id = "fs"; // event flag slotted
-        evt.repeatable = false;
+        evt_fs = new game_event_server(this, this.config);//this);
+        evt_fs.type = evt_fs.TYPE_FLAG_SLOTTED_COOLDOWN;
+        evt_fs.state = evt_fs.STATE_STOPPED;
+        evt_fs.id = "fs"; // event flag slotted
+        evt_fs.repeatable = false;
         //console.log('evt type', evt.type);
         //evt.setRandomTriggerTime(25, 45);
-        this.game_instance.inRoomEvents[port].push(evt);
+        this.game_instance.inRoomEvents[port].push(evt_fs);
         //console.log('startup events', this.events);
-
-        // create server-based chests inRoomChests[port]
 
         // create server-based flags inRoomFlags [port]
         // NOTE: flagObjects defined asyncronously in game_core (culled from Tiled xml file)
-        if (this.config.chestSpawnPoints && this.config.chestSpawnPoints.length > 0)
-            evt.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
-        // else its pre-defined once chestSpawnPoints creation (see note above!)
-
+        if (this.flagsDefault && this.flagsDefault.length > 0)
+        {
+            this.game_instance.inRoomFlags[port] = this.config._.cloneDeep(this.flagsDefault);
+            this.config._.forEach(this.game_instance.inRoomFlags[port], function(flag)
+            {
+                // assign home port to flag
+                flag.port = port;
+            });
+        }
+        // console.log('flags!', this.game_instance.inRoomFlags[port]);
     }
     else
     {
