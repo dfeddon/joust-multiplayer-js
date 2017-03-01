@@ -87,7 +87,11 @@ function game_player(player_instance, isHost, pindex, config)
         this.buffer = new ArrayBuffer(16);
         this.bufferView = new Int16Array(this.buffer, 16);
     }
-    else if (this.instance) this.id = this.instance.userid;
+    else
+    { 
+        if (this.instance) this.id = this.instance.userid;
+        // this.getplayers = this.instance.game.gamecore.getplayers;
+    }
 
     //this.stunLen = 500; // 1.5 sec
 
@@ -1378,7 +1382,9 @@ game_player.prototype.dropFlag = function()
         this.hasFlag = 0;
 
         // reset flag
-        var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
+        // var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
+        var roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+        var flag = this.config._.find(roomFlags, {"name":flagName});
         //flag.slotFlag(this);
         flag.reset(false, this.game);
     }
@@ -1519,6 +1525,7 @@ game_player.prototype.drawAbilities = function()
 game_player.prototype.draw = function()
 {
     //console.log(this.pos.x, this.pos.y);
+    var _this = this;
 
     if (this.visible === false) return;
     //this.pos.x = this.pos.x.fixed(1);
@@ -1726,11 +1733,12 @@ game_player.prototype.draw = function()
     }
 
     // draw flag?
-    //console.log('this.hasFlag', this.hasFlag);
+    // console.log('this.hasFlag', this.hasFlag);
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
-        var flag = this.config._.find(this.config.clientCooldowns, {'heldBy':this.userid});
-        //console.log('gotflag', flag, this.config.clientCooldowns);
+        // var roomCooldowns = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 4);
+        var flag = this.config._.find(_this.config.clientCooldowns, {'heldBy':_this.userid});
+        // console.log('gotflag', flag, this.config.clientCooldowns);
 
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.config.server_time - this.flagTakenAt));
         //*
@@ -1742,14 +1750,16 @@ game_player.prototype.draw = function()
         {
             console.log('* player.draw: flag reset', this.hasFlag);
             // reset flag
-            for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
+            // for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
+            var roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+            for (var f = roomFlags.length - 1; f >= 0; f--)
             {
-                if (this.config.flagObjects[f].name == "midFlag" && this.hasFlag === 1)
-                    this.config.flagObjects[f].reset(false, this.game);
-                else if (this.config.flagObjects[f].name == "redFlag" && this.hasFlag === 2)
-                    this.config.flagObjects[f].reset(false, this.game);
-                else if (this.config.flagObjects[f].name == "blueFlag" && this.hasFlag === 3)
-                    this.config.flagObjects[f].reset(false, this.game);
+                if (roomFlags[f].name == "midFlag" && this.hasFlag === 1)
+                    roomFlags[f].reset(false, this.game);
+                else if (roomFlags[f].name == "redFlag" && this.hasFlag === 2)
+                    roomFlags[f].reset(false, this.game);
+                else if (roomFlags[f].name == "blueFlag" && this.hasFlag === 3)
+                    roomFlags[f].reset(false, this.game);
             }
             //console.log('resetting flag', this.flagType);
             //console.log('flags', this.config.flagObjects);

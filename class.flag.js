@@ -403,13 +403,6 @@ game_flag.prototype.doTake = function(player)
   this.targetSlot = this.getTargetSlot(player.team, this.sourceSlot);
   console.log('flag.targetSlot', this.targetSlot);
 
-  // update clientCooldown source and target
-  var cd = this.config._.find(_this.config.clientCooldowns, {"name":this.name});
-  console.log('cd:', this.config.clientCooldowns);
-  cd.heldBy = player.userid;//mp;
-  cd.src = this.sourceSlot;
-  cd.target = this.targetSlot;
-
   // set flag states
   this.visible = false;
   this.isActive = false;
@@ -417,25 +410,34 @@ game_flag.prototype.doTake = function(player)
   this.heldBy = player.userid;//mp;
 
   // set player states
-  player.hasFlag = flagType
+  player.hasFlag = flagType;
 
   if (player.bubble) player.bubble = false;
 
-  if (!this.config.server)
-  {
-    // data
-    var data = {};
-    data.action = "takeFlag";
-    data.targetSlot = cd.target;
-    data.flagName = this.name;
-    data.playerName = player.playerName;
-    data.playerTeam = player.team;
+  // if (!this.config.server)
+  // {
+  //   // update clientCooldown source and target
+  //   // var roomCooldowns = this.getplayers.fromRoom(player.playerPort, 4);
+  //   // console.log('cds', roomCooldowns);
+  //   var cd = this.config._.find(this.config.clientCooldowns, {"name":this.name});
+  //   console.log('cd:', cd);
+  //   cd.heldBy = player.userid;//mp;
+  //   cd.src = this.sourceSlot;
+  //   cd.target = this.targetSlot;
 
-    // show toast
-    new game_toast().show(data);
-  }
-  else // server
-  {
+  //   // data
+  //   var data = {};
+  //   data.action = "takeFlag";
+  //   data.targetSlot = cd.target;
+  //   data.flagName = this.name;
+  //   data.playerName = player.playerName;
+  //   data.playerTeam = player.team;
+
+  //   // show toast
+  //   new game_toast().show(data);
+  // }
+  // else // server
+  // {
       console.log('* socket emit', this.targetSlot, player.playerPort);
       // inform sockets
       player.instance.room(player.playerPort).write([21, player.id, this.name, player.flagTakenAt]);
@@ -450,7 +452,8 @@ game_flag.prototype.doTake = function(player)
           }
     }*/
       // update clientCooldowns objs
-      var cd = this.config._.find(_this.config.clientCooldowns, {"name":_this.name});
+      var roomCooldowns = this.getplayers.fromRoom(player.playerPort, 4);
+      var cd = this.config._.find(roomCooldowns, {"name":_this.name});
       //console.log(this.game.clientCooldowns);
       cd.heldBy = player.userid;//mp;
       cd.src = this.sourceSlot;
@@ -460,12 +463,13 @@ game_flag.prototype.doTake = function(player)
       // start cooldown
       // get event by id "fc" (flag carried)
       var roomEvents = this.getplayers.fromRoom(player.playerPort, 1); // <- get events
+      // console.log('events:', roomEvents);      
       var evt = this.config._.find(roomEvents, {'id':"fc"});
       evt.flag = this;
-      //console.log('got evt', evt);
+      console.log('got evt', player.playerPort, evt);
       evt.doStart();
       // call event.doStart() to begin 60 second cooldown
-  }
+  // }
 
   // notify player
   //player.takeFlag(this, flagType);
@@ -493,7 +497,8 @@ game_flag.prototype.slotFlag = function(player)
   // console.log('===flag.slotFlag', this.name, player.mp, '===');//, this.name, player.mp, this.typeToName(player.hasFlag));//, player.carryingFlag.targetSlot);
   //console.log('cooldowns', this.config.clientCooldowns);
 
-  var clientFlag = _.find(_this.config.clientCooldowns, {'name':_this.typeToName(player.hasFlag)});
+  var roomCooldowns = this.getplayers.fromRoom(player.playerPort, 4);
+  var clientFlag = _.find(roomCooldowns, {'name':_this.typeToName(player.hasFlag)});
   console.log('* clientFlag', clientFlag, this.name);
   if (clientFlag === undefined) return;
 
@@ -505,8 +510,9 @@ game_flag.prototype.slotFlag = function(player)
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
     // also start flag cooldown
-    var flg = this.config._.find(_this.config.flagObjects, {"name":clientFlag.name});
-    // console.log('* flag');//, flg);
+    var roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
+    var flg = this.config._.find(roomFlags, {"name":clientFlag.name});
+    console.log('* flag', flg, roomFlags);
 
     player.hasFlag = 0;
 
@@ -534,7 +540,7 @@ game_flag.prototype.slotFlag = function(player)
       // ... and start flag slotted cooldown event
       var cd = this.config._.find(roomEvents, {"type":evt.TYPE_FLAG_SLOTTED_COOLDOWN});
       console.log('* evt cd', cd);
-      var flg = this.config._.find(_this.config.flagObjects, {"name":clientFlag.name});
+      var flg = this.config._.find(roomFlags, {"name":clientFlag.name});
       cd.flag = flg;//clientFlag; // TODO: <- should be flag class NOT clientCooldown flag
       console.log('* cf.flag', flg);
       
@@ -588,7 +594,7 @@ game_flag.prototype.slotFlag = function(player)
       // start flag-slotted cooldown event
     }
 
-    var flagObj = this.config._.find(_this.config.flagObjects, {"name":clientFlag.name});//this.name});
+    var flagObj = this.config._.find(roomFlags, {"name":clientFlag.name});//this.name});
     flagObj.reset(true);//, this.game.server_time);
 
     player.addToScore(2500);
@@ -597,7 +603,7 @@ game_flag.prototype.slotFlag = function(player)
 
 game_flag.prototype.reset = function(success, game)//, server_time)
 {
-  console.log('=== flag.reset', success, this.name, '===');
+  console.log('=== flag.reset', success, this.name, this.port, '===');
   var _this = this;
   var msg = undefined;
 
@@ -676,9 +682,9 @@ game_flag.prototype.reset = function(success, game)//, server_time)
       _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
       {
         // TODO: omit self if self was failed carrier
-        if (ply.instance)
+        if (Boolean(ply.instance) && !ply.isLocal)
         {
-          console.log('* fc to player', ply.userid);
+          console.log('* fc to player', ply.userid, ply.playerPort);
           
           ply.instance.room(ply.playerPort).write([22, _this.name, _this.visible, msg]);
           // ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);

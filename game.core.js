@@ -177,11 +177,19 @@ game_core.prototype.init = function(game_instance)//, io)
 
     // flags
     this.config.flagObjects = [];
-    this.clientCooldowns = [
-        {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
-        {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
-        {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
-    ];
+
+    if (game_instance)
+    {
+        this.getplayers
+    }
+    else // client
+    {
+        this.clientCooldowns = [
+            {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
+            {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
+            {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
+        ];
+    }
 
     // events (includes chests [spawn] and flags [cooldowns])
     this.events = [];
@@ -666,13 +674,31 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
-
             // store default flag object in getplayers for cloning into rooms
             _this.getplayers.flagsDefault = _.cloneDeep(_this.config.flagObjects);
+            // add flags to active room
+            var allrooms = Object.keys(_this.getplayers.fromAllRooms());
+            // console.log('@ flagObjects', _this.config.flagObjects);
+            for (var f = allrooms.length - 1; f >= 0; f--)
+            {
+                console.log('room', allrooms[f], 'adding flags', _this.config.flagObjects);
+                
+                _this.getplayers.addToRoom(_this.config.flagObjects, allrooms[f], 3);
+            }
+            // add flags to roomFlags[port]
+            // roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
+            // _.forEach(_this.getplayers.flagsDefault, function(flag)
+            // {
+            //     // assign home port to flag
+            //     flag.port = allrooms[h];
+            //     console.log('flag port:', flag.port);
+                
+            //     roomFlags.push(flag);
+            // });
             // console.log('flagsDefault', _this.getplayers.flagsDefault);
             // clone this.chestSpawnPoints to each room's ec event
             var roomEvents, roomFlags;//, chest;
-            var allrooms = Object.keys(_this.getplayers.fromAllRooms());
+            // var allrooms = Object.keys(_this.getplayers.fromAllRooms());
             for (var h = allrooms.length - 1; h >= 0; h--)
             {
                 // first, ensure room total is less than maximum chests
@@ -686,16 +712,6 @@ game_core.prototype.apiNode = function()
                         console.log('* chestSpawnPoints', roomEvents[j]);
                     }
                 }
-                // // add flags to roomFlags[port]
-                roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
-                _.forEach(_this.getplayers.flagsDefault, function(flag)
-                {
-                    // assign home port to flag
-                    flag.port = allrooms[h];
-                    console.log('flag port:', flag.port);
-                    
-                    roomFlags.push(flag);
-                });
                 // _this.getplayers.inRoomFlags[allrooms[h]] = _this.getplayers.flagsDefaut;
                 // console.log('* roomFlags', roomFlags);                
             }
@@ -2117,11 +2133,13 @@ game_core.prototype.server_update = function()
         {
             evt = room[n];
             // evt = this.events[j];
+            console.log('evt type:', evt.type, evt.state, evt.uid);
+            
             if (evt.state !== evt.STATE_STOPPED)
             {
                 if (evt.update() === true)
                 {
-                    //console.log('add event to socket!', evt.type);
+                    console.log('add event to socket!', evt.type);
                     switch(evt.type)
                     {
                         case evt.TYPE_CHEST:
@@ -2165,8 +2183,9 @@ game_core.prototype.server_update = function()
                             if (evt.flag.heldBy)
                             {
                                 // store evt.id in fromRoomByUserId
-                                var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                laststate[room][evt.id] =
+                                // var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                // laststate[room][evt.id] =
+                                laststate[allrooms[m]][evt.id] =
                                 {
                                     t: evt.timer,
                                     f: evt.flag.name,
@@ -2182,8 +2201,9 @@ game_core.prototype.server_update = function()
 
                             if (evt.flag.heldBy)
                             {
-                                var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                laststate[room1][evt.id] =
+                                // var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                // laststate[room1][evt.id] =
+                                laststate[allrooms[m]][evt.id] =
                                 {
                                     t: evt.timer,
                                     f: evt.flag.name

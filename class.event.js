@@ -14,13 +14,13 @@ console.log('diff ' + (e.getTime() - now.getTime())/1000);
 */
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
-
-const MAX_CHESTS = 6;
+const getUid      = require('get-uid');
+const MAX_CHESTS  = 6;
 
 function game_event(getplayers, config)//game_instance)
 {
   // console.log('game event constructor');
-
+  this.uid = getUid();
   this.getplayers = getplayers;
   this.config = config;
 
@@ -268,6 +268,7 @@ game_event.prototype.doStart = function()
   this.running = true;
   //this.triggeredAt = new Date();
   this.state = this.STATE_RUNNING;//COMPLETE;
+  console.log('event started', this.type, this.state, this.uid);
 };
 
 game_event.prototype.doStop = function()

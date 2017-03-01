@@ -21,6 +21,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         game_instance.inRoomEvents = {};
         game_instance.inRoomChests = {};
         game_instance.inRoomFlags = {};
+        game_instance.inRoomCooldowns = {};
     }
     else // client
     {
@@ -95,7 +96,15 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                 }
             
             break;
-            
+
+            case 4: // cooldowns
+
+                if (Array.isArray(this.game_instance.inRoomCooldowns[port]))
+                    return this.game_instance.inRoomCooldowns[port];
+                else if (this.game_instance.inRoomCooldowns[port] !== undefined)
+                    return [];
+                    
+            break;            
         }
     }
     else
@@ -137,7 +146,6 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                     return [];
                     
             break;
-            
         }
     }
 };
@@ -145,7 +153,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 getplayers.prototype.addRoom = function(port)
 {
     console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
-    var room, events, chests, flags;
+    var room, events, chests, flags, cooldowns;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -168,6 +176,7 @@ getplayers.prototype.addRoom = function(port)
         events = this.game_instance.inRoomEvents[port] = [];
         chests = this.game_instance.inRoomChests[port] = [];
         flags = this.game_instance.inRoomFlags[port] = [];
+        cooldowns = this.game_instance.inRoomCooldowns[port] = [];
     }
     else
     {
@@ -203,7 +212,6 @@ getplayers.prototype.addRoom = function(port)
         ///////////////////////////////////
         // create startup events
         ///////////////////////////////////
-
         var evt_ec, evt_fc, evt_fs;
 
         // create chest spawn event        
@@ -242,6 +250,13 @@ getplayers.prototype.addRoom = function(port)
         //evt.setRandomTriggerTime(25, 45);
         this.game_instance.inRoomEvents[port].push(evt_fs);
         //console.log('startup events', this.events);
+
+        // create client cooldowns
+        this.game_instance.inRoomCooldowns[port] = [
+            {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
+            {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
+            {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
+        ];
 
         // create server-based flags inRoomFlags [port]
         // NOTE: flagObjects defined asyncronously in game_core (culled from Tiled xml file)
@@ -431,8 +446,9 @@ getplayers.prototype.addToRoom = function(obj, port, type)
 {
     // type 1 = event
     // type 2 = chest
+    // type 3 = flags array
 
-    console.log('== addToRoom', obj.id, port, type, '==');
+    // console.log('== addToRoom', obj, port, type, '==');
 
     var instance;
 
@@ -458,6 +474,16 @@ getplayers.prototype.addToRoom = function(obj, port, type)
             console.log('@ total chests:', instance.inRoomChests[port].length);
         
         break;
+
+        case 3: // 
+            for (var i = 0; i < this.flagsDefault.length; i++)
+            {
+                this.flagsDefault[i].port = port;
+                instance.inRoomFlags[port].push(this.flagsDefault[i]);
+                // console.log('@@', this.flagsDefault[i].port);
+            }
+
+            console.log('@ total flags:', instance.inRoomFlags[port].length);
     }
 };
 
