@@ -9,12 +9,12 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
     this.totalPlayersPerGame = total_players_per_game;
     this.config = config;
 
-    this.flagsDefault = null; // hold default flags objects, for cloning into each room
-
     // if server
     if (game_instance)
     {
         this.game_instance = game_instance;
+
+        game_instance.flagsDefault = []; // hold default flags objects, for cloning into each room
         
         game_instance.allplayers = []; // <- deprecating
         game_instance.inRoom = {};
@@ -262,6 +262,7 @@ getplayers.prototype.addRoom = function(port)
         // NOTE: flagObjects defined asyncronously in game_core (culled from Tiled xml file)
         if (this.flagsDefault && this.flagsDefault.length > 0)
         {
+            console.log('@ setting next inroomflags...');
             this.game_instance.inRoomFlags[port] = this.config._.cloneDeep(this.flagsDefault);
             this.config._.forEach(this.game_instance.inRoomFlags[port], function(flag)
             {
@@ -271,7 +272,7 @@ getplayers.prototype.addRoom = function(port)
         }
         // console.log('flags!', this.game_instance.inRoomFlags[port]);
     }
-    else
+    else // client
     {
         // create players on client
         var p;
@@ -450,41 +451,56 @@ getplayers.prototype.addToRoom = function(obj, port, type)
 
     // console.log('== addToRoom', obj, port, type, '==');
 
-    var instance;
+    // var instance;
 
-    if (this.game_instance !== undefined)
-    {
-        // console.log('server!');
+    // if (this.game_instance === undefined)
+    // {
+    //     instance = this;
+    //     instance = this.game_instance;
+    // }
+    // else
+    // { 
+    //     console.log('server!');        
         
-        instance = this.game_instance;
-    }
-    else
-    { 
-        // console.log('client!', this);
-        
-        instance = this;
-    }
+    //     instance = this.game_instance;
+    // }
     
     switch(type)
     {
         case 2: // chests
             console.log('-->', port, obj.x, obj.y);
             
-            instance.inRoomChests[port].push(obj);
-            console.log('@ total chests:', instance.inRoomChests[port].length);
+            this.game_instance.inRoomChests[port].push(obj);
+            console.log('@ total chests:', this.game_instance.inRoomChests[port].length);
         
         break;
 
-        case 3: // 
+        case 3: // flags
+            console.log('len', this.flagsDefault.length);
+
+            // this.game_instance.inRoomFlags[port] = this.config._.cloneDeep(this.config.flagObjects);
+            
             for (var i = 0; i < this.flagsDefault.length; i++)
             {
-                this.flagsDefault[i].port = port;
-                instance.inRoomFlags[port].push(this.flagsDefault[i]);
+                this.game_instance.inRoomFlags[port].getplayers = this;
+                this.game_instance.inRoomFlags[port].push(this.flagsDefault[i]);
+                this.game_instance.inRoomFlags[port][i].port = port;
+                // this.game_instance.inRoomFlags[port].push(this.flagsDefault[i]);
                 // console.log('@@', this.flagsDefault[i].port);
             }
 
-            console.log('@ total flags:', instance.inRoomFlags[port].length);
+            console.log('@ total flags:', this.game_instance.inRoomFlags[port]);
+            // console.log('test1', this.config.flagObjects);
+            
+            // console.log('test', this.game_instance.config.flagObjects);
+            
+            // validate that flags are saved via getRoom!
+            // var test = this.fromRoom(port, 3);
+            // console.log(':test:', test);
+            
     }
 };
+
+getplayers.prototype.flagsDefault = [];
 
 module.exports = getplayers;

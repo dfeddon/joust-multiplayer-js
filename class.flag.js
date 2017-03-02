@@ -12,7 +12,7 @@ var assets = require('./singleton.assets');
 
 function game_flag(data, context, getplayers, config)
 {
-  //console.log('flag data', data);
+  console.log('== game_flag constructor', data, getplayers.game_instance.inRoomFlags);
 
   //this._ = {};
 
@@ -510,7 +510,11 @@ game_flag.prototype.slotFlag = function(player)
     player.carryingFlag.y = this.y - (this.height/2);*/
     // revise flag targetSlot & sourceSlot
     // also start flag cooldown
+    console.log('playerport', player.playerPort, typeof(player.playerPort));
     var roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
+    console.log('roomFlags', roomFlags);
+    var test = this.getplayers.game_instance.inRoomFlags['4004'];
+    console.log('test:', test);
     var flg = this.config._.find(roomFlags, {"name":clientFlag.name});
     console.log('* flag', flg, roomFlags);
 
@@ -674,10 +678,10 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     if (this.config.server)
     {
       var roomEvents = this.getplayers.fromRoom(this.port, 1);
-      console.log('re:', roomEvents, this.port);
+      // console.log('re:', roomEvents, this.port);
       var fcEvent = _.find(roomEvents, {"type":2});
+      console.log('fcEvent:', fcEvent);
       fcEvent.doStop();
-      console.log('room port', this.port);
       
       _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
       {

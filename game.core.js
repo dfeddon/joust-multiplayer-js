@@ -180,7 +180,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
     if (game_instance)
     {
-        this.getplayers
+        // this.getplayers
     }
     else // client
     {
@@ -573,6 +573,51 @@ game_core.prototype.addTouchHandlers = function()
     });
 }
 
+game_core.prototype.apiNodePost = function()
+{
+    console.log('== apiNodePost ==');
+    // store default flag object in getplayers for cloning into rooms
+    this.getplayers.flagsDefault = _.clone(this.config.flagObjects);
+    // add flags to active room
+    var allrooms = Object.keys(this.getplayers.fromAllRooms());
+    for (var f = allrooms.length - 1; f >= 0; f--)
+    {
+        console.log('room', allrooms[f], 'adding flags', this.config.flagObjects.length);
+        
+        this.getplayers.addToRoom(this.config.flagObjects, allrooms[f], 3);
+    }
+    // add flags to roomFlags[port]
+    // roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
+    // _.forEach(_this.getplayers.flagsDefault, function(flag)
+    // {
+    //     // assign home port to flag
+    //     flag.port = allrooms[h];
+    //     console.log('flag port:', flag.port);
+        
+    //     roomFlags.push(flag);
+    // });
+    // console.log('flagsDefault', _this.getplayers.flagsDefault);
+    // clone this.chestSpawnPoints to each room's ec event
+    var roomEvents, roomFlags;//, chest;
+    // var allrooms = Object.keys(_this.getplayers.fromAllRooms());
+    for (var h = allrooms.length - 1; h >= 0; h--)
+    {
+        // first, ensure room total is less than maximum chests
+        // if total reached, continue to next room (return false to cancel?)
+        roomEvents = this.getplayers.fromRoom(allrooms[h], 1); // <-- 1 denotes object type 'events'
+        for (var j = 0; j < roomEvents.length; j++)
+        {
+            if (roomEvents[j].id == "ec")
+            {
+                roomEvents[j].chestSpawnPoints = this.config._.clone(this.chestSpawnPoints);
+                console.log('* chestSpawnPoints', roomEvents[j]);
+            }
+        }
+        // _this.getplayers.inRoomFlags[allrooms[h]] = _this.getplayers.flagsDefaut;
+        // console.log('* roomFlags', roomFlags);                
+    }
+};
+
 game_core.prototype.apiNode = function()
 {
     console.log('apiNode');
@@ -674,47 +719,7 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
-            // store default flag object in getplayers for cloning into rooms
-            _this.getplayers.flagsDefault = _.cloneDeep(_this.config.flagObjects);
-            // add flags to active room
-            var allrooms = Object.keys(_this.getplayers.fromAllRooms());
-            // console.log('@ flagObjects', _this.config.flagObjects);
-            for (var f = allrooms.length - 1; f >= 0; f--)
-            {
-                console.log('room', allrooms[f], 'adding flags', _this.config.flagObjects);
-                
-                _this.getplayers.addToRoom(_this.config.flagObjects, allrooms[f], 3);
-            }
-            // add flags to roomFlags[port]
-            // roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
-            // _.forEach(_this.getplayers.flagsDefault, function(flag)
-            // {
-            //     // assign home port to flag
-            //     flag.port = allrooms[h];
-            //     console.log('flag port:', flag.port);
-                
-            //     roomFlags.push(flag);
-            // });
-            // console.log('flagsDefault', _this.getplayers.flagsDefault);
-            // clone this.chestSpawnPoints to each room's ec event
-            var roomEvents, roomFlags;//, chest;
-            // var allrooms = Object.keys(_this.getplayers.fromAllRooms());
-            for (var h = allrooms.length - 1; h >= 0; h--)
-            {
-                // first, ensure room total is less than maximum chests
-                // if total reached, continue to next room (return false to cancel?)
-                roomEvents = _this.getplayers.fromRoom(allrooms[h], 1); // <-- 1 denotes object type 'events'
-                for (var j = 0; j < roomEvents.length; j++)
-                {
-                    if (roomEvents[j].id == "ec")
-                    {
-                        roomEvents[j].chestSpawnPoints = _this.config._.cloneDeep(_this.chestSpawnPoints);
-                        console.log('* chestSpawnPoints', roomEvents[j]);
-                    }
-                }
-                // _this.getplayers.inRoomFlags[allrooms[h]] = _this.getplayers.flagsDefaut;
-                // console.log('* roomFlags', roomFlags);                
-            }
+            _this.apiNodePost();
         });
     });
 };
@@ -2133,7 +2138,7 @@ game_core.prototype.server_update = function()
         {
             evt = room[n];
             // evt = this.events[j];
-            console.log('evt type:', evt.type, evt.state, evt.uid);
+            // console.log('evt type:', evt.type, evt.state, evt.uid);
             
             if (evt.state !== evt.STATE_STOPPED)
             {
