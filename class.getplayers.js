@@ -2,6 +2,7 @@
 
 const game_player = require('./class.player');
 const game_event_server = require('./class.event');
+const game_flag = require('./class.flag');
 
 function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {
@@ -263,12 +264,23 @@ getplayers.prototype.addRoom = function(port)
         if (this.flagsDefault && this.flagsDefault.length > 0)
         {
             console.log('@ setting next inroomflags...');
-            this.game_instance.inRoomFlags[port] = this.config._.cloneDeep(this.flagsDefault);
-            this.config._.forEach(this.game_instance.inRoomFlags[port], function(flag)
+            var flag;
+            for (var x = 0; x < this.flagsDefault.length; x++)
             {
-                // assign home port to flag
+                flag = this.flagsDefault[x];
+
+                flag = new game_flag(flag, null, this, this.config);
                 flag.port = port;
-            });
+                //flag.setter(objectgroupNode[j].object[l].$);
+                // flag.id = "flg" + l.toString();
+                //console.log('flag', flag);
+                // _this.config.flagObjects.push(flag);
+                
+                this.game_instance.inRoomFlags[port].push(flag);
+                
+                // this.game_instance.inRoomFlags[port].push(this.flagsDefault[i]);
+                // console.log('@@', this.flagsDefault[i].port);
+            }
         }
         // console.log('flags!', this.game_instance.inRoomFlags[port]);
     }
@@ -476,15 +488,27 @@ getplayers.prototype.addToRoom = function(obj, port, type)
         break;
 
         case 3: // flags
-            console.log('len', this.flagsDefault.length);
+            console.log('flgs:', obj.length, obj);
+            // console.log('flagObjects', this.config.flagObjects);
+
+            if (this.flagsDefault.length === 0)
+                this.flagsDefault = obj;
 
             // this.game_instance.inRoomFlags[port] = this.config._.cloneDeep(this.config.flagObjects);
-            
-            for (var i = 0; i < this.flagsDefault.length; i++)
+            var flag;
+            for (var i = 0; i < obj.length; i++)
             {
-                this.game_instance.inRoomFlags[port].getplayers = this;
-                this.game_instance.inRoomFlags[port].push(this.flagsDefault[i]);
-                this.game_instance.inRoomFlags[port][i].port = port;
+                flag = obj[i];
+
+                flag = new game_flag(flag, null, this, this.config);
+                flag.port = port;
+                //flag.setter(objectgroupNode[j].object[l].$);
+                // flag.id = "flg" + l.toString();
+                //console.log('flag', flag);
+                // _this.config.flagObjects.push(flag);
+                
+                this.game_instance.inRoomFlags[port].push(flag);
+                
                 // this.game_instance.inRoomFlags[port].push(this.flagsDefault[i]);
                 // console.log('@@', this.flagsDefault[i].port);
             }

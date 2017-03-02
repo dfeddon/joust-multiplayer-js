@@ -903,7 +903,7 @@ game_player.prototype.doStand = function(id)
 
 game_player.prototype.doKill = function(victor)
 {
-    console.log('playerKill', this.name);
+    console.log('playerKill', this.playerName);
     if (victor) console.log('by', victor.name, 'dead?', this.dead);
     // this.active = false;
 
@@ -911,9 +911,10 @@ game_player.prototype.doKill = function(victor)
     if (this.dying === true) return;
     else this.dying = true;
 
-    console.log('player dying', this.name);
+    console.log('player dying', this.playerName);
 
     // // update all players
+    this.instance.room(this.playerPort).write([5, this.id]);//, victor.id]);
     // this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
     // {
     //     if (p.instance && p.mp != "hp")

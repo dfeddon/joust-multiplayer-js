@@ -573,18 +573,19 @@ game_core.prototype.addTouchHandlers = function()
     });
 }
 
-game_core.prototype.apiNodePost = function()
+game_core.prototype.apiNodePost = function(flags)
 {
     console.log('== apiNodePost ==');
     // store default flag object in getplayers for cloning into rooms
-    this.getplayers.flagsDefault = _.clone(this.config.flagObjects);
+    // this.getplayers.flagsDefault = _.cloneDeep(this.config.flagObjects);
+    // var flags = _.cloneDeep(this.config.flagObjects);
     // add flags to active room
     var allrooms = Object.keys(this.getplayers.fromAllRooms());
     for (var f = allrooms.length - 1; f >= 0; f--)
     {
         console.log('room', allrooms[f], 'adding flags', this.config.flagObjects.length);
         
-        this.getplayers.addToRoom(this.config.flagObjects, allrooms[f], 3);
+        this.getplayers.addToRoom(flags, allrooms[f], 3);
     }
     // add flags to roomFlags[port]
     // roomFlags = _this.getplayers.fromRoom(allrooms[h], 3);
@@ -663,6 +664,8 @@ game_core.prototype.apiNode = function()
             var objectgroupNode = result.map.objectgroup;
             //console.log(objectgroupNode.length);//, JSON.stringify(objectgroupNode));
             var node;
+            var flagsArray = [];
+            // var spawnArray = [];
             for (var j = 0; j < objectgroupNode.length; j++)
             {
                 console.log('--------------');
@@ -696,6 +699,7 @@ game_core.prototype.apiNode = function()
                         var flag;
                         if (objectgroupNode[j].object.length === undefined)
                         {
+                            flagsArray.push(objectgroupNode[j].object.$);
                             flag = new game_flag(objectgroupNode[j].object.$, null, this.getplayers, this.config);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
@@ -708,7 +712,7 @@ game_core.prototype.apiNode = function()
                             {
                                 //console.log('->',objectgroupNode[j].object[l].$);
                                 //this.config.flagObjects.push(objectgroupNode[j].object[l].$);
-
+                                flagsArray.push(objectgroupNode[j].object[l].$);
                                 flag = new game_flag(objectgroupNode[j].object[l].$, null, _this.getplayers, _this.config);
                                 //flag.setter(objectgroupNode[j].object[l].$);
                                 flag.id = "flg" + l.toString();
@@ -719,7 +723,7 @@ game_core.prototype.apiNode = function()
                     break;
                 }
             }
-            _this.apiNodePost();
+            _this.apiNodePost(flagsArray);
         });
     });
 };
@@ -1828,11 +1832,11 @@ game_core.prototype.update_physics = function()
             }
         }
     }
-    else
+    else // client
     {
         // console.log('client_xport:', this.core_client.xport);
         
-        room = this.getplayers.fromRoom(this.core_client.xport.toString());
+        room = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
         if (room === undefined) room = []; // <-- TODO: stub
         for (var j = room.length - 1; j >= 0; j--)
         {
