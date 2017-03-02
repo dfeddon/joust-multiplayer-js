@@ -1383,7 +1383,11 @@ game_player.prototype.dropFlag = function()
 
         // reset flag
         // var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
-        var roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+        console.log('gamecore:', this.instance);
+        var roomFlags;
+        if (!this.instance)
+            roomFlags = this.config.flagObjects;
+        else roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
         var flag = this.config._.find(roomFlags, {"name":flagName});
         //flag.slotFlag(this);
         flag.reset(false, this.game);
@@ -1751,7 +1755,10 @@ game_player.prototype.draw = function()
             console.log('* player.draw: flag reset', this.hasFlag);
             // reset flag
             // for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
-            var roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+            var roomFlags;
+            if (!this.instance)
+                roomFlags = this.config.flagObjects;
+            else roomFlag = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
             for (var f = roomFlags.length - 1; f >= 0; f--)
             {
                 if (roomFlags[f].name == "midFlag" && this.hasFlag === 1)

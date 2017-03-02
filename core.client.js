@@ -3189,7 +3189,7 @@ core_client.prototype.tilemapper = function()
                 }
                 //else fo.draw();
             });
-
+            console.log('flagObjects:', _this.core.config.flagObjects);
             // declare territory
             _this.updateTerritory();
         //}; // end tilemap image loaded
@@ -3483,6 +3483,8 @@ core_client.prototype.updateTerritory = function()
     }*/
 
     // flags
+    console.log('flagobjects', this.core.config.flagObjects);
+    
     var red = _.find(this.core.config.flagObjects, {'name':'redFlag'});
     var mid = _.find(this.core.config.flagObjects, {'name':'midFlag'});
     var blue = _.find(this.core.config.flagObjects, {'name':'blueFlag'});

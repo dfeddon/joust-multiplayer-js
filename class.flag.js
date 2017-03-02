@@ -12,7 +12,7 @@ var assets = require('./singleton.assets');
 
 function game_flag(data, context, getplayers, config)
 {
-  console.log('== game_flag constructor', data, getplayers.game_instance.inRoomFlags);
+  console.log('== game_flag constructor', data, '==');//, getplayers.game_instance.inRoomFlags);
 
   //this._ = {};
 
@@ -624,7 +624,10 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     // carrier
     var roomName = this.getplayers.getRoomNameByUserId(this.heldBy);
     console.log("room name", roomName);
-    var room = this.getplayers.fromRoom(roomName);
+    var room;
+    if (this.config.server)
+      room = this.getplayers.fromRoom(roomName);
+    else room = this.getplayers.allplayers;
     // console.log("room:", room);
     var playerSource = _.find(room, {'userid':_this.heldBy});
     console.log('* playerSource', playerSource.userid, this.heldBy);//, this);
@@ -686,7 +689,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
       _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
       {
         // TODO: omit self if self was failed carrier
-        if (Boolean(ply.instance) && !ply.isLocal)
+        if (Boolean(ply.instance))// && !ply.isLocal)
         {
           console.log('* fc to player', ply.userid, ply.playerPort);
           
