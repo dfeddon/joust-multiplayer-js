@@ -205,15 +205,15 @@ game_player.prototype.setFromBuffer = function(data)
     this.flap = (data[3] === 1) ? true : false;
     this.landed = data[4];
     this.vuln = (data[5] === 1) ? true : false;
-    this.a = data[6];
-    this.vx = data[7];
-    this.vy = data[8];
-    this.hasFlag = data[9];
-    this.bubble = (data[10] === 1) ? true : false;
-    this.visible = (data[11] === 1) ? true : false;
-    this.bufferIndex = data[12]; // j
-    this.score = data[13];
-    this.active = (data[14] === 1) ? true : false;
+    //this.a = data[6];
+    //this.vx = data[7];
+    //this.vy = data[8];
+    this.hasFlag = data[6];
+    this.bubble = (data[7] === 1) ? true : false;
+    this.visible = (data[8] === 1) ? true : false;
+    //this.bufferIndex = data[9]; // j
+    this.score = data[9];
+    this.active = (data[10] === 1) ? true : false;
 }
 
 game_player.prototype.reset = function()
@@ -797,12 +797,14 @@ game_player.prototype.update = function()
 
     this.vy += this.config.world.gravity;//.fixed(2);///5;
     // 40 = slow, 30 = medium, 25 = fast
+    // console.log(':::', this.thrust, this.thrustModifier);
+    
     this.vx = ((this.a/40) * Math.cos(this.thrust + this.thrustModifier));//.fixed(2);
 
-    this.pos.y += this.vy.fixed(2);
+    this.pos.y += this.vy;//.fixed(2);
 
     // /10 = slower /25 = faster /50 = fast
-    this.pos.x += this.vx.fixed(2);//((this.a/25) * Math.cos(this.vx));
+    this.pos.x += this.vx;//.fixed(2);//((this.a/25) * Math.cos(this.vx));
     //console.log('vs', this.vx, this.vy);
 
     //if (this.pos.x < 165) this.vx *=-1;
@@ -873,7 +875,7 @@ game_player.prototype.update = function()
 
     this.pos.x = this.pos.x.fixed(2);
     this.pos.y = this.pos.y.fixed(2);
-    this.vx = this.vx.fixed(2);
+    //this.vx = this.vx.fixed(2);
 };
 
 game_player.prototype.setAngle = function(a)

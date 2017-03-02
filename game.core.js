@@ -2036,22 +2036,22 @@ game_core.prototype.server_update = function()
 
             bufView.length = 0;
             //*
-            bufView[0] = player.pos.x.fixed(0);
-            bufView[1] = player.pos.y.fixed(0);//.fixed(2);
+            bufView[0] = player.pos.x;//.fixed(0);
+            bufView[1] = player.pos.y;//.fixed(0);//.fixed(2);
             bufView[2] = player.dir;
             bufView[3] = (player.flap) ? 1 : 0;
             bufView[4] = player.landed;
             bufView[5] = (player.vuln) ? 1 : 0;
-            bufView[6] = player.a;//.fixed(2);
-            bufView[7] = player.vx;//.fixed(2);//.fixed(2);
-            bufView[8] = player.vy;//.fixed(2);//.fixed(2);
-            bufView[9] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
-            bufView[10] = (player.bubble) ? 1 : 0;
-            bufView[11] = (player.visible) ? 1 : 0;//killedPlayer;
-            bufView[12] = i; // player's bufferIndex
-            bufView[13] = player.score;//(player.dead) ? 1 : 0;//player.team;
-            bufView[14] = (player.active) ? 1 : 0;
-            bufView[15] = 16; // open item
+            //bufView[6] = player.a;//.fixed(2);
+            //bufView[7] = player.vx;//.fixed(2);//.fixed(2);
+            //bufView[8] = player.vy;//.fixed(2);//.fixed(2);
+            bufView[6] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
+            bufView[7] = (player.bubble) ? 1 : 0;
+            bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
+            //bufView[9] = i; // player's bufferIndex
+            bufView[9] = player.score;//(player.dead) ? 1 : 0;//player.team;
+            bufView[10] = (player.active) ? 1 : 0;
+            // bufView[15] = 16; // open item
             //*/
             //bufView[11] = new Date();
             // if (player.mp == "cp2")

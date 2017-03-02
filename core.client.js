@@ -2622,9 +2622,10 @@ core_client.prototype.client_update = function()
     if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
     {
         var pad = 0;
-        
-        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
-        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
+        // clamp(value, min, max)
+        // return Math.max(min, Math.min(value, max));
+        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width*0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
+        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
     }
@@ -3411,7 +3412,7 @@ core_client.prototype.prerenderer = function()
 
 function clamp(value, min, max)
 {
-    //console.log(Math.max(min, Math.min(value, max)));
+    // console.log(Math.max(min, Math.min(value, max)));
     return Math.max(min, Math.min(value, max));
     //console.log(value);//, min, max);
     /*
