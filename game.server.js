@@ -444,7 +444,7 @@ game_server.prototype.endGame = function(gameid, userid)
             {
                 if (room[j].id == userid)
                 {
-                    console.log('@@ removing player', room[j].mp, userid);//, allplayers[j].host);
+                    console.log('@@ removing player', room[j].playerPort, userid, room[j].playerName);//, allplayers[j].host);
                     
                     disconnected_mp = room[j].mp;
                     // if (!allplayers[j].host)

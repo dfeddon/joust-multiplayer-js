@@ -33,7 +33,9 @@ function game_player(player_instance, isHost, pindex, config)
     this.pos = { x:0, y:0 };
 
     this.lpos = this.pos;
-    this.size = { x:48, y:48, hx:48, hy:48, offset:16 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 };
+    this.size = { x:48, y:48, hx:48, hy:48, offset:16 };//{ x:64/2, y:64/2, hx:64/2, hy:64/2 }
+    
+    this.campos = this.pos;
     //this.hitbox = {w:64/2,h:64/2};
     this.dir = 0; // 0 = right, 1 = left (derek added)
 
@@ -229,6 +231,8 @@ game_player.prototype.reset = function()
     this.score = 0;
     this.progression = 0;
 
+    console.log('disconnected', this.disconnected);
+    
     if (this.disconnected)
         this.pos = this.config.gridToPixel(0,0);
     else if (this.config.server) 
@@ -875,7 +879,7 @@ game_player.prototype.update = function()
 
     this.pos.x = this.pos.x.fixed(2);
     this.pos.y = this.pos.y.fixed(2);
-    //this.vx = this.vx.fixed(2);
+    this.vx = this.vx.fixed(2);
 };
 
 game_player.prototype.setAngle = function(a)
@@ -916,7 +920,8 @@ game_player.prototype.doKill = function(victor)
     console.log('player dying', this.playerName);
 
     // // update all players
-    this.instance.room(this.playerPort).write([5, this.id]);//, victor.id]);
+    if (this.config.server)
+        this.instance.room(this.playerPort).write([5, this.id]);//, victor.id]);
     // this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
     // {
     //     if (p.instance && p.mp != "hp")
@@ -1759,9 +1764,9 @@ game_player.prototype.draw = function()
             // reset flag
             // for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
             var roomFlags;
-            if (!this.instance)
+            // if (!this.instance)
                 roomFlags = this.config.flagObjects;
-            else roomFlag = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+            // else roomFlag = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
             for (var f = roomFlags.length - 1; f >= 0; f--)
             {
                 if (roomFlags[f].name == "midFlag" && this.hasFlag === 1)

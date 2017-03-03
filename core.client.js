@@ -319,7 +319,7 @@ core_client.prototype.client_reset_positions = function()
     //Host always spawns at the top left.
     player_host.pos = { x:20,y:20 };
     player_client.pos = { x:500, y:200 };*/
-    console.log(this.players.self.pos);
+    // console.log(this.players.self.pos);
     /*if (this.players.self.pos.x === 0 && this.players.self.pos.y === 0)
     {
         // spawn
@@ -1270,14 +1270,17 @@ core_client.prototype.client_draw_info = function()
     /////////////////////////////////
     var hscore = [];
     // _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
-    _.forEach(_this.core.getplayers.allplayers, function(p)
+    // _.forEach(_this.core.getplayers.allplayers, function(p)
+    var p;
+    for (var j = _this.core.getplayers.allplayers.length - 1; j >= 0; j--)
     {
+        p = _this.core.getplayers.allplayers[j];
         if (p.active)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
         // if respawning, auto-set score to 0
         if (!p.visible)// || !p.active)
             p.score = 0;
-    });
+    }
     // sort it
     hscore = _.orderBy(hscore, ['score'], ['desc']);
 
@@ -1293,8 +1296,11 @@ core_client.prototype.client_draw_info = function()
     // update DOM #scoreboard items
     var tbl = document.getElementById('scoreslist');
     var color;
-    _.forEach(hscore, function(p, i)
+    // _.forEach(hscore, function(p, i)
+    //var p;
+    for (var i = hscore.length - 1; i >= 0; i--)
     {
+        p = hscore[i];
         tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
         tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
         tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
@@ -1304,7 +1310,7 @@ core_client.prototype.client_draw_info = function()
         else if (p.team == 1) color = "#FF6961";
         else color = "#6ebee6";
         tbl.rows[i].style.color = color;
-    });
+    }
     // console.log('score post: ', JSON.stringify(hscore));
 
     /*
@@ -1790,6 +1796,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
         //Now we can crop the list of any updates we have already processed
         if(lastinputseq_index != -1)
         {
+            console.log("##############");
             //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
             //and that we can predict from this known position instead
 
@@ -1798,6 +1805,8 @@ core_client.prototype.client_process_net_prediction_correction = function()
             this.players.self.inputs.splice(0, number_to_clear);
             //The player is now located at the new server position, authoritive server
             this.players.self.cur_state.pos = this.pos(my_server_pos);
+            // this.players.self.cur_state.pos = 
+                        this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
             this.players.self.last_input_seq = lastinputseq_index;
             //Now we reapply all the inputs that we have locally that
             //the server hasn't yet confirmed. This will 'keep' our position the same,
@@ -1812,7 +1821,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
         {
             if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
             {
-            //console.log('kkkk');
+            console.log('kkkk');
             
             //if (my_server_pos == this.players.self.cur_state.pos) return;
             //if (this.players.self.landed === 1) return;
@@ -2535,7 +2544,7 @@ core_client.prototype.client_update_local_position = function()
         //console.log(current_state.d);
 
         // TODO: Uncomment below if client pos mismatch
-        /*
+        //*
         this.players.self.pos = current_state;
         //*/
 
@@ -2611,7 +2620,7 @@ core_client.prototype.client_update = function()
     
     if (this.players.self.mp == "hp") return;
 
-    var _this = this;
+    // var _this = this;
 
     //////////////////////////////////////////
     // Camera
@@ -2624,10 +2633,15 @@ core_client.prototype.client_update = function()
         var pad = 0;
         // clamp(value, min, max)
         // return Math.max(min, Math.min(value, max));
-        this.cam.x = clamp(-this.players.self.pos.x + this.viewport.width*0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
-        this.cam.y = clamp(-this.players.self.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
+        // console.log('lpos', this.players.self.campos.x, this.players.self.pos.x);
+        this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
+        // console.log('lpos', this.cam.pos, this.players.self.pos);
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width*0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
+
+        this.players.self.campos = this.players.self.pos;
     }
     /*if (this.barriers)
     {
@@ -2642,11 +2656,10 @@ core_client.prototype.client_update = function()
     this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);//worldWidth,worldHeight);
 
     // flash bang
-    if (this.flashBang > 0)
+    /*if (this.flashBang > 0)
     {
         // TODO: break this up into smaller rects
         console.log('flashbang');
-        //*
         this.ctx.beginPath();
         if (this.flashBang === 1)
         this.ctx.fillStyle = 'white';
@@ -2654,9 +2667,8 @@ core_client.prototype.client_update = function()
         this.ctx.rect(-this.cam.x,-this.cam.y,this.viewport.width+128,this.viewport.height+128);
         this.ctx.fill();
         this.ctx.closePath();
-        //*/
         this.flashBang = 0;
-    }
+    }*/
 
     //draw help/information if required
     this.client_draw_info();
@@ -2705,10 +2717,12 @@ core_client.prototype.client_update = function()
     //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
     // console.log("# players", this.core.getplayers.fromRoom(this.xport));
     // _.forEach(this.core.getplayers.fromRoom(_this.xport), function(ply)
-    _.forEach(this.core.getplayers.allplayers, function(ply)
+    // _.forEach(this.core.getplayers.allplayers, function(ply)
+    var ply;
+    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
     {
         // console.log('ply', ply);
-        
+        ply = this.core.getplayers.allplayers[j];
         if (ply.active && !ply.isLocal)//ply != _this.players.self)// && room[i].active===true)
         {
             // console.log('#p', ply.pos);
@@ -2716,10 +2730,10 @@ core_client.prototype.client_update = function()
             if 
             (
                 // ply is *above* local player
-                (ply.pos.y + _this.cam.y + ply.size.hy > 0)
+                (ply.pos.y + this.cam.y + ply.size.hy > 0)
                 &&
                 // ply is *below* local player
-                (ply.pos.y + _this.cam.y - ply.size.hy) <= _this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
+                (ply.pos.y + this.cam.y - ply.size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
                 /* || 
                 (
                     _this.players.self.pos.y + _this.cam.y <= 
@@ -2729,11 +2743,11 @@ core_client.prototype.client_update = function()
                 ) */
                 &&
                 // ply is visible left of local player
-                (ply.pos.x + _this.cam.x - ply.size.hx) <= _this.viewport.width
+                (ply.pos.x + this.cam.x - ply.size.hx) <= this.viewport.width
                 //ply.pos.x + (Math.abs(_this.cam.x) * 2) < _this.players.self.pos.x
                 &&
                 // ply is visible right of local player
-                (ply.pos.x + _this.cam.x + ply.size.hx > 0)
+                (ply.pos.x + this.cam.x + ply.size.hx > 0)
             )//<= _this.players.self.pos.y + _this.cam.y)
             {
                 ply.draw();
@@ -2741,7 +2755,7 @@ core_client.prototype.client_update = function()
             }
             //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
         }
-    });
+    }
 
     //When we are doing client side prediction, we smooth out our position
     //across frames using local input states we have stored.
@@ -2760,27 +2774,30 @@ core_client.prototype.client_update = function()
 
     // spritesheets
     //for (var k = 0; k < this.spritesheets.length; k++)
-    _.forEach(this.spritesheets, function(ss)
+    // _.forEach(this.spritesheets, function(ss)
+    for (j = this.spritesheets.length - 1; j >= 0; j--)
     {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
-        ss.update();
-    });
+        this.spritesheets[j].update();
+    }
 
     // chests
     // _.forEach(this.core.getplayers.fromRoom(this.xport, 2), function(chest)
-    _.forEach(_this.core.chests, function(chest)
+    // _.forEach(_this.core.chests, function(chest)
+    for (j = this.core.chests.length - 1; j >= 0; j--)
     {
         // console.log("chest.draw()", chest);
-        chest.draw();
-    });
+        this.core.chests[j].draw();
+    }
 
     // flags
-    _.forEach(this.core.config.flagObjects, function(flagObj)
+    // _.forEach(this.core.config.flagObjects, function(flagObj)
+    for (j = this.core.config.flagObjects.length - 1; j >= 0; j--)
     {
         //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
-        if (flagObj.type == "flag")
-            flagObj.draw();
-    });
+        if (this.core.config.flagObjects[j].type == "flag")
+            this.core.config.flagObjects[j].draw();
+    }
 
 
     //this.ctx.save();

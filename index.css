@@ -502,7 +502,7 @@ a:hover, a:visited, a:link, a:active
   position:relative;
   height:200px;
   width:300px;
-  margin:0 auto;
+  /*margin:0 auto;*/
 }
 
 /*.cf {

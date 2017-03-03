@@ -1883,7 +1883,8 @@ game_core.prototype.update_physics = function()
 */
 
 //Updated at 15ms , simulates the world state
-game_core.prototype.server_update_physics = function() {
+game_core.prototype.server_update_physics = function() 
+{
     //if (glog)
     //console.log('##-@@ server_update_physics');
 
