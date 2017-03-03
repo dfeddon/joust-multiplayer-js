@@ -1694,10 +1694,12 @@ core_client.prototype.client_handle_input = function(key)
         } //up
     
     // we are 'faking' input to ensure player is *always* updated
-    //if (input.length === 0) input.push('0');
+    if (input.length === 0) input.push('0');
 
-    if(input.length) {
-
+    if(input.length) 
+    {
+        // this.core.server_control = false;
+        
             //Update what sequence we are on now
         this.input_seq += 1;
 
@@ -1730,7 +1732,7 @@ core_client.prototype.client_handle_input = function(key)
         return this.core.physics_movement_vector_from_direction( x_dir, y_dir );
 
     } else {
-
+        // this.core.server_control = true;
         //return {x:0,y:0};
         return this.core.physics_movement_vector_from_direction( x_dir, y_dir );
 
@@ -1796,7 +1798,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
         //Now we can crop the list of any updates we have already processed
         if(lastinputseq_index != -1)
         {
-            console.log("##############");
+            // console.log("##############");
             //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
             //and that we can predict from this known position instead
 
@@ -1805,8 +1807,10 @@ core_client.prototype.client_process_net_prediction_correction = function()
             this.players.self.inputs.splice(0, number_to_clear);
             //The player is now located at the new server position, authoritive server
             this.players.self.cur_state.pos = this.pos(my_server_pos);
-            // this.players.self.cur_state.pos = 
+            /*
+            this.players.self.cur_state.pos = 
                         this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
+            //*/
             this.players.self.last_input_seq = lastinputseq_index;
             //Now we reapply all the inputs that we have locally that
             //the server hasn't yet confirmed. This will 'keep' our position the same,
@@ -1821,7 +1825,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
         {
             if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
             {
-            console.log('kkkk');
+            // console.log('kkkk');
             
             //if (my_server_pos == this.players.self.cur_state.pos) return;
             //if (this.players.self.landed === 1) return;
@@ -2543,9 +2547,12 @@ core_client.prototype.client_update_local_position = function()
         //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
         //console.log(current_state.d);
 
-        // TODO: Uncomment below if client pos mismatch
+        // TODO: !!! Uncomment below if client pos mismatch !!!
         //*
-        this.players.self.pos = current_state;
+        // console.log(this.core.server_control);
+        
+        if (!this.core.server_control)
+            this.players.self.pos = current_state;
         //*/
 
         //We handle collision on client if predicting.
@@ -2582,6 +2589,10 @@ core_client.prototype.client_update_physics = function()
         //if (this.players.self.mp != "hp")
         //{
         var nd = this.core.process_input(this.players.self);
+        // if (nd.x==0&&nd.y==0) this.core.server_control=true;
+        // else this.core.server_control = false;
+        // console.log('nd:', nd);
+        
         //if (nd.x === 0 && nd.y == 0)
             //this.players.self.update();
         //else 

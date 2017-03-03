@@ -142,6 +142,10 @@ game_core.prototype.init = function(game_instance)//, io)
 
     if (!game_instance)
     {
+        // is server controlling client?
+        this.server_control = false;
+
+        // load core code
         this.core_client = new core_client(this, this.config);
         // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
         this.chests = [];
@@ -1581,6 +1585,7 @@ game_core.prototype.process_input = function( player )
     //console.log('ic:', ic);
     if(ic)
     {
+        // this.server_control = false;
         for(var j = (ic - 1); j >= 0; --j)
         {
             //don't process ones we already have simulated locally
@@ -1696,7 +1701,8 @@ game_core.prototype.process_input = function( player )
     } //if we have inputs
     else // we have NO INPUT
     {
-        //console.log('* no input...');
+        // if (!this.server)console.log('* no input...');
+        // this.server_control = true;
         
         //player.inputs.push({seq:"0",time:this.config.server_time);
         //player.last_input_time = this.config.server_time;
