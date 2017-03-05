@@ -1968,6 +1968,8 @@ core_client.prototype.client_process_net_updates = function()
 
         //The most recent server update
         var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
+        // console.log('lsd', latest_server_data);
+        
 
         //These are the exact server positions from this tick, but only for the ghost
         // var other_server_pos = this.players.self.host ? latest_server_data.cp : latest_server_data.hp;
@@ -2084,6 +2086,8 @@ core_client.prototype.client_process_net_updates = function()
                     //return;
                 //}
                 //player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
+                // console.log('vt', vt);
+                
                 player.setFromBuffer(vt);
                 /*
                 player.dir = vt[2];

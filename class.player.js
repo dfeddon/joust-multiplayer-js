@@ -210,12 +210,12 @@ game_player.prototype.setFromBuffer = function(data)
     //this.a = data[6];
     //this.vx = data[7];
     //this.vy = data[8];
-    this.hasFlag = data[6];
-    this.bubble = (data[7] === 1) ? true : false;
-    this.visible = (data[8] === 1) ? true : false;
+    // this.hasFlag = data[6];
+    this.bubble = (data[6] === 1) ? true : false;
+    // this.visible = (data[8] === 1) ? true : false;
     //this.bufferIndex = data[9]; // j
-    this.score = data[9];
-    this.active = (data[10] === 1) ? true : false;
+    this.score = data[7];
+    // this.active = (data[8] === 1) ? true : false;
 }
 
 game_player.prototype.reset = function()

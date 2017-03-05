@@ -2042,6 +2042,14 @@ game_core.prototype.server_update = function()
             // bufView = player.bufferWrite(bufView, i);
 
             bufView.length = 0;
+
+            // var ab = new ArrayBuffer(16 * 40);
+            // var bufView = new Uint8Array(ab, (i * 16), 16);
+            // for (var i = 0; i < buf.length; ++i) {
+            //     view[i] = buf[i];
+            // }
+
+            
             //*
             bufView[0] = player.pos.x;//.fixed(0);
             bufView[1] = player.pos.y;//.fixed(0);//.fixed(2);
@@ -2052,12 +2060,12 @@ game_core.prototype.server_update = function()
             //bufView[6] = player.a;//.fixed(2);
             //bufView[7] = player.vx;//.fixed(2);//.fixed(2);
             //bufView[8] = player.vy;//.fixed(2);//.fixed(2);
-            bufView[6] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
-            bufView[7] = (player.bubble) ? 1 : 0;
-            bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
+            // bufView[6] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
+            bufView[6] = (player.bubble) ? 1 : 0;
+            // bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
             //bufView[9] = i; // player's bufferIndex
-            bufView[9] = player.score;//(player.dead) ? 1 : 0;//player.team;
-            bufView[10] = (player.active) ? 1 : 0;
+            bufView[7] = player.score;//(player.dead) ? 1 : 0;//player.team;
+            // bufView[8] = (player.active) ? 1 : 0;
             // bufView[15] = 16; // open item
             //*/
             //bufView[11] = new Date();

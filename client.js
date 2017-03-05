@@ -686,7 +686,7 @@ domready(function()
 
 	// CORS
 	var origin = {origin:"Anonymous"};
-	assets.skin1_tileset = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-tileset.png",'',0,origin);
+	assets.skin1_tileset = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-tileset.gif",'',0,origin);
 
 	assets.skins = {};
 	assets.skins.skin1 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin1.png');
