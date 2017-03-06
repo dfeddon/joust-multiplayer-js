@@ -2651,9 +2651,10 @@ core_client.prototype.client_update = function()
         // clamp(value, min, max)
         // return Math.max(min, Math.min(value, max));
         // console.log('lpos', this.players.self.campos.x, this.players.self.pos.x);
-        this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
+        this.cam.pos = //this.players.self.pos;
+        this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
-        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width*0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
         this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
