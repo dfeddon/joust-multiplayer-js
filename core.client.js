@@ -1693,7 +1693,7 @@ core_client.prototype.client_handle_input = function(key)
 
         } //up
     
-    // we are 'faking' input to ensure player is *always* updated
+    // TODO: we are 'faking' input to ensure player is *always* updated
     if (input.length === 0) input.push('0');
 
     if(input.length) 
@@ -2376,10 +2376,12 @@ core_client.prototype.client_process_net_updates = function()
             {
                 this.players.self.pos =
                     this.v_lerp(this.players.self.pos,
-                    this.v_lerp(self_pp, self_tp, this.core._pdt*this.client_smooth),
+                    this.v_lerp(self_pp, self_tp, time_point),//this.core._pdt*this.client_smooth),
                     this.core._pdt*this.client_smooth
                 );
             }
+
+            
         //}
         //else this.players.self.pos = this.players.self.old_state;
         
