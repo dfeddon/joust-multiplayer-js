@@ -1555,13 +1555,16 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 };
 
 // take flag from placque
-core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsgRaw)
+// TODO: Remove flag if toastMsg.action=="carrierStunned" from toastMsg.flagholder
+// toastMsg params: action, flagName, userid, ame, flagVisible, toastMsg
+// remove playerName, playerTeam and otherTeam, get these vals from userid
+core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsg)//Raw)
 {
     console.log('client_onflagchange', flagName, flagVisible, toastMsg);
     // var split = data.split("|");
     // var flagName = split[0];
     // var flagVisible = (split[1] == 'true');
-    var toastMsg = JSON.parse(toastMsgRaw);
+    // var toastMsg = JSON.parse(toastMsgRaw);
     var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});//this.name});
     flagObj.visible = flagVisible;
     //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
@@ -1694,7 +1697,7 @@ core_client.prototype.client_handle_input = function(key)
         } //up
     
     // TODO: we are 'faking' input to ensure player is *always* updated
-    if (input.length === 0) input.push('0');
+    if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
 
     if(input.length) 
     {

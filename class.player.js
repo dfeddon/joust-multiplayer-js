@@ -73,6 +73,7 @@ function game_player(player_instance, isHost, pindex, config)
     //this.color = 'rgba(255,255,255,0.1)';
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
+    this.health = 100;
     this.engaged = false;
     this.vuln = false;
     this.bubble = false;
@@ -1501,12 +1502,13 @@ game_player.prototype.drawAbilities = function()
         // mana progression
         // calculate
         //var progressPercent = (this.mana / this.levels[this.level]);
-        var progressPercent = (this.progression / 500);
+        // var progressPercent = (this.progression / 500);
+        var progressPercent = (this.health / 100);
         // 64 is the width of the progression bar
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
         this.config.ctx.beginPath();
-        this.config.ctx.strokeStyle = 'yellow';
+        this.config.ctx.strokeStyle = 'lime';// 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
         this.config.ctx.moveTo(this.pos.x, this.pos.y-10);

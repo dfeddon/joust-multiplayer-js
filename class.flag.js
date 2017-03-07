@@ -632,7 +632,8 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     var playerSource = _.find(room, {'userid':_this.heldBy});
     console.log('* playerSource', playerSource.userid, this.heldBy);//, this);
     
-    msg.playerName = playerSource.playerName;
+    //msg.playerName = playerSource.playerName;
+    msg.userid = playerSource.userid;
 
     // opponent
     var opponent;
@@ -643,6 +644,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     }
     
     // action
+    // TODO: convert these to integers
     if (playerSource.vuln)
       msg.action = "carrierStunned";
     else if (playerSource.killedBy)
@@ -658,8 +660,8 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     msg.flagName = this.name;
   }
 
-  if (msg != undefined)
-    msg = JSON.stringify(msg);
+  // if (msg != undefined)
+  //   msg = JSON.stringify(msg);
 
   this.isHeld = false;
   this.visible = true;
