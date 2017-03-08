@@ -810,7 +810,7 @@ game_server.prototype.startGame = function(game, newplayer)
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //console.log('nonhosts[j]', nonhosts[j]);
-                this.log("hostgame", this.games[game.id].id);
+                this.log("hostgame", this.games[game.id].id, game_instance.gamecore.roundEndTime);
                 // TODO: onhostgame: id "other" players by sending array matching mp to players assigned a userid
                 var data = [];
                 data[0] = playerMP;
@@ -822,6 +822,8 @@ game_server.prototype.startGame = function(game, newplayer)
                 data[6] = playerUserId;
                 data[7] = others;
                 data[8] = playerSkin;
+                data[9] = game_instance.gamecore.roundEndTime;
+                // this.log('roundEndTime', game_instance.gamecore.roundEndTime);
                 nonhosts[j].send('onhostgame', data);
 
                 // nonhosts[j].send('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)

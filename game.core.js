@@ -25,8 +25,9 @@ var MAX_GAMES_PER_SERVER = 20;
 // var WebSocket         = require('ws');
 // var Primus            = require('primus');
 
-var 
+const 
     _                   = require('./node_modules/lodash/lodash.min'),
+    // moment              = require('moment'),
     // UUID                = require('node-uuid'),
     core_client         = require('./core.client'),
     getUid              = require('get-uid'),
@@ -121,6 +122,10 @@ game_core.prototype.init = function(game_instance)//, io)
     
     this.config = new config();
     this.config.server = (this.server) ? true : false;
+
+    // init moment.js
+    // moment().format();
+    // moment().locale('en');
 
     //if (this.server)
     this.getplayers = new getplayers(game_instance, MAX_PLAYERS_PER_GAME, null, this.config);
@@ -254,6 +259,12 @@ game_core.prototype.init = function(game_instance)//, io)
 
         this.config.server_time = 0;
         this.laststate = {};
+
+        // set round end time
+        this.roundEndTime = this.config.server_time + (10 * 60);//.floor(roundEnd.getTime() / 1000);
+        console.log('roundEndTime:', this.roundEndTime);
+        
+
 
         // setup socket worker
         /*this.sparkWorker = new Worker('worker.spark.js');
@@ -423,6 +434,24 @@ if( 'undefined' != typeof global )
 {
     module.exports = global.game_core = game_core;
 }
+
+Date.prototype.addMinutes = function(minutes)
+{
+    return new Date(this.getTime() + minutes * 60000);
+};
+
+Date.prototype.epochToDate = function(seconds)
+{
+    var t = new Date(1970, 0, 1); // epoch
+    return t.setSeconds(seconds);
+};
+
+Date.prototype.dateToEpoch = function(date)
+{
+    // return Date.UTC(date);
+    return Math.floor(date.getTime() / 1000);
+}
+
 
 game_core.prototype.getKeyboard = function() { return this.core_client.keyboard; };
 
@@ -1988,7 +2017,8 @@ game_core.prototype.server_update = function()
     // var _this = this;
     //Update the state of our local clock to match the timer
     this.config.server_time = this.local_time;
-
+    // console.log('svrtime', this.config.server_time);
+    
     //var host;
     //var others = [];
 

@@ -615,6 +615,12 @@ core_client.prototype.client_onhostgame = function(data, callback)
     var playerId = data[6];
     var others = data[7];
     var playerSkin = data[8];
+    var roundEndTime = data[9];
+
+    this.config.roundEndTime = roundEndTime;
+
+    // console.log('roundEndTime', roundEndTime, this.config.server_time);//, (roundEndTime - now));
+    
     /*
     var alldata = data;//.split("|");
 
@@ -1265,6 +1271,14 @@ core_client.prototype.client_draw_info = function()
     var scoreTxt = document.getElementById('txtScore');
     scoreTxt.innerHTML = this.players.self.score;
 
+    /////////////////////////////////
+    // round time
+    /////////////////////////////////
+    var s = this.config.roundEndTime - Math.floor(this.config.server_time);
+    // var min = Math.floor(total / 60);
+    // var sec = total - min * 60;
+    console.log('round ends', (s-(s%=60))/60+(9<s?':':':0')+s);
+    
     /////////////////////////////////
     // leaderboard
     /////////////////////////////////
@@ -2159,6 +2173,8 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log('vt', self_vt);
                 
                 _this.players.self.setFromBuffer(self_vt);
+                // console.log('svrtime', this.config.server_time);
+                
                 /*
                 //player.dir = vt[2];
                 //player.flap = (vt[3] === 1) ? true : false;
