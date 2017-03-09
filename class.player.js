@@ -261,7 +261,7 @@ game_player.prototype.setPlayerName = function(name)
     // textCanvas.width = 150;
     var ctx = textCanvas.getContext('2d');
     ctx.font = "18px sans"; // set font *before* measuring
-    ctx.canvas.width = ctx.measureText(name).width;
+    ctx.canvas.width = ctx.measureText(name).width + 10;
     // textCanvas.style.border = "1px solid #000000";
     if (this.team === 1)
         ctx.fillStyle = '#FF6961';

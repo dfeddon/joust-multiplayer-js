@@ -260,9 +260,9 @@ game_core.prototype.init = function(game_instance)//, io)
         this.config.server_time = 0;
         this.laststate = {};
 
-        // set round end time
-        this.roundEndTime = this.config.server_time + (10 * 60);//.floor(roundEnd.getTime() / 1000);
-        console.log('roundEndTime:', this.roundEndTime);
+        // // set round end time
+        // this.roundEndTime = this.config.server_time + (10 * 60);//.floor(roundEnd.getTime() / 1000);
+        // console.log('roundEndTime:', this.roundEndTime);
         
 
 

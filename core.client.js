@@ -615,11 +615,11 @@ core_client.prototype.client_onhostgame = function(data, callback)
     var playerId = data[6];
     var others = data[7];
     var playerSkin = data[8];
-    var roundEndTime = data[9];
+    var round = data[9];
 
-    this.config.roundEndTime = roundEndTime;
+    this.config.round = round;
 
-    // console.log('roundEndTime', roundEndTime, this.config.server_time);//, (roundEndTime - now));
+    console.log('round', round, this.config.server_time);//, (roundEndTime - now));
     
     /*
     var alldata = data;//.split("|");
@@ -1254,30 +1254,37 @@ core_client.prototype.client_draw_info = function()
     //     var pingTxt = document.getElementById('txtPing');
     //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
     // } //reached 10 frames
-    // console.log('latency', this.socket.latency);
-    var pingTxt = document.getElementById('txtPing');
-    if (this.socket)// && this.socket.primus)
-        pingTxt.innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
-
+    // console.log('latency', this.socket.latency, );
+    if (this.socket && document.getElementById('txtPing') != this.socket.latency)
+    {
+        document.getElementById('txtPing').innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
+    }
     /////////////////////////////////
     // fps
     /////////////////////////////////
-    var fpsTxt = document.getElementById('txtFPS');
-    fpsTxt.innerHTML = Math.ceil(this.fps_avg);
+    if (document.getElementById('txtFPS') != this.fps_avg)
+    {
+        document.getElementById('txtFPS').innerHTML = Math.ceil(this.fps_avg);
+    }
 
     /////////////////////////////////
     // score
     /////////////////////////////////
-    var scoreTxt = document.getElementById('txtScore');
-    scoreTxt.innerHTML = this.players.self.score;
+    if (document.getElementById('txtScore') != this.players.self.score)
+        document.getElementById('txtScore').innerHTML = this.players.self.score;
 
     /////////////////////////////////
     // round time
     /////////////////////////////////
-    var s = this.config.roundEndTime - Math.floor(this.config.server_time);
+    // if (document.getElementById('txtRoundTimer').innerHTML != )
+    var s = this.config.round.endtime - Math.floor(this.config.server_time);
+    // var s = this.core.getplayers.fromRoom(this.xport, 5);
+    // console.log("s:", s);
     // var min = Math.floor(total / 60);
     // var sec = total - min * 60;
-    console.log('round ends', (s-(s%=60))/60+(9<s?':':':0')+s);
+    // console.log('round ends', (s-(s%=60))/60+(9<s?':':':0')+s);
+    var roundTimerTxt = document.getElementById('txtRoundTimer');
+    roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
     
     /////////////////////////////////
     // leaderboard
@@ -2708,6 +2715,8 @@ core_client.prototype.client_update = function()
     }*/
 
     //draw help/information if required
+    // console.log(this.config.server_time);
+    // if (this.config.server_time % 1 === 0)
     this.client_draw_info();
 
     // draw prerenders

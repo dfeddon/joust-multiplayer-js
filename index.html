@@ -103,7 +103,7 @@
 		<!--<script id="bundle" type="text/javascript" src="http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.client.min.js"></script> -->
 		<script type="text/javascript">
 			var script = document.createElement('script');
-			if(document.domain == "localhost" || document.domain == "192.168.86.111") script.src = 'bundle.client.min.js';
+			if(document.domain == "localhost" || document.domain == "192.168.86.108") script.src = 'bundle.client.min.js';
 			else script.src = 'http://s3.amazonaws.com/com.dfeddon.wingdom/bundle.client.min.js';
 			document.head.appendChild(script);
 		</script>
@@ -188,7 +188,7 @@
 
 		</div>
 		<!--
-		########################## INFO BAR ###############################
+		########################## INFO BAR TOP ###############################
 		-->
 		<div id="uiInfoBar">
 
@@ -202,6 +202,16 @@
 				<p id="txtFPS" class="txtInfo">0</p>
 			</div>
 
+			<div id="ibRoundTimer">
+				<label id="lblRoundTimer">Round 1:</label>
+				<p id="txtRoundTimer" class="roundInfo"></p>
+			</div>
+		</div>
+
+		<!--
+		########################## INFO BAR BOTTOM ###############################
+		-->
+		<div id="uiInfoBarBottom">
 			<div id="ibScore">
 				<label id="lblScore">Score:</label>
 				<p id="txtScore" class="txtInfo">0</p>

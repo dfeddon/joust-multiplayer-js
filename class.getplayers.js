@@ -23,6 +23,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         game_instance.inRoomChests = {};
         game_instance.inRoomFlags = {};
         game_instance.inRoomCooldowns = {};
+        game_instance.inRoomRound = {};
     }
     else // client
     {
@@ -36,7 +37,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
 }
 getplayers.prototype.allplayers = []; // <- deprecating
 
-getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events / 2 = chests / 3 = flags
+getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events / 2 = chests / 3 = flags / 4 = cooldowns / 5 = round
 {
     if (type === undefined)
         type = 0;
@@ -105,7 +106,11 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                 else if (this.game_instance.inRoomCooldowns[port] !== undefined)
                     return [];
                     
-            break;            
+            case 5: // round
+                console.log('getting round', port, this.game_instance.inRoomRound);
+                return this.game_instance.inRoomRound[port];
+            
+            // break;
         }
     }
     else
@@ -154,7 +159,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 getplayers.prototype.addRoom = function(port)
 {
     console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
-    var room, events, chests, flags, cooldowns;
+    var room, events, chests, flags, cooldowns, round;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -178,6 +183,12 @@ getplayers.prototype.addRoom = function(port)
         chests = this.game_instance.inRoomChests[port] = [];
         flags = this.game_instance.inRoomFlags[port] = [];
         cooldowns = this.game_instance.inRoomCooldowns[port] = [];
+
+        // set round end time
+        round = this.game_instance.inRoomRound[port] = {};
+        round.endtime = this.config.server_time + (10 * 60);
+        console.log('roundEndTime:', round.endtime);
+        
     }
     else
     {

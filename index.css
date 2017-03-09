@@ -728,7 +728,7 @@ h5
 	height: 10px;
 	width: 100%;
 	/*background: rgba(0,0,0,0.65);*/
-	opacity: 0.85;
+	/*opacity: 0.85;*/
 	z-index: 500;
 	/* disallow text selection */
 	-webkit-user-select: none; /* Chrome/Safari */        
@@ -756,7 +756,7 @@ h5
 #ibFPS
 {
 	position: absolute;
-	left: 125px;
+	left: 100px;
 	/*background: rgba(0,0,0,0.65);*/
 	/*opacity: 0.85;*/
 	font-family: 'Mirza', serif;
@@ -770,6 +770,50 @@ h5
 	position: absolute;
 	left: 150px;
 }*/
+#ibRoundTimer
+{
+	font-family: 'Mirza', serif;
+	font-size: 27px;
+	text-align: center;
+}
+#lblRoundTimer
+{
+	color: lightgrey;
+	/*opacity: 0.65;*/
+}
+.roundInfo
+{
+	width: 50;
+	height: 25;
+	display: inline-block;
+	padding-top: 3px;
+}
+.txtInfo
+{
+	width: 50;
+	height: 25;
+	display: inline-block;
+	padding-top: 3px;
+}
+
+#uiInfoBarBottom
+{
+	position: absolute;
+	display: none;
+	bottom: 33px;
+	height: 10px;
+	width: 100%;
+	/*background: rgba(0,0,0,0.65);*/
+	/*opacity: 0.85;*/
+	z-index: 501;
+	/* disallow text selection */
+	-webkit-user-select: none; /* Chrome/Safari */        
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	-o-user-select: none;
+	user-select: none;
+}
+
 #ibScore
 {
 	font-family: 'Mirza', serif;
@@ -778,13 +822,6 @@ h5
 #lblScore
 {
 	opacity: 0.65;
-}
-.txtInfo
-{
-	width: 25;
-	height: 25;
-	display: inline-block;
-	padding-top: 3px;
 }
 
 #scoreboard
