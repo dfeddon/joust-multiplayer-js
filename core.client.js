@@ -1620,8 +1620,11 @@ core_client.prototype.client_onroundcomplete = function()
     // stop game loop and inputs
     this.config.round.active = false;
 
-    // callout and delay round winners UI
-    setTimeout(function(){ _this.roundWinnersView(); }, 1000);
+    // callout
+
+
+    // delay round winners UI
+    setTimeout(function(){ _this.roundWinnersView(); }, 3000);
 }
 
 core_client.prototype.client_on_orbremoval = function(data)
@@ -3940,8 +3943,39 @@ core_client.prototype.roundWinnersView = function()
 
     var _this = this;
 
+    // show winners ui
     document.getElementById('roundWinnersView').style.display = "flex";
+
+    // hide game ui
     document.getElementById('viewport').style.display = "none";
+    document.getElementById('uiInfoBar').style.display = "none";
+    document.getElementById('uiInfoBarBottom').style.display = "none";
+
+    // assign card face to winners cards
+    var cardsArray = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"]; // ordered abilities
+    // winners: 1 = index / 2 = userid / 3 = ability
+    var winners = 
+    [
+        {i:1,u:1,a:6},
+        {i:2,u:2,a:2},
+        {i:3,u:3,a:5},
+        {i:4,u:4,a:7},
+        {i:5,u:5,a:2},
+        {i:6,u:6,a:4}
+    ]; // ordered userid's
+    console.log('allplayers', this.core.getplayers.allplayers);
+    
+    var ele, url, winner,pname,pskin;
+    for (var i = 0; i < 3; i++)
+    {
+        winner = winners[i];
+        ele = "front" + (i + 1).toString();
+        url = './assets/card_' + cardsArray[winner.a-1] + '.png';
+        pname = "winner" + (i + 1).toString() + "label";
+        
+        document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
+        document.getElementById(pname).innerHTML = winner.u.toString();
+    }
     
     var container1 = document.getElementById('card1Container');
     var container2 = document.getElementById('card2Container');
@@ -3950,10 +3984,10 @@ core_client.prototype.roundWinnersView = function()
     var ccount = 1;
     var carddrop = setInterval(function()
     {
-        console.log('dropping card', ccount);
+        // console.log('dropping card', ccount);
         if (ccount===2) ccard = container2;
         else if (ccount===3) ccard = container3;
-        console.log('cardContainer:', ccard);
+        // console.log('cardContainer:', ccard);
         
         // card.className = 'flipped';
         ccard.style.visibility = 'visible';
@@ -3965,7 +3999,7 @@ core_client.prototype.roundWinnersView = function()
             clearInterval(carddrop);
             flipper();
         }
-    }, 1500);
+    }, 1000);
 
     var flipper = function()
     {
@@ -3979,7 +4013,7 @@ core_client.prototype.roundWinnersView = function()
             console.log('flipping card', count);
             if (count===2) card = card2;
             else if (count===3) card = card3;
-            console.log('card:', card);
+            // console.log('card:', card);
             
             // card.className = 'flipped';
             card.classList.remove('cardContainer');
@@ -3987,7 +4021,7 @@ core_client.prototype.roundWinnersView = function()
             count++;
             if (count > 3)
                 clearInterval(cardflipper);
-        }, 2000);
+        }, 1500);
     }
 };
 

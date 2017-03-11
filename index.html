@@ -434,34 +434,65 @@
 		########################### ROUND WINNERS ##########################
 		-->
 
+		<div id="roundCompleteCallout">
+			<label id="rounCompleteCalloutLabel"></label>
+		</div>
+
 		<div id="roundWinnersView">
 			<div id="winnerTop"></div>
 			<div id="winnerInner">
 				<div id="winnerLeft"></div>
 				<div id="winnerMid">
-					<container id="card1Container" class="cardContainer">
-						<div id="card1" class="roundCard">
-							<div id="front1" class="cardfront"></div>
-							<div id="back1" class="cardback"></div>
+
+					<!-- winners -->
+					<div id="winnersRow">
+						<div id="winner1" class="winner">
+							<label id="winner1label" class="winnerLabel">Winner #1</label>
+							<img id="winner1mage" class="winnerImage" src="./assets/splash-slides-skin10.png">
+							<br>
 						</div>
-					</container>
-					<container id="card2Container" class="cardContainer">
-						<div id="card2" class="roundCard">
-							<div id="front2" class="cardfront"></div>
-							<div id="back2" class="cardback"></div>
+						<div id="winner2" class="winner">
+							<label id="winner2label" class="winnerLabel">Winner #2</label>
+							<img id="winner2image" class="winnerImage" src="./assets/splash-slides-skin10.png">
+							<br>
 						</div>
-					</container>
-					<container id="card3Container" class="cardContainer">
-						<div id="card3" class="roundCard">
-							<div id="front3" class="cardfront"></div>
-							<div id="back3" class="cardback"></div>
+						<div id="winner3" class="winner">
+							<label id="winner3label" class="winnerLabel">Winner #3</label>
+							<img id="winner3image" class="winnerImage" src="./assets/splash-slides-skin10.png">
+							<br>
 						</div>
-					</container>
-				</div>
+					</div>
+					
+						<!-- cards -->
+						<div id="cardsContainer">
+						<container id="card1Container" class="cardContainer">
+							<div id="card1" class="roundCard">
+								<div id="front1" class="cardfront"></div>
+								<div id="back1" class="cardback"></div>
+							</div>
+						</container>
+						<container id="card2Container" class="cardContainer">
+							<div id="card2" class="roundCard">
+								<div id="front2" class="cardfront"></div>
+								<div id="back2" class="cardback"></div>
+							</div>
+						</container>
+						<container id="card3Container" class="cardContainer">
+							<div id="card3" class="roundCard">
+								<div id="front3" class="cardfront"></div>
+								<div id="back3" class="cardback"></div>
+							</div>
+						</container>
+						</div> <!-- end cardsContainer -->
+
+					</div> <!-- end winnerMid -->
+
 				<div id="winnerRight"></div>
-			</div>
+
+			</div> <!-- end winnerInner -->
+
 			<div id="winnerBottom"></div>
-		</div>
+		</div> <!-- end roundWinnersView -->
 
 		<!--
 		########################## HELP ###############################
