@@ -2354,6 +2354,23 @@ game_core.prototype.server_update = function()
     }
     //console.log('post', laststate);
     laststate = null;
+
+    // check round timer
+    var roomRound;
+    for (var m = allrooms.length - 1; m >= 0; m--)
+    {
+        // fromRoom: get round objects
+        roomRound = this.getplayers.fromRoom(allrooms[m], 5);
+        // console.log(roomRound.endtime, this.config.server_time);
+        if (roomRound.active && this.config.server_time >= roomRound.endtime)
+        {
+            console.log('ROUND HAS COMPLETED', roomRound);
+            roomRound.active = false;
+            this.roundComplete(allrooms[m]);
+        }
+    }
+            
+        // for (var n = room.length - 1; n >= 0; n--)
     
     /*for (var l in bufArr)
     {
@@ -2396,6 +2413,21 @@ game_core.prototype.server_update = function()
     */
 }; //game_core.server_update
 
+game_core.prototype.roundComplete = function(port)
+{
+    console.log('== roundComplete', port, '==');
+    // deactivate players
+    var p = this.getplayers.fromRoom(port, 0);
+    for (var i = 0; i < p.length; i++)
+    {
+        p[i].active = false;
+        if (p[i].instance)
+        {
+            // notify client
+            p[i].instance.room(port).write([30]);
+        }
+    }
+}
 
 game_core.prototype.handle_server_input = function(client, input, input_time, input_seq)
 {

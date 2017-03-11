@@ -121,6 +121,9 @@ function core_client(core, config)
     var v = document.getElementById("viewport");
     this.config.ctx = v.getContext('2d');
 
+    this.config.round = {};
+    this.config.round.active = true;
+
 
 
 } // end constructor
@@ -1144,6 +1147,8 @@ core_client.prototype.client_connect_to_server = function(data)
             // disconnect
             case 25: _this.client_ondisconnect(data[1]); break;
 
+            case 30: _this.client_onroundcomplete(); break;
+
             // onserverupdate (streaming)
             default: _this.client_onserverupdate_recieved(data); break;
             
@@ -1284,7 +1289,9 @@ core_client.prototype.client_draw_info = function()
     // var sec = total - min * 60;
     // console.log('round ends', (s-(s%=60))/60+(9<s?':':':0')+s);
     var roundTimerTxt = document.getElementById('txtRoundTimer');
-    roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
+    if (s > 0)
+        roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
+    else roundTimerTxt.innerHTML = "--:--";
     
     /////////////////////////////////
     // leaderboard
@@ -1596,6 +1603,25 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
     {
         new game_toast().show(toastMsg);
     }
+};
+
+core_client.prototype.client_onroundcomplete = function()
+{
+    console.log('== client_onroundcomplete ==');
+
+    var _this = this;
+
+    // update timer text
+    document.getElementById('txtRoundTimer').innerHTML = "--:--";
+
+    // disable player(s)
+    this.players.self.active = false;
+
+    // stop game loop and inputs
+    this.config.round.active = false;
+
+    // callout and delay round winners UI
+    setTimeout(function(){ _this.roundWinnersView(); }, 1000);
 }
 
 core_client.prototype.client_on_orbremoval = function(data)
@@ -1646,7 +1672,7 @@ core_client.prototype.client_handle_input = function(key)
 
     if (this.players.self.vuln === true || this.players.self.active === false)
     {
-        //console.log('player is vulnerable!');
+        console.log('input disabled');
         return;
     }
     //if(this.lit > this.core.local_time) return;
@@ -2661,7 +2687,7 @@ core_client.prototype.client_update = function()
     
     
     
-    if (this.players.self.mp == "hp") return;
+    if (this.players.self.mp == "hp" || !this.config.round.active) return;
 
     // var _this = this;
 
@@ -3906,6 +3932,63 @@ core_client.prototype.flagToScore = function(flag, slot)
     }
 
     return {red: red, blue:blue};
+};
+
+core_client.prototype.roundWinnersView = function()
+{
+    console.log('== roundWinnersView ==');
+
+    var _this = this;
+
+    document.getElementById('roundWinnersView').style.display = "flex";
+    document.getElementById('viewport').style.display = "none";
+    
+    var container1 = document.getElementById('card1Container');
+    var container2 = document.getElementById('card2Container');
+    var container3 = document.getElementById('card3Container');
+    var ccard = container1;
+    var ccount = 1;
+    var carddrop = setInterval(function()
+    {
+        console.log('dropping card', ccount);
+        if (ccount===2) ccard = container2;
+        else if (ccount===3) ccard = container3;
+        console.log('cardContainer:', ccard);
+        
+        // card.className = 'flipped';
+        ccard.style.visibility = 'visible';
+        ccard.style.animationPlayState = 'running';
+        // card.classList.add('flipped');
+        ccount++;
+        if (ccount > 3)
+        {
+            clearInterval(carddrop);
+            flipper();
+        }
+    }, 1500);
+
+    var flipper = function()
+    {
+        var card1 = document.getElementById('card1');
+        var card2 = document.getElementById('card2');
+        var card3 = document.getElementById('card3');
+        var count = 1;
+        var card = card1;
+        var cardflipper = setInterval(function()
+        {
+            console.log('flipping card', count);
+            if (count===2) card = card2;
+            else if (count===3) card = card3;
+            console.log('card:', card);
+            
+            // card.className = 'flipped';
+            card.classList.remove('cardContainer');
+            card.classList.add('flipped');
+            count++;
+            if (count > 3)
+                clearInterval(cardflipper);
+        }, 2000);
+    }
 };
 
 module.exports = core_client;

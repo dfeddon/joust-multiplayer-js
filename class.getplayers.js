@@ -107,7 +107,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                     return [];
                     
             case 5: // round
-                console.log('getting round', port, this.game_instance.inRoomRound);
+                // console.log('getting round', port, this.game_instance.inRoomRound);
                 return this.game_instance.inRoomRound[port];
             
             // break;
@@ -186,8 +186,11 @@ getplayers.prototype.addRoom = function(port)
 
         // set round end time
         round = this.game_instance.inRoomRound[port] = {};
-        round.endtime = this.config.server_time + (10 * 60);
-        console.log('roundEndTime:', round.endtime);
+        round.duration = .1; // minutes
+        round.endtime = this.config.server_time + (round.duration * 60);
+        round.total = 1;
+        round.active = true;
+        // console.log('roundEndTime:', round.endtime);
         
     }
     else

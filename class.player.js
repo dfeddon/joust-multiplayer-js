@@ -1541,7 +1541,7 @@ game_player.prototype.draw = function()
     //console.log(this.pos.x, this.pos.y);
     var _this = this;
 
-    if (this.visible === false) return;
+    if (this.active === false) return;
     //this.pos.x = this.pos.x.fixed(1);
     //this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
