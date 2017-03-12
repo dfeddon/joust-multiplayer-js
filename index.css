@@ -1442,6 +1442,69 @@ h5
 	overflow: hidden;
 }
 
+#roundCompleteCallout
+{
+	display: none;
+	position: absolute;
+	text-align: center;
+	/*width: 100%;*/
+	left: 50%;
+	transform: translate(-50%, -50%);
+	float: left;
+	text-shadow: 2px 2px black;
+	top: 50%;
+	z-index: 500;
+	-webkit-animation: calloutFX 1s;
+	animation: calloutFX 1s;
+	-webkit-animation-play-state: paused;
+	font-family: 'Mirza', serif;/*Comic Sans', cursive;*/
+	font-size: 2em;
+	color: white;
+	/*background-color: gray;*/
+
+	padding-top: 15px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	margin-top: 20px;
+	/*margin-left: 25%;*/
+
+	/*text-align: center;*/
+	/*color: #b1b1b1;*/
+	align-content: center;
+	/*font-family: "Mirza";
+	font-size: 1.5em;*/
+
+	/*line-height:1em;*/
+
+	border-radius: 10px;
+	border-color: #ffff00;
+	border-style: double;
+
+	background-color: #000;
+	background-color: rgba(0, 0, 0, 0.65);
+	/*opacity: 0.5;*/
+
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+
+}
+@-webkit-keyframes calloutFX 
+{
+    from {top: -100px;}
+    to {top: 50%;}
+}
+@keyframes calloutFX 
+{
+    from {top: -100px;}
+    to {top: 50%;}
+}
+
 .roundWinnersImg
 {
 	content:url("./assets/roundWinners_ipad.gif");
@@ -1484,7 +1547,18 @@ h5
 	width: 5vw;
 	max-width: 64px;
 }
-
+#winner1
+{
+	opacity: 0.0;
+}
+#winner2
+{
+	opacity: 0.0;	
+}
+#winner3
+{
+	opacity: 0.0;	
+}
 #cardsContainer
 {
 	flex-direction: row;
@@ -1521,7 +1595,6 @@ h5
     from {top: -300px;}
     to {top: 0px;}
 }
-
 @keyframes dropdownFX 
 {
     from {top: -300px;}
@@ -1578,6 +1651,13 @@ h5
     transform: rotateY( 180deg );
 }
 .roundCard.flipped
+{
+    -webkit-transform: rotateY( 180deg );
+    -moz-transform: rotateY( 180deg );
+    -o-transform: rotateY( 180deg );
+    transform: rotateY( 180deg );
+}
+.roundCard. flippedBack
 {
     -webkit-transform: rotateY( 180deg );
     -moz-transform: rotateY( 180deg );

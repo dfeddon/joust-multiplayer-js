@@ -1621,10 +1621,17 @@ core_client.prototype.client_onroundcomplete = function()
     this.config.round.active = false;
 
     // callout
-
+    var callout = document.getElementById('roundCompleteCallout');
+    callout.innerHTML = "Round " + this.config.round.total.toString() + " Complete!";
+    callout.style.display = "block";
+    callout.style.animationPlayState = 'running';
 
     // delay round winners UI
-    setTimeout(function(){ _this.roundWinnersView(); }, 3000);
+    setTimeout(function()
+    {
+        callout.style.display = "none";
+        _this.roundWinnersView(); 
+    }, 5000);
 }
 
 core_client.prototype.client_on_orbremoval = function(data)
@@ -3949,7 +3956,13 @@ core_client.prototype.roundWinnersView = function()
     // hide game ui
     document.getElementById('viewport').style.display = "none";
     document.getElementById('uiInfoBar').style.display = "none";
+    document.getElementById('uiTopBar').style.display = "none";
     document.getElementById('uiInfoBarBottom').style.display = "none";
+    document.getElementById('scoreboard').style.display = "none";
+    document.getElementById('mobile-controls-r').style.display = "none";
+    document.getElementById('mobile-controls-l').style.display = "none";
+
+    // document.getElementById('winnersRow').style.display = "none";
 
     // assign card face to winners cards
     var cardsArray = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"]; // ordered abilities
@@ -3965,43 +3978,86 @@ core_client.prototype.roundWinnersView = function()
     ]; // ordered userid's
     console.log('allplayers', this.core.getplayers.allplayers);
     
-    var ele, url, winner,pname,pskin;
-    for (var i = 0; i < 3; i++)
+    // show bonus round text
+    var bonusText = function()
     {
-        winner = winners[i];
-        ele = "front" + (i + 1).toString();
-        url = './assets/card_' + cardsArray[winner.a-1] + '.png';
-        pname = "winner" + (i + 1).toString() + "label";
-        
-        document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
-        document.getElementById(pname).innerHTML = winner.u.toString();
-    }
-    
-    var container1 = document.getElementById('card1Container');
-    var container2 = document.getElementById('card2Container');
-    var container3 = document.getElementById('card3Container');
-    var ccard = container1;
-    var ccount = 1;
-    var carddrop = setInterval(function()
-    {
-        // console.log('dropping card', ccount);
-        if (ccount===2) ccard = container2;
-        else if (ccount===3) ccard = container3;
-        // console.log('cardContainer:', ccard);
-        
-        // card.className = 'flipped';
-        ccard.style.visibility = 'visible';
-        ccard.style.animationPlayState = 'running';
-        // card.classList.add('flipped');
-        ccount++;
-        if (ccount > 3)
-        {
-            clearInterval(carddrop);
-            flipper();
-        }
-    }, 1000);
+        var callout = document.getElementById('roundCompleteCallout');
+        callout.innerHTML = "BONUS ROUND<br>Your team's <b>TOP 3 Round</b> " + _this.config.round.total.toString() + " Scorers";
+        callout.style.display = "block";
+        callout.style.animationPlayState = 'running';
 
-    var flipper = function()
+        setTimeout(function()
+        {
+            showWinners(false);
+        }, 1500);
+    };
+    bonusText();
+
+    // show players
+    var showWinners = function(isTop10)
+    {
+        var ele, url, winner,pname,pskin;
+        for (var i = 0; i < 3; i++)
+        {
+            winner = winners[i];
+            ele = "front" + (i + 1).toString();
+            url = './assets/card_' + cardsArray[winner.a-1] + '.png';
+            pname = "winner" + (i + 1).toString() + "label";
+            
+            document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
+            document.getElementById(pname).innerHTML = winner.u.toString();
+        }
+        document.getElementById("winner1").style.opacity = "1";
+        var pcount = 1;
+        var showPlayers = setInterval(function()
+        {
+            console.log('pcount', pcount);
+            
+            if (pcount < 4)
+                document.getElementById("winner" + pcount.toString()).style.opacity = "1";
+            else 
+            {
+                clearInterval(showPlayers);
+                if (isTop10)
+                    flipper(true);
+                else dropper();
+            }
+            pcount++;
+
+        }, 1500);
+    };
+    
+    // card drop
+    var dropper = function()
+    {
+        document.getElementById('roundCompleteCallout').style.display = "none";
+
+        var container1 = document.getElementById('card1Container');
+        var container2 = document.getElementById('card2Container');
+        var container3 = document.getElementById('card3Container');
+        var ccard = container1;
+        var ccount = 1;
+        var carddrop = setInterval(function()
+        {
+            // console.log('dropping card', ccount);
+            if (ccount===2) ccard = container2;
+            else if (ccount===3) ccard = container3;
+            // console.log('cardContainer:', ccard);
+            
+            // card.className = 'flipped';
+            ccard.style.visibility = 'visible';
+            ccard.style.animationPlayState = 'running';
+            // card.classList.add('flipped');
+            ccount++;
+            if (ccount > 3)
+            {
+                clearInterval(carddrop);
+                flipper(false);
+            }
+        }, 1000);
+    };
+
+    var flipper = function(isTop10)
     {
         var card1 = document.getElementById('card1');
         var card2 = document.getElementById('card2');
@@ -4013,15 +4069,46 @@ core_client.prototype.roundWinnersView = function()
             console.log('flipping card', count);
             if (count===2) card = card2;
             else if (count===3) card = card3;
+            else if (count > 3) // we're done
+            {
+                cardsReset();
+                clearInterval(cardflipper);
+            }
             // console.log('card:', card);
             
             // card.className = 'flipped';
             card.classList.remove('cardContainer');
             card.classList.add('flipped');
             count++;
-            if (count > 3)
-                clearInterval(cardflipper);
         }, 1500);
+    }
+
+    var cardsReset = function()
+    {
+        setTimeout(function()
+        {
+            document.getElementById('winner1').style.opacity = 0;
+            document.getElementById('winner2').style.opacity = 0;
+            document.getElementById('winner3').style.opacity = 0;
+
+            card1.classList.add('flippedBack');
+            card1.classList.remove('flipped');
+            card2.classList.add('flippedBack');
+            card2.classList.remove('flipped');
+            card3.classList.add('flippedBack');
+            card3.classList.remove('flipped');
+            
+            var callout = document.getElementById('roundCompleteCallout');
+            callout.innerHTML = "Your <b>TOP 10</b> Round " + _this.config.round.total.toString() + " Scorers<br><i>(Selected at Random)</i>";
+            callout.style.display = "block";
+            // callout.style.animationPlayState = 'running';
+
+            setTimeout(function()
+            {
+                callout.style.display = "none";
+                showWinners(true);
+            }, 3000);
+        }, 2000);
     }
 };
 
