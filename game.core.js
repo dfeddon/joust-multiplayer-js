@@ -2452,10 +2452,10 @@ game_core.prototype.roundComplete = function(port, round)
         for (var y = ordered.length - 1; y >= 0; y--)
         {
             // index, userid, buff
-            console.log('ordered', Math.floor(Math.random() * (buffs.length + 1)));// ordered[y]);
+            // console.log('ordered', Math.floor(Math.random() * (buffs.length - 1)));// ordered[y]);
             if (!Boolean(ordered[y].userid))
                 ordered[y].userid = 0;
-            top10.push([y+1, ordered[y].userid, Math.floor(Math.random() * (buffs.length + 1))]);
+            top10.push([y+1, ordered[y].userid, Math.floor(Math.random() * (buffs.length))]);
         }
         console.log('* top10:', top10);
         
@@ -2467,7 +2467,7 @@ game_core.prototype.roundComplete = function(port, round)
         for (var i = 0; i < p.length; i++)
         {
             p[i].active = false;
-            if (p[i].instance)
+            if (p[i].instance && p[i].dead !== true)
             {
                 // notify client
                 p[i].instance.room(port).write([30, top10]);

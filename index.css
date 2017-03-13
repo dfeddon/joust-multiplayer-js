@@ -1152,6 +1152,182 @@ h5
 	/*float: right;*/
 }
 
+#level-ui
+{
+	/*border:solid 1px #aqua;*/
+	pointer-events: none;
+	z-index: 250;
+	position: absolute;
+	bottom: 10px;
+	height: 100px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+#abilities-container
+{
+	/*border:solid 1px red;*/
+	/*width: 400px;*/
+	order: 1;
+	height: 90px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+#modifiers-container
+{
+	/*border:solid 1px white;*/
+	/*width: 50%;*/
+	width: 100px;
+	height: 50px;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+.modifier
+{
+	width: 90%;
+	height: 50px;
+	/*border:solid 1px gray;*/
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+#modify1-text
+{
+	order: 1;
+	/*font-family: 'Mirza', serif;*/
+	font-size: 1em;
+	padding-right: 10px;
+	color: cyan;
+}
+#modify1-bar
+{
+	order: 2;
+	width: 100%;
+	height: 2px;
+    background: cyan; /* For browsers that do not support gradients */    
+	background-image: -webkit-linear-gradient(left, cyan, cyan 25%, gray 25%, gray);
+	background-image: -moz-linear-gradient(left, cyan, cyan 25%, gray 25%, gray);
+	background-image: -o-linear-gradient(left, cyan, cyan 25%, gray 25%, gray);
+	background-image: linear-gradient(to right, cyan, cyan 25%, gray 25%, gray);
+}
+#modify2-text
+{
+	order: 1;
+	/*font-family: 'Mirza', serif;*/
+	font-size: 1em;
+	padding-right: 10px;
+	color: pink;
+}
+#modify2-bar
+{
+	order: 2;
+	width: 100%;
+	height: 2px;
+    background: pink; /* For browsers that do not support gradients */    
+	background-image: -webkit-linear-gradient(left, pink, pink 25%, gray 25%, gray);
+	background-image: -moz-linear-gradient(left, pink, pink 25%, gray 25%, gray);
+	background-image: -o-linear-gradient(left, pink, pink 25%, gray 25%, gray);
+	background-image: linear-gradient(to right, pink, pink 25%, gray 25%, gray);
+}
+#roundslot-container
+{
+	display: none;
+	border:solid 1px gold;
+	/*opacity: 0.25;*/
+	width: 45px;
+	height: 45px;
+	/*background-image:url("./assets/frame.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;*/
+}
+#roundslot-img
+{
+	/*background-image:url("./assets/frame.png");*/
+}
+#buffs-container
+{
+	/*border:solid 1px yellow;*/
+	/*width: 50%;*/
+	height: 100px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+.buffslot-locked
+{
+	width: 45px;
+	height: 45px;
+	border:solid 0.5px black;
+	opacity: 0.25;
+	/*border-radius: 5px;*/
+	background-color: gray;
+	background-image:url("./assets/buff-lock.png");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+.buffslot-empty
+{
+	width: 45px;
+	height: 45px;
+	border:solid 1px white;
+	/*background-color: gold;*/
+}
+.buffslot-on
+{
+	width: 45px;
+	height: 45px;
+	border:solid 1px gold;
+	background-color: gold;
+}
+#buff1
+{
+	order: 1;
+}
+#buff2
+{
+	order: 2;
+}
+#buff3
+{
+	order: 3;
+}
+
+#levelbar-container
+{
+	order: 2;
+	border:solid 1px gray;
+	opacity: 0.5;
+	height: 10px;
+	width: 50%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	background-color: gray;
+}
+
 #viewport {
 	/*opacity: 0.5;*/
 	/*border:solid 1px #333;*/

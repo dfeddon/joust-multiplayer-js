@@ -1,15 +1,15 @@
 "use strict";
 
-function game_round(server_time)
+function game_round()
 {
     console.log('== game_round constructor ==');
     
-    this.round = {};
+    // this.round = {};
     
-    this.round.duration = .1; // minutes
+    this.duration = .1; // minutes
     // this.round.endtime = server_time + (this.round.duration * 60);
-    this.round.total = 1;
-    this.round.active = true;
+    this.total = 1;
+    this.active = true;
 
     return this;
 }

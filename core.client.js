@@ -1,11 +1,12 @@
 
 
-var _                   = require('lodash'), 
+var _                   = require('lodash'),
     assets              = require('./singleton.assets'),
     game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
     game_chest          = require('./class.chest'),
     game_toast          = require('./class.toast'),
+    game_round          = require('./class.round'),
     getplayers          = require('./class.getplayers'),
     pool                = require('typedarray-pool');
 
@@ -121,7 +122,7 @@ function core_client(core, config)
     var v = document.getElementById("viewport");
     this.config.ctx = v.getContext('2d');
 
-    this.config.round = {};
+    this.config.round = new game_round();//{};
     this.config.round.active = true;
 
 
@@ -4028,7 +4029,7 @@ core_client.prototype.roundWinnersView = function(winners)
         //     start = 3;
         //     max = 6;
         // }
-        var ele, url, winner,pname,pskin,playerName;
+        var ele, url, winner,pname,pskin,player,playerName;
         for (var i = 0; i < 3; i++)
         {
             if (isTop10)
@@ -4039,10 +4040,13 @@ core_client.prototype.roundWinnersView = function(winners)
             ele = "front" + (i + 1).toString();
             url = './assets/card_' + cardsArray[winner[2]] + '.png';
             pname = "winner" + (i + 1).toString() + "label";
-            playerName = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
+            player = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
+            if (!Boolean(player))
+                playerName = "*";
+            else playerName = player.playerName;
             
             document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
-            document.getElementById(pname).innerHTML = winner[1].toString();
+            document.getElementById(pname).innerHTML = playerName.toString();
         }
         document.getElementById("winner1").style.opacity = "1";
         var pcount = 1;
