@@ -1147,7 +1147,11 @@ core_client.prototype.client_connect_to_server = function(data)
             // disconnect
             case 25: _this.client_ondisconnect(data[1]); break;
 
-            case 30: _this.client_onroundcomplete(); break;
+            // game round complete
+            case 30: _this.client_onroundcomplete(data[1]); break;
+
+            // bonus round complete
+            case 31: _this.client_onbonusroundcomplete(data[1]); break;
 
             // onserverupdate (streaming)
             default: _this.client_onserverupdate_recieved(data); break;
@@ -1605,7 +1609,19 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
     }
 };
 
-core_client.prototype.client_onroundcomplete = function()
+core_client.prototype.client_onbonusroundcomplete = function(round)
+{
+    console.log('== client_onbonusroundcomplete ==');
+
+    // restore timer
+    this.config.round = round;
+
+    // restore local round and player
+    this.config.round.active = true;
+    this.players.self.active = true;
+};
+
+core_client.prototype.client_onroundcomplete = function(winners)
 {
     console.log('== client_onroundcomplete ==');
 
@@ -1630,7 +1646,7 @@ core_client.prototype.client_onroundcomplete = function()
     setTimeout(function()
     {
         callout.style.display = "none";
-        _this.roundWinnersView(); 
+        _this.roundWinnersView(winners); 
     }, 5000);
 }
 
@@ -3944,11 +3960,16 @@ core_client.prototype.flagToScore = function(flag, slot)
     return {red: red, blue:blue};
 };
 
-core_client.prototype.roundWinnersView = function()
+core_client.prototype.roundWinnersView = function(winners)
 {
-    console.log('== roundWinnersView ==');
+    console.log('== roundWinnersView ==', winners);
 
     var _this = this;
+
+    var isWinner = false;
+
+    // sort winners (ascending)
+    winners.sort(function(a, b){return a[0]-b[0];});
 
     // show winners ui
     document.getElementById('roundWinnersView').style.display = "flex";
@@ -3959,24 +3980,28 @@ core_client.prototype.roundWinnersView = function()
     document.getElementById('uiTopBar').style.display = "none";
     document.getElementById('uiInfoBarBottom').style.display = "none";
     document.getElementById('scoreboard').style.display = "none";
-    document.getElementById('mobile-controls-r').style.display = "none";
-    document.getElementById('mobile-controls-l').style.display = "none";
+
+    var mobilecontrols;
+    var mcr = document.getElementById('mobile-controls-r');
+    var mcl = document.getElementById('mobile-controls-l');
+    console.log('*r', window.getComputedStyle(mcr, null).getPropertyValue("display"));
+    console.log('*l', window.getComputedStyle(mcl, null).getPropertyValue("display"));
+    if (mcr.offsetWidth < 0 || mcr.offsetHeight < 0)
+    {
+        document.getElementById('mobile-controls-r').style.display = "none";
+        mobilecontrols = mcr;//document.getElementById('mobile-controls-r');
+    }
+    else if (mcl.offsetWidth < 0 || mcl.offsetHeight < 0)
+    {
+        document.getElementById('mobile-controls-l').style.display = "none";
+        mobilecontrols = mcl;//document.getElementById('mobile-controls-l');
+    }
+    else mobilecontrols = null;
 
     // document.getElementById('winnersRow').style.display = "none";
 
     // assign card face to winners cards
     var cardsArray = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"]; // ordered abilities
-    // winners: 1 = index / 2 = userid / 3 = ability
-    var winners = 
-    [
-        {i:1,u:1,a:6},
-        {i:2,u:2,a:2},
-        {i:3,u:3,a:5},
-        {i:4,u:4,a:7},
-        {i:5,u:5,a:2},
-        {i:6,u:6,a:4}
-    ]; // ordered userid's
-    console.log('allplayers', this.core.getplayers.allplayers);
     
     // show bonus round text
     var bonusText = function()
@@ -3996,16 +4021,28 @@ core_client.prototype.roundWinnersView = function()
     // show players
     var showWinners = function(isTop10)
     {
-        var ele, url, winner,pname,pskin;
+        var start = 0;
+        var max = 3;
+        // if (isTop10)
+        // {
+        //     start = 3;
+        //     max = 6;
+        // }
+        var ele, url, winner,pname,pskin,playerName;
         for (var i = 0; i < 3; i++)
         {
-            winner = winners[i];
+            if (isTop10)
+                winner = winners[i + 3];
+            else winner = winners[i];
+            console.log('winner', winner);
+            
             ele = "front" + (i + 1).toString();
-            url = './assets/card_' + cardsArray[winner.a-1] + '.png';
+            url = './assets/card_' + cardsArray[winner[2]] + '.png';
             pname = "winner" + (i + 1).toString() + "label";
+            playerName = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
             
             document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
-            document.getElementById(pname).innerHTML = winner.u.toString();
+            document.getElementById(pname).innerHTML = winner[1].toString();
         }
         document.getElementById("winner1").style.opacity = "1";
         var pcount = 1;
@@ -4024,7 +4061,7 @@ core_client.prototype.roundWinnersView = function()
             }
             pcount++;
 
-        }, 1500);
+        }, 250);
     };
     
     // card drop
@@ -4071,7 +4108,13 @@ core_client.prototype.roundWinnersView = function()
             else if (count===3) card = card3;
             else if (count > 3) // we're done
             {
-                cardsReset();
+                if (isTop10)
+                {
+                    if (isWinner)
+                        back2game();
+                    else back2game();//bonusOptional();
+                }
+                else cardsReset();
                 clearInterval(cardflipper);
             }
             // console.log('card:', card);
@@ -4109,7 +4152,61 @@ core_client.prototype.roundWinnersView = function()
                 showWinners(true);
             }, 3000);
         }, 2000);
-    }
+    };
+
+    var bonusOptional = function()
+    {
+        // rng for last chance boon?
+        document.getElementById('winner1').style.display = "none";
+        document.getElementById('winner3').style.display = "none";
+
+        card1.style.display = "none";
+        card3.style.display = "none";
+        card2.classList.add('flippedBack');
+        card2.classList.remove('flipped');
+
+        var callout = document.getElementById('roundCompleteCallout');
+        callout.innerHTML = "<b>LAST CHANCE BONUS!</b><br>You've been awarded the chance to receive a boon. To accept, simply watch a short video ad.";
+        callout.style.display = "block";
+
+        // two buttons, and a countdown timer
+    };
+
+    var back2game = function()
+    {
+        console.log('== back2game ==');
+
+        var backer = setTimeout(function()
+        {
+            // reset cards ui
+            card1.classList.add('flippedBack');
+            card1.classList.remove('flipped');
+            card2.classList.add('flippedBack');
+            card2.classList.remove('flipped');
+            card3.classList.add('flippedBack');
+            card3.classList.remove('flipped');
+
+            // ...and players ui
+            document.getElementById('winner1').style.opacity = 0;
+            document.getElementById('winner2').style.opacity = 0;
+            document.getElementById('winner3').style.opacity = 0;
+
+            // hide winners ui
+            document.getElementById('roundWinnersView').style.display = "none";
+
+            // show game ui
+            document.getElementById('viewport').style.display = "block";
+            document.getElementById('uiInfoBar').style.display = "block";
+            document.getElementById('uiTopBar').style.display = "block";
+            document.getElementById('uiInfoBarBottom').style.display = "block";
+            document.getElementById('scoreboard').style.display = "block";
+            console.log('mobilecontrols', mobilecontrols);
+            
+            if (mobilecontrols)
+                mobilecontrols.style.display = "flex";
+
+        }, 1500);
+    };
 };
 
 module.exports = core_client;

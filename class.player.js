@@ -78,7 +78,9 @@ function game_player(player_instance, isHost, pindex, config)
     this.vuln = false;
     this.bubble = false;
     this.dying = false;
-    this.score = 0;
+    this.score = Math.floor(Math.random() * 101);;
+    this.lastscore = 0;
+    this.roundscore = 0;
 
     // TODO: default to invisible skin
     this.skin = "skin1";

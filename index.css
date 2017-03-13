@@ -1344,7 +1344,7 @@ h5
 {
 	flex-direction: column;
 	flex-wrap: nowrap;
-	display: flex;
+	display: none;/*flex;*/
 	position: absolute;
 	/*background-image: url("./assets/roundWinners_ipad.png");*/
 	background-size: contain;

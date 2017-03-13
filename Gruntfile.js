@@ -77,6 +77,7 @@ module.exports = function(grunt)
                     '../wingdom-server-dist/game.core.js': ['game.core.js'],
                     '../wingdom-server-dist/core.client.js': ['core.client.js'],
                     '../wingdom-server-dist/class.globals.js': ['class.globals.js'],
+                    '../wingdom-server-dist/class.round.js': ['class.round.js'],
                     '../wingdom-server-dist/singleton.assets.js': ['singleton.assets.js'],
                     '../wingdom-server-dist/class.getplayers.js': ['class.getplayers.js'],
                     '../wingdom-server-dist/class.player.js': ['class.player.js'],

@@ -3,6 +3,7 @@
 const game_player = require('./class.player');
 const game_event_server = require('./class.event');
 const game_flag = require('./class.flag');
+const game_round = require('./class.round');
 
 function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {
@@ -185,11 +186,13 @@ getplayers.prototype.addRoom = function(port)
         cooldowns = this.game_instance.inRoomCooldowns[port] = [];
 
         // set round end time
-        round = this.game_instance.inRoomRound[port] = {};
-        round.duration = .1; // minutes
-        round.endtime = this.config.server_time + (round.duration * 60);
+        round = this.game_instance.inRoomRound[port] = {};//new game_round();//{};
+        round.duration = 35; //* 60; // minutes
+        round.bonusDuration = 35;
+        round.endtime = Math.floor(this.config.server_time + round.duration);//(round.duration * 60);
         round.total = 1;
         round.active = true;
+        round.stage = 1; // 1 = game / 2 = bonus
         // console.log('roundEndTime:', round.endtime);
         
     }

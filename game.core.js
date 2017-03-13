@@ -2366,7 +2366,7 @@ game_core.prototype.server_update = function()
         {
             console.log('ROUND HAS COMPLETED', roomRound);
             roomRound.active = false;
-            this.roundComplete(allrooms[m]);
+            this.roundComplete(allrooms[m], roomRound);
         }
     }
             
@@ -2413,20 +2413,91 @@ game_core.prototype.server_update = function()
     */
 }; //game_core.server_update
 
-game_core.prototype.roundComplete = function(port)
+game_core.prototype.roundComplete = function(port, round)
 {
     console.log('== roundComplete', port, '==');
-    // deactivate players
-    var p = this.getplayers.fromRoom(port, 0);
-    for (var i = 0; i < p.length; i++)
+
+    if (round.stage === 1) // game round complete
     {
-        p[i].active = false;
-        if (p[i].instance)
+        console.log('Game Round Complete');
+        
+        // set round for bonus stage
+        round.stage = 2;
+        round.endtime = Math.floor(this.config.server_time + round.bonusDuration);//(round.duration * 60);
+
+        // pick winners (player.score - player.lastscore = round score)
+        var p = this.getplayers.fromRoom(port, 0);
+        for (var z = p.length - 1; z >= 0; z--)
         {
-            // notify client
-            p[i].instance.room(port).write([30]);
+            p[z].roundscore = p[z].score - p[z].lastscore;
+            console.log(p[z].roundscore);
+        }
+        var ordered = _.orderBy(p, ['roundscore'], ['desc']);
+        // reduce to top 10
+        ordered.splice(9, ordered.length - 10);
+        // console.log('ordered:', ordered);//.length);
+        
+        // remove 3 users from 4 - 10
+        var rng;
+        for (var x = 0; x < 4; x++)
+        {
+            rng = Math.floor((Math.random() * ordered.length - 4) + 4);
+            console.log('splicing', rng - 1);
+            
+            ordered.splice(rng - 1, 1);
+        }
+        console.log("top10:", ordered);
+        var buffs = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"];
+        var top10 = [];
+        for (var y = ordered.length - 1; y >= 0; y--)
+        {
+            // index, userid, buff
+            console.log('ordered', Math.floor(Math.random() * (buffs.length + 1)));// ordered[y]);
+            if (!Boolean(ordered[y].userid))
+                ordered[y].userid = 0;
+            top10.push([y+1, ordered[y].userid, Math.floor(Math.random() * (buffs.length + 1))]);
+        }
+        console.log('* top10:', top10);
+        
+        // top 3
+
+        // rng top 4 - 10
+
+        // deactivate players
+        for (var i = 0; i < p.length; i++)
+        {
+            p[i].active = false;
+            if (p[i].instance)
+            {
+                // notify client
+                p[i].instance.room(port).write([30, top10]);
+            }
         }
     }
+    else if (round.stage === 2) // Bonus Round complete
+    {
+        console.log('Bonus Round Complete');
+        
+        // set round for game
+        round.stage = 1;
+        round.endtime = Math.floor(this.config.server_time + round.duration);//(round.duration * 60);
+        round.total++;
+
+        // deactivate players
+        var p = this.getplayers.fromRoom(port, 0);
+        for (var i = 0; i < p.length; i++)
+        {
+            p[i].active = true;
+            if (p[i].instance)
+            {
+                // notify client
+                p[i].instance.room(port).write([31, round]);
+            }
+        }        
+    }
+
+    // lastly, reactivate round
+    round.active = true;
 }
 
 game_core.prototype.handle_server_input = function(client, input, input_time, input_seq)
