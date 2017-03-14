@@ -2092,7 +2092,12 @@ game_core.prototype.server_update = function()
             //bufView[7] = player.vx;//.fixed(2);//.fixed(2);
             //bufView[8] = player.vy;//.fixed(2);//.fixed(2);
             // bufView[6] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
-            bufView[6] = (player.bubble) ? 1 : 0;
+            if (player.slotDispatch)
+            {
+                // console.log('* slotDispatch', player.slotDispatch);                
+                bufView[6] = player.slotDispatch;//(player.bubble) ? 1 : 0;
+                player.slotDispatch = null;
+            }
             // bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
             //bufView[9] = i; // player's bufferIndex
             bufView[7] = player.score;//(player.dead) ? 1 : 0;//player.team;

@@ -91,7 +91,7 @@ game_chest.prototype.doTake = function(player)//, chests)
 
   // assign passive to player
   console.log('passive', this.data, this.type);//, this.duration, this.modifier);
-  player.setPassive(this.data);
+  player.addBuffToServer(this.data);
   // switch(this.type)
   // {
   //   case this.game_buffs.BUFFS_BUBBLE: // acceleration boost

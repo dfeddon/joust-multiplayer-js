@@ -75,8 +75,15 @@ function game_player(player_instance, isHost, pindex, config)
     //this.color = 'rgba(255,255,255,0.1)';
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
-    // i = index / a: active / b: buff id (0 = none) / u: update live socket (0 = false)
-    this.slots = [{i:1, a:1, b:0, u:0}, {i:2, a:0, b:0, u:0}, {i:3, a:0, b:0, u:0}];
+    // i = index / a: active / b: buff id (0 = none) / d: cooldown (end time)
+    
+    this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
+    this.slotDispatch = null; // server only
+    // this.roundSlotImage = null;
+    // this.slot1Image = null;
+    // this.slot2Image = null;
+    // this.slot3Image = null;
+    
     this.health = 100;
     this.engaged = false;
     this.vuln = false;
@@ -218,11 +225,242 @@ game_player.prototype.setFromBuffer = function(data)
     //this.vx = data[7];
     //this.vy = data[8];
     // this.hasFlag = data[6];
-    this.bubble = (data[6] === 1) ? true : false;
+    // console.log('data.6', data[6]);
+    
+    if (data[6])
+    {
+        // < 100 = addBuff
+        if (data[6] < 100)
+            this.addBuff(data[6]);//(data[6] === 1) ? true : false;
+        // > 100 = removeBuff
+        else this.removeBuff(data[6] - 100);
+    }
     // this.visible = (data[8] === 1) ? true : false;
     //this.bufferIndex = data[9]; // j
     this.score = data[7];
     // this.active = (data[8] === 1) ? true : false;
+}
+
+game_player.prototype.buffIdsToSlots = function(ids)
+{
+    console.log('== buffIdsToSlots ==', ids);
+    
+    // slot order is *not* important!
+    for (var i = 0; i < ids.length; i++)
+    {
+        this.slots[i].b = ids[i];
+    }
+
+    console.log('* assigned slots', this.slots);
+    
+};
+
+game_player.prototype.addBuff = function(buff)
+{
+    console.log('== addBuff ==', buff);
+
+    // this.slots = [{i:1, a:1, b:0, c:0}];
+
+    // if player is self, add buff to slot
+    // order array ascending
+    this.slots.sort(function(a, b){return a.i-b.i;});
+    console.log('my ordered slots', this.slots);
+
+    // determine cooldown (base is 60 seconds, subject to modifiers)
+    var cooldown = this.config.server_time + 60;
+
+    // get image
+    var buffImage = this.game_buffs.getImageById(buff);
+
+    if (this.slots[0].b === 0 || this.slots[1].a === 0)
+    {
+        console.log('* added buff', buff, 'to slot 1...');        
+        this.slots[0].b = buff;
+        this.slots[0].c = cooldown;
+        // this.slot1Image = buffImage;
+        
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('buff1').className = "buffslot-on";
+            document.getElementById('buff1').style.backgroundImage = "url('" + buffImage + "')";
+        }
+    }
+    // slot 2
+    else if (this.slots[1].b === 0 || this.slots[2].a === 0)
+    {
+        console.log('* added buff', buff, 'to slot 2...');        
+        this.slots[1].b = buff;
+        this.slots[1].c = cooldown;
+        
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('buff2').className = "buffslot-on";
+            document.getElementById('buff2').style.backgroundImage = "url('" + buffImage + "')";
+        }
+    }
+    // slot 3
+    else
+    {
+        console.log('* added buff', buff, 'to slot 3...');        
+        this.slots[2].b = buff;
+        this.slots[2].c = cooldown;
+        
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('buff3').className = "buffslot-on";
+            document.getElementById('buff3').style.backgroundImage = "url('" + buffImage + "')";
+        }
+    }
+
+    // activate buff
+    switch(buff) // buff
+    {
+        // case 1: // speed boost
+        //     this.updateProgression(10);
+        // break;
+
+        case this.game_buffs.BUFFS_BUBBLE:
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_ALACRITY:
+        break;
+        case this.game_buffs.BUFFS_PRECISION:
+        break;
+        case this.game_buffs.BUFFS_RECOVER:
+        break;
+        case this.game_buffs.BUFFS_BLINK:
+            this.blinking = true;
+        break;
+        case this.game_buffs.BUFFS_REVEAL:
+        break;
+        case this.game_buffs.BUFFS_BRUISE:
+        break;
+        case this.game_buffs.BUFFS_PLATE:
+        break;
+    }    
+};
+
+game_player.prototype.removeBuff = function(slot)
+{
+    console.log('== removeBuff ==', slot);
+
+    if (this.slots[0].b === slot)
+    {
+        // if slot 2 has no buff, clear slot 1
+        if (this.slots[1].b === 0)
+        {
+            this.slots[0].b = 0;
+            this.slots[0].c = 0;
+
+            if (!this.config.server && this.isLocal)
+            {
+                document.getElementById('buff1').className = "buffslot-empty";
+                document.getElementById('buff1').style.backgroundImage = "none";
+            }
+        }
+        // replace slot 1 if slot 2 taken
+        else
+        { 
+            this.slots[0].b = this.slots[1].b;
+            this.slots[0].c = this.slots[1].c;
+
+            if (!this.config.server && this.isLocal)
+            {
+                document.getElementById('buff1').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[1].b) + "')";
+            }
+
+            if (this.slots[2].b === 0)
+            {
+                // clear slot 2
+                this.slots[1].b = 0;
+                this.slots[1].c = 0;
+                // clear slot 2 image
+                if (!this.config.server && this.isLocal)
+                {
+                    document.getElementById('buff2').className = "buffslot-empty";
+                    document.getElementById('buff2').style.backgroundImage = "none";
+                }
+            }
+            else
+            {
+                // replace slot 2 if slot 3 taken
+                this.slots[1].b = this.slots[2].b;
+                this.slots[1].c = this.slots[2].c;
+                // move slot image
+                if (!this.config.server && this.isLocal)
+                {
+                    document.getElementById('buff2').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[2].b) + "')";
+                }
+                // and clear slot 3 (now at slot 2)
+                this.slots[2].b = 0;
+                this.slots[2].c = 0;
+                // clear slot 3 image
+                if (!this.config.server && this.isLocal)
+                {
+                    document.getElementById('buff3').className = "buffslot-empty";
+                    document.getElementById('buff3').style.backgroundImage = "none";
+                }
+            }
+        }
+    }
+    // slot 2
+    else if (this.slots[1].b === slot)
+    {
+        // if slot 3 empty
+        if (this.slots[2].b === 0)
+        {
+            this.slots[1].b = 0;
+            this.slots[1].c = 0;
+        }
+        // else move 3 to 2
+        else
+        {
+            // move slot 3 to 2
+            this.slots[1].b = this.slots[2].b;
+            this.slots[1].c = this.slots[2].c;
+            // clear 3
+            this.slots[2].b = 0;
+            this.slots[2].c = 0;
+        }
+    }
+    // slot 3
+    else
+    {
+        this.slots[2].b = 0;
+        this.slots[2].c = 0;
+    }
+
+    // deactivate buff
+    switch(slot) // buff
+    {
+        // case 1: // speed boost
+        //     this.updateProgression(10);
+        // break;
+
+        case this.game_buffs.BUFFS_BUBBLE:
+            this.bubble = false;
+        break;
+        case this.game_buffs.BUFFS_BLINK:
+            this.blinking = false;
+        break;
+    }
+    
+};
+
+game_player.prototype.buffExpired = function(slot)
+{
+    console.log('== buffExpired ==', slot);
+
+    // clear cooldown
+    slot.c = 0;
+
+    // send expired buff to client
+    // adding +100 to slot id signals it's an expired buff
+    this.slotDispatch = 100 + slot.b;
+
+    // clear buffer on server
+    slot.b = 0;
+    // this.removeBuff(slot.b);
 }
 
 game_player.prototype.reset = function()
@@ -777,7 +1015,7 @@ game_player.prototype.hitFrom = 0;
 game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
-    //console.log('== player.update ==', this.config.server, this.isBot, this.mp);
+    // console.log('== player.update ==', this.config.server_time);//server, this.isBot, this.mp);
     //if (this.mp == "cp1")
     //console.log('p:', this.mp, this.visible, this.active);
     
@@ -785,6 +1023,22 @@ game_player.prototype.update = function()
     // {
     //     this.botAction();
     // }
+
+    // check buffs for cooldowns
+    // no need to check roundSlot which has no cooldown
+    if (this.config.server)
+    {
+        // if (this.slots[0].b)
+        // console.log('*', this.slots[0].c, this.config.server_time);
+        
+        if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
+            this.buffExpired(this.slots[0]);
+        if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
+            this.buffExpired(this.slots[1]);
+        if (this.slots[2].b && this.slots[2].c <= this.config.server_time)
+            this.buffExpired(this.slots[2]);
+    }
+
     // ensure tilemap data is loaded (locally)
     if (!this.tmd) this.tmd = this.config.tilemapData;
     if (this.landed === 1)
@@ -1122,66 +1376,15 @@ game_player.prototype.timeoutRespawn = function(victor)
     // }
 };
 
-game_player.prototype.setPassive = function(data)//type, duration, modifier)
+game_player.prototype.addBuffToServer = function(data)//type, duration, modifier)
 {
-    console.log('setPassive', this.playerName, data);
+    console.log('== addBuffToServer ==', this.playerName, data);
 
-    // this.slots = [{i:1, a:1, b:0}];
-    // order array ascending
-    this.slots.sort(function(a, b){return a.i-b.i;});
-    console.log('my ordered slots', this.slots);
-    
-    // NOTE: only set u to 1 for visual buffs, eg: bubble and blink?
-    // u = 1 will dispatch slot buff via live sockets
-    if (this.slots[0].b === 0 || this.slots[1].a === 0)
-    {
-        console.log('* added buff', data.t, 'to slot 1...');        
-        this.slots[0].b = data.t;
-    }
-    // slot 2
-    else if (this.slots[1].b === 0 || this.slots[2].a === 0)
-    {
-        console.log('* added buff', data.t, 'to slot 2...');        
-        this.slots[1].b = data.t;
-    }
-    // slot 3
-    else
-    {
-        console.log('* added buff', data.t, 'to slot 3...');        
-        this.slots[2].b = data.t;
-    }
+    // store new buff
+    this.addBuff(data.t);
 
-    switch(data.t) // buff
-    {
-        // case 1: // speed boost
-        //     this.updateProgression(10);
-        // break;
-
-        case this.game_buffs.BUFF_BUBBLE: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_ALACRITY: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_PRECISION: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_RECOVER: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_BLINK: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_REVEAL: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_BRUISE: // bubble
-            this.bubble = true;
-        break;
-        case this.game_buffs.BUFFS_PLATE: // bubble
-            this.bubble = true;
-        break;
-    }
+    // set new buff for dispatch to client (via live socket)
+    this.slotDispatch = data.t;
 };
 
 game_player.prototype.doCycleAbility = function()

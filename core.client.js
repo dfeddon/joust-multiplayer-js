@@ -726,7 +726,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
                     p[i].team = other.team;
                     p[i].setPlayerName(other.playerName);
                     p[i].setSkin(other.skin);
-                    
+                    p[i].buffIdsToSlots(other.buffs);
                 }
             });
         }

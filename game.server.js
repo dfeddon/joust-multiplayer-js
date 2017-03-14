@@ -675,6 +675,7 @@ game_server.prototype.startGame = function(game, newplayer)
     var others = [];
     var other;
     var pd;
+    var buffs = [];
     var players = this.games[game.id].gamecore.getplayers.fromRoom(playerPort);
     for (var i = 0; i < game.player_clients.length; i++)
     {
@@ -693,7 +694,15 @@ game_server.prototype.startGame = function(game, newplayer)
                 if (players[a].mp == other.mp)
                 {
                     this.log('@ adding "other" player', other.playerName, other.userid);
-                    others.push({mp: other.mp, userid: other.userid, skin:players[a].skin, playerName:players[a].playerName, team:players[a].team});
+                    others.push(
+                    {
+                        mp: other.mp, 
+                        userid: other.userid, 
+                        skin: players[a].skin, 
+                        playerName: players[a].playerName, 
+                        team: players[a].team,
+                        buffs: players[a].game_buffs.getBuffsAsArray(players[a].slots)
+                    });
                 }
             }
         }
@@ -810,8 +819,10 @@ game_server.prototype.startGame = function(game, newplayer)
                 //nonhosts[j].send('s.j.' + nonhosts[j].mp + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName);
                 //nonhosts[j].send('s.h.' + playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId);
                 //console.log('nonhosts[j]', nonhosts[j]);
-                this.log('hi:', this.games[game.id].gamecore.getplayers);
-                this.log("hostgame", this.games[game.id].id, this.games[game.id].gamecore.getplayers.fromRoom(playerPort, 5));
+                // for (var a = 0; a < others.length; a++)
+                //     this.log('other:', others[a].buffs);
+                // this.log('hi:', this.games[game.id].gamecore.getplayers);
+                // this.log("hostgame", this.games[game.id].id, this.games[game.id].gamecore.getplayers.fromRoom(playerPort, 5));
                 // TODO: onhostgame: id "other" players by sending array matching mp to players assigned a userid
                 var data = [];
                 data[0] = playerMP;
