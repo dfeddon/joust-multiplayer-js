@@ -4038,7 +4038,7 @@ core_client.prototype.roundWinnersView = function(winners)
             console.log('winner', winner);
             
             ele = "front" + (i + 1).toString();
-            url = './assets/card_' + cardsArray[winner[2]] + '.png';
+            url = './assets/cards/card_' + cardsArray[winner[2]] + '.png';
             pname = "winner" + (i + 1).toString() + "label";
             player = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
             if (!Boolean(player))

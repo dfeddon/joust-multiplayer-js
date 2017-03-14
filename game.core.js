@@ -178,11 +178,11 @@ game_core.prototype.init = function(game_instance)//, io)
     // chests
     this.chestSpawnPoints = [];
     // chest rewards
-    this.passives = [
-        {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
-        {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
-        //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
-    ];
+    // this.passives = [
+    //     {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
+    //     {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
+    //     //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
+    // ];
 
     // flags
     this.config.flagObjects = [];
@@ -422,7 +422,7 @@ game_core.prototype.init = function(game_instance)//, io)
     this.config.clientCooldowns = this.clientCooldowns;
     this.config.chests = this.chests;
     this.config.chestSpawnPoints = this.chestSpawnPoints;
-    this.config.passives = this.passives;
+    // this.config.passives = this.passives;
     this.config._ = _;
     this.config.gridToPixel = this.gridToPixel;
 
@@ -2081,6 +2081,7 @@ game_core.prototype.server_update = function()
 
             
             //*
+            // TODO: Avoid redundancies here (send data point only *when changed*)
             bufView[0] = player.pos.x;//.fixed(0);
             bufView[1] = player.pos.y;//.fixed(0);//.fixed(2);
             bufView[2] = player.dir;

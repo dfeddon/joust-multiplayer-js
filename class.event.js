@@ -15,6 +15,8 @@ console.log('diff ' + (e.getTime() - now.getTime())/1000);
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
 const getUid      = require('get-uid');
+const game_buffs  = require('./class.buffs');
+
 const MAX_CHESTS  = 6;
 
 function game_event(getplayers, config)//game_instance)
@@ -23,6 +25,7 @@ function game_event(getplayers, config)//game_instance)
   this.uid = getUid();
   this.getplayers = getplayers;
   this.config = config;
+  this.game_buffs = new game_buffs();
 
   //if (game_instance.server)
   this.shuffle = require('./node_modules/lodash/shuffle');
@@ -192,7 +195,8 @@ game_event.prototype.update = function()
         this.spawn.active = true;
         //console.log('selected spawn', this.spawn);
         // 3. rng chest content
-        this.passive = this.shuffle(this.config.passives)[0];
+        // this.passive = this.shuffle(this.config.passives)[0];
+        this.passive = this.game_buffs.getRngBuffEvent();
         //console.log('selected passive', this.passive);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)

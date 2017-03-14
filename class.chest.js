@@ -9,14 +9,16 @@
 
 // require('gsap-tween-light');
 // var tweenmax = require("./node_modules/gsap/src/minified/TweenLite.min.js");
-var assets = require('./singleton.assets');
-var _ = require('./node_modules/lodash/lodash.min');
+var assets      = require('./singleton.assets');
+var _           = require('./node_modules/lodash/lodash.min');
+var game_buffs  = require('./class.buffs');
 
 function game_chest(data, client, getplayers, config)
 {
   console.log('== game_chest constructor', data, '==');
   
   var _this = this;
+  this.game_buffs = new game_buffs();
   //this.game = game_instance;
   this.data = data;
   this.getplayers = getplayers;
@@ -88,17 +90,18 @@ game_chest.prototype.doTake = function(player)//, chests)
   // no double-takes!
 
   // assign passive to player
-  console.log('passive', this.data, this.type, this.duration, this.modifier);
-  switch(this.type)
-  {
-    case 1: // acceleration boost
-      player.setPassive(this.data);
-    break;
+  console.log('passive', this.data, this.type);//, this.duration, this.modifier);
+  player.setPassive(this.data);
+  // switch(this.type)
+  // {
+  //   case this.game_buffs.BUFFS_BUBBLE: // acceleration boost
+  //     player.setPassive(this.data);
+  //   break;
 
-    case 2: // bubble
-      player.setPassive(this.data);
-    break;
-  }
+  //   case 2: // bubble
+  //     player.setPassive(this.data);
+  //   break;
+  // }
 
   // first, remove chest from room
   var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomEvents array

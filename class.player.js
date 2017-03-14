@@ -7,6 +7,7 @@
 //var config = require('./class.globals');
 var assets = require('./singleton.assets');
 var game_spritesheet = require('./class.spritesheet');
+var game_buffs = require('./class.buffs');
 
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
@@ -22,6 +23,7 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.instance = player_instance;
     this.config = config;
+    this.game_buffs = new game_buffs();
     this.playerPort = null;
     // if (this.instance)
     //     this.game = this.instance.game;
@@ -73,6 +75,8 @@ function game_player(player_instance, isHost, pindex, config)
     //this.color = 'rgba(255,255,255,0.1)';
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
+    // i = index / a: active / b: buff id (0 = none) / u: update live socket (0 = false)
+    this.slots = [{i:1, a:1, b:0, u:0}, {i:2, a:0, b:0, u:0}, {i:3, a:0, b:0, u:0}];
     this.health = 100;
     this.engaged = false;
     this.vuln = false;
@@ -1120,15 +1124,61 @@ game_player.prototype.timeoutRespawn = function(victor)
 
 game_player.prototype.setPassive = function(data)//type, duration, modifier)
 {
-    console.log('setPassive', this.mp, data);
+    console.log('setPassive', this.playerName, data);
 
-    switch(data.t)
+    // this.slots = [{i:1, a:1, b:0}];
+    // order array ascending
+    this.slots.sort(function(a, b){return a.i-b.i;});
+    console.log('my ordered slots', this.slots);
+    
+    // NOTE: only set u to 1 for visual buffs, eg: bubble and blink?
+    // u = 1 will dispatch slot buff via live sockets
+    if (this.slots[0].b === 0 || this.slots[1].a === 0)
     {
-        case 1: // speed boost
-            this.updateProgression(10);
-        break;
+        console.log('* added buff', data.t, 'to slot 1...');        
+        this.slots[0].b = data.t;
+    }
+    // slot 2
+    else if (this.slots[1].b === 0 || this.slots[2].a === 0)
+    {
+        console.log('* added buff', data.t, 'to slot 2...');        
+        this.slots[1].b = data.t;
+    }
+    // slot 3
+    else
+    {
+        console.log('* added buff', data.t, 'to slot 3...');        
+        this.slots[2].b = data.t;
+    }
 
-        case 2: // bubble
+    switch(data.t) // buff
+    {
+        // case 1: // speed boost
+        //     this.updateProgression(10);
+        // break;
+
+        case this.game_buffs.BUFF_BUBBLE: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_ALACRITY: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_PRECISION: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_RECOVER: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_BLINK: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_REVEAL: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_BRUISE: // bubble
+            this.bubble = true;
+        break;
+        case this.game_buffs.BUFFS_PLATE: // bubble
             this.bubble = true;
         break;
     }

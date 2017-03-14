@@ -1,5 +1,7 @@
 (function(){'use strict';}());
 
+const getUid      = require('get-uid');
+
 const BUFFS_BUBBLE = 1;
 const BUFFS_BUBBLE_IMAGE = "./assets/buffs/buff-bubble.png";
 const BUFFS_ALACRITY = 2;
@@ -33,6 +35,7 @@ game_buffs.prototype.getRngBuff = function()
 game_buffs.prototype.getRngBuffEvent = function()
 {
     // {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
+    return { id: getUid(), type: this.getRngBuff() };
 }
 
 module.exports = game_buffs;
