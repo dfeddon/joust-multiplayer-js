@@ -7,6 +7,7 @@ var _                   = require('lodash'),
     game_chest          = require('./class.chest'),
     game_toast          = require('./class.toast'),
     game_round          = require('./class.round'),
+    game_buffs          = require('./class.buffs'),
     getplayers          = require('./class.getplayers'),
     pool                = require('typedarray-pool');
 
@@ -14,6 +15,8 @@ var _                   = require('lodash'),
 function core_client(core, config)
 {
     console.log('core_client constructor');
+
+    this.game_buffs = new game_buffs();
 
     this.viewport = document.getElementById("viewport");
     this.ctx = this.viewport.getContext('2d');
@@ -1265,14 +1268,15 @@ core_client.prototype.client_draw_info = function()
     //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
     // } //reached 10 frames
     // console.log('latency', this.socket.latency, );
-    if (this.socket && document.getElementById('txtPing') != this.socket.latency)
+    // TODO: move html ui out of this fnc. Text should be updated via event...
+    if (this.socket && document.getElementById('txtPing').innerHTML != this.socket.latency)
     {
         document.getElementById('txtPing').innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
     }
     /////////////////////////////////
     // fps
     /////////////////////////////////
-    if (document.getElementById('txtFPS') != this.fps_avg)
+    if (document.getElementById('txtFPS').innHTML != this.fps_avg)
     {
         document.getElementById('txtFPS').innerHTML = Math.ceil(this.fps_avg);
     }
@@ -1280,8 +1284,8 @@ core_client.prototype.client_draw_info = function()
     /////////////////////////////////
     // score
     /////////////////////////////////
-    if (document.getElementById('txtScore') != this.players.self.score)
-        document.getElementById('txtScore').innerHTML = this.players.self.score;
+    // if (document.getElementById('txtScore').innerHTML != this.players.self.score)
+    //     document.getElementById('txtScore').innerHTML = this.players.self.score;
 
     /////////////////////////////////
     // round time
@@ -3979,7 +3983,7 @@ core_client.prototype.roundWinnersView = function(winners)
     document.getElementById('viewport').style.display = "none";
     document.getElementById('uiInfoBar').style.display = "none";
     document.getElementById('uiTopBar').style.display = "none";
-    document.getElementById('uiInfoBarBottom').style.display = "none";
+    // document.getElementById('uiInfoBarBottom').style.display = "none";
     document.getElementById('scoreboard').style.display = "none";
 
     var mobilecontrols;
@@ -4000,6 +4004,30 @@ core_client.prototype.roundWinnersView = function(winners)
     else mobilecontrols = null;
 
     // document.getElementById('winnersRow').style.display = "none";
+
+    // first, clear existing bonusSlots on all users
+    var ply = this.core.getplayers.allplayers;
+    for (var c = ply.length - 1; c >= 0; c--)
+    {
+        if (ply[c].bonusSlot)
+        {
+            ply[c].deactivateBuff(ply[c].bonusSlot);
+        }
+        ply[c].bonusSlot = 0;
+    }
+    
+    // assign bonusSlots to winners
+    var p;
+    for (var w = 0; w < winners.length; w++)
+    {
+        if (winners[w][1])
+        {
+            p = this.config._.find(ply, {userid:winners[w][1]});
+            p.bonusSlot = winners[w][2] + 1;
+            p.activateBuff(p.bonusSlot);
+            console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
+        }
+    }
 
     // assign card face to winners cards
     var cardsArray = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"]; // ordered abilities
@@ -4198,11 +4226,28 @@ core_client.prototype.roundWinnersView = function(winners)
             // hide winners ui
             document.getElementById('roundWinnersView').style.display = "none";
 
+            // if player awarded bonus, show it
+            if (_this.players.self.bonusSlot)
+            {
+                console.log('* local player has buff!');
+                // var game_buffs = _this.game_buffs();
+                var buffImage = _this.game_buffs.getImageById(_this.players.self.bonusSlot);
+                var bonus = document.getElementById('bonusslot-container');
+                bonus.style.display = "flex";
+                bonus.style.backgroundImage = "url('" + buffImage + "')";
+            }
+            else
+            { 
+                console.log("* local player did NOT win a buff...");
+                document.getElementById('bonusslot-container').style.backgroundImage = "none";
+                document.getElementById('bonusslot-container').style.display = "none";
+            }
+
             // show game ui
             document.getElementById('viewport').style.display = "block";
             document.getElementById('uiInfoBar').style.display = "block";
             document.getElementById('uiTopBar').style.display = "block";
-            document.getElementById('uiInfoBarBottom').style.display = "block";
+            // document.getElementById('uiInfoBarBottom').style.display = "block";
             document.getElementById('scoreboard').style.display = "block";
             console.log('mobilecontrols', mobilecontrols);
             

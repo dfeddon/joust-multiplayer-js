@@ -239,7 +239,8 @@ game_player.prototype.setFromBuffer = function(data)
     }
     // this.visible = (data[8] === 1) ? true : false;
     //this.bufferIndex = data[9]; // j
-    this.score = data[8];
+    if (Boolean(data[8]))
+        this.score = data[8];
     // this.active = (data[8] === 1) ? true : false;
 }
 
@@ -333,6 +334,13 @@ game_player.prototype.addBuff = function(buff)
         }
     }
 
+    this.activateBuff(buff);
+};
+
+game_player.prototype.activateBuff = function(buff)
+{
+    console.log('== activateBuff ==', buff);
+    
     // activate buff
     switch(buff) // buff
     {
@@ -451,8 +459,13 @@ game_player.prototype.removeBuff = function(slot)
         this.slots[2].c = 0;
     }
 
+    this.deactivateBuff(slot);
+};
+
+game_player.prototype.deactivateBuff = function(buff)
+{
     // deactivate buff
-    switch(slot) // buff
+    switch(buff) // buff
     {
         // case 1: // speed boost
         //     this.updateProgression(10);
@@ -494,7 +507,10 @@ game_player.prototype.reset = function()
     this.active = false;
     this.landed = 1;
     this.bubble = false;
+
+    this.levelcaps = [2000,8000,15000,25000]
     this.score = 0;
+    this.nextlevel = 2000;
     this.progression = 0;
 
     console.log('disconnected', this.disconnected);

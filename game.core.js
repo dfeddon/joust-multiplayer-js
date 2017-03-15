@@ -2447,7 +2447,11 @@ game_core.prototype.roundComplete = function(port, round)
         for (var z = p.length - 1; z >= 0; z--)
         {
             p[z].roundscore = p[z].score - p[z].lastscore;
-            console.log(p[z].roundscore);
+            console.log('* roundScore', p[z].roundscore);
+
+            // clear all bonusSlots
+            p[z].deactivateBuff(p[z].bonusSlot);
+            p[z].bonusSlot = 0;
         }
         var ordered = _.orderBy(p, ['roundscore'], ['desc']);
         // reduce to top 10
@@ -2476,7 +2480,7 @@ game_core.prototype.roundComplete = function(port, round)
         }
         console.log('* top10:', top10.length, top10);
 
-        // add bonusBuff to players (with real userid numbers)
+        // add bonusSlot to players (with real userid numbers)
         var player;
         for (var a = 0; a < top10.length; a++)
         {
@@ -2486,9 +2490,10 @@ game_core.prototype.roundComplete = function(port, round)
             {
                 // get player by userid
                 player = this.config._.find(p, {userid:top10[a][1]});
-                // send bonusBuff
-                player.bonusBuff = top10[a][2];
-                console.log('* assigned bonusBuff', player.bonusBuff, 'to player', player.playerName);
+                // send bonusSlot
+                player.bonusSlot = top10[a][2] + 1;
+                player.activateBuff(player.bonusSlot);
+                console.log('* assigned bonusSlot', player.bonusSlot, 'to player', player.playerName);
                 
             }
         }

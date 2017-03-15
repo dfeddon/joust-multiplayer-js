@@ -797,34 +797,6 @@ h5
 	padding-top: 3px;
 }
 
-#uiInfoBarBottom
-{
-	position: absolute;
-	display: none;
-	bottom: 17px;
-	height: 10px;
-	width: 100%;
-	/*background: rgba(0,0,0,0.65);*/
-	/*opacity: 0.85;*/
-	z-index: 501;
-	/* disallow text selection */
-	-webkit-user-select: none; /* Chrome/Safari */        
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	-o-user-select: none;
-	user-select: none;
-}
-
-#ibScore
-{
-	font-family: 'Mirza', serif;
-	text-align: center;
-}
-#lblScore
-{
-	opacity: 0.65;
-}
-
 #scoreboard
 {
 	position: absolute;
@@ -1244,13 +1216,16 @@ h5
 	background-image: -o-linear-gradient(left, pink, pink 25%, gray 25%, gray);
 	background-image: linear-gradient(to right, pink, pink 25%, gray 25%, gray);
 }
-#roundslot-container
+#bonusslot-container
 {
 	display: none;
 	border:solid 1px gold;
 	/*opacity: 0.25;*/
-	width: 45px;
-	height: 45px;
+	width: 65px;
+	height: 65px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
 	/*background-image:url("./assets/frame.png");
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -1317,16 +1292,33 @@ h5
 {
 	order: 2;
 	border:solid 1px black;
-	opacity: 0.5;
+	/*opacity: 0.5;*/
 	height: 10px;
 	width: 50%;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: nowrap;
-	justify-content: center;
+	justify-content: flex-start;
 	align-items: center;
 	align-content: center;
-	background-color: gray;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+#level-progressbar
+{
+	/*position: relative;*/
+	align-self: flex-start;
+	height: 10px;
+	background-color: darkblue;
+	width: 50%;
+}
+.scoreTxt
+{
+	align-self: center;
+	font-family: 'Mirza', serif;
+	font-size: 14px;
+	text-align: center;
+	color: white;
+	opacity: 0.85;
 }
 
 #viewport {

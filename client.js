@@ -450,11 +450,11 @@ domready(function()
 			// show UI elements
 			var ui = document.getElementById('uiTopBar');
 			var info = document.getElementById('uiInfoBar');
-			var infoBottom = document.getElementById('uiInfoBarBottom');
+			// var infoBottom = document.getElementById('uiInfoBarBottom');
 			var scoreboard = document.getElementById('scoreboard');
 			ui.style.display = "block";
 			info.style.display = "block";
-			infoBottom.style.display = "block";
+			// infoBottom.style.display = "block";
 			scoreboard.style.display = "block";
 
 			// show controls
@@ -604,8 +604,8 @@ domready(function()
 		// hide ui info bars
 		var uiInfoBar = document.getElementById('uiInfoBar');
 		uiInfoBar.style.display = "none";
-		var uiInfoBarBottom = document.getElementById('uiInfoBarBottom');
-		uiInfoBarBottom.style.display = "none";
+		// var uiInfoBarBottom = document.getElementById('uiInfoBarBottom');
+		// uiInfoBarBottom.style.display = "none";
 		
 		// show splash
 		ui.style.display = "inline-block";
