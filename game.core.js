@@ -2098,9 +2098,20 @@ game_core.prototype.server_update = function()
                 bufView[6] = player.slotDispatch;//(player.bubble) ? 1 : 0;
                 player.slotDispatch = null;
             }
+            if (player.bonusSlot > 100)
+            {
+                player.bonusSlot -= 100;
+                bufView[7] = player.bonusSlot;
+            }
             // bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
             //bufView[9] = i; // player's bufferIndex
-            bufView[7] = player.score;//(player.dead) ? 1 : 0;//player.team;
+            // console.log('score', player.score, player.oldscore);
+            
+            if (player.score != player.oldscore)
+            {
+                bufView[8] = player.score;//(player.dead) ? 1 : 0;//player.team;
+                player.oldscore = player.score;
+            }
             // bufView[8] = (player.active) ? 1 : 0;
             // bufView[15] = 16; // open item
             //*/
@@ -2463,7 +2474,24 @@ game_core.prototype.roundComplete = function(port, round)
                 ordered[y].userid = 0;
             top10.push([y+1, ordered[y].userid, Math.floor(Math.random() * (buffs.length))]);
         }
-        console.log('* top10:', top10);
+        console.log('* top10:', top10.length, top10);
+
+        // add bonusBuff to players (with real userid numbers)
+        var player;
+        for (var a = 0; a < top10.length; a++)
+        {
+            console.log('top10 userid', top10[a][1]);
+            
+            if (top10[a][1])
+            {
+                // get player by userid
+                player = this.config._.find(p, {userid:top10[a][1]});
+                // send bonusBuff
+                player.bonusBuff = top10[a][2];
+                console.log('* assigned bonusBuff', player.bonusBuff, 'to player', player.playerName);
+                
+            }
+        }
         
         // top 3
 

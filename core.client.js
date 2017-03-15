@@ -1308,7 +1308,7 @@ core_client.prototype.client_draw_info = function()
     for (var j = _this.core.getplayers.allplayers.length - 1; j >= 0; j--)
     {
         p = _this.core.getplayers.allplayers[j];
-        if (p.active)
+        if (p.active && p.score > 0)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
         // if respawning, auto-set score to 0
         if (!p.visible)// || !p.active)

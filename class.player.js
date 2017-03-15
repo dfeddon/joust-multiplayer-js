@@ -79,6 +79,7 @@ function game_player(player_instance, isHost, pindex, config)
     
     this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
     this.slotDispatch = null; // server only
+    this.bonusSlot = 0;
     // this.roundSlotImage = null;
     // this.slot1Image = null;
     // this.slot2Image = null;
@@ -89,7 +90,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.vuln = false;
     this.bubble = false;
     this.dying = false;
-    this.score = Math.floor(Math.random() * 101);;
+    this.score = 0;//Math.floor(Math.random() * 101);
+    this.oldscore = 0
     this.lastscore = 0;
     this.roundscore = 0;
 
@@ -237,7 +239,7 @@ game_player.prototype.setFromBuffer = function(data)
     }
     // this.visible = (data[8] === 1) ? true : false;
     //this.bufferIndex = data[9]; // j
-    this.score = data[7];
+    this.score = data[8];
     // this.active = (data[8] === 1) ? true : false;
 }
 
@@ -274,7 +276,14 @@ game_player.prototype.addBuff = function(buff)
 
     if (this.slots[0].b === 0 || this.slots[1].a === 0)
     {
-        console.log('* added buff', buff, 'to slot 1...');        
+        console.log('* added buff', buff, 'to slot 1...');
+
+        // remove extant buff
+        if (this.slots[0].b > 0)
+        {
+            console.log('* replacing existing buff, remove it it appropriately...');
+            this.removeBuff(this.slots[0].b);
+        }
         this.slots[0].b = buff;
         this.slots[0].c = cooldown;
         // this.slot1Image = buffImage;
@@ -289,6 +298,12 @@ game_player.prototype.addBuff = function(buff)
     else if (this.slots[1].b === 0 || this.slots[2].a === 0)
     {
         console.log('* added buff', buff, 'to slot 2...');        
+        // remove extant buff
+        if (this.slots[1].b > 0)
+        {
+            console.log('* replacing existing buff, remove it it appropriately...');
+            this.removeBuff(this.slots[1].b);
+        }
         this.slots[1].b = buff;
         this.slots[1].c = cooldown;
         
@@ -302,6 +317,12 @@ game_player.prototype.addBuff = function(buff)
     else
     {
         console.log('* added buff', buff, 'to slot 3...');        
+        // remove extant buff
+        if (this.slots[2].b > 0)
+        {
+            console.log('* replacing existing buff, remove it it appropriately...');
+            this.removeBuff(this.slots[2].b);
+        }
         this.slots[2].b = buff;
         this.slots[2].c = cooldown;
         
@@ -1374,6 +1395,11 @@ game_player.prototype.timeoutRespawn = function(victor)
     //     var ui = document.getElementById('splash');
     //     ui.style.display = "block";
     // }
+};
+
+game_player.addRoundBuffToServer = function(data)
+{
+    console.log('== addRoundBuffToServer ==', data);
 };
 
 game_player.prototype.addBuffToServer = function(data)//type, duration, modifier)

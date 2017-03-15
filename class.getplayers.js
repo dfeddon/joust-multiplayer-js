@@ -187,7 +187,7 @@ getplayers.prototype.addRoom = function(port)
 
         // set round end time
         round = this.game_instance.inRoomRound[port] = {};//new game_round();//{};
-        round.duration = 10 * 60; //* 60; // minutes
+        round.duration = 1 * 60; //* 60; // minutes
         round.bonusDuration = 35;
         round.endtime = Math.floor(this.config.server_time + round.duration);//(round.duration * 60);
         round.total = 1;
