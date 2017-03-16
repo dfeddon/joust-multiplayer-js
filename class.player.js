@@ -1,7 +1,3 @@
-/*jslint
-    this
-*/
-
 "use strict";
 
 //var config = require('./class.globals');
@@ -86,6 +82,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot3Image = null;
     
     this.health = 100;
+    this.healthMax = 100;
     this.engaged = false;
     this.vuln = false;
     this.bubble = false;
@@ -94,6 +91,30 @@ function game_player(player_instance, isHost, pindex, config)
     this.oldscore = 0
     this.lastscore = 0;
     this.roundscore = 0;
+    this.level = 1;
+    this.levels = [0,2000,8000,15000,25000];
+
+    this.team = 0; // 1 = red, 2 = blue
+    this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
+    this.mana = 0;
+    this.pointsTotal = 0;
+    //this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
+    // this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
+    this.progression = 0;// 0, 250, 500
+    // this.abilities = []; // 0:none 1:burst
+    // this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
+    // this.ability = 0; // abilities index (-1 means no ability available)
+    // this.abil = 1;
+    // this.buffs = [];
+    // this.debuffs = [];
+    this.potions = [];
+    // this.cooldown = false;
+
+    this.hasHelment = false;//true;
+    this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
+    this.flagTakenAt = 0;
+    this.disconnected = false;
+    //this.carryingFlag = null;
 
     // TODO: default to invisible skin
     this.skin = "skin1";
@@ -116,19 +137,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.isLocal = false;
     this.bufferIndex = undefined;//0;
 
-    // if (isHost && player_instance)// && player_instance.host)
-    // {
-    //     console.log('WE GOT SERVER HOST!', player_instance.userid);
-    //     this.mp = 'hp';
-    //     this.mis = 'his';
-    //     this.visible = false;
-    // }
-    // else 
-    // {
     this.mp = 'cp' + pindex;//(getplayers.allplayers.length + 1);
     this.mis = 'cis' + pindex;//(getplayers.allplayers.length + 1);
-        //delete getplayers.allplayers;
-    // }
 
     // assign pos and input seq properties
     //Our local history of inputs
@@ -142,37 +152,10 @@ function game_player(player_instance, isHost, pindex, config)
         y_max: this.config.world.height - this.size.hy
     };
 
-    //The 'host' of a game gets created with a player instance since
-    //the server already knows who they are. If the server starts a game
-    //with only a host, the other player is set up in the 'else' below
-    //this.pos = { x:Math.floor((Math.random() * this.config.world.width - 64) + 64), y:128};//this.config.world.height-this.size.hy };
-    //this.pos = {x: 0, y: 0};
     //These are used in moving us around later
     this.old_state = {pos:this.pos};
     this.cur_state = {pos:this.pos};
     this.state_time = new Date().getTime();
-
-    this.team = 0; // 1 = red, 2 = blue
-    this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
-    this.mana = 0;
-    this.pointsTotal = 0;
-    //this.levels = [0,128,256,512,1024,2048,4096,8196,16392,32784,65568,131136];
-    this.levels = [0,50,100,512,1024,2048,4096,8196,16392,32784,65568,131136];
-    this.progression = 0;// 0, 250, 500
-    this.abilities = []; // 0:none 1:burst
-    this.abilities.push({label:"burst", id:1, cd: 5000, t:0});
-    this.ability = 0; // abilities index (-1 means no ability available)
-    this.abil = 1;
-    this.buffs = [];
-    this.debuffs = [];
-    this.potions = [];
-    this.cooldown = false;
-
-    this.hasHelment = false;//true;
-    this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
-    this.flagTakenAt = 0;
-    this.disconnected = false;
-    //this.carryingFlag = null;
 
     this.playerName = "";
     this.playerNameImage = null;
@@ -240,7 +223,10 @@ game_player.prototype.setFromBuffer = function(data)
     // this.visible = (data[8] === 1) ? true : false;
     //this.bufferIndex = data[9]; // j
     if (Boolean(data[8]))
+    {
         this.score = data[8];
+        this.addToScore();
+    }
     // this.active = (data[8] === 1) ? true : false;
 }
 
@@ -508,7 +494,7 @@ game_player.prototype.reset = function()
     this.landed = 1;
     this.bubble = false;
 
-    this.levelcaps = [2000,8000,15000,25000]
+    this.levelcaps = [2000,8000,15000,25000];
     this.score = 0;
     this.nextlevel = 2000;
     this.progression = 0;
@@ -573,7 +559,72 @@ game_player.prototype.setSkin = function(skin)
 
 game_player.prototype.addToScore = function(val)
 {
+    if (val)
     this.score += val;
+
+    if (this.level === 1 && this.score >= this.levels[1])
+    {
+        console.log('* LEVEL UP - 2!');
+        this.level = 2;
+        this.healthMax = 125;
+        this.modifierPotency += 10;
+        this.modifierDuration += 10;
+    }
+    else if (this.level === 2 && this.score >= this.levels[2])
+    {
+        console.log('* LEVEL UP - 3!');
+        this.level = 3;
+        this.healthMax = 150;
+        this.slots[1].a = 1;
+        this.modifierPotency += 10;
+        this.modifierDuration += 10;
+    }
+    else if (this.level === 3 && this.score >= this.levels[3])
+    {
+        console.log('* LEVEL UP - 4!');
+        this.level = 4;
+        this.healthMax = 175;
+        this.modifierPotency += 10;
+        this.modifierDuration += 10;
+    }
+    else if (this.level === 5 && this.score >= this.levels[4])
+    {
+        console.log('* LEVEL UP - 5!');
+        this.level = 5;
+        this.healthMax = 200;
+        this.slots[2].a = 1;
+        this.modifierPotency = +10;
+        this.modifierDuration = +10;
+    }
+
+    if (!this.config.server && this.isLocal)
+    {
+        // update score text
+        document.getElementById('txtScore').innerHTML = this.score + " / " + this.levels[this.level];
+        console.log("**** update score", this.score, (this.score * 100) / this.levels[this.level]);
+
+        var prog = Math.floor((this.score * 100) / this.levels[this.level]);
+        document.getElementById('level-progressbar').style.width =  prog + "%";
+
+        switch(this.level)
+        {
+            case 1:
+            break;
+
+            case 2:
+            break;
+
+            case 3:
+            break;
+
+            case 4:
+            break;
+
+            case 5:
+            break;
+        }
+    }
+
 };
 
 game_player.prototype.respawn = function()
