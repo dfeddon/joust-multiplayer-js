@@ -601,7 +601,7 @@ game_flag.prototype.slotFlag = function(player)
     var flagObj = this.config._.find(roomFlags, {"name":clientFlag.name});//this.name});
     flagObj.reset(true);//, this.game.server_time);
 
-    player.addToScore(2500);
+    player.addToScore(1000);
   }
 };
 

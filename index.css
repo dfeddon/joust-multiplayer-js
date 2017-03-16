@@ -639,6 +639,7 @@ a:hover, a:visited, a:link, a:active
 	border: 1px solid;
 	border-color: gray;
 	font-size: 20px;
+	text-shadow: 2px 2px black;
 }
 #txtScoreRed
 {
@@ -660,6 +661,7 @@ a:hover, a:visited, a:link, a:active
 	border-color: gray;
 	font-size: 20px;
 	vertical-align: middle;
+	text-shadow: 2px 2px black;
 	/*z-index: 500;*/
 }
 #txtScoreBlue
@@ -776,6 +778,7 @@ h5
 	font-size: 27px;
 	text-align: center;
 	color: #f9eec0;
+	text-shadow: 2px 2px black;
 }
 #lblRoundTimer
 {
@@ -1185,6 +1188,8 @@ h5
 	font-size: 1em;
 	padding-right: 10px;
 	color: cyan;
+	font-family: 'Mirza', serif;
+	text-shadow: 2px 2px black;
 }
 #modify1-bar
 {
@@ -1204,6 +1209,8 @@ h5
 	font-size: 1em;
 	padding-right: 10px;
 	color: pink;
+	font-family: 'Mirza', serif;
+	text-shadow: 2px 2px black;
 }
 #modify2-bar
 {
@@ -1291,7 +1298,7 @@ h5
 #levelbar-padding1
 {
 	order: 2;
-	height: 5px;
+	height: 15px;
 	display: flex;
 }
 
@@ -1321,31 +1328,64 @@ h5
 }
 #score-text-container
 {
+	/*border:solid 1px gold;*/
 	position: absolute;
-	bottom: 18px;
+	bottom: 10px;
 	height: 10px;
-	width: 50%;
+	width: 50%;/*50%;*/
+	left: 25%;
 	margin: auto;
-	right: 0;
-	left: 0;
-	/*display: flex;
-	flex-direction: flex-end;
+	/*right: 25%;
+	left: 25%;*/
+	display: flex;
+	flex-direction: center;
 	flex-wrap: nowrap;
-	justify-content: flex-end;
+	justify-content: space-between;
 	align-items: center;
-	align-content: center;*/
+	align-content: center;
 	z-index: 600;
 	/*background-color: red;// rgba(0, 0, 0, 0.5);*/
 }
-.scoreTxt
+#txtLevelC
 {
-	/*align-self: center;*/
+	/*position: absolute;*/
+	order: 1;
+	color: yellow;
+	/*flex-grow:1;*/
+	align-self: flex-end;
+	font-family: 'Mirza', serif;
+	flex-wrap: nowrap;
+	/*justify-content: flex-start;*/
+	display: flex;
+	text-shadow: 2px 2px black;
+}
+#txtScore
+{
+	order: 2;
+	display: flex;
+	/*flex-basis: 100%;*/
+	/*left: 25%;*/
+	/*flex-grow: 0;*/
+	align-self: flex-end;
 	font-family: 'Mirza', serif;
 	font-size: 14px;
-	text-align: center;
+	/*text-align: center;*/
 	color: white;
 	/*opacity: 0.85;*/
 	text-shadow: 2px 2px black;
+}
+#txtLevelN
+{
+	/*position: absolute;
+	left: 10px;*/
+	display: flex;
+	order: 3;
+	align-self: flex-end;
+	font-family: 'Mirza', serif;
+	text-shadow: 2px 2px black;
+	/*flex-grow: 0;*/
+	/*align-self: flex-end;*/
+	/*flex-wrap: nowrap;*/
 }
 
 #viewport {
@@ -1542,8 +1582,8 @@ h5
 	flex-wrap: nowrap;
 	display: none;/*flex;*/
 	position: absolute;
-	/*background-image: url("./assets/roundWinners_ipad.png");*/
-	background-size: contain;
+	background-image: url("./assets/cards/castle-red.gif");
+	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
 	/*top: 0px;
@@ -1557,7 +1597,7 @@ h5
 	height: 10%;
 	order: 1;
 	/*border: solid 5px purple;*/
-	background-image: url("./assets/winners-bg-top.png");
+	/*background-image: url("./assets/winners-bg-top.png");*/
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -1568,7 +1608,7 @@ h5
 	height: 20%;
 	order: 3;
 	/*border: solid 5px blue;*/
-	background-image: url("./assets/winners-bg-bottom.png");
+	/*background-image: url("./assets/winners-bg-bottom.png");*/
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -1598,7 +1638,7 @@ h5
 	order: 1;
 	/*border: solid 5px red;*/
 	width: 20%;
-	background-image: url("./assets/winners-bg-left.png");
+	/*background-image: url("./assets/winners-bg-left.png");*/
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -1616,7 +1656,7 @@ h5
 	/*border: solid 5px yellow;*/
 	width: 100%;/*60%;*/
 	height: 100%;
-	background-image: url("./assets/winners-bg-face.png");
+	/*background-image: url("./assets/winners-bg-face.png");*/
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -1631,7 +1671,7 @@ h5
 	order: 3;
 	/*border: solid 5px green;*/
 	width: 20%;
-	background-image: url("./assets/winners-bg-right.png");
+	/*background-image: url("./assets/winners-bg-right.png");*/
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
