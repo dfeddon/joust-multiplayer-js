@@ -569,6 +569,11 @@ game_player.prototype.addToScore = function(val)
         this.healthMax = 125;
         this.modifierPotency += 10;
         this.modifierDuration += 10;
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+        }
     }
     else if (this.level === 2 && this.score >= this.levels[2])
     {
@@ -578,6 +583,11 @@ game_player.prototype.addToScore = function(val)
         this.slots[1].a = 1;
         this.modifierPotency += 10;
         this.modifierDuration += 10;
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+        }
     }
     else if (this.level === 3 && this.score >= this.levels[3])
     {
@@ -586,6 +596,11 @@ game_player.prototype.addToScore = function(val)
         this.healthMax = 175;
         this.modifierPotency += 10;
         this.modifierDuration += 10;
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+        }
     }
     else if (this.level === 5 && this.score >= this.levels[4])
     {
@@ -595,6 +610,11 @@ game_player.prototype.addToScore = function(val)
         this.slots[2].a = 1;
         this.modifierPotency = +10;
         this.modifierDuration = +10;
+        if (!this.config.server && this.isLocal)
+        {
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = "*";//this.level + 1;
+        }
     }
 
     if (!this.config.server && this.isLocal)
