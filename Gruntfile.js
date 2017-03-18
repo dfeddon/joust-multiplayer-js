@@ -52,7 +52,7 @@ module.exports = function(grunt)
             //             'class.flag.js',
             //             'class.platform.js',
             //             'class.event.js',
-            //             'class.chest.js',
+            //             'class.consumable.js',
             //             'class.toast.js'
             //         ]
             //     }
@@ -85,7 +85,7 @@ module.exports = function(grunt)
                     '../wingdom-server-dist/class.flag.js': ['class.flag.js'],
                     '../wingdom-server-dist/class.platform.js': ['class.platform.js'],
                     '../wingdom-server-dist/class.event.js': ['class.event.js'],
-                    '../wingdom-server-dist/class.chest.js': ['class.chest.js'],
+                    '../wingdom-server-dist/class.consumable.js': ['class.consumable.js'],
                     '../wingdom-server-dist/class.toast.js': ['class.toast.js'],
                     '../wingdom-server-dist/class.spritesheet.js': ['class.spritesheet.js'],
                 }

@@ -15,7 +15,7 @@ function game_player(player_instance, isHost, pindex, config)
     // else console.log('** added player (without instance)');
     //if (isGhost) console.log('** ^ player is ghost, adding to ghost store');
 
-    var _this = this;
+    // var _this = this;
 
     this.instance = player_instance;
     this.config = config;
@@ -72,9 +72,11 @@ function game_player(player_instance, isHost, pindex, config)
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
     // i = index / a: active / b: buff id (0 = none) / d: cooldown (end time)
+
+    this.slotDispatch = null; // server only
+    this.consumeDispatch = null // server only
     
     this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
-    this.slotDispatch = null; // server only
     this.bonusSlot = 0;
     // this.roundSlotImage = null;
     // this.slot1Image = null;
@@ -208,27 +210,25 @@ game_player.prototype.setFromBuffer = function(data)
     this.flap = (data[3] === 1) ? true : false;
     this.landed = data[4];
     this.vuln = (data[5] === 1) ? true : false;
-    //this.a = data[6];
-    //this.vx = data[7];
-    //this.vy = data[8];
-    // this.hasFlag = data[6];
-    // console.log('data.6', data[6]);
-    
+    // add/remove buff
     if (data[6])
     {
         // < 100 = addBuff
         if (data[6] < 100)
-            this.addBuff(data[6]);//(data[6] === 1) ? true : false;
+            this.addBuff(data[6]);
         // > 100 = removeBuff
         else this.removeBuff(data[6] - 100);
     }
-    // this.visible = (data[8] === 1) ? true : false;
-    //this.bufferIndex = data[9]; // j
+    // bonus slot
+    // score
     if (Boolean(data[8]))
     {
         this.score = data[8];
         this.addToScore();
     }
+    // consumable
+    if (data[9])
+        this.addConsumable(data[9]);
     // this.active = (data[8] === 1) ? true : false;
 }
 
@@ -243,6 +243,12 @@ game_player.prototype.buffIdsToSlots = function(ids)
     }
 
     console.log('* assigned slots', this.slots);
+    
+};
+
+game_player.prototype.addConsumable = function(consumable)
+{
+    console.log('== addConsumable ==', consumable);
     
 };
 
@@ -1501,6 +1507,20 @@ game_player.prototype.addBuffToServer = function(data)//type, duration, modifier
     // set new buff for dispatch to client (via live socket)
     this.slotDispatch = data.t;
 };
+
+game_player.prototype.addHealthToServer = function(data)
+{
+    console.log('== addHealthToServer ==', data);
+    this.healthDispatch = data.v;
+}
+
+game_player.prototype.addFocusToServer = function(data)
+{
+    console.log('== addFocusrToServer ==', data);
+
+    // send data to live socket
+    this.focusDispatch = data.v;//t;
+}
 
 game_player.prototype.doCycleAbility = function()
 {

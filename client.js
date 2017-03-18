@@ -726,12 +726,14 @@ domready(function()
 
 	assets.consume_chestopen = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/chest-open.png");
 	assets.consume_chestclosed = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/chest-closed.png");
-	assets.consume_potbluefull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-blue-full.png");
-	assets.consume_potblueempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-blue-empty.png");
-	assets.consume_potredfull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-red-full.png");
-	assets.consume_potredempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-red-empty.png");
+	// assets.consume_potbluefull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-blue-full.png");
+	// assets.consume_potblueempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-blue-empty.png");
+	// assets.consume_potredfull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-red-full.png");
+	// assets.consume_potredempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-red-empty.png");
 	assets.consume_potgreenfull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-green-full.png");
 	assets.consume_potgreenempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-green-empty.png");
+	assets.consume_potyellowfull = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-yellow-full.png");
+	assets.consume_potyellowempty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/consumables/potion-yellow-empty.png");
 	// assets.evt_potion_red_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-full.png");
 	// assets.evt_potion_red_empty = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-red-empty.png");
 	// assets.evt_potion_blue_full = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/evt-potion-blue-full.png");

@@ -4,7 +4,7 @@ var _                   = require('lodash'),
     assets              = require('./singleton.assets'),
     game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
-    game_chest          = require('./class.chest'),
+    game_chest          = require('./class.consumable'),
     game_toast          = require('./class.toast'),
     game_round          = require('./class.round'),
     game_buffs          = require('./class.buffs'),
@@ -1390,7 +1390,7 @@ core_client.prototype.client_draw_info = function()
 
 core_client.prototype.client_on_chesttake = function(id, player)
 {
-    console.log('client_on_chesttake', id, player);
+    console.log('client_on_chesttake', 'id', id, 'player', player);
     // var split = data.split("|");
     // var id = split[0];
     // var player = split[1];
@@ -1399,7 +1399,7 @@ core_client.prototype.client_on_chesttake = function(id, player)
     for (var i = this.core.chests.length - 1; i >= 0; i--)
     {
         chest = this.core.chests[i];
-        console.log('chest id', chest.id, id);
+        // console.log('chest id', chest.id, id);
         if (chest.id == id)
         {
             // chest is opened

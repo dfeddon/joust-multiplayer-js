@@ -21,7 +21,7 @@ function game_event(getplayers, config)//game_instance)
   this.uid = getUid();
   this.getplayers = getplayers;
   this.config = config;
-  this.game_buffs = new game_buffs();
+  // this.game_buffs = new game_buffs();
 
   //if (game_instance.server)
   this.shuffle = require('./node_modules/lodash/shuffle');
@@ -74,12 +74,14 @@ function game_event(getplayers, config)//game_instance)
   this.passive = null;
 
   this.flag = null;
+
+  this.consumableData = {};
+
 }
 
-game_event.prototype.update = function()
+game_event.prototype.update = function(port)
 {
   // console.log('== event.update() ==');
-  
   //var _this = this;
   //console.log('event.update');
   this.dif = Math.floor(this.config.server_time - this.triggerOn);
@@ -184,16 +186,34 @@ game_event.prototype.update = function()
         }
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
+        this.consumable = this.getplayers.fromRoomNextActiveConsumable(port);
+        // console.log('this.consumable', this.consumable);
         // rng
-        console.log('* available spawn points...', availChests.length);
+        // console.log('* available spawn points...', availChests.length);
         this.spawn = this.shuffle(availChests)[0];
-        // set active
+        // set spawnpoint as active
         this.spawn.active = true;
         //console.log('selected spawn', this.spawn);
         // 3. rng chest content
         // this.passive = this.shuffle(this.config.passives)[0];
-        this.passive = this.game_buffs.getRngBuffEvent();
+        this.consumableData.c = Math.floor((Math.random() * 3) + 1);
+
+        // get value based on category
+        switch(this.consumableData.c)
+        {
+          case 1: this.consumableData.v = this.consumable.gamebuffs.getRngBuff(); break;
+          case 2: this.consumableData.v = this.consumable.getHealthModifier(); break;
+          case 3: this.consumableData.v = this.consumable.getFocusModifier(); break;
+        }
         //console.log('selected passive', this.passive);
+        this.consumableData.t = this.consumable.gamebuffs.getRngBuff();//2; // event type consumable
+        this.consumableData.i = this.consumable.id;
+        this.consumableData.x = this.spawn.x;
+        this.consumableData.y = this.spawn.y;
+
+        console.log("* evt.consumableData ready!", this.consumableData);
+        
+        this.consumable.addData(this.consumableData);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
 

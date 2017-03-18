@@ -462,7 +462,7 @@ return;
     // {
     //     res.status(404).end();
     // });
-    app.get('/class.chest.js', function(req, res)
+    app.get('/class.consumables.js', function(req, res)
     {
         res.status(404).end();
     });

@@ -29,7 +29,7 @@ define(
     //'class.nativeControls',
     'class.stopwatch',
     'class.toast',
-    'class.chest',
+    'class.consumable',
     'class.flag',
     'class.event',
     'class.player',

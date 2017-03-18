@@ -35,12 +35,12 @@ const
     egyptian_set        = require('./egyptian_set'),
     game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
-    platformClass       = require('./class.platform'),
+    // platformClass       = require('./class.platform'),
     //transformClass      = require('./class.transform'),
     game_event_server   = require('./class.event'),
-    game_chest          = require('./class.chest'),
+    game_consumable     = require('./class.consumable'),
     assets              = require('./singleton.assets'),
-    pool                = require('typedarray-pool'),
+    // pool                = require('typedarray-pool'),
     game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
@@ -1363,26 +1363,25 @@ game_core.prototype.check_collision = function( player )
     // _.forEach(this.chests, function(chest)
     if (this.config.server)
     {
-        var chest;
+        var consumable;
         room = this.getplayers.fromRoom(player.playerPort, 2);
         // console.log('@ chests len', room.length);//, player.userid);
         
         for (i = room.length - 1; i >= 0; i--)
         {
-            chest = room[i];
+            consumable = room[i];
             // console.log('collision().chests', chest.taken);
             // Note: hy + 10 below accounts for birds unseen legs.
             if (
-                player.pos.x < (chest.x + chest.width) &&
-                (player.pos.x + player.size.hx) > chest.x &&
-                player.pos.y < (chest.y + chest.height) &&
-                (player.pos.y + player.size.hy) > chest.y
+                player.pos.x < (consumable.x + consumable.width) &&
+                (player.pos.x + player.size.hx) > consumable.x &&
+                player.pos.y < (consumable.y + consumable.height) &&
+                (player.pos.y + player.size.hy) > consumable.y
             )
             {
-                console.log('chest hit');
-                if (!chest.taken)
-                    chest.doTake(player);//, _this.chests);
-                //_.pull(_this.chests, chest);
+                // console.log('consumable hit');
+                if (!consumable.taken)
+                    consumable.doTake(player);
             }
         }
     }
@@ -2101,6 +2100,11 @@ game_core.prototype.server_update = function()
                 bufView[8] = player.score;//(player.dead) ? 1 : 0;//player.team;
                 player.oldscore = player.score;
             }
+            if (player.consumeDispatch)
+            {
+                bufView[9] = player.consumeDispatch;
+                player.consumeDispatch = null;
+            }
             // if (player.territoryDispatch)
             // {
 
@@ -2201,14 +2205,14 @@ game_core.prototype.server_update = function()
             
             if (evt.state !== evt.STATE_STOPPED)
             {
-                if (evt.update() === true)
+                if (evt.update(allrooms[m]) === true)
                 {
                     console.log('add event to socket!', evt.type);
                     switch(evt.type)
                     {
                         case evt.TYPE_CHEST:
-                            var id = getUid();//_this.getUID();
-                            console.log('* event:adding chest', id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                            // var id = getUid();//_this.getUID();
+                            console.log('* event:adding chest', evt.consumableData.id);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
                             /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
                                 x: '1152',
                                 y: '576',
@@ -2216,27 +2220,28 @@ game_core.prototype.server_update = function()
                                 d: 60,
                                 m: 50 }*/
                             if (evt.id == 'ec') // chest event
-                                this.addChest(
-                                    {
-                                        i:id,
-                                        x:evt.spawn.x,
-                                        y:evt.spawn.y,
-                                        t:evt.passive.type,
-                                        d:evt.passive.duration,
-                                        m:evt.passive.modifier
-                                    }, allrooms[m]);
+                                // this.addChest(evt.consumable, allrooms[m]);
+                                    // {
+                                    //     i:id,
+                                    //     x:evt.spawn.x,
+                                    //     y:evt.spawn.y,
+                                    //     t:evt.passive.type,
+                                    //     c:evt.passive.buff,
+                                    //     d:evt.passive.focus,
+                                    //     h:evt.passive.health
+                                    // }, allrooms[m]);
                             // var room = this.getplayers.getRoomNameByUserId(player.userid);
                             // console.log('room:', room);
                             // console.log('ls:', laststate);
-                            laststate[allrooms[m]][evt.id] =
-                            {
-                                i: id,
-                                x: evt.spawn.x,
-                                y: evt.spawn.y,
-                                t: evt.passive.type,
-                                d: evt.passive.duration,
-                                m: evt.passive.modifier
-                            };
+                            laststate[allrooms[m]][evt.id] = evt.consumableData;
+                            // {
+                            //     i: id,
+                            //     x: evt.spawn.x,
+                            //     y: evt.spawn.y,
+                            //     t: evt.passive.type,
+                            //     d: evt.passive.duration,
+                            //     m: evt.passive.modifier
+                            // };
                         break;
 
                         case evt.TYPE_FLAG_CARRIED_COOLDOWN:
@@ -2691,10 +2696,20 @@ game_core.prototype.addChest = function(chest, room)
 {
     console.log('== addChest', chest.i, room, '==');
 
+    //     i:id,
+    //     x:evt.spawn.x,
+    //     y:evt.spawn.y,
+    //     t:evt.passive.type, * category
+    //     c:evt.passive.buff,
+    //     d:evt.passive.discipline,
+    //     h:evt.passive.health
+
     if (this.server)
     {
         // var room = this.getplayers.fromRoom(room, 2);
-        this.getplayers.addToRoom(new game_chest(chest, false, this.getplayers, this.config), room, 2);
+        // add data from chest.consumableData to consumable
+        
+        // this.getplayers.addToRoom(new game_consumable(chest, false, this.getplayers, this.config), room, 2);
 
         // this.chests.push(new game_chest(chest, false, this.getplayers, this.config));
 
@@ -2711,9 +2726,11 @@ game_core.prototype.addChest = function(chest, room)
     else
     { 
         console.log('# total chests:', this.chests.length + 1);
+        console.log('adding chest to client', chest.i);
+        
         
         // this.getplayers.addToRoom(new game_chest(chest, true, this.getplayers, this.config), room, 2);
-        this.chests.push(new game_chest(chest, true, this.getplayers, this.config));
+        this.chests.push(new game_consumable(chest, true, this.getplayers, this.config));
     }
 };
 game_core.prototype.timerFnc = function()

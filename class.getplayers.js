@@ -3,7 +3,8 @@
 const game_player = require('./class.player');
 const game_event_server = require('./class.event');
 const game_flag = require('./class.flag');
-const game_round = require('./class.round');
+const game_consumable = require('./class.consumable');
+// const game_round = require('./class.round');
 
 function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {
@@ -21,7 +22,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         game_instance.allplayers = []; // <- deprecating
         game_instance.inRoom = {};
         game_instance.inRoomEvents = {};
-        game_instance.inRoomChests = {};
+        game_instance.inRoomConsumables = {};
         game_instance.inRoomFlags = {};
         game_instance.inRoomCooldowns = {};
         game_instance.inRoomRound = {};
@@ -32,7 +33,7 @@ function getplayers(game_instance, total_players_per_game, client_gamecore_insta
         this.allplayers = []; // <- *NOT* deprecating on client
         this.inRoom = {};
         this.inRoomEvents = {};
-        this.inRoomChests = {};
+        this.inRoomConsumables = {};
         this.inRoomFlags = {};
     }
 }
@@ -73,18 +74,18 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
             break;
 
             case 2: // chests
-                // console.log('getting room chests:', this.game_instance.inRoomChests);
-                
-                if (Array.isArray(this.game_instance.inRoomChests[port]))
+                // console.log('getting room chests:', this.game_instance.inRoomConsumables[port]);
+
+                var consumables = this.game_instance.inRoomConsumables[port];
+                var consume = [];
+
+                for (var i = consumables.length -1; i >= 0; i--)
                 {
-                    return this.game_instance.inRoomChests[port];
-                }
-                else if (this.game_instance.inRoomChests[port] !== undefined)
-                {
-                    return [];
+                    if (consumables[i].active)
+                        consume.push(consumables[i]);
                 }
             
-            break;
+            return consume;
 
             case 3: // flags
                 // console.log('getting room flags:', this.game_instance.inRoomFlags);
@@ -138,9 +139,9 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 
             case 2: // chests
 
-                if (Array.isArray(this.inRoomChests[port]))
-                    return this.inRoomChests[port];
-                else if (this.inRoomChests[port] !== undefined)
+                if (Array.isArray(this.inRoomConsumables[port]))
+                    return this.inRoomConsumables[port];
+                else if (this.inRoomConsumables[port] !== undefined)
                     return [];
                     
             break;
@@ -160,7 +161,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 getplayers.prototype.addRoom = function(port)
 {
     console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
-    var room, events, chests, flags, cooldowns, round;
+    var round;
 
     // first, ensure room doesn't already exist
     if (this.game_instance && this.game_instance.inRoom[port] !== undefined)
@@ -179,11 +180,11 @@ getplayers.prototype.addRoom = function(port)
         console.log('* creating server objs...');
         
         // players
-        room = this.game_instance.inRoom[port] = [];
-        events = this.game_instance.inRoomEvents[port] = [];
-        chests = this.game_instance.inRoomChests[port] = [];
-        flags = this.game_instance.inRoomFlags[port] = [];
-        cooldowns = this.game_instance.inRoomCooldowns[port] = [];
+        this.game_instance.inRoom[port] = [];
+        this.game_instance.inRoomEvents[port] = [];
+        this.game_instance.inRoomConsumables[port] = [];
+        this.game_instance.inRoomFlags[port] = [];
+        this.game_instance.inRoomCooldowns[port] = [];
 
         // set round end time
         round = this.game_instance.inRoomRound[port] = {};//new game_round();//{};
@@ -201,11 +202,11 @@ getplayers.prototype.addRoom = function(port)
         console.log('* creating client objs...');
         port = port.toString();
         // players
-        room = this.inRoom[port] = [];
-        events = this.inRoomEvents[port] = [];
-        chests = this.inRoomChests[port] = [];
-        flags = this.inRoomFlags[port] = [];
-        // console.log('* chests', this.inRoomChests, this.inRoom);   
+        this.inRoom[port] = [];
+        this.inRoomEvents[port] = [];
+        this.inRoomConsumables[port] = [];
+        this.inRoomFlags[port] = [];
+        // console.log('* chests', this.inRoomConsumables, this.inRoom);   
     }
 
     var count = 0;
@@ -300,6 +301,12 @@ getplayers.prototype.addRoom = function(port)
             }
         }
         // console.log('flags!', this.game_instance.inRoomFlags[port]);
+
+        // consumables object pool
+        for (i = 20 - 1; i >= 0; i--)
+        {
+            this.game_instance.inRoomConsumables[port].push(new game_consumable(null, false, this));
+        }
     }
     else // client
     {
@@ -315,8 +322,23 @@ getplayers.prototype.addRoom = function(port)
             this.allplayers.push(p);
         }
         // create events // inRoomEvents[port]
-        // create chests // inRoomChests[port]
+        // create chests // inRoomConsumables[port]
         // create flags // inRoomFlags[port]
+    }
+};
+
+getplayers.prototype.fromRoomNextActiveConsumable = function(port)
+{
+    console.log('fromRoomNextActiveConsumable', port);
+    
+    for (var i = this.game_instance.inRoomConsumables[port].length - 1; i >= 0; i--)
+    {
+        console.log('*',this.game_instance.inRoomConsumables[port][i].active);
+        
+        if (this.game_instance.inRoomConsumables[port][i].active === false)
+        {
+            return this.game_instance.inRoomConsumables[port][i];
+        }
     }
 };
 
@@ -497,10 +519,15 @@ getplayers.prototype.addToRoom = function(obj, port, type)
     switch(type)
     {
         case 2: // chests
-            console.log('-->', port, obj.x, obj.y);
-            
-            this.game_instance.inRoomChests[port].push(obj);
-            console.log('@ total chests:', this.game_instance.inRoomChests[port].length);
+            console.log('addToRoom (consumable) -->', port, obj);
+            var consumables = this.game_instance.inRoomConsumables[port];
+            for (var i = consumables.length - 1; i >= 0; i--)
+            {
+                if (consumables[i].active == false)
+                    consumables[i].addConsumable(obj);
+            }
+            // this.game_instance.inRoomConsumables[port].push(obj);
+            // console.log('@ total consumables:', this.game_instance.inRoomConsumables[port].length);
         
         break;
 

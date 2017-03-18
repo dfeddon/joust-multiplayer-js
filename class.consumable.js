@@ -12,21 +12,59 @@
 var assets      = require('./singleton.assets');
 var _           = require('./node_modules/lodash/lodash.min');
 var game_buffs  = require('./class.buffs');
+var getUid      = require('get-uid');
 
 const CONSUMABLE_CATEGORY_CHEST = 1,
-      CONSUMABLE_CATEGORY_POTION_POTENCY = 2,
-      CONSUMABLE_CATEGORY_POTION_DURATION = 3,
-      CONSUMABLE_CATEGORY_POTION_HEALTH = 4;
+      CONSUMABLE_CATEGORY_POTION_HEALTH = 2,
+      CONSUMABLE_CATEGORY_POTION_FOCUS = 3;
+      // CONSUMABLE_CATEGORY_POTION_POTENCY = 2,
+      // CONSUMABLE_CATEGORY_POTION_DURATION = 3,
 
-function game_chest(data, client, getplayers, config)
+function game_chest(data, client, getplayers)
 {
-  console.log('== game_chest constructor', data, '==');
+  console.log('== game_chest constructor ==', data, client);
   
-  // var _this = this;
-  this.imageOpen = null;
-  this.imageClose = null;
+  if (data && data.i)
+    this.id = data.i;
+  else this.id = getUid();
+  this.client;
+  this.getplayers = getplayers;
+
+  this.gamebuffs = new game_buffs();// null;
+
+  this.active = false;
+
+  if (client)
+  {
+    var v = document.getElementById('viewport');
+    this.ctx = v.getContext('2d');
+    // TweenLite.ticker.addEventListener("tick", this.draw);
+    //this.ctx = this.game.viewport.getContext('2d');
+  }
+
+
+  if (data)
+    this.addData(data);// = data;
+  else this.data = {};
+}
+
+game_chest.prototype.addData = function(data)
+{
+  console.log('== consumable.addData ==', data);
+
+  // this.consumableData.i = this.consumable.id;
+  // this.consumableData.x = this.spawn.x;
+  // this.consumableData.y = this.spawn.y;
+  // this.consumableData.t = this.passive.type;
+  // this.consumableData.d = this.passive.discipline;
   
-  this.category = Math.floor((Math.random() * 4) + 1);
+  this.active = true;
+  this.data = data;
+
+  this.category = data.c;//ategory;
+  console.log('this.category', this.category);
+  
+  // this.category = Math.floor((Math.random() * 3) + 1);
 
   switch (this.category)
   {
@@ -39,39 +77,40 @@ function game_chest(data, client, getplayers, config)
       this.imageOpen = assets.consume_potgreenempty;
       this.imageClose = assets.consume_potgreenfull;
     break;
-    
-    case CONSUMABLE_CATEGORY_POTION_POTENCY:
-      this.imageOpen = assets.consume_potredempty;
-      this.imageClose = assets.consume_potredfull;
+
+    case CONSUMABLE_CATEGORY_POTION_FOCUS:
+      this.imageOpen = assets.consume_potyellowempty;
+      this.imageClose = assets.consume_potyellowfull;
     break;
+
+    // case CONSUMABLE_CATEGORY_POTION_POTENCY:
+    //   this.imageOpen = assets.consume_potredempty;
+    //   this.imageClose = assets.consume_potredfull;
+    // break;
     
-    case CONSUMABLE_CATEGORY_POTION_DURATION:
-      this.imageOpen = assets.consume_potblueempty;
-      this.imageClose = assets.consume_potbluefull;
-    break;
+    // case CONSUMABLE_CATEGORY_POTION_DURATION:
+    //   this.imageOpen = assets.consume_potblueempty;
+    //   this.imageClose = assets.consume_potbluefull;
+    // break;
+
+    //return this;
   }
   // if (this.category === CONSUMABLE_CATEGORY_CHEST)
-  this.game_buffs = new game_buffs();
+  // if (this.category === CONSUMABLE_CATEGORY_CHEST)
+    this.game_buffs = data.b;//new game_buffs();
   //this.game = game_instance;
-  this.data = data;
-  this.getplayers = getplayers;
-  this.config = config;
+  // this.data = data;
 
-  if (client)
-  {
-    var v = document.getElementById('viewport');
-    this.ctx = v.getContext('2d');
-    // TweenLite.ticker.addEventListener("tick", this.draw);
-    //this.ctx = this.game.viewport.getContext('2d');
-  }
-
-  this.id = data.i;//game_instance.getUID();
+  // this.id = data.i;//game_instance.getUID();
 
   this.x = parseInt(data.x);
   this.y = parseInt(data.y);
-  this.type = data.t; // passive type
-  this.duration = data.d; // passive duration
-  this.modifier = data.m; // passive modifier
+  // this.type = data.t; // passive type
+  this.buff = data.b;
+  this.health = data.h;
+  this.focus = data.f;
+  // this.duration = data.d; // passive duration
+  // this.modifier = data.m; // passive modifier
 
   this.data = data;
 
@@ -83,30 +122,22 @@ function game_chest(data, client, getplayers, config)
   this.opening = false;
 
   this.callout = null;
-  //console.log('chest constructor', data);
 
-  //this._ = require('./node_modules/lodash/lodash.min');
-
-  // if (this.config.server)
-  // {
-  //   _.forEach(getplayers.allplayers, function(ply)
-  //   {
-  //       if (ply.instance)
-  //       {
-  //         console.log('* id', _this.id);
-
-  //         console.log('* ply.instance', ply.instance);
-
-  //         ply.instance.send('c.a.' + _this.id)
-  //       }
-  //   });
-  // }
-
+  return this;
 }
+
+game_chest.prototype.reset = function()
+{
+  console.log('== consumable.reset ==');
+  
+  this.active = false;
+  this.data = null;
+  // this.gamebuffs = null;
+};
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('=== chest.doTake', player.id, this.taken, this.id, '===');
+  console.log('=== chest.doTake', this.id, '===');
 
   if (this.taken === true) return;
   else this.taken = true;
@@ -123,7 +154,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   // no double-takes!
 
   // assign passive to player
-  console.log('passive', this.data, this.type);//, this.duration, this.modifier);
+  console.log('passive', this.data, this.type, this.category);//, this.duration, this.modifier);
 
   switch(this.category)
   {
@@ -132,16 +163,20 @@ game_chest.prototype.doTake = function(player)//, chests)
     break;
 
     case CONSUMABLE_CATEGORY_POTION_HEALTH:
-      // player.addBuffToServer(this.data);
+      player.addHealthToServer(this.data);
+    break;
+
+    case CONSUMABLE_CATEGORY_POTION_FOCUS:
+      player.addFocusToServer(this.data);
     break;
     
-    case CONSUMABLE_CATEGORY_POTION_POTENCY:
-      // player.addBuffToServer(this.data);
-    break;
+    // case CONSUMABLE_CATEGORY_POTION_POTENCY:
+    //   player.addModifierToServer(this.data);
+    // break;
     
-    case CONSUMABLE_CATEGORY_POTION_DURATION:
-      // player.addBuffToServer(this.data);
-    break;
+    // case CONSUMABLE_CATEGORY_POTION_DURATION:
+    //   player.addModifierToServer(this.data);
+    // break;
     
   }
   // switch(this.type)
@@ -173,7 +208,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   // next, reset chest spawnpoint
 
   // resset chestSpawnPoints.active to false
-  //console.log(this.config.chestSpawnPoints.length);
+  //console.log(this.getplayers.config.chestSpawnPoints.length);
   var roomEvents = this.getplayers.fromRoom(player.playerPort, 1); // <- returns inRoomEvents array
   // console.log('* roomEvents', roomEvents);
   for (var i = roomEvents.length - 1; i >= 0; i--)
@@ -211,7 +246,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   this.opening = true;
 
   // callout animation
-  if (!this.config.server)
+  if (!this.getplayers.config.server)
   {
     // start pos
     // this.callout = { x: this.x, y: this.y - 50, image: assets.callout_shield };
@@ -233,10 +268,22 @@ game_chest.prototype.doRemove = function()
 {
   console.log('=== chest.doRemove', this.takenBy.playerPort, '===');//, player.mp, '===');
 
-  var _this = this;
-  _.pull(this.config.chests, this);
+  // var _this = this;
+  _.pull(this.getplayers.config.chests, this);
   this.takenBy.instance.room(this.takenBy.playerPort).write([16, this.id, this.takenBy.id]);
   this.taken = false;
+
+  this.reset();
+};
+
+game_chest.prototype.getHealthModifier = function()
+{
+  return 5;
+};
+
+game_chest.prototype.getFocusModifier = function()
+{
+  return 5;
 };
 
 game_chest.prototype.update = function()
@@ -247,11 +294,9 @@ game_chest.prototype.update = function()
 game_chest.prototype.draw = function()
 {
   if (this.opening === true)
-  {
     this.ctx.drawImage(this.imageOpen, this.x, this.y, this.width, this.height);
-    // this.ctx.drawImage(assets.callout_shield, this.x, this.y - 50, this.width, this.height);
-  }
-  else this.ctx.drawImage(this.imageClose, this.x, this.y, this.width, this.height);
+  else 
+    this.ctx.drawImage(this.imageClose, this.x, this.y, this.width, this.height);
 };
 
 // game_chest.prototype.doAnimate = function()
