@@ -94,6 +94,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.level = 1;
     this.levels = [0,2500,7500,15000,25000];
 
+    // this.slotFlagDispatch = null;
+
     this.team = 0; // 1 = red, 2 = blue
     this.level = 1; // 1:256, 2:512, 3:1024, 5:2048, 6:4096, etc.
     this.mana = 0;

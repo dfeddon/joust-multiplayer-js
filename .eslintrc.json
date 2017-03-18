@@ -78,6 +78,7 @@
         "no-catch-shadow": "off",
         "no-compare-neg-zero": "error",
         "no-confusing-arrow": "error",
+        "no-console": "off",
         "no-constant-condition": [
             "error",
             {

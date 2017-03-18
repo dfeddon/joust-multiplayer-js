@@ -590,7 +590,88 @@ game_flag.prototype.slotFlag = function(player)
         console.log('emit territory change data');
     }
     */
-    if (!this.config.server)
+    if (this.config.server)
+    {
+      // calculate team modifiers based on territory
+      console.log('* caculating team-based modifiers...');
+      //roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
+      var red = _.find(roomFlags, {'name':'redFlag'});
+      var mid = _.find(roomFlags, {'name':'midFlag'});
+      var blue = _.find(roomFlags, {'name':'blueFlag'});
+      console.log('- redSrc', red.sourceSlot);
+      console.log('- midSrc', mid.sourceSlot);
+      console.log('- blueSrc', blue.sourceSlot);
+
+      // slot t = mid, d = red, e = blue
+      var redVal = red.sourceSlot.substr(-1);
+      var midVal = mid.sourceSlot.substr(-1);
+      var blueVal = blue.sourceSlot.substr(-1);
+      // check for 10
+      if (parseInt(redVal) === 0)
+        redVal = 10;
+      if (parseInt(midVal) === 0)
+        midVal = 10;
+      if (parseInt(blueVal) === 0)
+        blueVal = 10;
+
+      console.log('* redVal', redVal);
+      console.log('* midVal', midVal);
+      console.log('* blueVal', blueVal);
+
+      var teamRed = 0;
+      var teamBlue = 0;
+
+      var modPointPercent = 5; // 5%
+
+      function isNumeric(num)
+      {
+        num = "" + num; //coerce num to be a string
+        return !isNaN(num) && !isNaN(parseFloat(num));
+      }
+
+      // red flag
+      if (redVal == 't') // red at mid
+      {
+        teamRed -= (5 * modPointPercent);
+        teamBlue += (5 * modPointPercent);
+        console.log('#1',teamRed,teamBlue);
+      }
+      else if (isNumeric(redVal) && parseInt(redVal) > 0)
+      {
+        teamRed -= (parseInt(redVal) * modPointPercent);
+        teamBlue += (parseInt(redVal) * modPointPercent);
+        console.log('#2',teamRed,teamBlue);
+      }
+      // blue flag
+      if (blueVal == 't') // blue at mid
+      {
+        teamRed += (5 * modPointPercent);
+        teamBlue -= (5 * modPointPercent);
+        console.log('#3',teamRed,teamBlue);
+      }
+      else if (isNumeric(blueVal) && parseInt(blueVal) < 11)
+      {
+        teamRed += ((11 - parseInt(blueVal)) * modPointPercent);
+        teamBlue -= ((11 - parseInt(blueVal)) * modPointPercent);
+        console.log('#4',teamRed,teamBlue);
+      }
+      // mid flag
+      if (isNumeric(midVal) && parseInt(midVal) > 5) // in blue territory
+      {
+        teamRed += ((parseInt(midVal) - 5) * modPointPercent);
+        teamBlue -= ((parseInt(midVal) - 5) * modPointPercent);
+        console.log('#5',teamRed,teamBlue, parseInt(midVal));
+      }
+      else if (isNumeric(midVal) && parseInt(midVal) < 6) // in red territory
+      {
+        teamRed -= ((6 - parseInt(midVal)) * modPointPercent);
+        teamBlue += ((6 - parseInt(midVal)) * modPointPercent);
+        console.log('#6',teamRed,teamBlue, parseInt(midVal));
+      }
+
+      console.log('TEAM MOD CHANGE!!!!', 'red', teamRed, 'blue', teamBlue);
+    }
+    else //if (!this.config.server)
     {
       console.log('* calling updateTerritory');
       

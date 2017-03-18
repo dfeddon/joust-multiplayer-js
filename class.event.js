@@ -1,7 +1,3 @@
-/*jslint
-    this
-*/
-
 'use strict';
 
 /*
@@ -84,7 +80,7 @@ game_event.prototype.update = function()
 {
   // console.log('== event.update() ==');
   
-  var _this = this;
+  //var _this = this;
   //console.log('event.update');
   this.dif = Math.floor(this.config.server_time - this.triggerOn);
   //console.log(this.dif);
@@ -169,7 +165,7 @@ game_event.prototype.update = function()
         // iterate through all available chest spawn locations
         // comparing locations to locations of existing chests
         // add new chest to first vacant location
-        for (var i = 0; i < this.chestSpawnPoints.length; i++)
+        for (i = 0; i < this.chestSpawnPoints.length; i++)
         {
           if (this.chestSpawnPoints[i].active === true)
             ct++;
@@ -177,7 +173,7 @@ game_event.prototype.update = function()
         }
         console.log('* num active chests', ct, 'of', MAX_CHESTS);// * this.getplayers.totalRooms()));
         // no more than n
-        if (ct > MAX_CHESTS)// * this.getplayers.totalRooms()))
+        if (ct >= MAX_CHESTS)// * this.getplayers.totalRooms()))
         {
           console.log('* max chests reached...');
           

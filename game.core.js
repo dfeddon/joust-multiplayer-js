@@ -1,6 +1,3 @@
-/*jslint
-    this*/
-
 /*  Copyright 2012-2016 Sven "underscorediscovery" Bergström
 
     written by : http://underscorediscovery.ca
@@ -1367,23 +1364,24 @@ game_core.prototype.check_collision = function( player )
     if (this.config.server)
     {
         var chest;
-        var room = this.getplayers.fromRoom(player.playerPort, 2);
+        room = this.getplayers.fromRoom(player.playerPort, 2);
         // console.log('@ chests len', room.length);//, player.userid);
         
-        for (var j = room.length - 1; j >= 0; j--)
+        for (i = room.length - 1; i >= 0; i--)
         {
-            chest = room[j];
-            // console.log('collision().chests', chest);
+            chest = room[i];
+            // console.log('collision().chests', chest.taken);
             // Note: hy + 10 below accounts for birds unseen legs.
             if (
-                chest && chest.taken===false && player.pos.x < (chest.x + chest.width) &&
+                player.pos.x < (chest.x + chest.width) &&
                 (player.pos.x + player.size.hx) > chest.x &&
                 player.pos.y < (chest.y + chest.height) &&
                 (player.pos.y + player.size.hy) > chest.y
             )
             {
                 console.log('chest hit');
-                chest.doTake(player);//, _this.chests);
+                if (!chest.taken)
+                    chest.doTake(player);//, _this.chests);
                 //_.pull(_this.chests, chest);
             }
         }
@@ -1394,12 +1392,12 @@ game_core.prototype.check_collision = function( player )
     {
         // _.forEach(this.config.flagObjects, function(fo)
         var fo;
-        var roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
+        room = this.getplayers.fromRoom(player.playerPort, 3);
         // for (var k = this.config.flagObjects.length - 1; k >= 0; k--)
         // console.log('flags! len', roomFlags.length);
-        for (var x = roomFlags.length - 1; x >= 0; x--)
+        for (i = room.length - 1; i >= 0; i--)
         {
-            fo = roomFlags[x];//this.config.flagObjects[k];
+            fo = room[i];//this.config.flagObjects[k];
             // console.log('======= flag ======\n', fo.id, fo.name, fo.x, fo.y, '\n=======');
             if (
                 //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
@@ -2088,14 +2086,9 @@ game_core.prototype.server_update = function()
             bufView[3] = (player.flap) ? 1 : 0;
             bufView[4] = player.landed;
             bufView[5] = (player.vuln) ? 1 : 0;
-            //bufView[6] = player.a;//.fixed(2);
-            //bufView[7] = player.vx;//.fixed(2);//.fixed(2);
-            //bufView[8] = player.vy;//.fixed(2);//.fixed(2);
-            // bufView[6] = player.hasFlag; // 0=none, 1=midflag, 2=redflag, 3=blueflag
             if (player.slotDispatch)
             {
-                // console.log('* slotDispatch', player.slotDispatch);                
-                bufView[6] = player.slotDispatch;//(player.bubble) ? 1 : 0;
+                bufView[6] = player.slotDispatch;
                 player.slotDispatch = null;
             }
             if (player.bonusSlot > 100)
@@ -2103,15 +2096,15 @@ game_core.prototype.server_update = function()
                 player.bonusSlot -= 100;
                 bufView[7] = player.bonusSlot;
             }
-            // bufView[8] = (player.visible) ? 1 : 0;//killedPlayer;
-            //bufView[9] = i; // player's bufferIndex
-            // console.log('score', player.score, player.oldscore);
-            
             if (player.score != player.oldscore)
             {
                 bufView[8] = player.score;//(player.dead) ? 1 : 0;//player.team;
                 player.oldscore = player.score;
             }
+            // if (player.territoryDispatch)
+            // {
+
+            // }
             // bufView[8] = (player.active) ? 1 : 0;
             // bufView[15] = 16; // open item
             //*/

@@ -3619,7 +3619,7 @@ core_client.prototype.updateTerritory = function()
 
     // draw bricks
     var brickX, brickY;
-    for(var c=0; c<brickColumnCount; c++)
+    for(c=0; c<brickColumnCount; c++)
     {
         ctx.beginPath();
         for(var r=0; r<brickRowCount; r++)
@@ -3665,10 +3665,12 @@ core_client.prototype.updateTerritory = function()
     var score3 = this.flagToScore(mid.name, midSrc);
     var score4 = this.flagToScore(blue.name, blueSrc);
 
-    console.log('flagToScore', score2, score3, score4);
+    console.log('flagToScore', 'red', score2, 'mid', score3, 'blue', score4);
     var redRaw = score2.red + score3.red + score4.red;
     var blueRaw = score2.blue + score3.blue + score4.blue;
-
+    console.log('raw score', redRaw, blueRaw);
+    
+    /*
     var redTotal = Math.abs(score2.red) + Math.abs(score3.red) + Math.abs(score4.red);
     var blueTotal = Math.abs(score2.blue) + Math.abs(score3.blue) + Math.abs(score4.blue);
     
@@ -3690,12 +3692,14 @@ core_client.prototype.updateTerritory = function()
 
     console.log('red score', redScore);
     console.log('blue score', blueScore);
-
-    var redTxt = document.getElementById('txtScoreRed');
-    var blueTxt = document.getElementById('txtScoreBlue');
-    
-    redTxt.innerHTML = redScore + "%";
-    blueTxt.innerHTML = blueScore + "%";
+    */
+    var modPerPoint = 5;
+    var redScore = (redRaw * modPerPoint);
+    var blueScore = (blueRaw * modPerPoint);
+    if (redScore > 0) redScore = "+" + redScore;
+    if (blueScore > 0) blueScore = "+" + blueScore;
+    document.getElementById('txtScoreRed').innerHTML = redScore + "%";
+    document.getElementById('txtScoreBlue').innerHTML = blueScore + "%";
 };
 
 
@@ -3756,8 +3760,8 @@ core_client.prototype.flagToScore = function(flag, slot)
             }
             else if (flag == "midFlag")
             {
-                red = 5;
-                blue = 5;
+                red = 0;
+                blue = 0;
             }
 
         break;

@@ -13,11 +13,44 @@ var assets      = require('./singleton.assets');
 var _           = require('./node_modules/lodash/lodash.min');
 var game_buffs  = require('./class.buffs');
 
+const CONSUMABLE_CATEGORY_CHEST = 1,
+      CONSUMABLE_CATEGORY_POTION_POTENCY = 2,
+      CONSUMABLE_CATEGORY_POTION_DURATION = 3,
+      CONSUMABLE_CATEGORY_POTION_HEALTH = 4;
+
 function game_chest(data, client, getplayers, config)
 {
   console.log('== game_chest constructor', data, '==');
   
-  var _this = this;
+  // var _this = this;
+  this.imageOpen = null;
+  this.imageClose = null;
+  
+  this.category = Math.floor((Math.random() * 4) + 1);
+
+  switch (this.category)
+  {
+    case CONSUMABLE_CATEGORY_CHEST: 
+      this.imageOpen = assets.consume_chestopen;
+      this.imageClose = assets.consume_chestclosed;
+      break;
+    
+    case CONSUMABLE_CATEGORY_POTION_HEALTH:
+      this.imageOpen = assets.consume_potgreenempty;
+      this.imageClose = assets.consume_potgreenfull;
+    break;
+    
+    case CONSUMABLE_CATEGORY_POTION_POTENCY:
+      this.imageOpen = assets.consume_potredempty;
+      this.imageClose = assets.consume_potredfull;
+    break;
+    
+    case CONSUMABLE_CATEGORY_POTION_DURATION:
+      this.imageOpen = assets.consume_potblueempty;
+      this.imageClose = assets.consume_potbluefull;
+    break;
+  }
+  // if (this.category === CONSUMABLE_CATEGORY_CHEST)
   this.game_buffs = new game_buffs();
   //this.game = game_instance;
   this.data = data;
@@ -78,7 +111,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   if (this.taken === true) return;
   else this.taken = true;
 
-  var _this = this;
+  // var _this = this;
 
   this.takenBy = player;//.mp;
 
@@ -91,7 +124,26 @@ game_chest.prototype.doTake = function(player)//, chests)
 
   // assign passive to player
   console.log('passive', this.data, this.type);//, this.duration, this.modifier);
-  player.addBuffToServer(this.data);
+
+  switch(this.category)
+  {
+    case CONSUMABLE_CATEGORY_CHEST:
+      player.addBuffToServer(this.data);
+    break;
+
+    case CONSUMABLE_CATEGORY_POTION_HEALTH:
+      // player.addBuffToServer(this.data);
+    break;
+    
+    case CONSUMABLE_CATEGORY_POTION_POTENCY:
+      // player.addBuffToServer(this.data);
+    break;
+    
+    case CONSUMABLE_CATEGORY_POTION_DURATION:
+      // player.addBuffToServer(this.data);
+    break;
+    
+  }
   // switch(this.type)
   // {
   //   case this.game_buffs.BUFFS_BUBBLE: // acceleration boost
@@ -184,6 +236,7 @@ game_chest.prototype.doRemove = function()
   var _this = this;
   _.pull(this.config.chests, this);
   this.takenBy.instance.room(this.takenBy.playerPort).write([16, this.id, this.takenBy.id]);
+  this.taken = false;
 };
 
 game_chest.prototype.update = function()
@@ -195,10 +248,10 @@ game_chest.prototype.draw = function()
 {
   if (this.opening === true)
   {
-    this.ctx.drawImage(assets.evt_chestopen, this.x, this.y, this.width, this.height);
+    this.ctx.drawImage(this.imageOpen, this.x, this.y, this.width, this.height);
     // this.ctx.drawImage(assets.callout_shield, this.x, this.y - 50, this.width, this.height);
   }
-  else this.ctx.drawImage(assets.evt_chestclosed, this.x, this.y, this.width, this.height);
+  else this.ctx.drawImage(this.imageClose, this.x, this.y, this.width, this.height);
 };
 
 // game_chest.prototype.doAnimate = function()
