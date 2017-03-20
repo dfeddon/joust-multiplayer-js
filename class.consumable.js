@@ -45,7 +45,7 @@ function game_chest(data, client, getplayers)
 
   if (data)
     this.addData(data);// = data;
-  else this.data = {};
+  else if (this.data) Object.keys(this.data).forEach((k) => delete this.data[k]);
 }
 
 game_chest.prototype.addData = function(data)
@@ -62,6 +62,7 @@ game_chest.prototype.addData = function(data)
   this.data = data;
 
   this.category = data.c;//ategory;
+  this.value = data.v;
   console.log('this.category', this.category);
   
   // this.category = Math.floor((Math.random() * 3) + 1);
@@ -93,11 +94,10 @@ game_chest.prototype.addData = function(data)
     //   this.imageClose = assets.consume_potbluefull;
     // break;
 
-    //return this;
   }
   // if (this.category === CONSUMABLE_CATEGORY_CHEST)
   // if (this.category === CONSUMABLE_CATEGORY_CHEST)
-    this.game_buffs = data.b;//new game_buffs();
+    // this.game_buffs = data.b;//new game_buffs();
   //this.game = game_instance;
   // this.data = data;
 
@@ -191,15 +191,16 @@ game_chest.prototype.doTake = function(player)//, chests)
   // }
 
   // first, remove chest from room
-  var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomEvents array
+  var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomChests array
   for (var c = roomChests.length - 1; c >= 0; c--)
   {
     console.log(roomChests[c].id, this.id);
     if (roomChests[c].id == this.id)
     {
-      console.log('* removing chest!', roomChests.length);
-      roomChests.splice(i, 1);
-      console.log('* removed...', roomChests.length);
+      console.log('* removing chest!', roomChests.length, roomChests);
+      // roomChests.splice(i, 1);
+      roomChests[c].active = false;
+      console.log('* removed...', roomChests.active);//.length);
       break;
     }
   }
@@ -276,14 +277,19 @@ game_chest.prototype.doRemove = function()
   this.reset();
 };
 
+game_chest.prototype.getRandomInt = function(min, max) 
+{
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 game_chest.prototype.getHealthModifier = function()
 {
-  return 5;
+  return this.getRandomInt(5, 15);
 };
 
 game_chest.prototype.getFocusModifier = function()
 {
-  return 5;
+  return this.getRandomInt(1, 10);
 };
 
 game_chest.prototype.update = function()

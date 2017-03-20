@@ -728,8 +728,8 @@ game_server.prototype.startGame = function(game, newplayer)
         {
             this.log('@@', nonhosts[j].userid, nonhosts[j].mp, nonhosts.pos);
             //var playerName, playerMP;
-            var p = game_instance.gamecore.getplayers.allplayers;
-            for (var x = 0; x < p.length; x++)
+            p = game_instance.gamecore.getplayers.allplayers;
+            for (x = 0; x < p.length; x++)
             {
                 //this.log("**", p[x].mp, nonhosts[j].mp, newplayer.mp);
                 if (p[x].mp == nonhosts[j].mp)// && nonhosts[j].mp == newplayer.mp)
@@ -749,17 +749,20 @@ game_server.prototype.startGame = function(game, newplayer)
             var obj;
             // for (var k = 0; k < game_instance.gamecore.chests.length; k++)
             var roomChests = game_instance.gamecore.getplayers.fromRoom(playerPort, 2); // <- returns inRoomChests array
+            this.log("roomConsumables.length", roomChests.length);
             for (var k = roomChests.length - 1; k >= 0; k--)
             {
                 chest = roomChests[k];//game_instance.gamecore.chests[k];
+                this.log("* consumable:", chest);
+                // { c: 2, v: 5, t: 1, i: 1192407040, x: '1904', y: '1408' }
                 obj =
                 {
-                    i: chest.data.i,
-                    d: chest.data.d,
-                    m: chest.data.m,
-                    t: chest.data.t,
-                    x: parseInt(chest.data.x),
-                    y: parseInt(chest.data.y)
+                    i: chest.id,//data.i,
+                    c: chest.category,//data.c,
+                    v: chest.value,//data.v,
+                    // t: chest.data.t,
+                    x: parseInt(chest.x),
+                    y: parseInt(chest.y)
                 };
                 chestsarray.push(obj);
             }

@@ -2085,11 +2085,13 @@ game_core.prototype.server_update = function()
             bufView[3] = (player.flap) ? 1 : 0;
             bufView[4] = player.landed;
             bufView[5] = (player.vuln) ? 1 : 0;
+            // buff add/remove
             if (player.slotDispatch)
             {
                 bufView[6] = player.slotDispatch;
                 player.slotDispatch = null;
             }
+            // bonus slot add/remove
             if (player.bonusSlot > 100)
             {
                 player.bonusSlot -= 100;
@@ -2100,11 +2102,13 @@ game_core.prototype.server_update = function()
                 bufView[8] = player.score;//(player.dead) ? 1 : 0;//player.team;
                 player.oldscore = player.score;
             }
-            if (player.consumeDispatch)
-            {
-                bufView[9] = player.consumeDispatch;
-                player.consumeDispatch = null;
-            }
+            // potion health
+            // if (player.healthDispatch)
+            // {
+            //     bufView[9] = player.healthDispatch;
+            //     player.healthDispatch = null;
+            // }
+            // potion bonus
             // if (player.territoryDispatch)
             // {
 
@@ -2212,7 +2216,7 @@ game_core.prototype.server_update = function()
                     {
                         case evt.TYPE_CHEST:
                             // var id = getUid();//_this.getUID();
-                            console.log('* event:adding chest', evt.consumableData.id);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                            console.log('* event:adding chest', evt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
                             /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
                                 x: '1152',
                                 y: '576',

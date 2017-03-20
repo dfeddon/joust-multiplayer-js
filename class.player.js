@@ -83,7 +83,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot2Image = null;
     // this.slot3Image = null;
     
-    this.health = 100;
+    this.health = 50;
     this.healthMax = 100;
     this.engaged = false;
     this.vuln = false;
@@ -95,6 +95,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.roundscore = 0;
     this.level = 1;
     this.levels = [0,2500,7500,15000,25000];
+
+    this.textFloater = null;
 
     // this.slotFlagDispatch = null;
 
@@ -226,9 +228,9 @@ game_player.prototype.setFromBuffer = function(data)
         this.score = data[8];
         this.addToScore();
     }
-    // consumable
-    if (data[9])
-        this.addConsumable(data[9]);
+    // health consumable
+    // if (data[9])
+        // this.addHealthConsumable(data[9]);
     // this.active = (data[8] === 1) ? true : false;
 }
 
@@ -243,13 +245,34 @@ game_player.prototype.buffIdsToSlots = function(ids)
     }
 
     console.log('* assigned slots', this.slots);
-    
+};
+
+game_player.prototype.addHealthConsumable = function(consumable)
+{
+    console.log('== addHealthConsumable ==', consumable);
 };
 
 game_player.prototype.addConsumable = function(consumable)
 {
     console.log('== addConsumable ==', consumable);
     
+    switch(consumable.c) // category
+    {
+        case 1: // buff
+        break;
+
+        case 2: // health potion
+            if (this.health + consumable.v >= this.healthMax)
+                this.health = this.healthMax;
+            else this.health += consumable.v;
+
+            this.setTextFloater(consumable.c, consumable.v, 1);
+        break;
+
+        case 3: // focus potion
+            this.setTextFloater(consumable.c, consumable.v, 1);
+        break;
+    }
 };
 
 game_player.prototype.addBuff = function(buff)
@@ -1511,7 +1534,12 @@ game_player.prototype.addBuffToServer = function(data)//type, duration, modifier
 game_player.prototype.addHealthToServer = function(data)
 {
     console.log('== addHealthToServer ==', data);
-    this.healthDispatch = data.v;
+
+    if (this.health + data.v >= this.healthMax)
+        this.health = this.healthMax;
+    else this.health += data.v;
+
+    // this.healthDispatch = data.v;
 }
 
 game_player.prototype.addFocusToServer = function(data)
@@ -1520,7 +1548,35 @@ game_player.prototype.addFocusToServer = function(data)
 
     // send data to live socket
     this.focusDispatch = data.v;//t;
-}
+};
+
+game_player.prototype.setTextFloater = function(c, v, bool)
+{
+    console.log('== setTextFloater ==', c, v, bool);
+
+    // params:
+    // 1. category: 1 (buff) / 2 (health) / 3 (focus)
+    // 2. value: int
+    // 3. active: bool
+    var text, color;
+    if (v >= 0)
+        text = "+" + v.toString();
+    else text += v.toString();
+
+    if (c === 3)
+    {
+        text += " BONUS";
+        color = "yellow";
+    }
+    else
+    {
+        text += " HEALTH";
+        color = "lime";
+    }
+    console.log(this.config.server_time, this.config.server_time + 1.5);
+    this.textFloater = [text, color, bool, this.config.server_time + 1.5];
+};
+
 
 game_player.prototype.doCycleAbility = function()
 {
@@ -1893,7 +1949,7 @@ game_player.prototype.drawAbilities = function()
         // calculate
         //var progressPercent = (this.mana / this.levels[this.level]);
         // var progressPercent = (this.progression / 500);
-        var progressPercent = (this.health / 100);
+        var progressPercent = (this.health / this.healthMax);
         // 64 is the width of the progression bar
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
@@ -1949,6 +2005,20 @@ game_player.prototype.draw = function()
         // draw progression
         if (!this.vuln)
             this.drawAbilities();
+
+        if (this.textFloater)
+        {
+            this.config.ctx.font="30px Mirza";
+            this.config.ctx.textAlign = 'center';
+            this.config.ctx.fillStyle = this.textFloater[1];
+            // this.config.ctx.save();
+            this.config.ctx.fillText(this.textFloater[0],this.pos.x,this.pos.y - 30 - this.textFloater[2]);
+            this.textFloater[2] += 0.25;
+            // this.config.ctx.restore();
+            if (this.config.server_time >= this.textFloater[3])
+                this.textFloater = null;
+            
+        }
     } // end isLocal
     // else
     // {

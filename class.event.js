@@ -187,6 +187,10 @@ game_event.prototype.update = function(port)
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         this.consumable = this.getplayers.fromRoomNextActiveConsumable(port);
+        console.log('* got consumable from next active', this.consumable);
+        
+        // set ref to active
+        this.consumable.active = true;
         // console.log('this.consumable', this.consumable);
         // rng
         // console.log('* available spawn points...', availChests.length);
@@ -213,7 +217,8 @@ game_event.prototype.update = function(port)
 
         console.log("* evt.consumableData ready!", this.consumableData);
         
-        this.consumable.addData(this.consumableData);
+        // update consumable reference (stored in getplayers)
+        this.consumable = this.consumable.addData(this.consumableData);
         // 4. place it
         // 5. finalize prep for getEvent() (conform event data for socket dispatch)
 

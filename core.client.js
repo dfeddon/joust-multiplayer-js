@@ -614,7 +614,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     // console.log('derek', data);
 
     var playerMp = data[0];
-    var gameId = data[1];
+    // var gameId = data[1];
     var chests = data[2];
     var team = data[3];
     var playerName = data[4];
@@ -737,6 +737,8 @@ core_client.prototype.client_onhostgame = function(data, callback)
 
     _.forEach(chests, function(chest)
     {
+        // { c: 2, v: 5, t: 1, i: 1192407040, x: '1904', y: '1408' }
+        console.log("* consumable:", chest);
         _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     });
 
@@ -1403,7 +1405,15 @@ core_client.prototype.client_on_chesttake = function(id, player)
         if (chest.id == id)
         {
             // chest is opened
+            console.log('* consume', chest);
+            
             chest.opening = true;
+
+            // if self is player, notify player
+            if (player == this.players.self.userid)
+            {
+                this.players.self.addConsumable(chest.data);
+            }            
             break;
         }
     }
@@ -3400,7 +3410,7 @@ core_client.prototype.prerenderer = function()
     var c, gradient, x, y, size;
 
     // so we do not apply styles to all contexts!
-    context2.save();
+    // context2.save();
     context2.translate(x,y);
 
     //for (var k = 0; k < max; k++)
@@ -3447,12 +3457,12 @@ core_client.prototype.prerenderer = function()
         context2.shadowColor = 'white';
         //context2.shadowOffsetX = 0;
         //context2.shadowOffsetY = 0;
-    	context2.fill();
+        context2.fill();
 
         context2.closePath();
     }
     // so we do not apply styles to all contexts!
-    context2.restore();
+    // context2.restore();
 
     /////////////////////////////////////////
     // center circle

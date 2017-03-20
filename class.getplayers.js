@@ -79,6 +79,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
                 var consumables = this.game_instance.inRoomConsumables[port];
                 var consume = [];
 
+                // get only active consumables in object pool
                 for (var i = consumables.length -1; i >= 0; i--)
                 {
                     if (consumables[i].active)
@@ -333,10 +334,11 @@ getplayers.prototype.fromRoomNextActiveConsumable = function(port)
     
     for (var i = this.game_instance.inRoomConsumables[port].length - 1; i >= 0; i--)
     {
-        console.log('*',this.game_instance.inRoomConsumables[port][i].active);
+        console.log('* isactive',this.game_instance.inRoomConsumables[port][i].active);
         
         if (this.game_instance.inRoomConsumables[port][i].active === false)
         {
+            this.game_instance.inRoomConsumables[port][i].active = true;
             return this.game_instance.inRoomConsumables[port][i];
         }
     }
