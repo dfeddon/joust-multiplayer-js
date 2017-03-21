@@ -137,7 +137,7 @@ game_chest.prototype.reset = function()
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('=== chest.doTake', this.id, '===');
+  console.log('=== chest.doTake', this.id, player.playerPort, '===');
 
   if (this.taken === true) return;
   else this.taken = true;
@@ -190,22 +190,20 @@ game_chest.prototype.doTake = function(player)//, chests)
   //   break;
   // }
 
-  // first, remove chest from room
-  var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomChests array
-  for (var c = roomChests.length - 1; c >= 0; c--)
-  {
-    console.log(roomChests[c].id, this.id);
-    if (roomChests[c].id == this.id)
-    {
-      console.log('* removing chest!', roomChests.length, roomChests);
-      // roomChests.splice(i, 1);
-      roomChests[c].active = false;
-      console.log('* removed...', roomChests.active);//.length);
-      break;
-    }
-  }
-  
-
+  // // first, remove chest from room
+  // var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomChests array
+  // for (var c = roomChests.length - 1; c >= 0; c--)
+  // {
+  //   console.log(roomChests[c].id, this.id);
+  //   if (roomChests[c].id == this.id)
+  //   {
+  //     console.log('* removing chest!', roomChests[c].category, 'of total', roomChests.length);
+  //     // roomChests.splice(i, 1);
+  //     roomChests[c].active = false;
+  //     console.log('* removed...', roomChests[c].active);//.length);
+  //     break;
+  //   }
+  // }
   // next, reset chest spawnpoint
 
   // resset chestSpawnPoints.active to false
@@ -262,6 +260,7 @@ game_chest.prototype.doTake = function(player)//, chests)
 
 game_chest.prototype.timeoutOpened = function()
 {
+  console.log("removing consumable taken by ", this.takenBy.playerName);
   this.doRemove();
 };
 
@@ -273,6 +272,21 @@ game_chest.prototype.doRemove = function()
   _.pull(this.getplayers.config.chests, this);
   this.takenBy.instance.room(this.takenBy.playerPort).write([16, this.id, this.takenBy.id]);
   this.taken = false;
+
+  // first, remove chest from room
+  // var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomChests array
+  // for (var c = roomChests.length - 1; c >= 0; c--)
+  // {
+  //   console.log(roomChests[c].id, this.id);
+  //   if (roomChests[c].id == this.id)
+  //   {
+  //     console.log('* removing chest!', roomChests[c].category, 'of total', roomChests.length);
+  //     // roomChests.splice(i, 1);
+  //     roomChests[c].active = false;
+  //     console.log('* removed...', roomChests[c].active);//.length);
+  //     break;
+  //   }
+  // }
 
   this.reset();
 };

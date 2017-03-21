@@ -462,7 +462,11 @@ return;
     // {
     //     res.status(404).end();
     // });
-    app.get('/class.consumables.js', function(req, res)
+    app.get('/class.consumable.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/class.buffs.js', function(req, res)
     {
         res.status(404).end();
     });
@@ -490,6 +494,10 @@ return;
     {
         res.status(404).end();
     });
+    app.get('/class.round.js', function(req, res)
+    {
+        res.status(404).end();
+    });
     app.get('/class.toast.js', function(req, res)
     {
         res.status(404).end();
@@ -499,6 +507,10 @@ return;
         res.status(404).end();
     });
     app.get('/game.core.js', function(req, res)
+    {
+        res.status(404).end();
+    });
+    app.get('/game.connections.js', function(req, res)
     {
         res.status(404).end();
     });
