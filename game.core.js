@@ -892,30 +892,22 @@ game_core.prototype.playerKill = function(victim, victor)
 };
 */
 
-game_core.prototype.pk = function(victor, victim)
+game_core.prototype.pk = function(victor, victim, dmg)
 {
-    console.log('== pk', victor.id, victim.id, '==');
+    console.log('== pk', victor.id, victim.id, dmg, '==');
 
     // first, check if player has bubble...
     
-    victim.active = false;
+    // victim.active = false;
 
     // victor.instance.room(this.gameid).send("onplayerkill", victim.mp + '|' + victor.mp);
     //victor.instance.room(this.gameid).write({type:"pk", action: victim.mp + '|' + victor.mp});
 
     // victor.instance.room(victor.instance.game.id).write([5, victim.id, victor.id]);
-    victor.instance.room(victor.playerPort).write([5, victim.id, victor.id]);
+    // victor.instance.room(victor.playerPort).write([5, victim.id, victor.id, dmg]);
 
-    // _.forEach(this.getplayers.allplayers, function(p, i)
-    // {
-    //     if (p.instance)// && p.mp != "hp")
-    //     {
-    //         console.log('sending...', p.mp);
-            
-    //         p.instance.send('p.k.' + victim.mp + '|' + victor.mp);
-    //     }
-    // });
-    victim.doKill(victor);
+    victim.doHit(victor, dmg);
+    // victim.doKill(victor);
 }
 game_core.prototype.check_collision = function( player )
 {
@@ -927,7 +919,6 @@ game_core.prototype.check_collision = function( player )
         return;
     }
     //console.log('*',player.mp);
-    
 
     var _this = this;
     // if (this.server)
@@ -1064,7 +1055,7 @@ game_core.prototype.check_collision = function( player )
                         }
                         else
                         {*/
-                            var bump = 100;
+                            // var bump = 100;
                             //(player.pos.x > other.pos.x) ? player.pos.x += bump : player.pos.x -= bump;
                             player.hitFrom = 3; // 0 = side, 1 = below, 2 = above;
                             player.collision = true;
@@ -1117,27 +1108,13 @@ game_core.prototype.check_collision = function( player )
                         console.log('determining VICTIM...');//, player.mp);
                         
                         //this.flashBang = 2;
-                        //var splatteree, waspos;
                         if (player.pos.y < other.pos.y || other.vuln === true)
                         {
-                            //this.playerKill(other, player);
                             //console.log('player', player.mp, 'killed', other.mp);
                             if (!other.dead)
                             {
-                                //other.doKill(player);
-                                //if (player.vuln === false)
-                                    _this.pk(player, other);
-                                // else
-                                // {
-
-                                // }
-                                //console.log(other.mp, 'WINS!', player.mp);
+                                _this.pk(player, other, 15);
                             }
-                            // waspos = other.pos;
-                            // other.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
-                            // //other.visible = false;
-                            // splatteree = other;
-                            //other.old_state = other.pos;
                         }
                         else
                         {
@@ -1147,7 +1124,7 @@ game_core.prototype.check_collision = function( player )
                             {
                                 //player.doKill(other);
                                 // if (other.vuln === false)
-                                    _this.pk(other, player);
+                                    _this.pk(other, player, 15);
                                 // else
                                 // {
 

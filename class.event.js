@@ -187,7 +187,7 @@ game_event.prototype.update = function(port)
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         this.consumable = this.getplayers.fromRoomNextActiveConsumable(port);
-        console.log('* got consumable from next active', this.consumable);
+        // console.log('* got consumable from next active', this.consumable);
         
         // set ref to active
         this.consumable.active = true;

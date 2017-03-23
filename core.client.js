@@ -738,7 +738,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     _.forEach(chests, function(chest)
     {
         // { c: 2, v: 5, t: 1, i: 1192407040, x: '1904', y: '1408' }
-        console.log("* consumable:", chest);
+        // console.log("* consumable:", chest);
         _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     });
 
@@ -965,6 +965,30 @@ core_client.prototype.client_onnetmessage = function(data) {
 
 }; //client_onnetmessage
 
+core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
+{
+    console.log('client player hit', victim_id, victor_id, dmg);
+
+    var victim, victor;
+    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
+    for (var i = 0; i < room.length; i++)
+    {
+        console.log('id', room[i].id);
+        if (room[i].id == victim_id)
+            victim = room[i];
+        else if (room[i].id == victor_id)
+            victor = room[i];
+    }
+    console.log('victim', victim.playerName, 'was hit by', victor.playerName, 'for', dmg, 'damage');
+    
+    if (victim.health - dmg <= 0)
+        victim.health = 0;
+    else victim.health -= dmg;
+    if (victim.userid === this.players.self.userid)
+        console.log('SELF!');
+        
+};
+
 core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
 {
     console.log('client player killed', victim_id, victor_id);
@@ -1130,7 +1154,8 @@ core_client.prototype.client_connect_to_server = function(data)
             
             // player killed
             // 1: victim id, 2: victor id
-            case 5: _this.client_onplayerkilled(data[1], data[2]); break;
+            case 5: console.log("playerhit", data);
+            _this.client_onplayerhit(data[1], data[2], data[3]); break;
 
             // join game
             case 10: _this.client_onjoingame(data); break;
@@ -1212,7 +1237,7 @@ core_client.prototype.client_connect_to_server = function(data)
     this.socket.on('onhostgame', this.client_onhostgame.bind(this));
     // this.socket.on('onjoingame', this.client_onjoingame.bind(this));
     this.socket.on('onreadygame', this.client_onreadygame.bind(this));
-    this.socket.on('onplayerkill', this.client_onplayerkilled.bind(this));
+    this.socket.on('onplayerkill', this.client_onplayerhit.bind(this));
     this.socket.on('ondisconnect', this.client_ondisconnect.bind(this));
     this.socket.on('onplayernames', this.client_onplayernames.bind(this));
 

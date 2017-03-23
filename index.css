@@ -1912,3 +1912,16 @@ h5
 {
 	order: 3;
 }
+
+#screen-splatter
+{
+	display: none;
+	position: absolute;
+	z-index: 450;
+	width: 100%;
+	height: 100%;
+	opacity: .75;
+	background-image: url('./assets/screen-splatter.gif');
+	background-size: "cover";
+	background-repeat: no-repeat;
+}

@@ -11,7 +11,7 @@
 'use strict';
  
 const
-    gameport        = process.env.PORT || 4004,
+    // gameport        = process.env.PORT || 4004,
 
     server_port_1   = process.env.POST || 4004,
     server_port_2   = process.env.POST || 4005,
@@ -24,21 +24,21 @@ const
     server_port_9   = process.env.POST || 4012,
     server_port_10  = process.env.POST || 4013,
 
-    socket_port_1   = process.env.POST || 5004,
-    socket_port_2   = process.env.POST || 5005,
-    socket_port_3   = process.env.POST || 5006,
-    socket_port_4   = process.env.POST || 5007,
-    socket_port_5   = process.env.POST || 5008,
-    socket_port_6   = process.env.POST || 5009,
-    socket_port_7   = process.env.POST || 5010,
-    socket_port_8   = process.env.POST || 5011,
-    socket_port_9   = process.env.POST || 5012,
-    socket_port_10  = process.env.POST || 5013,
+    // socket_port_1   = process.env.POST || 5004,
+    // socket_port_2   = process.env.POST || 5005,
+    // socket_port_3   = process.env.POST || 5006,
+    // socket_port_4   = process.env.POST || 5007,
+    // socket_port_5   = process.env.POST || 5008,
+    // socket_port_6   = process.env.POST || 5009,
+    // socket_port_7   = process.env.POST || 5010,
+    // socket_port_8   = process.env.POST || 5011,
+    // socket_port_9   = process.env.POST || 5012,
+    // socket_port_10  = process.env.POST || 5013,
     
-    socketport      = process.env.PORT || 3000,
+    // socketport      = process.env.PORT || 3000,
     // redisport       = 6379,
     // redishost       = "localhost",
-    verbose         = false,
+    // verbose         = false,
 
     // Primus          = require('primus'),
     // Rooms           = require('primus-rooms'),
@@ -54,21 +54,21 @@ const
 
     express         = require('express'),
     http            = require('http'),
-    net             = require('net'),
-    vhost           = require('vhost'),
+    // net             = require('net'),
+    // vhost           = require('vhost'),
 
     // cluster         = require('cluster'),
     // os              = require('os'),
     // num_processes   = require('os').cpus().length,
 
-    httpProxy       = require('http-proxy'),
+    // httpProxy       = require('http-proxy'),
 
     // UUID            = require('node-uuid'),
-    getUid          = require('get-uid'),
+    // getUid          = require('get-uid'),
 
-    debug           = require('debug'),
-    winston         = require('winston'),
-    util            = require('util'),
+    // debug           = require('debug'),
+    // winston         = require('winston'),
+    // util            = require('util'),
     // xml2js          = require('xml2js'),
     //app             = express(),
     //server          = http.createServer(app),
@@ -76,9 +76,9 @@ const
     //heapdump        = require('heapdump'),
 
     // throng          = require('throng'),
-    WORKERS         = process.env.WEB_CONCURRENCY || 4;
+    // WORKERS         = process.env.WEB_CONCURRENCY || 4;
 
-    var pmx = require('pmx').init(
+    pmx = require('pmx').init(
     {
         http          : true, // HTTP routes logging (default: true)
         ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
@@ -542,15 +542,15 @@ return;
         res.sendFile( __dirname + '/' + file );
     }); //app.get *
 
-    app.post( '/api/orbs' , function( req, res, next )
-    {
-        console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
-        return res.send('hi', game_server.games.length);//[0]);
-    });
-    app.post( '/api/playernames', function(req, res, next)
-    {
-        console.log('api POST - app get player names', game_server[0]);
-    })
+    // app.post( '/api/orbs' , function( req, res, next )
+    // {
+    //     console.log('api POST - app get orbs', game_server[0]);//.games.length);//, req);
+    //     return res.send('hi', game_server.games.length);//[0]);
+    // });
+    // app.post( '/api/playernames', function(req, res, next)
+    // {
+    //     console.log('api POST - app get player names', game_server[0]);
+    // })
 
     // clusters
 	

@@ -268,25 +268,9 @@ game_chest.prototype.doRemove = function()
 {
   console.log('=== chest.doRemove', this.takenBy.playerPort, '===');//, player.mp, '===');
 
-  // var _this = this;
   _.pull(this.getplayers.config.chests, this);
   this.takenBy.instance.room(this.takenBy.playerPort).write([16, this.id, this.takenBy.id]);
   this.taken = false;
-
-  // first, remove chest from room
-  // var roomChests = this.getplayers.fromRoom(player.playerPort, 2); // <- returns inRoomChests array
-  // for (var c = roomChests.length - 1; c >= 0; c--)
-  // {
-  //   console.log(roomChests[c].id, this.id);
-  //   if (roomChests[c].id == this.id)
-  //   {
-  //     console.log('* removing chest!', roomChests[c].category, 'of total', roomChests.length);
-  //     // roomChests.splice(i, 1);
-  //     roomChests[c].active = false;
-  //     console.log('* removed...', roomChests[c].active);//.length);
-  //     break;
-  //   }
-  // }
 
   this.reset();
 };

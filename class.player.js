@@ -98,6 +98,8 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.textFloater = null;
 
+    this.hitData = {by:0, at:0};
+
     // this.slotFlagDispatch = null;
 
     this.team = 0; // 1 = red, 2 = blue
@@ -1245,7 +1247,14 @@ game_player.prototype.update = function()
                 //console.log('vx', this.vx);
             break;
             case 3: // opponent
-                console.log('opponent', this.target.mp);
+                // if dif >= 15 && dif <= 15 no victim
+                // add bonus/buff modifiers to dif below
+                // console.log('opponent - dif', this.pos.y - this.target.pos.y);
+                // if (this.pos.y - this.target.pos.y >= 15 || this.pos.y - this.target.pos.y <= 15)
+                // {
+                //     console.log('player tie!');
+                    
+                // }
                 //this.target.vx *= -1;
                 console.log('pre', this.vx, this.a);
                 
@@ -1262,7 +1271,7 @@ game_player.prototype.update = function()
                     this.pos.x += this.size.hx/2;
                 else this.pos.x -= this.size.hx/2;
                 //this.vuln = true;
-                console.log('post', this.vx, this.a);
+                // console.log('post', this.vx, this.a);
 
                 //this.isVuln(500);
                 //this.target.isVuln(500);
@@ -1305,6 +1314,27 @@ game_player.prototype.doStand = function(id)
     console.log('doStand', id);
     // id = platform id
     this.supportingPlatformId = id;
+};
+
+game_player.prototype.doHit = function(victor, dmg)
+{
+    console.log('== player.doHit ==', victor.userid, dmg, victor.id);  
+
+    // i am the victim
+    if (this.hitData.by === victor.userid && this.hitData.at + 3 >= this.config.server_time + 2)
+    {
+        console.log('* ignoring multihit! by this player', victor.userid, this.hitData.at, this.config.server_time);
+        return;    
+    }
+    else
+    { 
+        this.hitData.by = victor.userid;
+        this.hitData.at = this.config.server_time;
+        console.log('* setting hitData', this.hitData);
+        victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
+
+    }
+
 };
 
 game_player.prototype.doKill = function(victor)
