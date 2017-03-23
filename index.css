@@ -1924,4 +1924,6 @@ h5
 	background-image: url('./assets/screen-splatter.gif');
 	background-size: "cover";
 	background-repeat: no-repeat;
+	background-position: center;
+	/*overflow: hidden;*/
 }

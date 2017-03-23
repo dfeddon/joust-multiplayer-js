@@ -906,7 +906,7 @@ game_core.prototype.pk = function(victor, victim, dmg)
     // victor.instance.room(victor.instance.game.id).write([5, victim.id, victor.id]);
     // victor.instance.room(victor.playerPort).write([5, victim.id, victor.id, dmg]);
 
-    victim.doHit(victor, dmg);
+    // victim.doHit(victor, dmg);
     // victim.doKill(victor);
 }
 game_core.prototype.check_collision = function( player )
@@ -1113,7 +1113,8 @@ game_core.prototype.check_collision = function( player )
                             //console.log('player', player.mp, 'killed', other.mp);
                             if (!other.dead)
                             {
-                                _this.pk(player, other, 15);
+                                // _this.pk(player, other, 15);
+                                other.doHitServer(player);
                             }
                         }
                         else
@@ -1124,7 +1125,8 @@ game_core.prototype.check_collision = function( player )
                             {
                                 //player.doKill(other);
                                 // if (other.vuln === false)
-                                    _this.pk(other, player, 15);
+                                    // _this.pk(other, player, 15);
+                                    player.doHitServer(other);
                                 // else
                                 // {
 

@@ -971,22 +971,39 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
 
     var victim, victor;
     var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = 0; i < room.length; i++)
+    for (var i = room.length - 1; i >= 0; i--)
     {
-        console.log('id', room[i].id);
+        // console.log('id', room[i].id);
         if (room[i].id == victim_id)
             victim = room[i];
         else if (room[i].id == victor_id)
             victor = room[i];
+        if (victor && victim) break;
     }
     console.log('victim', victim.playerName, 'was hit by', victor.playerName, 'for', dmg, 'damage');
     
+    // reduce health
     if (victim.health - dmg <= 0)
+    {
+        // victim is dead!
         victim.health = 0;
-    else victim.health -= dmg;
-    if (victim.userid === this.players.self.userid)
-        console.log('SELF!');
-        
+        // victor.doHitClientVictor(victim, dmg);
+        victim.doKill(victor);//, dmg);
+    }
+    else
+    { 
+        // victim.health -= dmg;
+        // victim.isHit = 1; // flags hit asset/animation
+        // victor.doHitClientVictor(victim, dmg);
+        victim.doHitClientVictim(victor, dmg);
+    }
+
+
+    // if (victim.userid === this.players.self.userid)
+    // {
+    //     console.log('SELF!');
+    //     // victim.isHit = 1;
+    // }        
 };
 
 core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
@@ -1153,9 +1170,8 @@ core_client.prototype.client_connect_to_server = function(data)
             // break;
             
             // player killed
-            // 1: victim id, 2: victor id
-            case 5: console.log("playerhit", data);
-            _this.client_onplayerhit(data[1], data[2], data[3]); break;
+            // 1: victim id, 2: victor id, 3:dmg
+            case 5: _this.client_onplayerhit(data[1], data[2], data[3]); break;
 
             // join game
             case 10: _this.client_onjoingame(data); break;
@@ -4062,6 +4078,8 @@ core_client.prototype.roundWinnersView = function(winners)
         if (winners[w][1])
         {
             p = this.config._.find(ply, {userid:winners[w][1]});
+            if (!p) console.log('* Error: unable to find winning player!', winners[w][1]);
+            if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
             p.bonusSlot = winners[w][2] + 1;
             p.activateBuff(p.bonusSlot);
             console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);

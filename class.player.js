@@ -68,6 +68,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.visible = false;
     this.active = false;
     this.state = 'not-connected';
+    this.isHit = 0;
     //this.color = 'rgba(255,255,255,0.1)';
     this.info_color = 'rgba(255,255,255,0.1)';
     //this.id = '';
@@ -83,7 +84,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot2Image = null;
     // this.slot3Image = null;
     
-    this.health = 50;
+    this.health = 100;
     this.healthMax = 100;
     this.engaged = false;
     this.vuln = false;
@@ -1316,25 +1317,59 @@ game_player.prototype.doStand = function(id)
     this.supportingPlatformId = id;
 };
 
-game_player.prototype.doHit = function(victor, dmg)
+// game_player.prototype.doHitClientVictor = function(victim, dmg)
+// {
+//     console.log('== player.doHitClientVictor', victim.playerName, dmg);
+    
+//     // i am the victor
+// };
+
+game_player.prototype.doHitClientVictim = function(victor, dmg)
 {
-    console.log('== player.doHit ==', victor.userid, dmg, victor.id);  
+    console.log('== player.doHitClientVictim', victor.playerName, dmg);
+
+    // i am the victim, so show damage callout
+    this.isHit = 1;
+
+    // reduce health
+    this.health -= dmg;
+
+    var dmgText = dmg;
+    if (this.userid === victor.userid)
+        dmgText = dmg;
+    else dmgText = 0 - dmg;
+
+    // add floating text with damage (id: 100 = damage text)
+    this.setTextFloater(100, dmgText, 1);
+};
+
+game_player.prototype.doHitServer = function(victor)
+{
+    console.log('== player.doHit ==', victor.userid, victor.id);  
 
     // i am the victim
-    if (this.hitData.by === victor.userid && this.hitData.at + 3 >= this.config.server_time + 2)
+
+    // if hit, ignore additional hits for 3 seconds or if victim (me) is dead...
+    if ((this.hitData.by === victor.userid && this.hitData.at + 3 >= this.config.server_time + 2) || this.dead === true)
     {
         console.log('* ignoring multihit! by this player', victor.userid, this.hitData.at, this.config.server_time);
         return;    
     }
-    else
-    { 
+    else // I am hit!
+    {
+        // set hitData to reduce redundant hits
         this.hitData.by = victor.userid;
         this.hitData.at = this.config.server_time;
         console.log('* setting hitData', this.hitData);
+
+        // check if hit is fatal, and if so, start death seq
+        // otherwiese, inform client of hit
+
+        // TODO: determine dmg
+        // victim (this) mods vs victor mods
+        var dmg = 5;
         victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
-
     }
-
 };
 
 game_player.prototype.doKill = function(victor)
@@ -1589,22 +1624,29 @@ game_player.prototype.setTextFloater = function(c, v, bool)
     // 2. value: int
     // 3. active: bool
     var text, color;
+    var localOnly = true;
     if (v >= 0)
         text = "+" + v.toString();
-    else text += v.toString();
+    else text = v.toString();
 
     if (c === 3)
     {
         text += " BONUS";
         color = "yellow";
     }
+    else if (c == 100) // damage
+    {
+        text += " HEALTH";
+        color = "red";
+        localOnly = false;
+    }
     else
     {
         text += " HEALTH";
         color = "lime";
     }
-    console.log(this.config.server_time, this.config.server_time + 1.5);
-    this.textFloater = [text, color, bool, this.config.server_time + 1.5];
+    console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
+    this.textFloater = [text, color, bool, this.config.server_time + 1.5, localOnly];
 };
 
 
@@ -2035,21 +2077,21 @@ game_player.prototype.draw = function()
         // draw progression
         if (!this.vuln)
             this.drawAbilities();
-
-        if (this.textFloater)
-        {
-            this.config.ctx.font="30px Mirza";
-            this.config.ctx.textAlign = 'center';
-            this.config.ctx.fillStyle = this.textFloater[1];
-            // this.config.ctx.save();
-            this.config.ctx.fillText(this.textFloater[0],this.pos.x,this.pos.y - 30 - this.textFloater[2]);
-            this.textFloater[2] += 0.25;
-            // this.config.ctx.restore();
-            if (this.config.server_time >= this.textFloater[3])
-                this.textFloater = null;
-            
-        }
     } // end isLocal
+    if (this.textFloater)
+    {
+        if ((this.isLocal && this.textFloater[4]) || (this.textFloater && !this.textFloater[4]))
+        this.config.ctx.font="30px Mirza";
+        this.config.ctx.textAlign = 'center';
+        this.config.ctx.fillStyle = this.textFloater[1];
+        // this.config.ctx.save();
+        this.config.ctx.fillText(this.textFloater[0],this.pos.x,this.pos.y - 30 - this.textFloater[2]);
+        this.textFloater[2] += 0.25;
+        // this.config.ctx.restore();
+        if (this.config.server_time >= this.textFloater[3])
+            this.textFloater = null;
+        
+    }
     // else
     // {
     // nameplate color
@@ -2340,6 +2382,24 @@ game_player.prototype.draw = function()
 
     if (this.bubble === true)
         this.config.ctx.drawImage(assets.ability_bubble, this.pos.x - 8, this.pos.y - 8, 76, 76);
+    if (this.isHit > 0)
+    {
+        this.config.ctx.drawImage(assets.animate_hit, this.pos.x - 8, this.pos.y - 8, 76, 76);
+        if (this.isLocal && this.isHit === 1)
+            document.getElementById('screen-splatter').style.display = "block";
+        // only display for 10 frames
+        if (this.isHit >= 30)
+        {
+            this.isHit = 0;
+            if (this.isLocal)
+                document.getElementById('screen-splatter').style.display = "none";
+        }
+        else this.isHit++;
+
+        if (this.isLocal)
+        {
+        }
+    }
 
 
 

@@ -399,7 +399,7 @@ domready(function()
 					
 					var meta = document.getElementById("meta");
 					var canvas = document.getElementById("viewport");
-					meta.setAttribute('content', 'width=device-width, initial-scale=0.75, maximum-scale=1.0, minimum-scale=0.5, user-scalable=1');
+					meta.setAttribute('content', 'width=device-width, initial-scale=0.75, maximum-scale=1.0, minimum-scale=0.5, user-scalable=0');
 				}
 
 				startGame();
@@ -718,6 +718,7 @@ domready(function()
 	// assets.animate_explosion = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-explosion.png");
 	// assets.animate_torches = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/sheet-torches.png");
 	assets.animate_gg = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/EXPLOSIONS1.png");
+	assets.animate_hit = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/player-hit.gif");
 
 	// assets.plat_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-l.png");
 	// assets.plat_m = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/plat-m.png");
