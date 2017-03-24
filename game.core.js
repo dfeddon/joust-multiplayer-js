@@ -1026,8 +1026,9 @@ game_core.prototype.check_collision = function( player )
                     }*/
 
                     // otherwise, positioning counts
+                    // TODO: adjust for precision/recover/bubble buffs
                     var dif = player.pos.y - other.pos.y;
-                    //console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
+                    console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
                     if ((dif >= -15 && dif <= 15 && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
@@ -1103,7 +1104,7 @@ game_core.prototype.check_collision = function( player )
                                 player.landed = 1; // TODO: only if on platform
                         }*/
                     }
-                    else // we have a victim
+                    else // we (might?) have a victim
                     {
                         console.log('determining VICTIM...');//, player.mp);
                         

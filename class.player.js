@@ -369,22 +369,29 @@ game_player.prototype.activateBuff = function(buff)
         // break;
 
         case this.game_buffs.BUFFS_BUBBLE:
+            // on hit
             this.bubble = true;
         break;
         case this.game_buffs.BUFFS_ALACRITY:
+            // 25% speed buff (on physics)
         break;
         case this.game_buffs.BUFFS_PRECISION:
+            // +25% opponent hit radius (on collision)
         break;
         case this.game_buffs.BUFFS_RECOVER:
+            // -25% self hit radius (on collision)
         break;
         case this.game_buffs.BUFFS_BLINK:
             this.blinking = true;
         break;
         case this.game_buffs.BUFFS_REVEAL:
+            // this.unblinker = true;
         break;
         case this.game_buffs.BUFFS_BRUISE:
+            // 25% damage bonus (on hit as victor)
         break;
         case this.game_buffs.BUFFS_PLATE:
+            // 25% damage reduction (on hit as victim)
         break;
     }    
 };
