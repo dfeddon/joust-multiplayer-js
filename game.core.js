@@ -156,7 +156,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
     // this.bufArr = new ArrayBuffer(768);//480);
     
-    var _this = this;
+    // var _this = this;
 
     this.bg = null;
     this.fg = null;
@@ -387,6 +387,8 @@ game_core.prototype.init = function(game_instance)//, io)
 
     //The speed at which the clients move.
     this.playerspeed = 275;//120;
+    this.hitBase = 15; // 15 pixels
+    this.hitDiff = 0; // y diff on pvp collision
 
     //Set up some physics integration values
     this._pdt = 0.0001;                 //The physics update delta time
@@ -422,6 +424,7 @@ game_core.prototype.init = function(game_instance)//, io)
     // this.config.passives = this.passives;
     this.config._ = _;
     this.config.gridToPixel = this.gridToPixel;
+    this.config.hitBase = this.hitBase;
 
     return this;
     //console.log('config', config);
@@ -1027,9 +1030,11 @@ game_core.prototype.check_collision = function( player )
 
                     // otherwise, positioning counts
                     // TODO: adjust for precision/recover/bubble buffs
-                    var dif = player.pos.y - other.pos.y;
-                    console.log("HIT", dif);// player.mp, player.pos.y, other.mp, other.pos.y);
-                    if ((dif >= -15 && dif <= 15 && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
+                    // player y - player attackBonus - player bonusTotal / player y - recover bonus 
+                    // (pos.y - attackBonus - bonusTotal) - (pos.y - defenseBonus - bonusTotal)
+                    this.hitDiff = (player.pos.y - player.attackBonus - player.bonusTotal) - (other.pos.y - other.defenseBonus - other.bonusTotal);
+                    console.log("* HIT DIFF", this.hitDiff);// player.mp, player.pos.y, other.mp, other.pos.y);
+                    if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);

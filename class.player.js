@@ -83,12 +83,20 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot1Image = null;
     // this.slot2Image = null;
     // this.slot3Image = null;
+
+    this.bubble = false; // bubble
+    this.blinking = false; // blink
+    this.unblinking = false; // reveal
+    this.defenseBonus = 0; // recover / base - (25% of 15) * Bonus
+    this.attackBonus = 0; // precision / base + (25% of 15) * Bonus
+    this.damageBonus = 0; // bruise
+    this.damageReduce = 0; // plate
+    this.speedBonus = 0; // alacrity
     
     this.health = 100;
     this.healthMax = 100;
     this.engaged = false;
     this.vuln = false;
-    this.bubble = false;
     this.dying = false;
     this.score = 0;//Math.floor(Math.random() * 101);
     this.oldscore = 0
@@ -278,6 +286,19 @@ game_player.prototype.addConsumable = function(consumable)
     }
 };
 
+game_player.prototype.hasBuff = function(buffType)
+{
+    console.log('== player.hasBuff ==', buffType);
+
+    for (var i = this.slots.length - 1; i >= 0; i--)
+    {
+        if (this.slots[i].b === buffType)
+            return true;
+    }
+    return false;
+    
+};
+
 game_player.prototype.addBuff = function(buff)
 {
     console.log('== addBuff ==', buff);
@@ -377,15 +398,17 @@ game_player.prototype.activateBuff = function(buff)
         break;
         case this.game_buffs.BUFFS_PRECISION:
             // +25% opponent hit radius (on collision)
+            this.attackBonus = this.config.hitBase * .25;
         break;
         case this.game_buffs.BUFFS_RECOVER:
             // -25% self hit radius (on collision)
+            this.defenseBonus = this.config.hitBase * .25;
         break;
         case this.game_buffs.BUFFS_BLINK:
             this.blinking = true;
         break;
         case this.game_buffs.BUFFS_REVEAL:
-            // this.unblinker = true;
+            this.unblinker = true;
         break;
         case this.game_buffs.BUFFS_BRUISE:
             // 25% damage bonus (on hit as victor)
@@ -500,6 +523,21 @@ game_player.prototype.deactivateBuff = function(buff)
 
         case this.game_buffs.BUFFS_BUBBLE:
             this.bubble = false;
+        break;
+        case this.game_buffs.BUFFS_ALACRITY:
+        break;
+        case this.game_buffs.BUFFS_PRECISION:
+            this.attackBonus = 0;
+        break;
+        case this.game_buffs.BUFFS_RECOVER:
+            this.defenseBonus = 0;
+        break;
+        case this.game_buffs.BUFFS_REVEAL:
+            this.unblinker = false;
+        break;
+        case this.game_buffs.BUFFS_BRUISE:
+        break;
+        case this.game_buffs.BUFFS_PLATE:
         break;
         case this.game_buffs.BUFFS_BLINK:
             this.blinking = false;
