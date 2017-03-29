@@ -2088,6 +2088,13 @@ game_core.prototype.server_update = function()
                 bufView[8] = player.score;//(player.dead) ? 1 : 0;//player.team;
                 player.oldscore = player.score;
             }
+            if (player.bonusDispatch)
+            {
+                console.log("* bonusDispatch", player.playerName, player.bonusDispatch);
+                bufView[9] = player.bonusDispatch;
+                player.bonusDispatch = null;
+            }
+            
             // potion health
             // if (player.healthDispatch)
             // {
@@ -2362,7 +2369,7 @@ game_core.prototype.server_update = function()
 
     // check round timer
     var roomRound;
-    for (var m = allrooms.length - 1; m >= 0; m--)
+    for (m = allrooms.length - 1; m >= 0; m--)
     {
         // fromRoom: get round objects
         roomRound = this.getplayers.fromRoom(allrooms[m], 5);

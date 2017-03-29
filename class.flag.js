@@ -513,8 +513,8 @@ game_flag.prototype.slotFlag = function(player)
     console.log('playerport', player.playerPort, typeof(player.playerPort));
     var roomFlags = this.getplayers.fromRoom(player.playerPort, 3);
     console.log('roomFlags', roomFlags);
-    var test = this.getplayers.game_instance.inRoomFlags['4004'];
-    console.log('test:', test);
+    // var test = this.getplayers.game_instance.inRoomFlags['4004'];
+    // console.log('test:', test);
     var flg = this.config._.find(roomFlags, {"name":clientFlag.name});
     console.log('* flag', flg, roomFlags);
 
@@ -669,7 +669,23 @@ game_flag.prototype.slotFlag = function(player)
         console.log('#6',teamRed,teamBlue, parseInt(midVal));
       }
 
-      console.log('TEAM MOD CHANGE!!!!', 'red', teamRed, 'blue', teamBlue);
+      console.log('TEAM BONUS CHANGE!!!!', 'red', teamRed, 'blue', teamBlue);
+      // update team bonuses in round
+      var roomRound = this.getplayers.fromRoom(player.playerPort, 5);
+      roomRound.redBonus = teamRed;
+      roomRound.blueBonus = teamBlue;
+      console.log('* team bonuses: red', roomRound.redBonus, 'blue', roomRound.blueBonus);
+
+      // update all players team bonus values
+      var room = this.getplayers.fromRoom(player.playerPort, 0);
+      for (var i = room.length - 1; i >= 0; i--)
+      {
+        if (room[i].team == 1)
+          room[i].updateBonuses(teamRed);
+        else if (room[i].team == 2) 
+          room[i].updateBonuses(teamBlue);
+        else console.log('* player team is 0...');
+      }
     }
     else //if (!this.config.server)
     {

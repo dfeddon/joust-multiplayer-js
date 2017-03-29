@@ -195,6 +195,8 @@ getplayers.prototype.addRoom = function(port)
         round.total = 1;
         round.active = true;
         round.stage = 1; // 1 = game / 2 = bonus
+        round.redBonus = 0;
+        round.blueBonus = 0;
         // console.log('roundEndTime:', round.endtime);
         
     }

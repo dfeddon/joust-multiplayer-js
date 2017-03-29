@@ -76,9 +76,16 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.slotDispatch = null; // server only
     this.consumeDispatch = null // server only
+    this.bonusDispatch = null;
     
     this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
     this.bonusSlot = 0;
+
+    this.teamBonus = 0;
+    this.playerBonus = 0;
+    this.potionBonuses = []; // {v:0, c:0} / v = bonus value, c = cooldown (server_time)
+    this.potionBonus = 0;
+    this.bonusTotal = 0; // team bonus + player level bonuses + yellow potion bonuses
     // this.roundSlotImage = null;
     // this.slot1Image = null;
     // this.slot2Image = null;
@@ -239,11 +246,11 @@ game_player.prototype.setFromBuffer = function(data)
         this.score = data[8];
         this.addToScore();
     }
-    // health consumable
-    // if (data[9])
-        // this.addHealthConsumable(data[9]);
+    // bonus update
+    if (data[9])
+        this.updateBonusesClient(data[9]);//this.addHealthConsumable(data[9]);
     // this.active = (data[8] === 1) ? true : false;
-}
+};
 
 game_player.prototype.buffIdsToSlots = function(ids)
 {
@@ -562,6 +569,66 @@ game_player.prototype.buffExpired = function(slot)
     // this.removeBuff(slot.b);
 }
 
+game_player.prototype.updateBonusesClient = function(array)
+{
+    console.log('== player.updateBonusesClient ==', array);
+
+    this.teamBonus = array[0];
+    this.playerBonus = array[1];
+    this.potionBonus = array[2];
+    this.bonusTotal = this.teamBonus + this.playerBonus + this.potionBonus;
+
+    console.log('* bonusTotal', this.bonusTotal);
+    
+    // update total circle bg color
+
+    if (this.bonusTotal >= 0 && this.isLocal)
+    {
+        document.getElementById('bonus-total-container-positive').style.backgroundColor = 'green';// 'rbg(' + 0 +',' + 100 +',' + 0 + ',' + 0.65 +')';
+        document.getElementById('bonus-total-container-positive').style.borderColor = "lime";
+    }
+    else if (this.isLocal)
+    {
+        document.getElementById('bonus-total-container-positive').style.backgroundColor = 'red';//rbg(' + 255 +',' + 0 +',' + 0 + ',' + 0.65 +')';
+        document.getElementById('bonus-total-container-positive').style.borderColor = "palevioletred";
+    }
+
+    // update UI
+    if (this.isLocal)
+    {
+        document.getElementById('modify1-text').innerHTML = array[0];//this.teamBonus;
+        document.getElementById('modify2-text').innerHTML = array[1];//this.playerBonus;
+        document.getElementById('modify3-text').innerHTML = array[2];//this.potionBonus;
+        document.getElementById('bonus-total-text').innerHTML = array[0] + array[1] + array[2];
+    }
+};
+
+game_player.prototype.updateBonuses = function(teamBonus)
+{
+    console.log('== player.updateBonuses ==', teamBonus);
+
+    // if team bonus defined, apply it
+    if (teamBonus !== undefined)
+        this.teamBonus = teamBonus;
+    
+    // total potion bonusus
+    this.potionBonus = 0;
+    for (var i = this.potionBonuses.length - 1; i >= 0; i--)
+    {
+        this.potionBonus += this.potionBonuses[i].v;
+        console.log('* potion bonus', this.potionBonuses[i].v);
+        
+    }
+    console.log('* bonuses', this.teamBonus, this.playerBonus, this.potionBonus);
+    
+    // total it
+    this.bonusTotal = this.teamBonus + this.playerBonus + this.potionBonus;
+    console.log('* bonusTotal', this.bonusTotal);
+    
+    // update client? via write or livesocket
+    this.bonusDispatch = [this.teamBonus, this.playerBonus, this.potionBonus];
+};
+
 game_player.prototype.reset = function()
 {
     console.log('== player.reset() ==');
@@ -646,8 +713,7 @@ game_player.prototype.addToScore = function(val)
         console.log('* LEVEL UP - 2!');
         this.level = 2;
         this.healthMax = 125;
-        this.modifierPotency += 10;
-        this.modifierDuration += 10;
+        this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
@@ -660,8 +726,7 @@ game_player.prototype.addToScore = function(val)
         this.level = 3;
         this.healthMax = 150;
         this.slots[1].a = 1;
-        this.modifierPotency += 10;
-        this.modifierDuration += 10;
+        this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
@@ -673,8 +738,7 @@ game_player.prototype.addToScore = function(val)
         console.log('* LEVEL UP - 4!');
         this.level = 4;
         this.healthMax = 175;
-        this.modifierPotency += 10;
-        this.modifierDuration += 10;
+        this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
@@ -687,8 +751,7 @@ game_player.prototype.addToScore = function(val)
         this.level = 5;
         this.healthMax = 200;
         this.slots[2].a = 1;
-        this.modifierPotency = +10;
-        this.modifierDuration = +10;
+        this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
@@ -1218,12 +1281,29 @@ game_player.prototype.update = function()
         // if (this.slots[0].b)
         // console.log('*', this.slots[0].c, this.config.server_time);
         
+        // check buff slots
         if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
             this.buffExpired(this.slots[0]);
         if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
             this.buffExpired(this.slots[1]);
         if (this.slots[2].b && this.slots[2].c <= this.config.server_time)
             this.buffExpired(this.slots[2]);
+
+        // check potions (3 max)
+        if (this.potionBonuses.length > 0)
+        {
+            for (var i = this.potionBonuses.length - 1; i >= 0; i--)
+            {
+                if (this.potionBonuses[i].c <= this.config.server_time)
+                {
+                    console.log('* potion expired, removed...');
+                    this.potionBonuses.splice(i, 1);
+                    // update totals
+                    this.updateBonuses();
+                    break;
+                }
+            }
+        }
     }
 
     // ensure tilemap data is loaded (locally)
@@ -1390,7 +1470,7 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
 
 game_player.prototype.doHitServer = function(victor)
 {
-    console.log('== player.doHit ==', victor.userid, victor.id);  
+    console.log('== player.doHitServer ==', victor.userid, victor.id);  
 
     // i am the victim
 
@@ -1654,10 +1734,17 @@ game_player.prototype.addHealthToServer = function(data)
 
 game_player.prototype.addFocusToServer = function(data)
 {
-    console.log('== addFocusrToServer ==', data);
+    console.log('== addFocusToServer ==', data);
+
+    // value = data.v;
+    // get cooldown
+    var bonus = 60 + (60 * (this.bonusTotal / 100));
+    this.potionBonuses.push({v:data.v, c:this.config.server_time + bonus});
 
     // send data to live socket
     this.focusDispatch = data.v;//t;
+
+    this.updateBonuses();
 };
 
 game_player.prototype.setTextFloater = function(c, v, bool)

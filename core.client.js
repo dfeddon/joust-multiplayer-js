@@ -1487,7 +1487,7 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
 {
     console.log('client_onflagadd', userid, slotName, flagName);
 
-    var _this = this;
+    // var _this = this;
 
     //data: player.mp|flag.name
     // var split = data.split("|");
@@ -1495,6 +1495,7 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     // var slotName = split[1];
     // var flagName = split[2];
     // var playerSource, slotUsed;
+    var playerSource;
 
     /////////////////////////////////////
     // get source player
