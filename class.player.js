@@ -280,9 +280,10 @@ game_player.prototype.addConsumable = function(consumable)
         break;
 
         case 2: // health potion
-            if (this.health + consumable.v >= this.healthMax)
-                this.health = this.healthMax;
-            else this.health += consumable.v;
+            this.updateHealth(consumable.v);
+            // if (this.health + consumable.v >= this.healthMax)
+            //     this.health = this.healthMax;
+            // else this.health += consumable.v;
 
             this.setTextFloater(consumable.c, consumable.v, 1);
         break;
@@ -291,6 +292,27 @@ game_player.prototype.addConsumable = function(consumable)
             this.setTextFloater(consumable.c, consumable.v, 1);
         break;
     }
+};
+
+game_player.prototype.updateHealth = function(val)
+{
+    console.log('== player.updateHealth ==', val);
+
+    // do not exceed max health
+    if (val > 0)
+    {
+        if (this.health + val >= this.healthMax)
+            this.health = this.healthMax;
+        else this.health += val;
+    }
+    else // ...nor zero
+    {
+        if (this.health - val < 0)
+            this.health = 0;
+        else this.health -= val;
+    }
+
+    // adjust player velocity (vx) and vy?
 };
 
 game_player.prototype.hasBuff = function(buffType)
@@ -402,6 +424,8 @@ game_player.prototype.activateBuff = function(buff)
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             // 25% speed buff (on physics)
+            // this.thrustModifier = this.progression * 0.00025;
+            this.speedBonus = 25;
         break;
         case this.game_buffs.BUFFS_PRECISION:
             // +25% opponent hit radius (on collision)
@@ -1457,7 +1481,8 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
     this.isHit = 1;
 
     // reduce health
-    this.health -= dmg;
+    // this.health -= dmg;
+    this.updateHealth(-dmg);
 
     var dmgText = dmg;
     if (this.userid === victor.userid)
@@ -1725,9 +1750,10 @@ game_player.prototype.addHealthToServer = function(data)
 {
     console.log('== addHealthToServer ==', data);
 
-    if (this.health + data.v >= this.healthMax)
-        this.health = this.healthMax;
-    else this.health += data.v;
+    this.updateHealth(data.v);
+    // if (this.health + data.v >= this.healthMax)
+    //     this.health = this.healthMax;
+    // else this.health += data.v;
 
     // this.healthDispatch = data.v;
 }

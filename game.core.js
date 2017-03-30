@@ -385,7 +385,7 @@ game_core.prototype.init = function(game_instance)//, io)
     }
     // else this.players.self =
 
-    //The speed at which the clients move.
+    //The base speed at which the clients move.
     this.playerspeed = 275;//120;
     this.hitBase = 15; // 15 pixels
     this.hitDiff = 0; // y diff on pvp collision
