@@ -1248,7 +1248,10 @@ game_core.prototype.check_collision = function( player )
             {
                 // console.log('consumable hit');
                 if (!consumable.taken)
+                {
                     consumable.doTake(player);
+                    break;
+                }
             }
         }
     }

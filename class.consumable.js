@@ -20,18 +20,21 @@ const CONSUMABLE_CATEGORY_CHEST = 1,
       // CONSUMABLE_CATEGORY_POTION_POTENCY = 2,
       // CONSUMABLE_CATEGORY_POTION_DURATION = 3,
 
-function game_chest(data, client, getplayers)
+function game_consumable(data, client, getplayers)
 {
-  console.log('== game_chest constructor ==', data, client);
-  
-  if (data && data.i)
-    this.id = data.i;
-  else this.id = getUid();
-  this.client;
-  this.getplayers = getplayers;
+  console.log('== game_consumable constructor ==', data, client);
 
+  // hold refs  
+  this.getplayers = getplayers;
   this.gamebuffs = new game_buffs();// null;
 
+  // set id
+  if (data && data.i)
+    this.id = data.i;
+  // only server can set id
+  else if (!client) this.id = getUid();
+
+  this.data = {c:null,v:null,t:null,i:this.id};
   this.active = false;
 
   if (client)
@@ -42,19 +45,13 @@ function game_chest(data, client, getplayers)
     //this.ctx = this.game.viewport.getContext('2d');
   }
 
-
-  if (data)
-    this.addData(data);// = data;
-  else //if (this.data) Object.keys(this.data).forEach((k) => delete this.data[k]);
-  {
-    Object.getOwnPropertyNames(this.data).forEach(function (prop) 
-    {
-      delete this.data[prop];
-    });
-  }
+  // if we have data, assign it
+  if (data) this.addData(data);
+  // otherwise, we're resuing from the obj pool, so clear it
+  else if (this.data) this.reset();
 }
 
-game_chest.prototype.addData = function(data)
+game_consumable.prototype.addData = function(data)
 {
   console.log('== consumable.addData ==', data);
 
@@ -65,7 +62,12 @@ game_chest.prototype.addData = function(data)
   // this.consumableData.d = this.passive.discipline;
   
   this.active = true;
-  this.data = data;
+
+  // copy data properties
+  for (var k in data)
+  {
+    this.data[k] = data[k];
+  }
 
   this.category = data.c;//ategory;
   this.value = data.v;
@@ -118,7 +120,7 @@ game_chest.prototype.addData = function(data)
   // this.duration = data.d; // passive duration
   // this.modifier = data.m; // passive modifier
 
-  this.data = data;
+  // this.data = data;
 
   this.width = 64;
   this.height = 64;
@@ -132,16 +134,39 @@ game_chest.prototype.addData = function(data)
   return this;
 }
 
-game_chest.prototype.reset = function()
+game_consumable.prototype.reset = function()
 {
   console.log('== consumable.reset ==');
   
+  // defaults
+  // this.id = getUid();
   this.active = false;
-  this.data = null;
-  // this.gamebuffs = null;
+
+  this.data.c = null;
+  this.data.v = null;
+  this.data.t = null;
+  this.data.x = null;
+  this.data.y = null;
+
+  // this.id = null;
+  this.category = null;
+  this.value = null;
+  this.imageOpen = null;
+  this.imageClose = null;
+  this.x = null;
+  this.y = null;
+  this.buff = null;
+  this.health = null;
+  this.focus = null;
+  this.width = null;
+  this.height = null;
+  this.taken = null;
+  this.takenBy = null;
+  this.opening = null;
+  this.callout = null;
 };
 
-game_chest.prototype.doTake = function(player)//, chests)
+game_consumable.prototype.doTake = function(player)//, chests)
 {
   console.log('=== consumable.doTake', this.id, player.playerPort, '===');
 
@@ -160,7 +185,7 @@ game_chest.prototype.doTake = function(player)//, chests)
   // no double-takes!
 
   // assign passive to player
-  console.log('passive', this.data, this.type, this.category);//, this.duration, this.modifier);
+  console.log('passive', this.data);//this.type, this.category);//, this.duration, this.modifier);
 
   switch(this.category)
   {
@@ -264,13 +289,13 @@ game_chest.prototype.doTake = function(player)//, chests)
   player.addToScore(100);
 };
 
-game_chest.prototype.timeoutOpened = function()
+game_consumable.prototype.timeoutOpened = function()
 {
   console.log("removing consumable taken by ", this.takenBy.playerName);
   this.doRemove();
 };
 
-game_chest.prototype.doRemove = function()
+game_consumable.prototype.doRemove = function()
 {
   console.log('=== chest.doRemove', this.takenBy.playerPort, '===');//, player.mp, '===');
 
@@ -281,27 +306,27 @@ game_chest.prototype.doRemove = function()
   this.reset();
 };
 
-game_chest.prototype.getRandomInt = function(min, max) 
+game_consumable.prototype.getRandomInt = function(min, max) 
 {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-game_chest.prototype.getHealthModifier = function()
+game_consumable.prototype.getHealthModifier = function()
 {
   return this.getRandomInt(5, 15);
 };
 
-game_chest.prototype.getFocusModifier = function()
+game_consumable.prototype.getFocusModifier = function()
 {
   return this.getRandomInt(1, 10);
 };
 
-game_chest.prototype.update = function()
+game_consumable.prototype.update = function()
 {
 
 };
 
-game_chest.prototype.draw = function()
+game_consumable.prototype.draw = function()
 {
   if (this.opening === true)
     this.ctx.drawImage(this.imageOpen, this.x, this.y, this.width, this.height);
@@ -309,10 +334,10 @@ game_chest.prototype.draw = function()
     this.ctx.drawImage(this.imageClose, this.x, this.y, this.width, this.height);
 };
 
-// game_chest.prototype.doAnimate = function()
+// game_consumable.prototype.doAnimate = function()
 // {
 //   this.ctx.drawImage(assets.callout_shield, this.x, this.y - 50, this.width, this.height);
 // }
 
 if('undefined' != typeof global)
-    module.exports = game_chest;
+    module.exports = game_consumable;

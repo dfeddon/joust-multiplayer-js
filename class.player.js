@@ -50,7 +50,7 @@ function game_player(player_instance, isHost, pindex, config)
     // angle
     this.a = 0; // -90, 0, 90
     this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
-    this.thrustModifier = 0;
+    this.thrustModifier = 0; // we start at half-health
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -100,7 +100,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.damageReduce = 0; // plate
     this.speedBonus = 0; // alacrity
     
-    this.health = 100;
+    this.health = 50; // start at half-health
     this.healthMax = 100;
     this.engaged = false;
     this.vuln = false;
@@ -329,7 +329,7 @@ game_player.prototype.updateHealth = function(val)
     
 
     // adjust player velocity (vx) and vy?
-    this.thrustModifier += healthVal;//val;//this.health;
+    // this.thrustModifier += healthVal;//val;//this.health;
 };
 
 game_player.prototype.hasBuff = function(buffType)
