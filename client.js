@@ -879,7 +879,7 @@ domready(function()
 			
 			
 			//var keyboard = new THREEx.KeyboardState();
-			console.log('keyboard', game.getKeyboard());
+			// console.log('keyboard', game.getKeyboard());
 			switch(data)
 			{
 			case "A": // left down

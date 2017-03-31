@@ -924,17 +924,17 @@ core_client.prototype.client_onnetmessage = function(data) {
 
             break;
 
-            case 'c': // chests
+            // case 'c': // chests
 
-                switch(subcommand)
-                {
+                // switch(subcommand)
+                // {
                     // take
                     // case 't' : this.client_on_chesttake(commanddata); break;
                     // remove
                     // case 'r' : this.client_on_chestremove(commanddata); break;
-                }
+                // }
 
-            break;
+            // break;
 
             case 'f': // flags
 
@@ -1827,7 +1827,8 @@ core_client.prototype.client_handle_input = function(key)
         } //up
     
     // TODO: we are 'faking' input to ensure player is *always* updated
-    if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
+    // if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
+    if (input.length === 0) input.push('0');
 
     if(input.length) 
     {
@@ -4079,7 +4080,7 @@ core_client.prototype.roundWinnersView = function(winners)
         if (winners[w][1])
         {
             p = this.config._.find(ply, {userid:winners[w][1]});
-            if (!p) console.log('* Error: unable to find winning player!', winners[w][1]);
+            if (!p) console.log('* Error: unable to find winning player!', winners[w]);
             if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
             p.bonusSlot = winners[w][2] + 1;
             p.activateBuff(p.bonusSlot);

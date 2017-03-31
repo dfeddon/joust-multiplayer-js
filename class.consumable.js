@@ -45,7 +45,13 @@ function game_chest(data, client, getplayers)
 
   if (data)
     this.addData(data);// = data;
-  else if (this.data) Object.keys(this.data).forEach((k) => delete this.data[k]);
+  else //if (this.data) Object.keys(this.data).forEach((k) => delete this.data[k]);
+  {
+    Object.getOwnPropertyNames(this.data).forEach(function (prop) 
+    {
+      delete this.data[prop];
+    });
+  }
 }
 
 game_chest.prototype.addData = function(data)
@@ -137,7 +143,7 @@ game_chest.prototype.reset = function()
 
 game_chest.prototype.doTake = function(player)//, chests)
 {
-  console.log('=== chest.doTake', this.id, player.playerPort, '===');
+  console.log('=== consumable.doTake', this.id, player.playerPort, '===');
 
   if (this.taken === true) return;
   else this.taken = true;

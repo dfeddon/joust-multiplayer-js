@@ -1034,80 +1034,12 @@ game_core.prototype.check_collision = function( player )
                     // (pos.y - attackBonus - bonusTotal) - (pos.y - defenseBonus - bonusTotal)
                     this.hitDiff = (player.pos.y - player.attackBonus - player.bonusTotal) - (other.pos.y - other.defenseBonus - other.bonusTotal);
                     console.log("* HIT DIFF", this.hitDiff);// player.mp, player.pos.y, other.mp, other.pos.y);
+
                     if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
-                        //player.vx *= -1;
-                        /*if (player.pos.x < other.pos.x)
-                        {
-                            //player.pos.x -= 50;
-                            player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
-                            player.collision = true;
-
-                            //other.pos.x += 50;
-                            other.hitFrom = 0;
-                            //other.vx = player.vx / 2;
-                            other.collision = true;
-                            console.log("BUMP", player.pos, other.pos);
-                            // player.pos = _this.physics_movement_vector_from_direction(-50, 0);
-                            // other.pos = _this.physics_movement_vector_from_direction(50,0);
-                            // player.a *= -1;
-                            // player.vx *= -1;
-                            // if (player.landed !== 0)
-                            //     player.landed = 2;
-                            // if (other.landed !== 0)
-                            //     other.landed = 2;
-                        }
-                        else
-                        {*/
-                            // var bump = 100;
-                            //(player.pos.x > other.pos.x) ? player.pos.x += bump : player.pos.x -= bump;
-                            player.hitFrom = 3; // 0 = side, 1 = below, 2 = above;
-                            player.collision = true;
-                            player.target = other;
-                            //player.update();
-
-                            //(other.pos.x > player.pos.x) ? other.pos.x += bump : other.pos.x -= bump;
-                            other.hitFrom = 3; // 0 = side, 1 = below, 2 = above;
-                            other.collision = true;
-                            other.target = player;
-                            //other.update();
-
-                            // if (player.landed !== 0)
-                            //     player.landed = 2;
-                            // if (other.landed !== 0)
-                            //     other.landed = 2;
-                        //}
-
-                        // manage velocit and stop state
-                        // if player and enemy are facing same direction
-                        /*if (player.vx > 0 && player.dir !== other.dir)
-                        {
-                            //console.log('slowing', player.vx);
-
-                            // slow horizontal velocity
-                            //player.vx = 0;//-= 1;
-                            //player.vx *= -1;
-                            // set landing flag (moving)
-                            //if (player.landed !== 0)
-                                //player.landed = 2; // TODO: only if on platform
-                        }
-                        else if (player.vx < 0 && player.dir !== other.dir)
-                        {
-                            //player.vx = 0;
-                            //player.vx *= -1;
-                            if (player.landed !== 0)
-                                player.landed = 2;
-                        }
-                        else
-                        {
-                            // stuck landing (no velocity)
-                            player.vx = 0;
-                            // set landing flag (stationary)
-                            if (player.landed !== 0)
-                                player.landed = 1; // TODO: only if on platform
-                        }*/
+                        player.doHitServer(other, false);
                     }
                     else // we (might?) have a victim
                     {
@@ -1120,72 +1052,21 @@ game_core.prototype.check_collision = function( player )
                             if (!other.dead)
                             {
                                 // _this.pk(player, other, 15);
-                                other.doHitServer(player);
+                                other.doHitServer(player, true);
                             }
                         }
                         else
                         {
-                            //this.playerKill(player, other);
-                            //console.log('other', other.mp, 'killed player', player.mp);
                             if (!player.dead)
                             {
-                                //player.doKill(other);
-                                // if (other.vuln === false)
-                                    // _this.pk(other, player, 15);
-                                    player.doHitServer(other);
-                                // else
-                                // {
-
-                                // }
-                                //console.log(player.mp, 'WINS!', other.mp);
+                                player.doHitServer(other, true);
                             }
-                            // waspos = player.pos;
-                            // player.pos = {x:Math.floor((Math.random() * player.game.world.width - 64) + 64), y:-1000};
-                            // //player.visible = false;
-                            // splatteree = player;
-                            //player.old_state = player.pos;
                         }
-
-                        // splatter
-                        //if (this.server){
-                        //var UUID = require('node-uuid');
-                        // console.log('splatter!');
-
-                        // get diffs
-                        // var spreadX = 100;
-                        // var spreadY = 100;
-                        // if (this.config.world.height - waspos.y > spreadX)
-                        //     spreadX = 100 -
-                        // var size, c, ox, oy, id, neworb;
-                        // var colors = ['white'];
-                        // for (var x = 0; x < 50; x++)
-                        // {
-                        //     size = Math.floor(Math.random() * 8) + 3;
-                        //     c = colors[Math.floor(Math.random() * colors.length)];
-                        //     // TODO: Avoid barriers
-                        //     ox = waspos.x + Math.floor(Math.random() * 100) + 1;
-                        //     ox *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
-                        //     oy = waspos.y + Math.floor(Math.random() * 20) + 1;
-                        //     oy *= Math.floor(Math.random()*2) == 1 ? 1 : -1; // + or - val
-                        //     id = Math.floor(Math.random() * 5000) + 1;
-                        //
-                        //     neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
-                        //     this.orbs.push( neworb );
-                        // }
-                        // console.log('total orbs', this.orbs.length);//, this.orbs);
-                        //
-                        // // show splatter locally
-                        // if (!this.server)
-                        //     this.prerenderer();
                     }
 
                     break;//return false;//break;
                 }
-                //if (player.pos.x >= other.pos.x + other.width && player.y == other.pos.y)
-                    //console.log('HIT', player.mp, other.mp);
             }
-            //if (this.players.self.pos === other.pos.x) console.log('!!!!!!!!!!!!!!!!!!!');
-
         }
     }
 
@@ -1806,7 +1687,8 @@ game_core.prototype.timeoutInputDelay = function()
 {
     this.inputDelay = false;
 };
-game_core.prototype.physics_movement_vector_from_direction = function(x,y) {
+game_core.prototype.physics_movement_vector_from_direction = function(x,y) 
+{
     //console.log('##+@@ physics_movement_vector_from_direction');
     //Must be fixed step, at physics sync speed.
     //console.log(':', x, y);
@@ -1823,7 +1705,7 @@ game_core.prototype.update_physics = function()
     console.log('##+@@ update_physics');
     //if (!this.config.server) return;
 
-    var _this = this;
+    // var _this = this;
 
     ////////////////////////////////////////////////////////
     // iterate players

@@ -297,22 +297,39 @@ game_player.prototype.addConsumable = function(consumable)
 game_player.prototype.updateHealth = function(val)
 {
     console.log('== player.updateHealth ==', val);
-
+    console.log('health now', this.health);
+    var healthVal = val;
     // do not exceed max health
     if (val > 0)
     {
+        console.log('val > 0', val);
         if (this.health + val >= this.healthMax)
+        {
             this.health = this.healthMax;
+            healthVal = this.healthMax - this.health;
+        }
         else this.health += val;
     }
     else // ...nor zero
     {
-        if (this.health - val < 0)
+        console.log('val < 0', val);
+        if (this.health + val < 0)
+        {
             this.health = 0;
-        else this.health -= val;
+            healthVal = this.health;
+        }
+        else this.health += val;
     }
 
+    console.log('* revised health', this.health);
+    if (this.health === 0)
+    {
+        console.log('*', this.playerName, 'is dead!');        
+    }
+    
+
     // adjust player velocity (vx) and vy?
+    this.thrustModifier += healthVal;//val;//this.health;
 };
 
 game_player.prototype.hasBuff = function(buffType)
@@ -424,7 +441,7 @@ game_player.prototype.activateBuff = function(buff)
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             // 25% speed buff (on physics)
-            // this.thrustModifier = this.progression * 0.00025;
+            this.thrustModifier += 25;// * 0.00025);
             this.speedBonus = 25;
         break;
         case this.game_buffs.BUFFS_PRECISION:
@@ -556,6 +573,8 @@ game_player.prototype.deactivateBuff = function(buff)
             this.bubble = false;
         break;
         case this.game_buffs.BUFFS_ALACRITY:
+            this.thrustModifier -= 25;
+            this.speedBonus = 0;
         break;
         case this.game_buffs.BUFFS_PRECISION:
             this.attackBonus = 0;
@@ -668,6 +687,8 @@ game_player.prototype.reset = function()
     this.score = 0;
     this.nextlevel = 2000;
     this.progression = 0;
+
+    this.thrustModifier = 0;
 
     console.log('disconnected', this.disconnected);
     
@@ -886,11 +907,12 @@ game_player.prototype.doFlap = function()
     // if (this.vy > 0)
     // this.vy -= (this.thrust + this.thrustModifier) * 5;
     // else
-    this.vy = -(this.thrust + this.thrustModifier) * 5;
+    this.vy = -(this.thrust + (this.thrustModifier * 0.00025)) * 5;
     //console.log('vy2', this.vy);
     if (this.a !== 0)
-        this.vx = (this.thrust + this.thrustModifier);///10;
-    //console.log('vx', this.vx, 'vy', this.vy);
+        this.vx = (this.thrust + (this.thrustModifier * 0.00025));///10;
+    
+    // console.log('a', this.a, 'vx', this.vx, 'vy', this.vy, 'thrustMod', this.thrustModifier);
 
     /*this.ax = Math.cos(this.a) * this.thrust * 10;
     this.ay = Math.cos(this.a) * this.thrust * 10;
@@ -1482,18 +1504,23 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
 
     // reduce health
     // this.health -= dmg;
-    this.updateHealth(-dmg);
+    // if (victor.id != this.id)
+    //     this.updateHealth(dmg);
 
     var dmgText = dmg;
     if (this.userid === victor.userid)
         dmgText = dmg;
-    else dmgText = 0 - dmg;
+    else
+    { 
+        this.updateHealth(0 - dmg);
+        dmgText = 0 - dmg;
+    }
 
     // add floating text with damage (id: 100 = damage text)
     this.setTextFloater(100, dmgText, 1);
 };
 
-game_player.prototype.doHitServer = function(victor)
+game_player.prototype.doHitServer = function(victor, isHit)
 {
     console.log('== player.doHitServer ==', victor.userid, victor.id);  
 
@@ -1517,8 +1544,44 @@ game_player.prototype.doHitServer = function(victor)
 
         // TODO: determine dmg
         // victim (this) mods vs victor mods
-        var dmg = 5;
-        victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
+        if (isHit)
+        {
+            var dmg = 25;
+            this.updateHealth(0 - dmg);
+            if (this.health <= 0)
+            {
+                console.log('*', this.playerName, 'is dead!');
+                // don't "bounce" victor if victim is dead
+            }
+            else 
+            {
+                // if (this.vx === 0)
+                console.log("my vx", this.vx, victor.vx);
+                // victor.vx *= -1;
+                victor.collision = true;
+                this.collision = true;
+                victor.hitFrom = 3;
+                this.hitFrom = 3;
+                victor.target = this;
+                this.target = victor;
+                // if victim is standing, set to walking so player "bumped" location will update
+                // if (this.landed === 1) this.landed = 2;
+            }
+            // notify victor client
+            victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
+        }
+        else // tie (players collide but no hit)
+        {
+            // have collided
+            victor.collision = true;
+            this.collision = true;
+            // hit by player
+            victor.hitFrom = 3;
+            this.hitFrom = 3;
+            // set collidee
+            victor.target = this;
+            this.target = victor;
+        }
     }
 };
 
