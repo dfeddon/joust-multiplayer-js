@@ -5,6 +5,9 @@ var assets = require('./singleton.assets');
 var game_spritesheet = require('./class.spritesheet');
 var game_buffs = require('./class.buffs');
 
+const SPEED_VAL_MAX = 50; // this is the slowest value
+const SPEED_VAL_MIN = 30; // this is the fastest value
+
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
 {
@@ -50,7 +53,7 @@ function game_player(player_instance, isHost, pindex, config)
     // angle
     this.a = 0; // -90, 0, 90
     this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
-    this.thrustModifier = 0; // we start at half-health
+    this.thrustModifier = 40; // we start at half-health
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -326,10 +329,22 @@ game_player.prototype.updateHealth = function(val)
     {
         console.log('*', this.playerName, 'is dead!');        
     }
-    
 
-    // adjust player velocity (vx) and vy?
+    // adjust player speed (50 slow, 40 medium, 30 fast)
+    // get percentage of health relative to healthMax
+    // this.health / this.healthMax;
+    var perc = this.health / this.healthMax;
+    // take % between range (30 - 50)
+    var newval = ((perc * (SPEED_VAL_MAX - SPEED_VAL_MIN) / 100) * 100) + SPEED_VAL_MIN;
+    // finally, reverse the value / val = ((percent * (max - min) / 100) + min
+    this.thrustModifier = this.reverseVal(newval, SPEED_VAL_MIN, SPEED_VAL_MAX);
+    console.log("* thrustModifier", this.thrustModifier, newval, perc);
     // this.thrustModifier += healthVal;//val;//this.health;
+};
+
+game_player.prototype.reverseVal = function(val, min, max)
+{
+    return (max + min) - val;
 };
 
 game_player.prototype.hasBuff = function(buffType)
@@ -441,7 +456,7 @@ game_player.prototype.activateBuff = function(buff)
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             // 25% speed buff (on physics)
-            this.thrustModifier += 25;// * 0.00025);
+            this.thrustModifier -= 5;// * 0.00025);
             this.speedBonus = 25;
         break;
         case this.game_buffs.BUFFS_PRECISION:
@@ -573,7 +588,7 @@ game_player.prototype.deactivateBuff = function(buff)
             this.bubble = false;
         break;
         case this.game_buffs.BUFFS_ALACRITY:
-            this.thrustModifier -= 25;
+            this.thrustModifier += 5;
             this.speedBonus = 0;
         break;
         case this.game_buffs.BUFFS_PRECISION:
@@ -688,7 +703,7 @@ game_player.prototype.reset = function()
     this.nextlevel = 2000;
     this.progression = 0;
 
-    this.thrustModifier = 0;
+    this.thrustModifier = 40;
 
     console.log('disconnected', this.disconnected);
     
@@ -907,10 +922,10 @@ game_player.prototype.doFlap = function()
     // if (this.vy > 0)
     // this.vy -= (this.thrust + this.thrustModifier) * 5;
     // else
-    this.vy = -(this.thrust + (this.thrustModifier * 0.00025)) * 5;
+    this.vy = -(this.thrust) * 5;
     //console.log('vy2', this.vy);
     if (this.a !== 0)
-        this.vx = (this.thrust + (this.thrustModifier * 0.00025));///10;
+        this.vx = (this.thrust);///10;
     
     // console.log('a', this.a, 'vx', this.vx, 'vy', this.vy, 'thrustMod', this.thrustModifier);
 
@@ -1375,9 +1390,10 @@ game_player.prototype.update = function()
 
     this.vy += this.config.world.gravity;//.fixed(2);///5;
     // 40 = slow, 30 = medium, 25 = fast
+    // range 50s - 30f (range of 20)
     // console.log(':::', this.thrust, this.thrustModifier);
-    
-    this.vx = ((this.a/40) * Math.cos(this.thrust + this.thrustModifier));//.fixed(2);
+    // thrustModifier
+    this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust));// + this.thrustModifier));//.fixed(2);
 
     this.pos.y += this.vy;//.fixed(2);
 
@@ -1989,7 +2005,7 @@ game_player.prototype.updateProgression = function(val)
         this.progression += val;
         this.pointsTotal += val;
 
-        this.thrustModifier = this.progression * 0.00025;
+        // this.thrustModifier = this.progression * 0.00025;
     }
     else
     {

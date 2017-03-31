@@ -1250,6 +1250,7 @@ game_core.prototype.check_collision = function( player )
                 if (!consumable.taken)
                 {
                     consumable.doTake(player);
+                    // only 1 consumable is available at once, so vamos!
                     break;
                 }
             }
