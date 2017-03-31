@@ -2,7 +2,7 @@
 
 const getUid      = require('get-uid');
 
-const path = "./assets/buffs/";
+const path = "https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/";
 const BUFFS_BUBBLE = 1;
 const BUFFS_BUBBLE_IMAGE = path + "buff-bubble.png";
 const BUFFS_ALACRITY = 2;

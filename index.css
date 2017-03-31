@@ -1194,7 +1194,7 @@ h5
 {
 	width: 15px;
 	height: 15px;
-	background-image: url('./assets/flag-mid-r.png');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-r.png');
 	background-size: cover;
 }
 #modify1-text
@@ -1224,7 +1224,7 @@ h5
 {
 	width: 15px;
 	height: 15px;
-	background-image: url('./assets/stand1-l.png');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/fly1.png');
 	background-size: cover;
 }
 #modify2-text
@@ -1243,7 +1243,7 @@ h5
 {
 	width: 15px;
 	height: 15px;
-	background-image: url('./assets/consumables/potion-yellow-full.png');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/potion-1.png');
 	background-size: cover;
 }
 #modify3-text
@@ -1364,7 +1364,7 @@ h5
 	opacity: 0.25;
 	/*border-radius: 5px;*/
 	background-color: gray;
-	background-image:url("./assets/buff-lock.png");
+	background-image:url("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-lock.png");
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
@@ -1684,7 +1684,7 @@ h5
 	flex-wrap: nowrap;
 	display: none;/*flex;*/
 	position: absolute;
-	background-image: url("./assets/cards/castle-red.gif");
+	background-image: url("https://s3.amazonaws.com/com.dfeddon.wingdom/cards/castle-red.gif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -1976,12 +1976,12 @@ h5
 }
 .roundCard .cardback
 {
-	background-image: url('./assets/cards/cardback.png');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/cards/cardback.png');
 	background-size: 100% 100%;
 }
 .roundCard .cardfront
 {
-	background-image: url('./assets/cards/cardfront.png');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/cards/cardfront.png');
 	background-size: 100% 100%;
     -webkit-transform: rotateY( 180deg );
     -moz-transform: rotateY( 180deg );
@@ -2023,7 +2023,7 @@ h5
 	width: 100%;
 	height: 100%;
 	opacity: .75;
-	background-image: url('./assets/screen-splatter.gif');
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/screen-splatter.gif');
 	background-size: "cover";
 	background-repeat: no-repeat;
 	background-position: center;
