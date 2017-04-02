@@ -245,7 +245,7 @@ game_server.prototype._onMessage = function(spark,message)
 
         // update player(s) in the appropriate game
         var thegame = this.games[gameId];
-        for (var i = 0; i < thegame.player_clients.length; i++)
+        for (i = 0; i < thegame.player_clients.length; i++)
         {
             console.log('* clients', thegame.player_clients[i].mp, thegame.player_clients[i].userid);
             

@@ -41,6 +41,7 @@ domready(function()
 
 	//A window global for our game root variable.
 	var game = {};
+	var player = {};
 	//device = {};
 
 	//When loading, we store references to our
@@ -367,17 +368,17 @@ domready(function()
 
 		btnStart.addEventListener("click", function(e)
 		{
-			console.log('start game clicked', assets.loaded);
+			console.log('* start game clicked', assets.loaded, game, e);
 			if (!assets.loaded) return;
 
 			//var skin = "skin" + assets.skinIndex.toString();
 			// get selected skin
-			console.log('assets.playerSkin', assets.playerSkin);
+			console.log('* assets.playerSkin', assets.playerSkin);
 			
 			var skins = document.getElementsByClassName("slides");
 			//if (!assets.playerSkin)
 			assets.playerSkin = skins[assets.skinIndex - 1].id;
-			console.log('playerSkin', assets.playerSkin, assets.skinIndex);
+			console.log('* playerSkin', assets.playerSkin, assets.skinIndex);
 			
 
 			// get player name
@@ -390,8 +391,11 @@ domready(function()
 
 			console.log('* final player name', assets.playerName);
 			
-			if (!game.players) // first game
+			// if (!game.players) // first game
+			if (e.target.textContent != "Play Again?")
 			{
+				console.log('* this is the first player, start game!', game);
+				
 				// if mobile, scale to 75% (account for orientation)
 				if (device.isMobile && (window.innerWidth <= 480 || window.innerHeight <= 480))
 				{
@@ -408,17 +412,21 @@ domready(function()
 			{
 				// activate player
 				console.log("* respawing existing player...", assets.playerName, assets.playerSkin);//skin);
-				game.players.self.active = true;
-				game.players.self.visible = true;
-				game.players.self.vuln = false;
+				console.log('* window', window);
+				
+				// var game = e.target.game;
+				game.core_client.players.self.active = true;
+				game.core_client.players.self.visible = true;
+				game.core_client.players.self.vuln = false;
 				if (assets.playerName)
-					game.players.self.playerName = assets.playerName;
+					game.core_client.players.self.playerName = assets.playerName;
 				// skin
-				game.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
+				game.core_client.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
 				// start pos
 				//game.players.self.pos = assets.respawnPos;
 				//game.players.self.respawn();
-				game.socket.emit('message', 'n.' + game.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
+				// if (!game.gameid) game.gameid = "1";
+				game.core_client.socket.emit('message', 'n.' + game.core_client.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
 
 				// start the game loop
 				// game.update( new Date().getTime() );		
@@ -559,7 +567,9 @@ domready(function()
 
 	window.addEventListener("playerRespawn", function(e)
 	{
-		console.log('playerRespawn handler', e);
+		console.log('playerRespawn handler', e, player);
+
+		player = e.player;
 
 		// cancel evt
 		e.stopImmediatePropagation();
@@ -583,6 +593,7 @@ domready(function()
 		start.innerText = "One Sec...";
 		start.style.backgroundColor = "darkred";
 		start.disabled = true;
+		// start.game = e.game; // binding game ref to start button!
 		console.log('scoring?');
 		
 		scoring.style.display = "block";
@@ -792,8 +803,12 @@ domready(function()
 
 
 		//Create our game client instance.
+		// if (!game.init)
+		// {
 		game = new game_core(2);
 		game.init();
+		// console.log("* game", game);
+		// }
 
 		//Fetch the viewport (primary game canvas )
 		game.viewport = document.getElementById('viewport');

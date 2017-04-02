@@ -980,7 +980,9 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
             victor = room[i];
         if (victor && victim) break;
     }
-    console.log('victim', victim.playerName, 'was hit by', victor.playerName, 'for', dmg, 'damage');
+    console.log('victim', victim.playerName);
+    if (victor) console.log('was hit by', victor.playerName);
+    console.log('for', dmg, 'damage');
     
     // reduce health
     if (victim.health - dmg <= 0)

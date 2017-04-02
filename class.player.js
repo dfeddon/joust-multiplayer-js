@@ -95,7 +95,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot3Image = null;
 
     this.bubble = false; // bubble
-    this.blinking = false; // blink
+    this.blinking = true;//false; // blink
     this.unblinking = false; // reveal
     this.defenseBonus = 0; // recover / base - (25% of 15) * Bonus
     this.attackBonus = 0; // precision / base + (25% of 15) * Bonus
@@ -105,6 +105,7 @@ function game_player(player_instance, isHost, pindex, config)
     
     this.health = 50; // start at half-health
     this.healthMax = 100;
+    this.healthbarColor = 'lime';
     this.engaged = false;
     this.vuln = false;
     this.dying = false;
@@ -116,6 +117,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.levels = [0,2500,7500,15000,25000];
 
     this.textFloater = null;
+    this.drawAbility = 0; // 0 = none / 1 = blink (unseen yet exposed, or isLocal)
 
     this.hitData = {by:0, at:0};
 
@@ -340,6 +342,12 @@ game_player.prototype.updateHealth = function(val)
     this.thrustModifier = this.reverseVal(newval, SPEED_VAL_MIN, SPEED_VAL_MAX);
     console.log("* thrustModifier", this.thrustModifier, newval, perc);
     // this.thrustModifier += healthVal;//val;//this.health;
+
+    if (this.health < 20)
+        this.healthbarColor = '#f93822';
+    else if (this.health < 50)
+        this.healthbarColor = 'orange';
+    else this.healthbarColor = 'lime';
 };
 
 game_player.prototype.reverseVal = function(val, min, max)
@@ -1339,33 +1347,41 @@ game_player.prototype.update = function()
     // no need to check roundSlot which has no cooldown
     if (this.config.server)
     {
+        // blinking?
+        if (this.blinking && this.drawAbility !== 1 && Math.floor(this.config.server_time) % 4 === 0)
+            this.drawAbility = 1;//console.log('* BLINKER!!!!');
+        else if (this.drawAbility === 1)
+            this.drawAbility = 0;
         // if (this.slots[0].b)
         // console.log('*', this.slots[0].c, this.config.server_time);
         
-        // check buff slots
-        if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
-            this.buffExpired(this.slots[0]);
-        if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
-            this.buffExpired(this.slots[1]);
-        if (this.slots[2].b && this.slots[2].c <= this.config.server_time)
-            this.buffExpired(this.slots[2]);
-
-        // check potions (3 max)
-        if (this.potionBonuses.length > 0)
+        // check buff slots (local player only)
+        if (this.isLocal)
         {
-            for (var i = this.potionBonuses.length - 1; i >= 0; i--)
+            if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
+                this.buffExpired(this.slots[0]);
+            if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
+                this.buffExpired(this.slots[1]);
+            if (this.slots[2].b && this.slots[2].c <= this.config.server_time)
+                this.buffExpired(this.slots[2]);
+
+            // check potions (3 max)
+            if (this.potionBonuses.length > 0)
             {
-                if (this.potionBonuses[i].c <= this.config.server_time)
+                for (var i = this.potionBonuses.length - 1; i >= 0; i--)
                 {
-                    console.log('* potion expired, removed...');
-                    this.potionBonuses.splice(i, 1);
-                    // update totals
-                    this.updateBonuses();
-                    break;
+                    if (this.potionBonuses[i].c <= this.config.server_time)
+                    {
+                        console.log('* potion expired, removed...');
+                        this.potionBonuses.splice(i, 1);
+                        // update totals
+                        this.updateBonuses();
+                        break;
+                    }
                 }
             }
         }
-    }
+    } // end this.server
 
     // ensure tilemap data is loaded (locally)
     if (!this.tmd) this.tmd = this.config.tilemapData;
@@ -1422,6 +1438,10 @@ game_player.prototype.update = function()
                 //this.a *= -1;
                 this.vy *= -1;
                 this.isVuln(750);
+                this.updateHealth(0 - 2);
+                // dmgText = 0 - 2;
+                // add floating text with damage (id: 100 = damage text)
+                this.setTextFloater(100, 2, 1);
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
@@ -1513,7 +1533,9 @@ game_player.prototype.doStand = function(id)
 
 game_player.prototype.doHitClientVictim = function(victor, dmg)
 {
-    console.log('== player.doHitClientVictim', victor.playerName, dmg);
+    console.log('== player.doHitClientVictim ==');
+    if (victor) console.log('by', victor.playerName);
+    console.log('for dmg', dmg);
 
     // i am the victim, so show damage callout
     this.isHit = 1;
@@ -1524,7 +1546,7 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
     //     this.updateHealth(dmg);
 
     var dmgText = dmg;
-    if (this.userid === victor.userid)
+    if (victor && this.userid === victor.userid)
         dmgText = dmg;
     else
     { 
@@ -1604,7 +1626,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
 game_player.prototype.doKill = function(victor)
 {
     console.log('playerKill', this.playerName);
-    if (victor) console.log('by', victor.name, 'dead?', this.dead);
+    if (victor) console.log('by', victor.playerName, 'dead?', this.dead);
     // this.active = false;
 
     // avoid reduncancy
@@ -1696,7 +1718,7 @@ game_player.prototype.doKill = function(victor)
 
     if (victor)
     {
-        console.log(this.mp, 'slain by', victor.mp);
+        console.log(this.playerName, 'slain by', victor.playerName);
 
         if (hadFlag)
             victor.addToScore(1500);
@@ -1717,10 +1739,11 @@ game_player.prototype.doKill = function(victor)
     // dim game screen (alpha overlay)
 
     // set timer to reset player dead state
-    setTimeout(this.timeoutRespawn.bind(this, victor), 2000);
+    // setTimeout(this.timeoutRespawn.bind(this, victor), 2000);
+    setTimeout(this.timeoutRespawn.bind(this), 2000);
 };
 
-game_player.prototype.timeoutRespawn = function(victor)
+game_player.prototype.timeoutRespawn = function()
 {
     console.log('player dead complete', this.disconnected, this.mp);
 
@@ -1787,12 +1810,13 @@ game_player.prototype.timeoutRespawn = function(victor)
 
             var event = document.createEvent('Event');
             event.player = this;
+            // event.game = this.game;
             event.initEvent('playerRespawn', true, true);
             document.dispatchEvent(event);
         }
-        else // server
-        {
-        }
+        // else // server
+        // {
+        // }
     }
     else // not self
     {
@@ -2263,7 +2287,7 @@ game_player.prototype.drawAbilities = function()
         var progressVal = ((progressPercent / 100) * 64) * 100;
         // draw it
         this.config.ctx.beginPath();
-        this.config.ctx.strokeStyle = 'lime';// 'yellow';
+        this.config.ctx.strokeStyle = this.healthbarColor;//(this.health < 20) ? '#f93822' : 'lime';// 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
         this.config.ctx.moveTo(this.pos.x, this.pos.y-10);
@@ -2294,7 +2318,7 @@ game_player.prototype.drawAbilities = function()
 game_player.prototype.draw = function()
 {
     //console.log(this.pos.x, this.pos.y);
-    var _this = this;
+    // var _this = this;
 
     if (this.active === false) return;
     //this.pos.x = this.pos.x.fixed(1);
@@ -2381,7 +2405,7 @@ game_player.prototype.draw = function()
     //*/
 
 
-    if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
+    /*if (this.player_abilities_enabled && this.isLocal && this.ability !== -1)
     {
         this.config.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label),
             //this.pos.x - 15,
@@ -2389,7 +2413,7 @@ game_player.prototype.draw = function()
             //this.pos.x + (this.size.hx/2) - 30,
             this.pos.y - txtOffset - 12,
             15, 15);
-    }
+    }*/
 
 
     // ability
@@ -2455,9 +2479,9 @@ game_player.prototype.draw = function()
     else if (this.vuln === true)
     {
         if (this.dir === 1)
-            this.sprite.draw('vuln-l', this.pos);//img = assets.p1stun_l;//document.getElementById("p1stun-l");
+            this.sprite.draw('vuln-l', this.pos, this.drawAbility);//img = assets.p1stun_l;//document.getElementById("p1stun-l");
             //this.vulnLeft;//document.getElementById("p1stun-l");
-        else img = this.sprite.draw('vuln-r', this.pos);//assets.p1stun_r;//document.getElementById("p1stun-r");
+        else img = this.sprite.draw('vuln-r', this.pos, this.drawAbility);//assets.p1stun_r;//document.getElementById("p1stun-r");
 
         imgW = 64;
         imgH = 64;
@@ -2471,11 +2495,11 @@ game_player.prototype.draw = function()
         // this.flap = false;
         if (this.dir === 1) 
         {
-            this.sprite.draw('flap-l', this.pos);
+            this.sprite.draw('flap-l', this.pos, this.drawAbility);
             //img = assets.p1l;//document.getElementById("p1l");
         }
         //img = this.flapLeft;//document.getElementById("p1l");
-        else this.sprite.draw('flap-r', this.pos);//img = assets.p1r;//document.getElementById("p1r");
+        else this.sprite.draw('flap-r', this.pos, this.drawAbility);//img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
         imgW = 64;//40;
@@ -2484,9 +2508,9 @@ game_player.prototype.draw = function()
     else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1) this.sprite.draw('land-l', this.pos);//img = assets.p1stand_l;//document.getElementById("p1stand-l");
+        if (this.dir === 1) this.sprite.draw('land-l', this.pos, this.drawAbility);//img = assets.p1stand_l;//document.getElementById("p1stand-l");
             //img = this.standLeft;// document.getElementById("p1stand-l");
-        else img = this.sprite.draw('land-r', this.pos);//assets.p1stand_r;//document.getElementById("p1stand-r");
+        else img = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
         imgW = 64;//33;
@@ -2495,8 +2519,8 @@ game_player.prototype.draw = function()
     else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            img = this.sprite.draw('land-l', this.pos);//assets.p1skid_l;//document.getElementById("p1skid-l");
-        else img = this.sprite.draw('land-r', this.pos);//assets.p1skid_r;//document.getElementById("p1skid-r");
+            img = this.sprite.draw('land-l', this.pos, this.drawAbility);//assets.p1skid_l;//document.getElementById("p1skid-l");
+        else img = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1skid_r;//document.getElementById("p1skid-r");
 
         imgW = 64;//33;
         imgH = 64;//44;
@@ -2504,11 +2528,11 @@ game_player.prototype.draw = function()
     else // gliding
     {
         if (this.dir === 1)
-            img = this.sprite.draw('fly-l', this.pos);//assets.p2l;//document.getElementById("p2l");
+            img = this.sprite.draw('fly-l', this.pos, this.drawAbility);//assets.p2l;//document.getElementById("p2l");
             //img = ctx.putImageData(imgData,10,70);
             //img = this.glideLeft;
         else //img = this.glideRight;//
-        this.sprite.draw('fly-r', this.pos);//img = assets.p2r;//document.getElementById("p2r");
+        this.sprite.draw('fly-r', this.pos, this.drawAbility);//img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         imgW = 64;//40;
@@ -2520,7 +2544,7 @@ game_player.prototype.draw = function()
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
         // var roomCooldowns = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 4);
-        var flag = this.config._.find(_this.config.clientCooldowns, {'heldBy':_this.userid});
+        var flag = this.config._.find(this.config.clientCooldowns, {'heldBy':this.userid});
         // console.log('gotflag', flag, this.config.clientCooldowns);
 
         //console.log('taken at', this.flagTakenAt, 'time left', Math.floor(this.config.server_time - this.flagTakenAt));
@@ -2617,7 +2641,7 @@ game_player.prototype.draw = function()
 
         //game.ctx.putImageData(this.glideRight, this.pos.x, this.pos.y);//, imgW, imgH);
 
-    if (this.bubble === true)
+    if (this.bubble === true && this.drawAbility === 0)
         this.config.ctx.drawImage(assets.ability_bubble, this.pos.x - 8, this.pos.y - 8, 76, 76);
     if (this.isHit > 0)
     {

@@ -80,13 +80,18 @@ function game_spritesheet(img)
   //this.draw();
 };*/
 
-game_spritesheet.prototype.draw = function(label, pos)
+game_spritesheet.prototype.draw = function(label, pos, abil)
 {
-  var _this = this;
+  // var _this = this;
   //console.log('== spritesheet.draw()', label, this.cellData, '==');
   var data = _.find(this.cellData, {'label': label});
   //console.log('data', data);
   
+  if (abil === 1)
+  {
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.5;
+  }
   this.ctx.drawImage(
       this.img,//document.getElementById("animate-torches"),
       data.x,//this.x,// + (64 * (i + 1)),
@@ -98,6 +103,8 @@ game_spritesheet.prototype.draw = function(label, pos)
       this.cellWidth,
       this.cellHeight
   );
+  if (abil === 1)
+    this.ctx.restore();
   // if (this.frame === this.frames)
   //   this.frame = 0;
   // else this.frame++;

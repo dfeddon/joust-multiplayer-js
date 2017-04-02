@@ -1474,7 +1474,7 @@ game_core.prototype.process_input = function( player )
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
-    var _this = this;
+    // var _this = this;
     var x_dir = 0;
     var y_dir = 0;
     //var delay = false;
