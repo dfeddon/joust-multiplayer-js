@@ -90,7 +90,7 @@ game_spritesheet.prototype.draw = function(label, pos, abil)
   if (abil === 1)
   {
     this.ctx.save();
-    this.ctx.globalAlpha = 0.5;
+    this.ctx.globalAlpha = 0.25;
   }
   this.ctx.drawImage(
       this.img,//document.getElementById("animate-torches"),

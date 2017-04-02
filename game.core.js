@@ -149,6 +149,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
         // load core code
         this.core_client = new core_client(this, this.config);
+        this.config.client = this.core_client;
         // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
         this.chests = [];
     }
@@ -1980,6 +1981,8 @@ game_core.prototype.server_update = function()
                 bufView[9] = player.bonusDispatch;
                 player.bonusDispatch = null;
             }
+            if (player.drawAbility > 0)
+                bufView[10] = player.drawAbility;
             
             // potion health
             // if (player.healthDispatch)

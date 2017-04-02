@@ -96,7 +96,7 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.bubble = false; // bubble
     this.blinking = true;//false; // blink
-    this.unblinking = false; // reveal
+    this.unblinker = false; // reveal
     this.defenseBonus = 0; // recover / base - (25% of 15) * Bonus
     this.attackBonus = 0; // precision / base + (25% of 15) * Bonus
     this.damageBonus = 0; // bruise
@@ -255,6 +255,9 @@ game_player.prototype.setFromBuffer = function(data)
     if (data[9])
         this.updateBonusesClient(data[9]);//this.addHealthConsumable(data[9]);
     // this.active = (data[8] === 1) ? true : false;
+    if (data[10])
+        this.drawAbility = data[10];
+    else this.drawAbility = 0;
 };
 
 game_player.prototype.buffIdsToSlots = function(ids)
@@ -1348,13 +1351,11 @@ game_player.prototype.update = function()
     if (this.config.server)
     {
         // blinking?
-        if (this.blinking && this.drawAbility !== 1 && Math.floor(this.config.server_time) % 4 === 0)
-            this.drawAbility = 1;//console.log('* BLINKER!!!!');
+        if (this.blinking && Math.floor(this.config.server_time) % 3 === 0)
+            this.drawAbility = 1;
         else if (this.drawAbility === 1)
             this.drawAbility = 0;
-        // if (this.slots[0].b)
-        // console.log('*', this.slots[0].c, this.config.server_time);
-        
+
         // check buff slots (local player only)
         if (this.isLocal)
         {
@@ -2321,6 +2322,7 @@ game_player.prototype.draw = function()
     // var _this = this;
 
     if (this.active === false) return;
+
     //this.pos.x = this.pos.x.fixed(1);
     //this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
@@ -2329,8 +2331,12 @@ game_player.prototype.draw = function()
     if (this.isLocal) txtOffset += 10;
     if (this.vuln) txtOffset = 10;
     //var abil;
+
+    // player is ME
     if (this.isLocal === true)
     {
+        // console.log('blinking?', this.drawAbility);
+        
         // nameplate color
         // game.ctx.fillStyle = '#526869';
         // game.ctx.font = "small-caps lighter 15px serif";
@@ -2338,7 +2344,12 @@ game_player.prototype.draw = function()
         // draw progression
         if (!this.vuln)
             this.drawAbilities();
-    } // end isLocal
+    }
+    else // not local player
+    {
+        // blinking manager
+        if (this.drawAbility === 1 && !this.config.client.players.self.unblinker && !this.isVuln) return;
+    }
     if (this.textFloater)
     {
         if ((this.isLocal && this.textFloater[4]) || (this.textFloater && !this.textFloater[4]))
@@ -2466,6 +2477,9 @@ game_player.prototype.draw = function()
     //     console.log('abil!', this.abil, this.mp);
     // }
     //console.log('flap', this.flap, this.dead);
+
+        // console.log('***', this.config.client.players.self);
+        
     
     if (this.dead === true)
     {
