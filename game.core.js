@@ -1961,6 +1961,7 @@ game_core.prototype.server_update = function()
             // buff add/remove
             if (player.slotDispatch)
             {
+                console.log("* add/remove buff (svr)", player.slotDispatch);
                 bufView[6] = player.slotDispatch;
                 player.slotDispatch = null;
             }
