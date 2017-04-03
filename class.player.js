@@ -95,7 +95,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot3Image = null;
 
     this.bubble = false; // bubble
-    this.blinking = true;//false; // blink
+    this.blinking = false; // blink
     this.unblinker = false; // reveal
     this.defenseBonus = 0; // recover / base - (25% of 15) * Bonus
     this.attackBonus = 0; // precision / base + (25% of 15) * Bonus
@@ -490,7 +490,8 @@ game_player.prototype.activateBuff = function(buff)
         case this.game_buffs.BUFFS_PLATE:
             // 25% damage reduction (on hit as victim)
         break;
-    }    
+    }
+    this.setTextFloater(1, 0, 1, buff);
 };
 
 game_player.prototype.removeBuff = function(slot)
@@ -588,6 +589,8 @@ game_player.prototype.removeBuff = function(slot)
 
 game_player.prototype.deactivateBuff = function(buff)
 {
+    console.log('== player.deactivateBuff', buff);
+    
     // deactivate buff
     switch(buff) // buff
     {
@@ -708,6 +711,9 @@ game_player.prototype.reset = function()
     this.active = false;
     this.landed = 1;
     this.bubble = false;
+    this.blinking = false;
+    this.unblinker = false;
+    this.drawAbility = 0;
 
     this.levelcaps = [2000,8000,15000,25000];
     this.score = 0;
@@ -1350,8 +1356,8 @@ game_player.prototype.update = function()
     // no need to check roundSlot which has no cooldown
     if (this.config.server)
     {
-        // blinking?
-        if (this.blinking && Math.floor(this.config.server_time) % 3 === 0)
+        // blinking? (stacking -> 1=3, 2=2, 3=1)
+        if (this.blinking === true && Math.floor(this.config.server_time) % 3 === 0)
             this.drawAbility = 1;
         else if (this.drawAbility === 1)
             this.drawAbility = 0;
@@ -1877,16 +1883,17 @@ game_player.prototype.addFocusToServer = function(data)
     this.updateBonuses();
 };
 
-game_player.prototype.setTextFloater = function(c, v, bool)
+game_player.prototype.setTextFloater = function(c, v, bool, type)
 {
-    console.log('== setTextFloater ==', c, v, bool);
+    console.log('== setTextFloater ==', c, v, bool, type);
 
     // params:
-    // 1. category: 1 (buff) / 2 (health) / 3 (focus)
+    // 1. category: 1 (buff) / 2 (health) / 3 (bonus) / 100 damage
     // 2. value: int
     // 3. active: bool
-    var text, color;
-    var localOnly = true;
+    // 4. type (buff)
+    var text, color, img;
+    var localOnly = true; // show only to local client
     if (v >= 0)
         text = "+" + v.toString();
     else text = v.toString();
@@ -1900,15 +1907,55 @@ game_player.prototype.setTextFloater = function(c, v, bool)
     {
         text += " HEALTH";
         color = "red";
+        // show to both victim and victor
         localOnly = false;
     }
-    else
+    else if (c === 2)
     {
         text += " HEALTH";
         color = "lime";
     }
-    console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
-    this.textFloater = [text, color, bool, this.config.server_time + 1.5, localOnly];
+    else if (c === 1)
+    {
+        color = "white";
+        switch(type)
+        {
+            case this.game_buffs.BUFFS_BUBBLE: 
+                text = "Bubble";
+                img = this.game_buffs.BUFFS_BUBBLE_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_ALACRITY: 
+                text = "Alacrity"; 
+                img = this.game_buffs.BUFFS_ALACRITY_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_PRECISION: 
+                text = "Precision"; 
+                img = this.game_buffs.BUFFS_PRECISION_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_RECOVER: 
+                text = "Recover"; 
+                img = this.game_buffs.BUFFS_RECOVER_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_BLINK: 
+                text = "Blink"; 
+                img = this.game_buffs.BUFFS_BLINK_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_REVEAL: 
+                text = "Reveal"; 
+                img = this.game_buffs.BUFFS_REVEAL_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_BRUISE: 
+                text = "Bruise"; 
+                img = this.game_buffs.BUFFS_BRUISE_IMAGE_ASSET;
+            break;
+            case this.game_buffs.BUFFS_PLATE: 
+                text = "Plate"; 
+                img = this.game_buffs.BUFFS_PLATE_IMAGE_ASSET;
+            break;
+        }
+    }
+    // console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
+    this.textFloater = [text, color, bool, this.config.server_time + 1.5, localOnly, img];
 };
 
 
@@ -2348,15 +2395,17 @@ game_player.prototype.draw = function()
     else // not local player
     {
         // blinking manager
-        if (this.drawAbility === 1 && !this.config.client.players.self.unblinker && !this.isVuln) return;
+        if (this.drawAbility === 1 && this.config.client.players.self.unblinker === false && this.isVuln === false) return;
     }
     if (this.textFloater)
     {
         if ((this.isLocal && this.textFloater[4]) || (this.textFloater && !this.textFloater[4]))
-        this.config.ctx.font="30px Mirza";
+        this.config.ctx.font = "30px Mirza";
         this.config.ctx.textAlign = 'center';
         this.config.ctx.fillStyle = this.textFloater[1];
         // this.config.ctx.save();
+        if (this.textFloater[5])
+            this.config.ctx.drawImage(this.textFloater[5], this.pos.x - 95, this.pos.y - 60 - this.textFloater[2], 50, 50);
         this.config.ctx.fillText(this.textFloater[0],this.pos.x,this.pos.y - 30 - this.textFloater[2]);
         this.textFloater[2] += 0.25;
         // this.config.ctx.restore();

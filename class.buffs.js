@@ -1,5 +1,7 @@
 (function(){'use strict';}());
 
+var assets = require('./singleton.assets');
+
 const getUid      = require('get-uid');
 
 const path = "https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/";
@@ -24,7 +26,7 @@ const BUFFS_TOTAL = 8;
 
 function game_buffs()
 {
-    console.log('== game_buffs constructor ==');
+    console.log('== game_buffs constructor ==', assets);
 
     this.BUFFS_BUBBLE = BUFFS_BUBBLE;
     this.BUFFS_ALACRITY = BUFFS_ALACRITY;
@@ -34,7 +36,18 @@ function game_buffs()
     this.BUFFS_REVEAL = BUFFS_REVEAL;
     this.BUFFS_BRUISE = BUFFS_BRUISE;
     this.BUFFS_PLATE = BUFFS_PLATE;
-    
+
+    if (assets.buffs)
+    {
+        this.BUFFS_BUBBLE_IMAGE_ASSET = assets.buffs.bubble;
+        this.BUFFS_ALACRITY_IMAGE_ASSET = assets.buffs.alacrity;
+        this.BUFFS_PRECISION_IMAGE_ASSET = assets.buffs.precision;
+        this.BUFFS_RECOVER_IMAGE_ASSET = assets.buffs.recover;
+        this.BUFFS_BLINK_IMAGE_ASSET = assets.buffs.blink;
+        this.BUFFS_REVEAL_IMAGE_ASSET = assets.buffs.reveal;
+        this.BUFFS_BRUISE_IMAGE_ASSET = assets.buffs.bruise;
+        this.BUFFS_PLATE_IMAGE_ASSET = assets.buffs.plate;
+    }
 }
 
 game_buffs.prototype.getRngBuff = function()

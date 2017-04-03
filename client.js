@@ -723,6 +723,16 @@ domready(function()
 	// assets.p1stun_l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-left.png");
 	// assets.p1stun_r = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-stun-right.png");
 
+	assets.buffs = {};
+	assets.buffs.bubble = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-bubble.png");
+	assets.buffs.alacrity = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-alacrity.png");
+	assets.buffs.precision = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-precision.png");
+	assets.buffs.recover = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-recover.png");
+	assets.buffs.blink = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-blink.png");
+	assets.buffs.reveal = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-reveal.png");
+	assets.buffs.bruise = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-bruise.png");
+	assets.buffs.plate = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-plate.png");
+
 	// assets.callout_shield = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/callout-shield.png");
 	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
 
