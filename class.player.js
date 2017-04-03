@@ -1881,7 +1881,13 @@ game_player.prototype.addHealthToServer = function(data)
 {
     console.log('== addHealthToServer ==', data);
 
-    this.updateHealth(data.v);
+    // subject health value to bonus modifier
+    var val = data.v;
+    val += Math.round(val * (this.bonusTotal / 100));
+
+    console.log("+ player bonus", val - data.v);
+
+    this.updateHealth(val);//data.v);
     // if (this.health + data.v >= this.healthMax)
     //     this.health = this.healthMax;
     // else this.health += data.v;
@@ -2417,7 +2423,7 @@ game_player.prototype.draw = function()
     else // not local player
     {
         // blinking manager
-        if (this.drawAbility === 1 && this.config.client.players.self.unblinker === false && this.isVuln === false) return;
+        if (this.drawAbility === 1 && this.config.client.players.self.unblinker === false && this.vuln === false) return;
     }
     if (this.textFloater)
     {
