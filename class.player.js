@@ -273,6 +273,35 @@ game_player.prototype.buffIdsToSlots = function(ids)
     console.log('* assigned slots', this.slots);
 };
 
+game_player.prototype.purgeBuffsAndBonuses = function()
+{
+    // deactive bonus slot buff
+    if (this.bonusSlot)
+    {
+        this.deactivateBuff(this.bonusSlot);
+    }
+    this.bonusSlot = 0;
+
+    // deactivate all buffs and bonuses
+    // first up, buffs
+    for (var d = this.slots.length - 1; d >= 0; d--)
+    {
+        if (this.slots[d].b !== 0)
+           this.removeBuff(this.slots[d].b);
+    }
+    // next, bonus potions
+    while (this.potionBonuses.length > 0)
+        this.potionBonuses.pop();//.splice(0, 1);
+    // revise bonus totals
+    if (this.config.server)
+        this.updateBonuses();
+    else
+    {
+        this.potionBonus = 0;
+        this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
+    }
+}
+
 game_player.prototype.addHealthConsumable = function(consumable)
 {
     console.log('== addHealthConsumable ==', consumable);

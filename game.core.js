@@ -2334,9 +2334,12 @@ game_core.prototype.roundComplete = function(port, round)
             p[z].roundscore = p[z].score - p[z].lastscore;
             console.log('* roundScore', p[z].roundscore);
 
-            // clear all bonusSlots
-            p[z].deactivateBuff(p[z].bonusSlot);
-            p[z].bonusSlot = 0;
+            // clear all server buffs and bonuses
+            // p[z].deactivateBuff(p[z].bonusSlot);
+            // p[z].bonusSlot = 0;
+            p[z].purgeBuffsAndBonuses();
+            // reset position to team base
+            p[z].pos = 
         }
         var ordered = _.orderBy(p, ['roundscore'], ['desc']);
         // reduce to top 10

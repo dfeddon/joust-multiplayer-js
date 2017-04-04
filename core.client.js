@@ -4085,16 +4085,11 @@ core_client.prototype.roundWinnersView = function(winners)
 
     // first, clear existing bonusSlots on all users
     var ply = this.core.getplayers.allplayers;
-    for (var c = ply.length - 1; c >= 0; c--)
+    var c;
+    for (c = ply.length - 1; c >= 0; c--)
     {
-        // deactive bonus slot buff
-        if (ply[c].bonusSlot)
-        {
-            ply[c].deactivateBuff(ply[c].bonusSlot);
-        }
-        ply[c].bonusSlot = 0;
-
-        // deactivate all buffs and bonuses
+        // purge client buffs and bonuses
+        ply[c].purgeBuffsAndBonuses();
     }
     
     // assign bonusSlots to winners
