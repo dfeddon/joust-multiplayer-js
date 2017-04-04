@@ -2247,14 +2247,14 @@ game_player.prototype.dropFlag = function()
 
         // reset flag
         // var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
-        console.log('gamecore:', this.instance);
+        // console.log('gamecore:', this.instance);
         var roomFlags;
         if (!this.instance)
             roomFlags = this.config.flagObjects;
         else roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
         var flag = this.config._.find(roomFlags, {"name":flagName});
         //flag.slotFlag(this);
-        flag.reset(false, this.game);
+        flag.reset(false);//, this.game);
     }
 }
 game_player.prototype.timeoutVuln = function()

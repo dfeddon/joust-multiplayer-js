@@ -1191,7 +1191,7 @@ core_client.prototype.client_connect_to_server = function(data)
             case 21: _this.client_onflagremove(data[1], data[2], data[3]); break;
 
             // flag visibility changed (map)
-            case 22: _this.client_onflagchange(data[1], data[2], data[3]); break;
+            case 22: _this.client_onflagchange(data[1], data[2], data[3], data[4]); break;
 
             // disconnect
             case 25: _this.client_ondisconnect(data[1]); break;
@@ -1448,7 +1448,7 @@ core_client.prototype.client_on_chesttake = function(id, player)
         if (chest.id == id)
         {
             // chest is opened
-            console.log('* consume', chest);
+            // console.log('* consume', chest);
             
             chest.opening = true;
 
@@ -1570,7 +1570,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 {
     console.log('client_onflagremove', player_id, flagName, flagTakenAt);
 
-    var _this = this;
+    // var _this = this;
 
     //data: player.mp|flag.name
     /*
@@ -1598,7 +1598,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     /////////////////////////////////////
     // hide flag taken
     /////////////////////////////////////
-    var targetSlot;
+    // var targetSlot;
     _.forEach(this.core.config.flagObjects, function(flag)
     {
         console.log(flag.name, flagName);
@@ -1649,19 +1649,38 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 // TODO: Remove flag if toastMsg.action=="carrierStunned" from toastMsg.flagholder
 // toastMsg params: action, flagName, userid, ame, flagVisible, toastMsg
 // remove playerName, playerTeam and otherTeam, get these vals from userid
-core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsg)//Raw)
+core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsg, carrierId)//Raw)
 {
-    console.log('client_onflagchange', flagName, flagVisible, toastMsg);
+    console.log('client_onflagchange', flagName, flagVisible, toastMsg, carrierId);
     // var split = data.split("|");
     // var flagName = split[0];
     // var flagVisible = (split[1] == 'true');
     // var toastMsg = JSON.parse(toastMsgRaw);
-    var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});//this.name});
+
+    // remove flag from carrier
+
+    // restore flag to slot of origin
+    var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});
+    console.log('* flagObj', flagObj);
     flagObj.visible = flagVisible;
     //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
 
-    console.log('toastMsg', toastMsg);
-    
+    // remove flag from carrier
+    console.log('* flagCarrier', carrierId);
+    if (carrierId)
+    {
+        for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--)
+        {
+            if (this.core.getplayers.allplayers[i].id === carrierId)
+            {
+                this.core.getplayers.allplayers[i].hasFlag = 0;
+                break;
+            }
+        }
+    }
+
+    // display toast msg
+    console.log('toastMsg', toastMsg);    
     if (toastMsg)
     {
         new game_toast().show(toastMsg);
@@ -4068,11 +4087,14 @@ core_client.prototype.roundWinnersView = function(winners)
     var ply = this.core.getplayers.allplayers;
     for (var c = ply.length - 1; c >= 0; c--)
     {
+        // deactive bonus slot buff
         if (ply[c].bonusSlot)
         {
             ply[c].deactivateBuff(ply[c].bonusSlot);
         }
         ply[c].bonusSlot = 0;
+
+        // deactivate all buffs and bonuses
     }
     
     // assign bonusSlots to winners
@@ -4118,7 +4140,7 @@ core_client.prototype.roundWinnersView = function(winners)
         //     start = 3;
         //     max = 6;
         // }
-        var ele, url, winner,pname,pskin,player,playerName;
+        var ele, url, winner,pname,pskin,player,playerName,playerSkin;
         for (var i = 0; i < 3; i++)
         {
             if (isTop10)
@@ -4129,13 +4151,22 @@ core_client.prototype.roundWinnersView = function(winners)
             ele = "front" + (i + 1).toString();
             url = 'https://s3.amazonaws.com/com.dfeddon.wingdom/cards/card_' + cardsArray[winner[2]] + '.png';
             pname = "winner" + (i + 1).toString() + "label";
+            pskin = "winner" + (i + 1).toString() + "image";
             player = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
             if (!Boolean(player))
+            {
                 playerName = "*";
-            else playerName = player.playerName;
+                playerSkin = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png";
+            }
+            else
+            { 
+                playerName = player.playerName;
+                playerSkin = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + player.skin + ".png";
+            }
             
             document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
             document.getElementById(pname).innerHTML = playerName.toString();
+            document.getElementById(pskin).src = playerSkin;
         }
         document.getElementById("winner1").style.opacity = "1";
         var pcount = 1;

@@ -702,7 +702,7 @@ game_flag.prototype.slotFlag = function(player)
   }
 };
 
-game_flag.prototype.reset = function(success, game)//, server_time)
+game_flag.prototype.reset = function(success)//, game)//, server_time)
 {
   console.log('=== flag.reset', success, this.name, this.port, '===');
   var _this = this;
@@ -737,7 +737,8 @@ game_flag.prototype.reset = function(success, game)//, server_time)
     if (playerSource.killedBy)
     {
       opponent = this.config._.find(_this.getplayers.fromRoom(playerSource.playerPort), {'userid': playerSource.killedBy});
-      opponentName = opponent.playerName;
+      var opponentName = opponent.playerName;
+      console.log("flag carrier was felled by", opponentName);
     }
     
     // action
@@ -782,7 +783,7 @@ game_flag.prototype.reset = function(success, game)//, server_time)
       var roomEvents = this.getplayers.fromRoom(this.port, 1);
       // console.log('re:', roomEvents, this.port);
       var fcEvent = _.find(roomEvents, {"type":2});
-      console.log('fcEvent:', fcEvent);
+      console.log('fcEvent:', fcEvent.uid);
       fcEvent.doStop();
       
       _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
@@ -790,9 +791,9 @@ game_flag.prototype.reset = function(success, game)//, server_time)
         // TODO: omit self if self was failed carrier
         if (Boolean(ply.instance))// && !ply.isLocal)
         {
-          console.log('* fc to player', ply.userid, ply.playerPort);
+          console.log('* fc to player', ply.userid, ply.playerPort, _this.heldBy);
           
-          ply.instance.room(ply.playerPort).write([22, _this.name, _this.visible, msg]);
+          ply.instance.room(ply.playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
           // ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
         }
       });
