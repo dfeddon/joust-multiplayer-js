@@ -2339,7 +2339,7 @@ game_core.prototype.roundComplete = function(port, round)
             // p[z].bonusSlot = 0;
             p[z].purgeBuffsAndBonuses();
             // reset position to team base
-            p[z].pos = 
+            p[z].respawn();
         }
         var ordered = _.orderBy(p, ['roundscore'], ['desc']);
         // reduce to top 10
@@ -2411,8 +2411,8 @@ game_core.prototype.roundComplete = function(port, round)
         round.total++;
 
         // deactivate players
-        var p = this.getplayers.fromRoom(port, 0);
-        for (var i = 0; i < p.length; i++)
+        p = this.getplayers.fromRoom(port, 0);
+        for (i = 0; i < p.length; i++)
         {
             p[i].active = true;
             if (p[i].instance)
@@ -2425,6 +2425,7 @@ game_core.prototype.roundComplete = function(port, round)
 
     // lastly, reactivate round
     round.active = true;
+    // force players to move
 }
 
 game_core.prototype.handle_server_input = function(client, input, input_time, input_seq)

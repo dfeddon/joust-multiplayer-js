@@ -4182,15 +4182,23 @@ core_client.prototype.roundWinnersView = function(winners)
 
         }, 250);
     };
+
+    // refs
+    var container1 = document.getElementById('card1Container');
+    var container2 = document.getElementById('card2Container');
+    var container3 = document.getElementById('card3Container');
+    var card1 = document.getElementById('card1');
+    var card2 = document.getElementById('card2');
+    var card3 = document.getElementById('card3');
     
     // card drop
     var dropper = function()
     {
         document.getElementById('roundCompleteCallout').style.display = "none";
 
-        var container1 = document.getElementById('card1Container');
-        var container2 = document.getElementById('card2Container');
-        var container3 = document.getElementById('card3Container');
+        // var container1 = document.getElementById('card1Container');
+        // var container2 = document.getElementById('card2Container');
+        // var container3 = document.getElementById('card3Container');
         var ccard = container1;
         var ccount = 1;
         var carddrop = setInterval(function()
@@ -4215,9 +4223,9 @@ core_client.prototype.roundWinnersView = function(winners)
 
     var flipper = function(isTop10)
     {
-        var card1 = document.getElementById('card1');
-        var card2 = document.getElementById('card2');
-        var card3 = document.getElementById('card3');
+        // var card1 = document.getElementById('card1');
+        // var card2 = document.getElementById('card2');
+        // var card3 = document.getElementById('card3');
         var count = 1;
         var card = card1;
         var cardflipper = setInterval(function()
@@ -4305,6 +4313,20 @@ core_client.prototype.roundWinnersView = function(winners)
             card3.classList.add('flippedBack');
             card3.classList.remove('flipped');
 
+            // reset cards container for dropdown fx
+            container1.style.webkitAnimation = "none";
+            container2.style.webkitAnimation = "none";
+            container3.style.webkitAnimation = "none";
+            setTimeout(function()
+            {
+                container1.style.webkitAnimation = '';
+                container2.style.webkitAnimation = '';
+                container3.style.webkitAnimation = '';
+                container1.style.visibility = "hidden";
+                container2.style.visibility = "hidden";
+                container3.style.visibility = "hidden";
+            }, 10);
+
             // ...and players ui
             document.getElementById('winner1').style.opacity = 0;
             document.getElementById('winner2').style.opacity = 0;
@@ -4340,6 +4362,10 @@ core_client.prototype.roundWinnersView = function(winners)
             
             if (mobilecontrols)
                 mobilecontrols.style.display = "flex";
+            
+            // nudge player with a single flap
+            // document.externalControlAction("x");
+            // this.client_handle_input();
 
         }, 1500);
     };

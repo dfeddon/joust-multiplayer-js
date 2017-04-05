@@ -412,7 +412,7 @@ game_flag.prototype.doTake = function(player)
   // set player states
   player.hasFlag = flagType;
 
-  if (player.bubble) player.bubble = false;
+  // if (player.bubble) player.bubble = false;
 
   // if (!this.config.server)
   // {

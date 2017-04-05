@@ -905,6 +905,12 @@ game_player.prototype.respawn = function()
 {
     console.log("== respawn ==");//, this.instance);
 
+    if (!this.instance) 
+    {
+        console.warn("ERROR: player.respawn failed due to undefined value of this.instance");
+        return;
+    }
+
     //var allplayers = this.instance.game.gamecore.getplayers.allplayers;
 
     // set start position (based on team)
@@ -1143,7 +1149,7 @@ game_player.prototype.takeFlag = function(flag, flagType)
     //this.hasFlag = flagType;
 
     // disable bubble
-    if (this.bubble) this.bubble = false;
+    // if (this.bubble) this.bubble = false;
 
     // speed modifier (slow down)
 
@@ -1626,6 +1632,15 @@ game_player.prototype.doHitServer = function(victor, isHit)
         // victim (this) mods vs victor mods
         if (isHit)
         {
+            // first, if victim is bubbled, no damage taken
+            if (this.bubble === true)
+            {
+                // remove bubble
+                this.bubble = false;
+                // set bubble on 10 sec cooldown
+                // get out
+                return;
+            }
             // set base damage (5 - 15) + victor bonus (victor.total) + victor buffs (victor.damageBonus) + (option for 5% + victor bonus to inflict double-damage) - victim.damageReduce bonus - victim bonus
             // base damage 5 - 15;
             var dmg = Math.floor(Math.random() * 11) + 5;
@@ -2247,15 +2262,20 @@ game_player.prototype.isVuln = function(len)
     if (this.isLocal)
         this.isEngaged(len);
 
+    // break bubble
+    if (this.bubble === true)
+    {
+        // break bubble
+        this.bubble = false;
+        // set bubble on 10 sec cooldown
+        // get out?
+    }
+
     var stun = setTimeout(this.timeoutVuln.bind(this), len);
 
     // if carrying flag, drop it
     if (this.config.server && this.hasFlag)
-        this.dropFlag();
-    
-    // break bubble
-    if (this.bubble === true)
-        this.bubble = false;
+        this.dropFlag();    
 };
 
 game_player.prototype.dropFlag = function()
