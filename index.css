@@ -1160,7 +1160,7 @@ h5
 {
 	/*border:solid 1px white;*/
 	/*width: 50%;*/
-	width: 100px;
+	width: 130px;
 	height: 50px;
 	display: flex;
 	flex-direction: row;
@@ -1171,6 +1171,7 @@ h5
 }
 #bonus-column
 {
+	width: 75px; /* pushes total circle into modifiers column */
 	display: flex;
 	flex-direction: column;
 	flex-wrap: nowrap;
@@ -1180,8 +1181,8 @@ h5
 }
 .modifier
 {
-	width: 90%;
-	height: 20px;
+	/*width: 90%;*/
+	/*height: 20px;*/
 	/*border:solid 1px gray;*/
 	display: flex;
 	flex-direction: row;
@@ -1192,19 +1193,33 @@ h5
 }
 #modify1-icon
 {
-	width: 15px;
-	height: 15px;
+	width: 50px;
+	height: 10px;
+	text-align: right;
+	background-color: rgba(0, 0, 0, 0.5);;
+	border:solid 1px #fff;
+	font-size: 0.75em;
+	padding-right: 2px;
+	color: #CDC;
+	font-family: 'Mirza', serif;
+	/*font-weight: bold;*/
+	/*width: 15px;
+	height: 10px;
 	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/flag-mid-r.png');
-	background-size: cover;
+	background-size: cover;*/
 }
 #modify1-text
 {
 	order: 1;
+	width: 25px;
+	height: 10px;
 	padding-left: 5px;
 	/*font-family: 'Mirza', serif;*/
+	background-color: #D0011B;
+	border:solid 1px #F06576;
 	font-size: 0.75em;
-	padding-right: 10px;
-	color: cyan;
+	padding-right: 2px;
+	color: white;
 	font-family: 'Mirza', serif;
 	font-weight: bold;
 	/*text-shadow: 2px 2px black;*/
@@ -1222,39 +1237,68 @@ h5
 }*/
 #modify2-icon
 {
-	width: 15px;
-	height: 15px;
+	width: 50px;
+	height: 10px;
+	text-align: right;
+	background-color: rgba(0, 0, 0, 0.5);
+	border:solid 1px #fff;
+	font-size: 0.75em;
+	padding-right: 2px;
+	color: #CDC;
+	font-family: 'Mirza', serif;
+	/*font-weight: bold;*/
+	/*width: 15px;
+	height: 10px;
 	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/fly1.png');
-	background-size: cover;
+	background-size: cover;*/
 }
 #modify2-text
 {
 	order: 1;
+	width: 25px;
+	height: 10px;
 	/*font-family: 'Mirza', serif;*/
+	background-color: #417505;
+	border:solid 1px #B8E986;
 	padding-left: 5px;
 	font-size: 0.75em;
 	font-weight: bold;
-	padding-right: 10px;
-	color: pink;
+	padding-right: 2px;
+	color: #B8E986;
 	font-family: 'Mirza', serif;
 	/*text-shadow: 2px 2px black;*/
 }
 #modify3-icon
 {
-	width: 15px;
-	height: 15px;
+	width: 50px;
+	height: 10px;
+	text-align: right;
+	background-color: rgba(0, 0, 0, 0.5);;
+	border:solid 1px #fff;
+	font-size: 0.75em;
+	padding-right: 2px;
+	color: #CDC;
+	/*font-size: 10px;*/
+	font-family: 'Mirza', serif;
+	/*font-weight: bold;*/
+	/*width: 15px;
+	height: 10px;
 	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/potion-1.png');
-	background-size: cover;
+	background-size: cover;*/
 }
 #modify3-text
 {
 	order: 1;
+	width: 25px;
+	height: 10px;
 	/*font-family: 'Mirza', serif;*/
 	padding-left: 5px;
+	background-color: #417505;
+	border:solid 1px #B8E986;
 	font-size: 0.75em;
 	font-weight: bold;
-	padding-right: 10px;
-	color: #ffcc00;
+	padding-right: 2px;
+	color: #B8E986;
 	font-family: 'Mirza', serif;
 	/*text-shadow: 2px 2px black;*/
 }
@@ -1264,8 +1308,8 @@ h5
 	order: 2;
 	width: 50px;
 	height: 50px;
-	background-color: rgba(0, 100, 0, 0.65); /* red: 255,0,0 */
-	border-color: lime;
+	background-color: #417505;/*rgba(0, 100, 0, 1); /* red: 255,0,0 */
+	border-color: #B8E986;
 	border-width: 1px;
 	border-radius: 25px;
 	/*text-shadow: 2px 2px black;*/
@@ -1276,8 +1320,8 @@ h5
 	order: 2;
 	width: 50px;
 	height: 50px;
-	background-color: rgba(255, 0, 0);
-	border-color: palevioletred;
+	background-color: #D0011B;/*rgba(255, 0, 0);*/
+	border-color: #F06576;
 	border-width: 1px;
 	border-radius: 25px;
 	/*text-shadow: 2px 2px black;*/
@@ -1305,7 +1349,8 @@ h5
 	font-family: 'Mirza', small-caps;
 	/*font-weight: bold;*/
 	font-size: 1.5em;
-	color: white;
+	color: #B8E986;
+;
 	/*order: 2;
 	width: 50px;
 	height: 50px;*/
