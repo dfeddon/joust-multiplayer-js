@@ -1211,7 +1211,7 @@ h5
 #modify1-text
 {
 	order: 1;
-	width: 25px;
+	width: 30px;
 	height: 10px;
 	padding-left: 5px;
 	/*font-family: 'Mirza', serif;*/
@@ -1255,7 +1255,7 @@ h5
 #modify2-text
 {
 	order: 1;
-	width: 25px;
+	width: 30px;
 	height: 10px;
 	/*font-family: 'Mirza', serif;*/
 	background-color: #417505;
@@ -1289,7 +1289,7 @@ h5
 #modify3-text
 {
 	order: 1;
-	width: 25px;
+	width: 30px;
 	height: 10px;
 	/*font-family: 'Mirza', serif;*/
 	padding-left: 5px;

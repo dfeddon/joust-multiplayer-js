@@ -84,6 +84,9 @@ function game_player(player_instance, isHost, pindex, config)
     this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
     this.bonusSlot = 0;
 
+    this.bubbleRespawnTime = 15; // 2 stacks: 10 seconds, 3 stacks: 5 seconds
+    this.bubbleRespawn = 0;
+
     this.teamBonus = 0;
     this.playerBonus = 0;
     this.potionBonuses = []; // {v:0, c:0} / v = bonus value, c = cooldown (server_time)
@@ -93,6 +96,9 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slot1Image = null;
     // this.slot2Image = null;
     // this.slot3Image = null;
+
+    // buff stub
+    // this.slots[0].b = 1; this.slots[0].c = 100; this.slots[0].a = 1;
 
     this.bubble = false; // bubble
     this.blinking = false; // blink
@@ -242,9 +248,11 @@ game_player.prototype.setFromBuffer = function(data)
         // < 100 = addBuff / > 100 = removeBuff
         if (data[6] < 100)
             this.addBuff(data[6]);
-        else this.removeBuff(data[6] - 100);
+        else if (data[6] < 200)
+            this.removeBuff(data[6] - 100);
+        else this.miscBuff(data[6]);
     }
-    // bonus slot
+    // bonus slot is data[7]
     // score
     if (Boolean(data[8]))
     {
@@ -271,6 +279,39 @@ game_player.prototype.buffIdsToSlots = function(ids)
     }
 
     console.log('* assigned slots', this.slots);
+};
+
+game_player.prototype.setBubble = function(bool)
+{
+    console.log("== player.setBubble ==", bool);
+    // set bubble on 15/10/5 sec cooldown (if cd doesn't expire first)
+    // TODO: also check for round slot bubble buff
+    if (bool == true && this.bubble === false) 
+    {
+        this.bubble = true;
+        this.slotDispatch = 301; // client restore bubble
+    }
+    else if (bool === false && this.bubble)
+    {
+        this.bubble = false;
+        this.slotDispatch = 300; // client remove bubble
+
+        for (var i = this.slots.length - 1; i >= 0; i--)
+        {
+            if (this.slots[i].b === this.game_buffs.BUFFS_BUBBLE)
+            {
+                // if bubble expires < this.bubbleRespawnTime (10 seconds), get out
+                if (this.slots[i].c - this.config.server_time <= this.bubbleRespawnTime)
+                    break;
+                // otherwise, add respawn flag in 10 sec.
+                else
+                {
+                    this.bubbleRespawn = Math.floor(this.config.server_time + this.bubbleRespawnTime);
+                    console.log("* bubble respawn set to", this.bubbleRespawn);
+                }
+            }
+        }
+    }
 };
 
 game_player.prototype.purgeBuffsAndBonuses = function()
@@ -492,7 +533,7 @@ game_player.prototype.activateBuff = function(buff)
 
         case this.game_buffs.BUFFS_BUBBLE:
             // on hit
-            this.bubble = true;
+            this.setBubble(true);//this.bubble = true;
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             // 25% speed buff (on physics)
@@ -631,6 +672,7 @@ game_player.prototype.deactivateBuff = function(buff)
 
         case this.game_buffs.BUFFS_BUBBLE:
             this.bubble = false;
+            this.bubbleRespawn = 0; // cancel unspawned bubble
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             this.thrustModifier += 5;
@@ -674,7 +716,23 @@ game_player.prototype.buffExpired = function(slot)
 
     // clear buffer on server
     slot.b = 0;
-}
+};
+
+game_player.prototype.miscBuff = function(id)
+{
+    console.log('== player.miscBuff ==', id);
+
+    switch(id)
+    {
+        case 300: // bubble broken
+            this.bubble = false;
+        break;
+
+        case 301: // respawn bubble
+            this.bubble = true;
+        break;
+    }
+};
 
 game_player.prototype.updateBonusesClient = function(array)
 {
@@ -703,9 +761,9 @@ game_player.prototype.updateBonusesClient = function(array)
     // update UI
     if (this.isLocal)
     {
-        document.getElementById('modify1-text').innerHTML = array[0];//this.teamBonus;
-        document.getElementById('modify2-text').innerHTML = array[1];//this.playerBonus;
-        document.getElementById('modify3-text').innerHTML = array[2];//this.potionBonus;
+        document.getElementById('modify1-text').innerHTML = (array[0] > 0 && array[0] < 10) ? "+0" + array[0] : array[0];//this.teamBonus;
+        document.getElementById('modify2-text').innerHTML = (array[1] > 0 && array[1] < 10) ? "+0" + array[1] : "+" + array[1]//this.playerBonus;
+        document.getElementById('modify3-text').innerHTML = (array[2] > 0 && array[2] < 10) ? "+0" + array[2] : "+" + array[2]//this.potionBonus;
         document.getElementById('bonus-total-text').innerHTML = (this.bonusTotal < 10 && this.bonusTotal > 0) ? "0" + this.bonusTotal : this.bonusTotal;//array[0] + array[1] + array[2];
     }
 };
@@ -1015,12 +1073,12 @@ game_player.prototype.doFlap = function()
 
 game_player.prototype.doLand = function()
 {
-    //console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
+    // console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
 
-    var _this = this;
+    // var _this = this;
 
     // if falling fataly fast...
-    if (this.vy > 10)
+    /*if (this.vy > 10)
     {
         console.log('fatal bounce!', this.vy);
         
@@ -1044,13 +1102,16 @@ game_player.prototype.doLand = function()
         }
         this.doKill();
         return;
-    }
+    }*/
     // ...survivably fast
-    if (this.vy > 6)
+    if (this.vy > 5)// && this.config.server)
     {
         console.log('* bounce up!', this.vy);
+        // account for .5 discrepancy between server and client
+        if (this.config.server)
+            this.vy += 0.5;
         // set length of vulnerability based on how hard player hits
-        var len = 1500 + ((this.vy - 6) * 1000);
+        var len = 1500 + ((this.vy - 5) * 1000);
         // impact drag
         this.vy = this.vy/2;
         // bounce
@@ -1058,6 +1119,16 @@ game_player.prototype.doLand = function()
         // set vulnerability
         this.isVuln(len);
         //this.a *= -1;
+        // inflict fall damage
+        if (this.config.server)
+        {
+            var dmg = this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3));
+            this.updateHealth(0 - dmg);
+            // send to client
+            this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg]);
+            // this.setTextFloater(100, Math.abs(dmg), 1);
+        }
+
         return;
     }
 
@@ -1428,6 +1499,14 @@ game_player.prototype.update = function()
                     }
                 }
             }
+
+            // also check for bubble respawns
+            if (this.bubbleRespawn > 0 && this.config.server_time >= this.bubbleRespawn)
+            {
+                console.log("* bubble respawn!");
+                this.bubbleRespawn = 0;
+                this.setBubble(true);
+            }
         }
     } // end this.server
 
@@ -1487,10 +1566,16 @@ game_player.prototype.update = function()
                 this.vy *= -1;
                 this.isVuln(750);
                 // dmg 1 - 5
-                this.updateHealth(0 - (Math.floor(Math.random() * 5) + 1));
+                if (this.config.server)
+                {
+                    var dmg = this.getRandomRange(1, 5);
+                    // console.log("* from below dmg", dmg);
+                    this.updateHealth(0 - dmg);
+                    this.instance.room(this.playerPort).write([5, this.id, null, dmg]);
+                }
                 // dmgText = 0 - 2;
                 // add floating text with damage (id: 100 = damage text)
-                this.setTextFloater(100, 2, 1);
+                // this.setTextFloater(100, Math.abs(dmg), 1);
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
@@ -1607,6 +1692,11 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
     this.setTextFloater(100, dmgText, 1);
 };
 
+game_player.prototype.getRandomRange = function(min, max)
+{
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 game_player.prototype.doHitServer = function(victor, isHit)
 {
     console.log('== player.doHitServer ==', victor.userid, victor.id);  
@@ -1624,7 +1714,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
         // set hitData to reduce redundant hits
         this.hitData.by = victor.userid;
         this.hitData.at = this.config.server_time;
-        console.log('* setting hitData', this.hitData);
+        // console.log('* setting hitData', this.hitData);
 
         // check if hit is fatal, and if so, start death seq
         // otherwiese, inform client of hit
@@ -1636,9 +1726,26 @@ game_player.prototype.doHitServer = function(victor, isHit)
             // first, if victim is bubbled, no damage taken
             if (this.bubble === true)
             {
+                console.log("* bubble!")
                 // remove bubble
-                this.bubble = false;
-                // set bubble on 10 sec cooldown
+                this.setBubble(false);;
+                // set bubble on 10 sec cooldown (if cd doesn't expire first)
+                // TODO: also check for round slot bubble buff
+                for (var i = this.slots.length - 1; i >= 0; i--)
+                {
+                    if (this.slots[i].b === this.game_buffs.BUFFS_BUBBLE)
+                    {
+                        // if bubble expires < this.bubbleRespawnTime (10 seconds), get out
+                        if (this.slots[i].c - this.config.server_time <= this.bubbleRespawnTime)
+                            break;
+                        // otherwise, add respawn flag in 10 sec.
+                        else
+                        {
+                            this.bubbleRespawn = this.config.server_time + this.bubbleRespawnTime;
+                            console.log("* bubble respawn set to", this.bubbleRespawn);
+                        }
+                    }
+                }
                 // get out
                 return;
             }
@@ -1678,8 +1785,9 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 // if victim is standing, set to walking so player "bumped" location will update
                 // if (this.landed === 1) this.landed = 2;
             }
-            // notify victor client
-            victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
+            // notify client
+            if (victor && victor.instance)
+                victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
         }
         else // tie (players collide but no hit)
         {
@@ -2267,12 +2375,12 @@ game_player.prototype.isVuln = function(len)
     if (this.bubble === true)
     {
         // break bubble
-        this.bubble = false;
+        this.setBubble(false);
         // set bubble on 10 sec cooldown
         // get out?
     }
 
-    var stun = setTimeout(this.timeoutVuln.bind(this), len);
+    setTimeout(this.timeoutVuln.bind(this), len);
 
     // if carrying flag, drop it
     if (this.config.server && this.hasFlag)

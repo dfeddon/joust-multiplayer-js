@@ -1171,7 +1171,7 @@ core_client.prototype.client_connect_to_server = function(data)
             // case "onconnected": _this.client_onconnected(data);//.bind(this);
             // break;
             
-            // player killed
+            // player hit/killed
             // 1: victim id, 2: victor id, 3:dmg
             case 5: _this.client_onplayerhit(data[1], data[2], data[3]); break;
 
@@ -1774,9 +1774,9 @@ core_client.prototype.client_handle_input = function(key)
     //if (glog)
     // console.log('## client_handle_input', this.players.self.active);//this.keyboard);//this.keyboard.pressed('up'));
 
-    if (this.players.self.vuln === true || this.players.self.active === false)
+    if (this.players.self.active === false)
     {
-        console.log('input disabled');
+        // console.log('input disabled', key);
         return;
     }
     //if(this.lit > this.core.local_time) return;
@@ -1789,6 +1789,7 @@ core_client.prototype.client_handle_input = function(key)
     var x_dir = 0;
     var y_dir = 0;
     var input = [];
+
     this.client_has_input = false;
 
     if( this.keyboard.pressed('A') ||
@@ -1849,6 +1850,7 @@ core_client.prototype.client_handle_input = function(key)
     
     // TODO: we are 'faking' input to ensure player is *always* updated
     // if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
+    if (this.players.self.vuln) input.length = 0;
     if (input.length === 0) input.push('0');
 
     if(input.length) 
