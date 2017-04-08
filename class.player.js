@@ -2601,6 +2601,7 @@ game_player.prototype.draw = function()
     {
         if ((this.isLocal && this.textFloater[4]) || (!this.textFloater[4]))
         {
+            // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
             this.config.ctx.font = "30px Mirza";
             this.config.ctx.textAlign = 'center';
             this.config.ctx.fillStyle = this.textFloater[1];
