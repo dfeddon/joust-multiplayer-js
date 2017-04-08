@@ -1445,7 +1445,7 @@ h5
 #levelbar-padding1
 {
 	order: 2;
-	height: 15px;
+	height: 0px;
 	display: flex;
 }
 
@@ -1477,7 +1477,7 @@ h5
 {
 	/*border:solid 1px gold;*/
 	position: absolute;
-	bottom: 10px;
+	bottom: 6px;
 	height: 10px;
 	width: 50%;/*50%;*/
 	left: 25%;

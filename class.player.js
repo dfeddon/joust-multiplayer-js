@@ -92,6 +92,10 @@ function game_player(player_instance, isHost, pindex, config)
     this.potionBonuses = []; // {v:0, c:0} / v = bonus value, c = cooldown (server_time)
     this.potionBonus = 0;
     this.bonusTotal = 0; // team bonus + player level bonuses + yellow potion bonuses
+
+    this.protection = false;
+    this.stunned = false;
+    this.dazed = false;
     // this.roundSlotImage = null;
     // this.slot1Image = null;
     // this.slot2Image = null;
@@ -1769,10 +1773,20 @@ game_player.prototype.doHitServer = function(victor, isHit)
             if (this.health <= 0)
             {
                 console.log('*', this.playerName, 'is dead!');
+
+                // victor is awarded protection for 60 seconds + bonus
                 // don't "bounce" victor if victim is dead
             }
             else 
             {
+                // if victim *doesn't* has protection, rng 1 - 100
+                // if (if rng <= (victor bonus - victim bonus)
+                // victim inflicted with stun and rng debuff
+                // rng 1 or 2
+                // if (rng == 1 && victim has at least 1 active buff)
+                // inflict stun
+                // otherwise, inflict dazed (equal to bonus differential) for 60 seconds + bonus?
+
                 // if (this.vx === 0)
                 console.log("my vx", this.vx, victor.vx);
                 // victor.vx *= -1;

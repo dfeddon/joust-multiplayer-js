@@ -1960,8 +1960,8 @@ core_client.prototype.client_process_net_prediction_correction = function()
             //and that we can predict from this known position instead
 
             //remove the rest of the inputs we have confirmed on the server
-            var number_to_clear = Math.abs(lastinputseq_index - (-1));
-            this.players.self.inputs.splice(0, number_to_clear);
+            // var number_to_clear = Math.abs(lastinputseq_index - (-1));
+            this.players.self.inputs.splice(0, Math.abs(lastinputseq_index - (-1)));//number_to_clear);
             //The player is now located at the new server position, authoritive server
             this.players.self.cur_state.pos = this.pos(my_server_pos);
             /*
@@ -2701,10 +2701,10 @@ core_client.prototype.client_update_local_position = function()
      //console.log('## client_update_local_position');
 
         //Work out the time we have since we updated the state
-        var t = (this.core.local_time - this.players.self.state_time) / this.core._pdt;
+        // var t = (this.core.local_time - this.players.self.state_time) / this.core._pdt;
 
         //Then store the states for clarity,
-        var old_state = this.players.self.old_state.pos;
+        // var old_state = this.players.self.old_state.pos;
         //if ()
         var current_state = this.players.self.cur_state.pos;
         //console.log("old", old_state, "current", current_state);
@@ -2753,7 +2753,7 @@ core_client.prototype.client_update_physics = function()
         this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
         //if (this.players.self.mp != "hp")
         //{
-        var nd = this.core.process_input(this.players.self);
+        // var nd = this.core.process_input(this.players.self);
         // if (nd.x==0&&nd.y==0) this.core.server_control=true;
         // else this.core.server_control = false;
         // console.log('nd:', nd);
@@ -2761,7 +2761,7 @@ core_client.prototype.client_update_physics = function()
         //if (nd.x === 0 && nd.y == 0)
             //this.players.self.update();
         //else 
-        this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, nd);
+        this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, this.core.process_input(this.players.self));
         this.players.self.state_time = this.core.local_time;
         //}
         
@@ -2806,15 +2806,15 @@ core_client.prototype.client_update = function()
     // TODO: lerp camera movement for extra smoothness
     if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
     {
-        var pad = 0;
+        // var pad = 0;
         // clamp(value, min, max)
         // return Math.max(min, Math.min(value, max));
         // console.log('lpos', this.players.self.campos.x, this.players.self.pos.x);
         this.cam.pos = //this.players.self.pos;
         this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
-        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - pad, pad);//this.this.config.world.width);
-        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - pad, pad);//this.game.world.height);
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
 
@@ -2830,7 +2830,9 @@ core_client.prototype.client_update = function()
     //console.log(this.cam.x,this.cam.y);
     // +100 accounts for -50 padding offset along the edge of world
     //console.log(this.players.self.pos.x, (this.viewport.width/2));
-    this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);//worldWidth,worldHeight);
+
+    // uncomment to clear bricks with brickPadding > 0
+    // this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);
 
     // flash bang
     /*if (this.flashBang > 0)
@@ -2850,16 +2852,16 @@ core_client.prototype.client_update = function()
     //draw help/information if required
     // console.log(this.config.server_time);
     // if (this.config.server_time % 1 === 0)
-    this.client_draw_info();
+    // this.client_draw_info();
 
     // draw prerenders
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
-    if (this.bg)
-    {
+    // if (this.bg)
+    // {
         this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
-    }
-    if (this.fg)
-    {
+    // }
+    // if (this.fg)
+    // {
         //this.ctx.drawImage(this.canvas2, 0,0); // orbs
         // this.ctx.drawImage(this.barriers, 0, 0);
         //console.log('this.cam', this.cam);
@@ -2869,7 +2871,7 @@ core_client.prototype.client_update = function()
         this.ctx.drawImage(this.fg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
         //this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
         //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
-    }
+    // }
 
     //Capture inputs from the player
     this.client_handle_input();
@@ -2897,22 +2899,22 @@ core_client.prototype.client_update = function()
     // console.log("# players", this.core.getplayers.fromRoom(this.xport));
     // _.forEach(this.core.getplayers.fromRoom(_this.xport), function(ply)
     // _.forEach(this.core.getplayers.allplayers, function(ply)
-    var ply;
+    // var ply;
     for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
     {
         // console.log('ply', ply);
-        ply = this.core.getplayers.allplayers[j];
-        if (ply.active && !ply.isLocal)//ply != _this.players.self)// && room[i].active===true)
+        // ply = this.core.getplayers.allplayers[j];
+        if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal)//ply != _this.players.self)// && room[i].active===true)
         {
             // console.log('#p', ply.pos);
             //ply.draw();
             if 
             (
                 // ply is *above* local player
-                (ply.pos.y + this.cam.y + ply.size.hy > 0)
+                (this.core.getplayers.allplayers[j].pos.y + this.cam.y + this.core.getplayers.allplayers[j].size.hy > 0)
                 &&
                 // ply is *below* local player
-                (ply.pos.y + this.cam.y - ply.size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
+                (this.core.getplayers.allplayers[j].pos.y + this.cam.y - this.core.getplayers.allplayers[j].size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
                 /* || 
                 (
                     _this.players.self.pos.y + _this.cam.y <= 
@@ -2922,14 +2924,14 @@ core_client.prototype.client_update = function()
                 ) */
                 &&
                 // ply is visible left of local player
-                (ply.pos.x + this.cam.x - ply.size.hx) <= this.viewport.width
+                (this.core.getplayers.allplayers[j].pos.x + this.cam.x - this.core.getplayers.allplayers[j].size.hx) <= this.viewport.width
                 //ply.pos.x + (Math.abs(_this.cam.x) * 2) < _this.players.self.pos.x
                 &&
                 // ply is visible right of local player
-                (ply.pos.x + this.cam.x + ply.size.hx > 0)
+                (this.core.getplayers.allplayers[j].pos.x + this.cam.x + this.core.getplayers.allplayers[j].size.hx > 0)
             )//<= _this.players.self.pos.y + _this.cam.y)
             {
-                ply.draw();
+                this.core.getplayers.allplayers[j].draw();
                 //if (ply.mp == "cp1")console.log(ply.pos.x, _this.cam.x, _this.players.self.pos.x, _this.viewport.width);
             }
             //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
@@ -3653,7 +3655,7 @@ core_client.prototype.updateTerritory = function()
     // build bricks
     var brickWidth = 30;
     var brickHeight = 15;
-    var brickPadding = 1;
+    var brickPadding = 0;//1;
     var brickOffsetTop = 0;//30;
     var brickOffsetLeft = 0;//30;
 
@@ -4103,6 +4105,7 @@ core_client.prototype.roundWinnersView = function(winners)
             p = this.config._.find(ply, {userid:winners[w][1]});
             if (!p) console.log('* Error: unable to find winning player!', winners[w]);
             if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
+            console.log(winners[w][2]);
             p.bonusSlot = winners[w][2] + 1;
             p.activateBuff(p.bonusSlot);
             console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
