@@ -153,6 +153,11 @@ function game_player(player_instance, isHost, pindex, config)
     this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     this.flagTakenAt = 0;
     this.disconnected = false;
+
+    // draw vars
+    this.nameplateOffset = 20;
+    this.drwImg, this.drwImgW, this.drwImgH, this.drwFlagImg;
+    
     //this.carryingFlag = null;
 
     // TODO: default to invisible skin
@@ -432,18 +437,29 @@ game_player.prototype.reverseVal = function(val, min, max)
     return (max + min) - val;
 };
 
-game_player.prototype.hasBuff = function(buffType)
+game_player.prototype.hasBuff = function()//buffType)
 {
-    console.log('== player.hasBuff ==', buffType);
+    console.log('== player.hasBuff ==');//, buffType);
 
     for (var i = this.slots.length - 1; i >= 0; i--)
     {
-        if (this.slots[i].b === buffType)
+        if (this.slots[i].a === 1)//b === buffType)
             return true;
     }
-    return false;
-    
+    return false;    
 };
+
+game_player.prototype.getRandomBuff = function()
+{
+    console.log('== player.getRandomBuff ==');
+
+    for (var i = this.slots.length - 1; i >= 0; i--)
+    {
+        if (this.slots[i].a === true)
+            return this.slots[i];
+    }
+    return false;
+}
 
 game_player.prototype.addBuff = function(buff)
 {
@@ -1775,17 +1791,48 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 console.log('*', this.playerName, 'is dead!');
 
                 // victor is awarded protection for 60 seconds + bonus
+                this.protection = true;
                 // don't "bounce" victor if victim is dead
             }
             else 
             {
-                // if victim *doesn't* has protection, rng 1 - 100
-                // if (if rng <= (victor bonus - victim bonus)
-                // victim inflicted with stun and rng debuff
-                // rng 1 or 2
-                // if (rng == 1 && victim has at least 1 active buff)
-                // inflict stun
-                // otherwise, inflict dazed (equal to bonus differential) for 60 seconds + bonus?
+                // if victim *doesn't* has protection
+                if (this.protection !== true)
+                {
+                    // rng 1 - 100
+                    var rng = this.getRandomRange(1, 100);
+                    var bonusDiff = victor.bonusTotal - this.bonusTotal;
+                    // if (if rng <= (victor bonus - victim bonus)
+                    console.log("* rng", rng, bonusDiff);
+                    if (rng <= bonusDiff)
+                    {
+                        // victim inflicted with stun and rng debuff
+                        console.log("* victim inflicted!");
+                        // vulnerable for 1.5 seconds
+                        this.isVuln(1500);
+                        // rng 1 or 2
+                        var inflict = this.getRandomRange(1, 2);
+                        // if (rng == 1 && victim has at least 1 active buff)
+                        if (inflict === 1 && this.hasBuff() === true)
+                        {
+                            // inflict stun (vuln) and remove 1 buff
+                            console.log("* player stunned!");
+                            this.stunned = true;
+                            var rngBuff = this.getRandomBuff();
+                            // remove/expire buff (and update buffs?)
+                            this.buffExpired(rngBuff);
+                        }
+                        else
+                        {
+                            // otherwise, inflict dazed (equal to bonus differential) for 60 seconds + bonus?
+                            console.log("* player dazed!", bonusDiff);
+                            this.dazed = bonusDiff; // store val in dazed
+                            // subtract bonusDiff from playerBonus
+                            this.playerBonus -= this.dazed;
+                            // update bonus
+                        }
+                    }
+                }
 
                 // if (this.vx === 0)
                 console.log("my vx", this.vx, victor.vx);
@@ -2558,8 +2605,8 @@ game_player.prototype.drawAbilities = function()
         game.ctx.arc(this.pos.x + 14, this.pos.y-20, 2,0,2*Math.PI);
         game.ctx.fill();*/
         // TODO: if not buffs, debuffs or boosters
-        // then txtOffset = 20;
-        //txtOffset = 30;
+        // then nameplateOffset = 20;
+        //nameplateOffset = 30;
     } // end isEngaged
 };
 
@@ -2574,9 +2621,9 @@ game_player.prototype.draw = function()
     //this.pos.y = this.pos.y.fixed(1);
     // player nametags (temp)
     // mana bar bg
-    var txtOffset = 20;
-    if (this.isLocal) txtOffset += 10;
-    if (this.vuln) txtOffset = 10;
+    this.nameplateOffset = 20;
+    if (this.isLocal) this.nameplateOffset += 10;
+    if (this.vuln) this.nameplateOffset = 10;
     //var abil;
 
     // player is ME
@@ -2647,7 +2694,7 @@ game_player.prototype.draw = function()
     this.config.ctx.fillText(
         txt,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
         this.pos.x + ((this.size.hx + this.size.offset)/2),//.fixed(1),
-        this.pos.y - txtOffset
+        this.pos.y - this.nameplateOffset
         //100
     );
     this.config.ctx.restore();*/
@@ -2656,13 +2703,13 @@ game_player.prototype.draw = function()
     //     this.setPlayerName(this.playerName);
     // if (this.playerNameImage)
     // if (!this.vuln)
-    this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - txtOffset, this.playerNameImage.width, this.playerNameImage.height);
+    this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
 
     // draw rank circle
     /*
     game.ctx.fillStyle = "gray";
     game.ctx.beginPath();
-    game.ctx.arc (this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, this.pos.y - txtOffset - 5, 10, 0, Math.PI*2, true);
+    game.ctx.arc (this.pos.x + (this.size.hx/2) - (game.ctx.measureText(txt).width/2) - 20, this.pos.y - this.nameplateOffset - 5, 10, 0, Math.PI*2, true);
     game.ctx.closePath();
     game.ctx.fill();
     //*/
@@ -2674,7 +2721,7 @@ game_player.prototype.draw = function()
             //this.pos.x - 15,
             this.pos.x + ((this.size.hx + this.size.offset)/2) - (game.ctx.measureText(txt).width/2) - 20, // 20 = img width (15) - 5 pxl padding
             //this.pos.x + (this.size.hx/2) - 30,
-            this.pos.y - txtOffset - 12,
+            this.pos.y - this.nameplateOffset - 12,
             15, 15);
     }*/
 
@@ -2690,7 +2737,7 @@ game_player.prototype.draw = function()
             case 1: // burst
             this.abil = 0; // reset
             game.ctx.fillRect(this.pos.x, this.pos.y, 64, 64);
-            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - txtOffset - 12, 15, 15);
+            //game.ctx.drawImage(document.getElementById("ability-" + this.abilities[this.ability].label), this.pos.x - 15, this.pos.y - this.nameplateOffset - 12, 15, 15);
             break;
 
             case 2: // frost
@@ -2721,7 +2768,7 @@ game_player.prototype.draw = function()
     //*/
 
     // player bitamps
-    var img, imgW, imgH;
+    // var img, imgW, imgH;
     //if (this.pos.d == 1)
     //if (this.landed > 0) console.log(this.landed, this.mp);
     // if (this.abil > 0)
@@ -2737,20 +2784,20 @@ game_player.prototype.draw = function()
     {
         console.log('dead animation...');
         
-        img = assets.animate_gg;//document.getElementById('animate-gg');
-        imgW = 64;//33;
-        imgH = 64;//44;
-        this.config.ctx.drawImage(img, this.pos.x, this.pos.y, imgW, imgH);
+        this.drwImg = assets.animate_gg;//document.getElementById('animate-gg');
+        this.drwImgW = 64;//33;
+        this.drwImgH = 64;//44;
+        this.config.ctx.drawImage(this.drwImg, this.pos.x, this.pos.y, this.drwImgW, this.drwImgH);
     }
     else if (this.vuln === true)
     {
         if (this.dir === 1)
             this.sprite.draw('vuln-l', this.pos, this.drawAbility);//img = assets.p1stun_l;//document.getElementById("p1stun-l");
             //this.vulnLeft;//document.getElementById("p1stun-l");
-        else img = this.sprite.draw('vuln-r', this.pos, this.drawAbility);//assets.p1stun_r;//document.getElementById("p1stun-r");
+        else this.drwImg = this.sprite.draw('vuln-r', this.pos, this.drawAbility);//assets.p1stun_r;//document.getElementById("p1stun-r");
 
-        imgW = 64;
-        imgH = 64;
+        this.drwImgW = 64;
+        this.drwImgH = 64;
     }
     else if (this.flap === true)
     {
@@ -2768,41 +2815,41 @@ game_player.prototype.draw = function()
         else this.sprite.draw('flap-r', this.pos, this.drawAbility);//img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
-        imgW = 64;//40;
-        imgH = 64;//40;
+        this.drwImgW = 64;//40;
+        this.drwImgH = 64;//40;
     }
     else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
         if (this.dir === 1) this.sprite.draw('land-l', this.pos, this.drawAbility);//img = assets.p1stand_l;//document.getElementById("p1stand-l");
             //img = this.standLeft;// document.getElementById("p1stand-l");
-        else img = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1stand_r;//document.getElementById("p1stand-r");
+        else this.drwImg = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
-        imgW = 64;//33;
-        imgH = 64;//44;
+        this.drwImgW = 64;//33;
+        this.drwImgH = 64;//44;
     }
     else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            img = this.sprite.draw('land-l', this.pos, this.drawAbility);//assets.p1skid_l;//document.getElementById("p1skid-l");
-        else img = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1skid_r;//document.getElementById("p1skid-r");
+            this.drwImg = this.sprite.draw('land-l', this.pos, this.drawAbility);//assets.p1skid_l;//document.getElementById("p1skid-l");
+        else this.drwImg = this.sprite.draw('land-r', this.pos, this.drawAbility);//assets.p1skid_r;//document.getElementById("p1skid-r");
 
-        imgW = 64;//33;
-        imgH = 64;//44;
+        this.drwImgW = 64;//33;
+        this.drwImgH = 64;//44;
     }
     else // gliding
     {
         if (this.dir === 1)
-            img = this.sprite.draw('fly-l', this.pos, this.drawAbility);//assets.p2l;//document.getElementById("p2l");
+            this.drwImg = this.sprite.draw('fly-l', this.pos, this.drawAbility);//assets.p2l;//document.getElementById("p2l");
             //img = ctx.putImageData(imgData,10,70);
             //img = this.glideLeft;
         else //img = this.glideRight;//
         this.sprite.draw('fly-r', this.pos, this.drawAbility);//img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
-        imgW = 64;//40;
-        imgH = 64;//40;
+        this.drwImgW = 64;//40;
+        this.drwImgH = 64;//40;
     }
 
     // draw flag?
@@ -2845,35 +2892,35 @@ game_player.prototype.draw = function()
             //return;
         }
         //*/
-        var flagImg;
+        // var flagImg;
         //console.log('* this.hasFlag', this.hasFlag);
         switch(this.hasFlag)
         {
             case 1: // mid
                 if (this.dir === 0)
-                    flagImg = assets.flag_mid_r;//document.getElementById('flag-mid-r');
-                else flagImg = assets.flag_mid_l;//document.getElementById('flag-mid-l');
+                    this.drwFlagImg = assets.flag_mid_r;//document.getElementById('flag-mid-r');
+                else this.drwFlagImg = assets.flag_mid_l;//document.getElementById('flag-mid-l');
             break;
 
             case 2: // red
                 if (this.dir === 0)
-                    flagImg = assets.flag_red_r;//document.getElementById('flag-red-r');
-                else flagImg = assets.flag_red_l;//document.getElementById('flag-red-l');
+                    this.drwFlagImg = assets.flag_red_r;//document.getElementById('flag-red-r');
+                else this.drwFlagImg = assets.flag_red_l;//document.getElementById('flag-red-l');
             break;
 
             case 3: // blue
                 if (this.dir === 0)
-                    flagImg = assets.flag_blue_r;//document.getElementById('flag-blue-r');
-                else flagImg = assets.flag_blue_l;//document.getElementById('flag-blue-l');
+                    this.drwFlagImg = assets.flag_blue_r;//document.getElementById('flag-blue-r');
+                else this.drwFlagImg = assets.flag_blue_l;//document.getElementById('flag-blue-l');
             break;
         }
         // draw flag
         //game.ctx.save();
         //console.log('flagImg', flagImg, this.dir);
         // if flag is undefined, it's been removed
-        if (flagImg && flag)
+        if (this.drwFlagImg && flag)
         {
-            this.config.ctx.drawImage(flagImg, (this.dir === 0) ? this.pos.x - ((this.size.hx+this.size.offset)/2) : this.pos.x + ((this.size.hx+this.size.offset)/2), this.pos.y - ((this.size.hx + this.size.offset)/2), 64, 64);
+            this.config.ctx.drawImage(this.drwFlagImg, (this.dir === 0) ? this.pos.x - ((this.size.hx+this.size.offset)/2) : this.pos.x + ((this.size.hx+this.size.offset)/2), this.pos.y - ((this.size.hx + this.size.offset)/2), 64, 64);
             // draw timer
             //*
             this.config.ctx.font = "18px Mirza";
@@ -2884,7 +2931,7 @@ game_player.prototype.draw = function()
             this.config.ctx.fillText(
                 flag.timer,// + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
                 (this.dir === 0) ? this.pos.x - 5 : this.pos.x + (this.size.hx + this.size.offset) + 5,//.fixed(1),
-                this.pos.y - 5//txtOffset
+                this.pos.y - 5//this.nameplateOffset
                 //100
             );
         }
@@ -2923,9 +2970,9 @@ game_player.prototype.draw = function()
         }
         else this.isHit++;
 
-        if (this.isLocal)
-        {
-        }
+        // if (this.isLocal)
+        // {
+        // }
     }
 
 

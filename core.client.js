@@ -24,6 +24,7 @@ function core_client(core, config)
 
     this.core = core;
     this.config = config;
+    this.config.server_time = 0; // <- init here
 
     // this.core.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
     this.playerPort = null;
@@ -65,6 +66,7 @@ function core_client(core, config)
     
     //this.canvasPlatforms = null;
     this.flashBang = 0;
+    this.rt = 0;
 
     // tilemap
     this.api(); // load and build tilemap
@@ -1295,7 +1297,8 @@ core_client.prototype.client_refresh_fps = function()
 
 core_client.prototype.client_draw_info = function() 
 {
-    //if (glog) console.log('client_draw_info');
+    // if (glog) 
+    // console.log('client_draw_info');
     var _this = this;
 
     /////////////////////////////////
@@ -1314,6 +1317,7 @@ core_client.prototype.client_draw_info = function()
     // } //reached 10 frames
     // console.log('latency', this.socket.latency, );
     // TODO: move html ui out of this fnc. Text should be updated via event...
+    /*
     if (this.socket && document.getElementById('txtPing').innerHTML != this.socket.latency)
     {
         document.getElementById('txtPing').innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
@@ -1325,6 +1329,7 @@ core_client.prototype.client_draw_info = function()
     {
         document.getElementById('txtFPS').innerHTML = Math.ceil(this.fps_avg);
     }
+    */
 
     /////////////////////////////////
     // score
@@ -1336,16 +1341,11 @@ core_client.prototype.client_draw_info = function()
     // round time
     /////////////////////////////////
     // if (document.getElementById('txtRoundTimer').innerHTML != )
-    var s = this.config.round.endtime - Math.floor(this.config.server_time);
-    // var s = this.core.getplayers.fromRoom(this.xport, 5);
-    // console.log("s:", s);
-    // var min = Math.floor(total / 60);
-    // var sec = total - min * 60;
-    // console.log('round ends', (s-(s%=60))/60+(9<s?':':':0')+s);
-    var roundTimerTxt = document.getElementById('txtRoundTimer');
-    if (s > 0)
-        roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
-    else roundTimerTxt.innerHTML = "--:--";
+    // var s = this.config.round.endtime - Math.floor(this.config.server_time);
+    // var roundTimerTxt = document.getElementById('txtRoundTimer');
+    // if (s > 0)
+    //     roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
+    // else roundTimerTxt.innerHTML = "--:--";
     
     /////////////////////////////////
     // leaderboard
@@ -2851,26 +2851,42 @@ core_client.prototype.client_update = function()
 
     //draw help/information if required
     // console.log(this.config.server_time);
-    // if (this.config.server_time % 1 === 0)
-    // this.client_draw_info();
+    //*
+    // console.log('**', this.config.server_time, this.config);
+    if (this.config.server_time.toFixed(1) % 1 === 0)
+    {
+        // console.log('* round timer');
+        
+        // this.client_draw_info();
+        this.rt = this.config.round.endtime - Math.floor(this.config.server_time);
+        var roundTimerTxt = document.getElementById('txtRoundTimer');
+        if (this.rt > 0)
+            roundTimerTxt.innerHTML = (this.rt-(this.rt%=60))/60+(9<this.rt?':':':0')+this.rt;
+        else roundTimerTxt.innerHTML = "--:--";
+
+        // update leaderboard every 10 sec
+        if (this.config.server_time.toFixed(1) % 10 === 0)
+            this.client_draw_info();
+    }
+    //*/
 
     // draw prerenders
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
     // if (this.bg)
     // {
-        this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
+    this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
     // }
     // if (this.fg)
     // {
-        //this.ctx.drawImage(this.canvas2, 0,0); // orbs
-        // this.ctx.drawImage(this.barriers, 0, 0);
-        //console.log('this.cam', this.cam);
-        // tiled barriers layer
-        this.ctx.drawImage(this.barriers, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
-        // tiled fg layer
-        this.ctx.drawImage(this.fg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
-        //this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
-        //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
+    //this.ctx.drawImage(this.canvas2, 0,0); // orbs
+    // this.ctx.drawImage(this.barriers, 0, 0);
+    //console.log('this.cam', this.cam);
+    // tiled barriers layer
+    this.ctx.drawImage(this.barriers, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
+    // tiled fg layer
+    this.ctx.drawImage(this.fg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
+    //this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
+    //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
     // }
 
     //Capture inputs from the player

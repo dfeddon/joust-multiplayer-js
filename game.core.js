@@ -27,21 +27,21 @@ const
     // moment              = require('moment'),
     // UUID                = require('node-uuid'),
     core_client         = require('./core.client'),
-    getUid              = require('get-uid'),
+    // getUid              = require('get-uid'),
     // assert              = require('assert'),
     // duplex              = require('duplex'),
     config              = require('./class.globals'),
     getplayers          = require('./class.getplayers'),
     egyptian_set        = require('./egyptian_set'),
-    game_player         = require('./class.player'),
+    // game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
     // platformClass       = require('./class.platform'),
     //transformClass      = require('./class.transform'),
-    game_event_server   = require('./class.event'),
-    game_consumable     = require('./class.consumable'),
-    assets              = require('./singleton.assets'),
+    // game_event_server   = require('./class.event'),
+    game_consumable     = require('./class.consumable');
+    // assets              = require('./singleton.assets'),
     // pool                = require('typedarray-pool'),
-    game_toast          = require('./class.toast');
+    // game_toast          = require('./class.toast');
     /*collisionObject     = require('./class.collision'),
     PhysicsEntity       = require('./class.physicsEntity'),
     CollisionDetector   = require('./class.collisionDetector'),
@@ -247,6 +247,7 @@ game_core.prototype.init = function(game_instance)//, io)
     // this.platforms.push({x:this.config.world.width -100,y:500,w:128,h:64});
     // this.platforms.push({x:0,y:800,w:256,h:64});*/
 
+    this.phyPlayer, this.phyRoom, this.phyAllRooms;
     //We create a player set, passing them
     //the game that is running them, as well
     console.log('##-@@ is server?', this.server);
@@ -259,7 +260,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
         // server update vars (optimized!)
         this.laststate = {};
-        this.bufView = new Array(20); // where 20 is the max number of players per game
+        this.bufView = new Array(20);//this.MAX_GAMES_PER_SERVER); // where 20 is the max number of games per server
         for (var i = 0; i < this.bufView.length; i++)
         {
             this.bufView[i] = new Array(40); // 40 players per game
@@ -1728,24 +1729,24 @@ game_core.prototype.update_physics = function()
     // iterate players
     ////////////////////////////////////////////////////////
     // _.forEach(this.getplayers.allplayers, function(player)
-    var player, room;
+    // var player, room;
     if (this.server)
     {
-        var allrooms = Object.keys(this.getplayers.fromAllRooms());
-        for (var h = allrooms.length - 1; h >= 0; h--)
+        this.phyAllRooms = Object.keys(this.getplayers.fromAllRooms());
+        for (var h = this.phyAllRooms.length - 1; h >= 0; h--)
         {
-            room = this.getplayers.fromRoom(allrooms[h]);
-            for (var i = room.length - 1; i >= 0; i--)
+            this.phyRoom = this.getplayers.fromRoom(this.phyAllRooms[h]);
+            for (var i = this.phyRoom.length - 1; i >= 0; i--)
             {
-                player = room[i];
-                if (player.active)
-                    player.update();
+                this.phyPlayer = this.phyRoom[i];
+                if (this.phyPlayer.active)
+                    this.phyPlayer.update();
 
                 // degrade player angle
-                if (player.a > 0)
-                    player.a-=0.5;
-                else if (player.a < 0)
-                    player.a+=0.5;
+                if (this.phyPlayer.a > 0)
+                    this.phyPlayer.a-=0.5;
+                else if (this.phyPlayer.a < 0)
+                    this.phyPlayer.a+=0.5;
             }
         }
     }
@@ -1753,22 +1754,22 @@ game_core.prototype.update_physics = function()
     {
         // console.log('client_xport:', this.core_client.xport);
         
-        room = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
-        if (room === undefined) room = []; // <-- TODO: stub
-        for (var j = room.length - 1; j >= 0; j--)
+        this.phyRoom = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
+        if (this.phyRoom === undefined) this.phyRoom = []; // <-- TODO: stub
+        for (var j = this.phyRoom.length - 1; j >= 0; j--)
         {
-            player = room[j];
+            this.phyPlayer = this.phyRoom[j];
             //if (_this.players.self)
             //console.log('p:', player.mp, player.active);
             
-            if (player.active)
-                player.update();
+            if (this.phyPlayer.active)
+                this.phyPlayer.update();
 
             // degrade player angle
-            if (player.a > 0)
-                player.a-=0.5;
-            else if (player.a < 0)
-                player.a+=0.5;
+            if (this.phyPlayer.a > 0)
+                this.phyPlayer.a-=0.5;
+            else if (this.phyPlayer.a < 0)
+                this.phyPlayer.a+=0.5;
         }
     }
 
@@ -1828,33 +1829,33 @@ game_core.prototype.server_update_physics = function()
 
     // player collisions
     //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    var new_dir;
+    // var new_dir;
     // _.forEach(this.getplayers.allplayers, function(ply)
-    var ply, room;
+    // var ply, room;
     // var room = this.getplayers.fromRoom(player.playerPort);
     // for (var i = room.length - 1; i >= 0; i--)
-    var allrooms = Object.keys(this.getplayers.fromAllRooms());
-    for (var h = allrooms.length - 1; h >= 0; h--)
+    this.phyAllRooms = Object.keys(this.getplayers.fromAllRooms());
+    for (var h = this.phyAllRooms.length - 1; h >= 0; h--)
     {
-        room = this.getplayers.fromRoom(allrooms[h]);
-        for (var i = room.length - 1; i >= 0; i--)
+        this.phyRoom = this.getplayers.fromRoom(this.phyAllRooms[h]);
+        for (var i = this.phyRoom.length - 1; i >= 0; i--)
         {
-            ply = room[i];
+            this.phyPlayer = this.phyRoom[i];
             //if (ply.mp != "hp")//_this.players.self.mp)
             //{
-            ply.old_state.pos = this.pos( ply.pos );
-            new_dir = this.process_input(ply);
-            ply.pos = this.v_add( ply.old_state.pos, new_dir);
+            this.phyPlayer.old_state.pos = this.pos( this.phyPlayer.pos );
+            // new_dir = this.process_input(ply);
+            this.phyPlayer.pos = this.v_add( this.phyPlayer.old_state.pos, this.process_input(this.phyPlayer));//new_dir);
 
             //ply.update();
 
             //Keep the physics position in the world
             
-            this.check_collision( ply );
+            this.check_collision( this.phyPlayer );
             
 
             //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
-            ply.inputs = []; //we have cleared the input buffer, so remove this
+            this.phyPlayer.inputs = []; //we have cleared the input buffer, so remove this
             //}//else console.log("HIHIHIHIHIHIH", ply.mp);
         }
     }
@@ -1935,7 +1936,9 @@ game_core.prototype.server_update = function()
             if (!this.suPlayer.instance) continue;//return;
             // this.bufView = [];
             // clear bufView array
-            while(this.bufView[h][i].length > 0) this.bufView[h][i].pop();
+            // console.log(h, i);
+            while(this.bufView[h][i].length > 0) 
+                this.bufView[h][i].pop();
 
             //inst = player.instance;
             //console.log(_this.getplayers.allplayers.length);
@@ -2099,99 +2102,104 @@ game_core.prototype.server_update = function()
     // var evt;
     // _.forEach(this.events, function(evt)
 //*
-    for (var m = allrooms.length - 1; m >= 0; m--)
+    // check events *only* on tick
+    if (this.config.server_time.toFixed(1) % 1 === 0)
     {
-        // fromRoom: param 1: port number, param2: retreive events array
-        this.suRoom = this.getplayers.fromRoom(allrooms[m], 1);
-        // create object for *each* room to hold players
-        // laststate[allrooms[m]] = {};
-        for (var n = this.suRoom.length - 1; n >= 0; n--)
+        // console.log(this.config.server_time.toFixed(1));
+        for (var m = allrooms.length - 1; m >= 0; m--)
         {
-            this.suEvt = this.suRoom[n];
-            // evt = this.events[j];
-            // console.log('evt type:', evt.type, evt.state, evt.uid);
-            
-            if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
+            // fromRoom: param 1: port number, param2: retreive events array
+            this.suRoom = this.getplayers.fromRoom(allrooms[m], 1);
+            // create object for *each* room to hold players
+            // laststate[allrooms[m]] = {};
+            for (var n = this.suRoom.length - 1; n >= 0; n--)
             {
-                if (this.suEvt.update(allrooms[m]) === true)
+                this.suEvt = this.suRoom[n];
+                // evt = this.events[j];
+                // console.log('evt type:', evt.type, evt.state, evt.uid);
+                
+                if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
                 {
-                    console.log('add event to socket!', this.suEvt.type);
-                    switch(this.suEvt.type)
+                    if (this.suEvt.update(allrooms[m]) === true)
                     {
-                        case this.suEvt.TYPE_CHEST:
-                            // var id = getUid();//_this.getUID();
-                            console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
-                            /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
-                                x: '1152',
-                                y: '576',
-                                t: 1,
-                                d: 60,
-                                m: 50 }*/
-                            if (this.suEvt.id == 'ec') // chest event
-                                // this.addChest(evt.consumable, allrooms[m]);
-                                    // {
-                                    //     i:id,
-                                    //     x:evt.spawn.x,
-                                    //     y:evt.spawn.y,
-                                    //     t:evt.passive.type,
-                                    //     c:evt.passive.buff,
-                                    //     d:evt.passive.focus,
-                                    //     h:evt.passive.health
-                                    // }, allrooms[m]);
-                            // var room = this.getplayers.getRoomNameByUserId(player.userid);
-                            // console.log('room:', room);
-                            // console.log('ls:', laststate);
-                            this.laststate[allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
-                            // {
-                            //     i: id,
-                            //     x: evt.spawn.x,
-                            //     y: evt.spawn.y,
-                            //     t: evt.passive.type,
-                            //     d: evt.passive.duration,
-                            //     m: evt.passive.modifier
-                            // };
-                        break;
-
-                        case this.suEvt.TYPE_FLAG_CARRIED_COOLDOWN:
-
-                            console.log('evt active carried cooldown...', this.suEvt.id, this.suEvt.timer, this.suEvt.flag.name, this.suEvt.flag.heldBy);
-                            // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
-    
-                            if (this.suEvt.flag.heldBy)
-                            {
-                                // store evt.id in fromRoomByUserId
-                                // var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                // laststate[room][evt.id] =
-                                this.laststate[allrooms[m]][this.suEvt.id] =
-                                {
-                                    t: this.suEvt.timer,
-                                    f: this.suEvt.flag.name,
-                                    p: this.suEvt.flag.heldBy
-                                };
-                            }
-                        break;
-
-                        case this.suEvt.TYPE_FLAG_SLOTTED_COOLDOWN:
-
-                            console.log('evt active slotted cooldown', this.suEvt.id, this.suEvt.timer);//, evt);
-                            // fc: { t: 6, f: 'midFlag' } }
-
-                            if (this.suEvt.flag.heldBy)
-                            {
-                                // var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                // laststate[room1][evt.id] =
-                                this.laststate[allrooms[m]][this.suEvt.id] =
-                                {
-                                    t: this.suEvt.timer,
-                                    f: this.suEvt.flag.name
-                                };
-                            }
+                        console.log('add event to socket!', this.suEvt.type);
+                        switch(this.suEvt.type)
+                        {
+                            case this.suEvt.TYPE_CHEST:
+                                // var id = getUid();//_this.getUID();
+                                console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                                /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
+                                    x: '1152',
+                                    y: '576',
+                                    t: 1,
+                                    d: 60,
+                                    m: 50 }*/
+                                if (this.suEvt.id == 'ec') // chest event
+                                    // this.addChest(evt.consumable, allrooms[m]);
+                                        // {
+                                        //     i:id,
+                                        //     x:evt.spawn.x,
+                                        //     y:evt.spawn.y,
+                                        //     t:evt.passive.type,
+                                        //     c:evt.passive.buff,
+                                        //     d:evt.passive.focus,
+                                        //     h:evt.passive.health
+                                        // }, allrooms[m]);
+                                // var room = this.getplayers.getRoomNameByUserId(player.userid);
+                                // console.log('room:', room);
+                                // console.log('ls:', laststate);
+                                this.laststate[allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
+                                // {
+                                //     i: id,
+                                //     x: evt.spawn.x,
+                                //     y: evt.spawn.y,
+                                //     t: evt.passive.type,
+                                //     d: evt.passive.duration,
+                                //     m: evt.passive.modifier
+                                // };
                             break;
-                    } // end switch
-                } // end update() === true
-            } // end !== STATE_STOPPED
-        } // end room length
-    } // end allrooms length
+
+                            case this.suEvt.TYPE_FLAG_CARRIED_COOLDOWN:
+
+                                console.log('evt active carried cooldown...', this.suEvt.id, this.suEvt.timer, this.suEvt.flag.name, this.suEvt.flag.heldBy);
+                                // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
+        
+                                if (this.suEvt.flag.heldBy)
+                                {
+                                    // store evt.id in fromRoomByUserId
+                                    // var room = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                    // laststate[room][evt.id] =
+                                    this.laststate[allrooms[m]][this.suEvt.id] =
+                                    {
+                                        t: this.suEvt.timer,
+                                        f: this.suEvt.flag.name,
+                                        p: this.suEvt.flag.heldBy
+                                    };
+                                }
+                            break;
+
+                            case this.suEvt.TYPE_FLAG_SLOTTED_COOLDOWN:
+
+                                console.log('evt active slotted cooldown', this.suEvt.id, this.suEvt.timer);//, evt);
+                                // fc: { t: 6, f: 'midFlag' } }
+
+                                if (this.suEvt.flag.heldBy)
+                                {
+                                    // var room1 = this.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                    // laststate[room1][evt.id] =
+                                    this.laststate[allrooms[m]][this.suEvt.id] =
+                                    {
+                                        t: this.suEvt.timer,
+                                        f: this.suEvt.flag.name
+                                    };
+                                }
+                                break;
+                        } // end switch
+                    } // end update() === true
+                } // end !== STATE_STOPPED
+            } // end room length
+        } // end allrooms length
+    } // end tick
     // process flags
     /*
     _.forEach(this.config.flagObjects, function(flag)
