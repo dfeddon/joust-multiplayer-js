@@ -1975,7 +1975,9 @@ game_core.prototype.server_update = function()
             
             //*
             // TODO: Avoid redundancies here (send data point only *when changed*)
+            // if (this.suPlayer.pos.x!==this.suPlayer.old_state.x)
             this.bufView[h][i][0] = this.suPlayer.pos.x;//.fixed(0);
+            // if (this.suPlayer.pos.y!==this.suPlayer.old_state.y)
             this.bufView[h][i][1] = this.suPlayer.pos.y;//.fixed(0);//.fixed(2);
             this.bufView[h][i][2] = this.suPlayer.dir;
             this.bufView[h][i][3] = (this.suPlayer.flap) ? 1 : 0;
@@ -2007,6 +2009,9 @@ game_core.prototype.server_update = function()
             }
             if (this.suPlayer.drawAbility > 0)
                 this.bufView[h][i][10] = this.suPlayer.drawAbility;
+
+            // store old data, to avoid redundancy
+            // this.suPlayer.old_state = this.suPlayer.pos;
             
             // potion health
             // if (player.healthDispatch)

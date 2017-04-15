@@ -838,6 +838,7 @@ game_server.prototype.startGame = function(game, newplayer)
                 data[7] = others;
                 data[8] = playerSkin;
                 data[9] = game_instance.gamecore.getplayers.fromRoom(playerPort, 5);
+                this.log('@ onhostgame', data);
                 // this.log('roundEndTime', game_instance.gamecore.roundEndTime);
                 nonhosts[j].send('onhostgame', data);
 

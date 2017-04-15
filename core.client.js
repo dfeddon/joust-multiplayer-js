@@ -2,14 +2,14 @@
 
 var _                   = require('lodash'),
     assets              = require('./singleton.assets'),
-    game_player         = require('./class.player'),
+    // game_player         = require('./class.player'),
     game_flag           = require('./class.flag'),
     game_chest          = require('./class.consumable'),
     game_toast          = require('./class.toast'),
     game_round          = require('./class.round'),
-    game_buffs          = require('./class.buffs'),
-    getplayers          = require('./class.getplayers'),
-    pool                = require('typedarray-pool');
+    game_buffs          = require('./class.buffs');
+    // getplayers          = require('./class.getplayers'),
+    // pool                = require('typedarray-pool');
 
 
 function core_client(core, config)
@@ -2206,7 +2206,9 @@ core_client.prototype.client_process_net_updates = function()
                 // }
                 p.pos = {}; // temp pos
                 
+                // console.log(vt[0]);//vt[0] = this.players.self.cur_state.x;
                 p.pos.x = parseInt(vt[0]);//target[player.mp].x;
+                // if (!vt[1]) vt[1] = this.players.self.cur_state.y;
                 p.pos.y = parseInt(vt[1]);//target[player.mp].y;
 
                 lerp_t.x = parseInt(vt[0]);
@@ -2236,7 +2238,10 @@ core_client.prototype.client_process_net_updates = function()
                 //if (ghostStub.x > 0 && ghostStub.y > 0)
                 //if (p.pos.x > 0 && p.pos.y > 0)
                     //player.pos = p.pos;
-                player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
+
+                // client-server interpolation (if decent fps avg)
+                if (this.fps_avg > 50)
+                    player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
                 //else
                 //{ 
                     //window.alert(p.pos);
@@ -2531,6 +2536,7 @@ core_client.prototype.client_process_net_updates = function()
         //if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
         //{
             // TODO: bug below - "self_pp" is undefined
+            //*
             if (self_pp && self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
             {
                 this.players.self.pos =
@@ -2539,6 +2545,7 @@ core_client.prototype.client_process_net_updates = function()
                     this.core._pdt*this.client_smooth
                 );
             }
+            //*/
 
             
         //}
@@ -2853,7 +2860,7 @@ core_client.prototype.client_update = function()
     // console.log(this.config.server_time);
     //*
     // console.log('**', this.config.server_time, this.config);
-    if (this.config.server_time.toFixed(1) % 1 === 0)
+    if (this.config.server_time && this.config.server_time.toFixed(1) % 1 === 0)
     {
         // console.log('* round timer');
         
