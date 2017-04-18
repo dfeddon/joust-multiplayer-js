@@ -586,11 +586,11 @@ game_player.prototype.activateBuff = function(buff)
     this.setTextFloater(1, 0, 1, buff);
 };
 
-game_player.prototype.removeBuff = function(slot)
+game_player.prototype.removeBuff = function(buff)
 {
-    console.log('== removeBuff ==', slot);
+    console.log('== removeBuff ==', buff);
 
-    if (this.slots[0].b === slot)
+    if (this.slots[0].b === buff)
     {
         // if slot 2 has no buff, clear slot 1
         if (this.slots[1].b === 0)
@@ -606,7 +606,7 @@ game_player.prototype.removeBuff = function(slot)
         }
         // replace slot 1 if slot 2 taken
         else
-        { 
+        {
             this.slots[0].b = this.slots[1].b;
             this.slots[0].c = this.slots[1].c;
 
@@ -614,7 +614,7 @@ game_player.prototype.removeBuff = function(slot)
             {
                 document.getElementById('buff1').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[1].b) + "')";
             }
-
+            // slot 3
             if (this.slots[2].b === 0)
             {
                 // clear slot 2
@@ -650,7 +650,7 @@ game_player.prototype.removeBuff = function(slot)
         }
     }
     // slot 2
-    else if (this.slots[1].b === slot)
+    else if (this.slots[1].b === buff)
     {
         // if slot 3 empty
         if (this.slots[2].b === 0)
@@ -676,7 +676,7 @@ game_player.prototype.removeBuff = function(slot)
         this.slots[2].c = 0;
     }
 
-    this.deactivateBuff(slot);
+    this.deactivateBuff(buff);
 };
 
 game_player.prototype.deactivateBuff = function(buff)
@@ -1791,7 +1791,8 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 console.log('*', this.playerName, 'is dead!');
 
                 // victor is awarded protection for 60 seconds + bonus
-                this.protection = true;
+                victor.protection = true;
+                // add protection cooldown
                 // don't "bounce" victor if victim is dead
             }
             else 
@@ -2097,7 +2098,8 @@ game_player.prototype.addHealthToServer = function(data)
 
     // subject health value to bonus modifier
     var val = data.v;
-    val += Math.round(val * (this.bonusTotal / 100));
+    var bonus = Math.round(val * (this.bonusTotal / 100));
+    val += bonus;//Math.round(val * (this.bonusTotal / 100));
 
     console.log("+ player bonus", val - data.v);
 
@@ -2107,6 +2109,10 @@ game_player.prototype.addHealthToServer = function(data)
     // else this.health += data.v;
 
     // this.healthDispatch = data.v;
+
+    // notify client
+    // if (this.isLocal)
+    this.instance.room(this.playerPort).write([15, data.i, this.id, bonus]);
 }
 
 game_player.prototype.addFocusToServer = function(data)

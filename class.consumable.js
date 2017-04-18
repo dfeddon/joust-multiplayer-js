@@ -177,10 +177,9 @@ game_consumable.prototype.doTake = function(player)//, chests)
 
   this.takenBy = player;//.mp;
 
-  // send to server
-  // player.instance.room(player.instance.gameid).write('c.t.' + this.id + '|' + player.mp);
-  // player.instance.room(player.instance.gameid).write([15, this.id, player.id]);
-  player.instance.room(player.playerPort).write([15, this.id, player.id]);
+  // send to server (if not health potion; we'll send open health *after* bonus in player.addHealthToServer)
+  if (this.data.c !== CONSUMABLE_CATEGORY_POTION_HEALTH)
+    player.instance.room(player.playerPort).write([15, this.id, player.id]);
   
   // no double-takes!
 

@@ -616,7 +616,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     // console.log('derek', data);
 
     var playerMp = data[0];
-    // var gameId = data[1];
+    var gameId = data[1];
     var chests = data[2];
     var team = data[3];
     var playerName = data[4];
@@ -1181,7 +1181,7 @@ core_client.prototype.client_connect_to_server = function(data)
             case 10: _this.client_onjoingame(data); break;
 
             // take chest
-            case 15: _this.client_on_chesttake(data[1], data[2]); break;
+            case 15: _this.client_on_chesttake(data[1], data[2], data[3]); break;
 
             // chest removed
             case 16: _this.client_on_chestremove(data[1], data[2]); break;
@@ -1329,7 +1329,7 @@ core_client.prototype.client_draw_info = function()
     {
         document.getElementById('txtFPS').innerHTML = Math.ceil(this.fps_avg);
     }
-    */
+    //*/
 
     /////////////////////////////////
     // score
@@ -1433,7 +1433,7 @@ core_client.prototype.client_draw_info = function()
 
 // };
 
-core_client.prototype.client_on_chesttake = function(id, player)
+core_client.prototype.client_on_chesttake = function(id, player, bonus)
 {
     console.log('client_on_chesttake', 'id', id, 'player', player);
     // var split = data.split("|");
@@ -1455,8 +1455,12 @@ core_client.prototype.client_on_chesttake = function(id, player)
             // if self is player, notify player
             if (player == this.players.self.userid)
             {
+                // add bonus value to consumable v param (value)
+                if (bonus)
+                    chest.data.v += bonus;
+                
                 this.players.self.addConsumable(chest.data);
-            }            
+            }
             break;
         }
     }
