@@ -30,6 +30,9 @@ function core_client(core, config)
     this.playerPort = null;
     this.core.chests = [];
 
+    // client net_updates vars
+    this.nu_current_time,this.nu_target,this.nu_previous,this.nu_point,this.nu_next_point,this.nu_difference,this.nu_max_difference,this.nu_time_point,this.nu_ghostStub,this.nu_vt,this.nu_vp,this.nu_lerp_t,this.nu_lerp_p,this.nu_self_pp,this.nu_self_tp,this.nu_self_vt,this.nu_self_vp;
+
     // this.clientCooldowns = [
     //     {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
     //     {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
@@ -2040,25 +2043,25 @@ core_client.prototype.client_process_net_updates = function()
     // Then :  other player position = lerp ( past_pos, target_pos, current_time );
 
     //Find the position in the timeline of updates we stored.
-    var current_time = this.client_time;
-    var count = this.server_updates.length-1;
-    var target = null;
-    var previous = null;
+    this.nu_current_time = this.client_time;
+    // this.nu_count = this.server_updates.length-1;
+    this.nu_target = null;
+    this.nu_previous = null;
 
     //We look from the 'oldest' updates, since the newest ones
     //are at the end (list.length-1 for example). This will be expensive
     //only when our time is not found on the timeline, since it will run all
     //samples. Usually this iterates very little before breaking out with a target.
-    for(var i = count - 1; i >= 0; --i)
+    for(var i = this.server_updates.length - 1; i >= 0; --i)
     {
         var point = this.server_updates[i];
         var next_point = this.server_updates[i+1];
 
         //Compare our point in time with the server times we have
-        if(current_time > point.t && current_time < next_point.t)
+        if(this.nu_current_time > point.t && this.nu_current_time < next_point.t)
         {
-            target = next_point;
-            previous = point;
+            this.nu_target = next_point;
+            this.nu_previous = point;
             break;
         }
     }
@@ -2071,10 +2074,10 @@ core_client.prototype.client_process_net_updates = function()
     //console.log('targ', target);
     
     
-    if(!target)
+    if(!this.nu_target)
     {
-        target = this.server_updates[0];
-        previous = this.server_updates[0];
+        this.nu_target = this.server_updates[0];
+        this.nu_previous = this.server_updates[0];
     }
     //console.log('target', target, 'previous', previous);
     
@@ -2103,14 +2106,15 @@ core_client.prototype.client_process_net_updates = function()
     //   console.log('* previous', previous);
       
     //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
-     if(target && previous)
+     if(this.nu_target && this.nu_previous)
      {
 
-        this.target_time = target.t;
+        this.target_time = this.nu_target.t;
 
-        var difference = this.target_time - current_time;
-        var max_difference = (target.t - previous.t).fixed(3);
-        var time_point = (difference/max_difference).fixed(3);
+        /*var difference = this.target_time - this.nu_current_time;
+        var max_difference = (this.nu_target.t - this.nu_previous.t).fixed(3);
+        var time_point = (difference/max_difference).fixed(3);*/
+        this.nu_time_point = ( (this.target_time - this.nu_current_time) / (this.nu_target.t - this.nu_previous.t).fixed(3) ).fixed(3);
 
         //Because we use the same target and previous in extreme cases
         //It is possible to get incorrect values due to division by 0 difference
@@ -2119,16 +2123,16 @@ core_client.prototype.client_process_net_updates = function()
         // if(time_point == -Infinity) time_point = 0;
         // if(time_point == Infinity) time_point = 0;
 
-        if (Number.isNaN(time_point) || Math.abs(time_point) === Number.POSITIVE_INFINITY)
-            time_point = 0;
+        if (Number.isNaN(this.nu_time_point) || Math.abs(this.nu_time_point) === Number.POSITIVE_INFINITY)
+            this.nu_time_point = 0;
 
         // store globally
-        this.time_point = time_point;
+        // this.time_point = this.nu_time_point;
 
         //console.log(time_point);
 
         //The most recent server update
-        var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
+        // var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
         // console.log('lsd', latest_server_data);
         
 
@@ -2139,17 +2143,19 @@ core_client.prototype.client_process_net_updates = function()
         //var other_target_pos2 = [];
         //var other_past_pos2 = [];
         //*
-        var ghostStub;
+
+        // var ghostStub;
+        
         //console.log('->:', target.cp1[0], this.players.self.x);
         
         //console.log('len', this.core.getplayers.allplayers.length, this.players.self.mp);
         //for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
-        var vt; // view target
-        var vp; // view previous
-        var lerp_t={x:NaN,y:NaN};// = {x:0, y:0};
-        var lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
-        var self_pp;
-        var self_tp;
+        // var vt; // view target
+        // var vp; // view previous
+        this.nu_lerp_t={x:NaN,y:NaN};// = {x:0, y:0};
+        this.nu_lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
+        // var self_pp;
+        // var self_tp;
         //console.log('len', this.core.getplayers.allplayers[0]);//.length);
         
         // _.forEach(_this.core.getplayers.allplayers, function(player, index)
@@ -2170,22 +2176,22 @@ core_client.prototype.client_process_net_updates = function()
             {
                 // console.log('**', target[player.mp]);
                 // check for bad objects
-                if (target[player.userid] === undefined)
+                if (this.nu_target[player.userid] === undefined)
                 {
                     //console.log('** bad target', previous[player.mp]);
-                    if (previous[player.userid])// || previous[player.mp] === undefined) 
-                        target[player.userid] = previous[player.userid];
+                    if (this.nu_previous[player.userid])// || previous[player.mp] === undefined) 
+                        this.nu_target[player.userid] = this.nu_previous[player.userid];
                     else break;//return;
                 }
-                else if (previous[player.userid] === undefined)
+                else if (this.nu_previous[player.userid] === undefined)
                 {
                     //console.log('** bad previous', target[player.mp]);
-                    if (target[player.userid]) 
-                        previous[player.userid] = target[player.userid];
+                    if (this.nu_target[player.userid]) 
+                        this.nu_previous[player.userid] = this.nu_target[player.userid];
                     else break;//return;
                 }
-                vt = target[player.userid];
-                vp = previous[player.userid];
+                this.nu_vt = this.nu_target[player.userid];
+                this.nu_vp = this.nu_previous[player.userid];
                 /*vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
                 // vp = _this.clientPool.set(previous[player.mp], (index * 16), 16);
@@ -2211,20 +2217,20 @@ core_client.prototype.client_process_net_updates = function()
                 p.pos = {}; // temp pos
                 
                 // console.log(vt[0]);//vt[0] = this.players.self.cur_state.x;
-                p.pos.x = parseInt(vt[0]);//target[player.mp].x;
+                p.pos.x = parseInt(this.nu_vt[0]);//target[player.mp].x;
                 // if (!vt[1]) vt[1] = this.players.self.cur_state.y;
-                p.pos.y = parseInt(vt[1]);//target[player.mp].y;
+                p.pos.y = parseInt(this.nu_vt[1]);//target[player.mp].y;
 
-                lerp_t.x = parseInt(vt[0]);
-                lerp_t.y = parseInt(vt[1]);
+                this.nu_lerp_t.x = parseInt(this.nu_vt[0]);
+                this.nu_lerp_t.y = parseInt(this.nu_vt[1]);
 
-                lerp_p.x = parseInt(vp[0]);
-                lerp_p.y = parseInt(vp[1]);
+                this.nu_lerp_p.x = parseInt(this.nu_vp[0]);
+                this.nu_lerp_p.y = parseInt(this.nu_vp[1]);
 
-                ghostStub = _this.v_lerp(
-                    lerp_p,
-                    lerp_t,
-                    time_point
+                this.nu_ghostStub = _this.v_lerp(
+                    this.nu_lerp_p,
+                    this.nu_lerp_t,
+                    this.nu_time_point
                 );
                 //console.log(player.mp, player.pos);
                 
@@ -2245,7 +2251,7 @@ core_client.prototype.client_process_net_updates = function()
 
                 // client-server interpolation (if decent fps avg)
                 if (this.fps_avg > 50)
-                    player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
+                    player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
                 //else
                 //{ 
                     //window.alert(p.pos);
@@ -2254,7 +2260,8 @@ core_client.prototype.client_process_net_updates = function()
                 //player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
                 // console.log('vt', vt);
                 
-                player.setFromBuffer(vt);
+                player.setFromBuffer(this.nu_vt);
+                // this.nu_vt = undefined;
                 /*
                 player.dir = vt[2];
                 player.flap = (vt[3] === 1) ? true : false;
@@ -2303,10 +2310,10 @@ core_client.prototype.client_process_net_updates = function()
             {
                 // console.log('local player');
                 
-                var self_vt = target[player.userid];
-                var self_vp = target[player.userid];
+                // var self_vt = this.nu_target[player.userid];
+                // var self_vp = this.nu_previous[player.userid];
 
-                if (self_vt === undefined) return;
+                if (this.nu_target[player.userid] === undefined) return;
 
                 /*var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
@@ -2316,12 +2323,12 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log('vt', target[player.userid]);
                 // console.log('vp', self_vp);
 
-                self_tp = {x:parseInt(self_vt[0]), y:parseInt(self_vt[1])};
-                self_pp = {x:parseInt(self_vp[0]), y:parseInt(self_vp[1])};
+                this.nu_self_tp = {x:parseInt(this.nu_target[player.userid][0]), y:parseInt(this.nu_target[player.userid][1])};
+                this.nu_self_pp = {x:parseInt(this.nu_previous[player.userid][0]), y:parseInt(this.nu_previous[player.userid][1])};
                 player.bufferIndex = j;
                 // console.log('vt', self_vt);
                 
-                _this.players.self.setFromBuffer(self_vt);
+                _this.players.self.setFromBuffer(this.nu_target[player.userid]);
                 // console.log('svrtime', this.config.server_time);
                 
                 /*
@@ -2371,7 +2378,9 @@ core_client.prototype.client_process_net_updates = function()
             self_vp = null;
             */
         } // end forEach
-        
+        // clear vars
+        // vt = null;
+        // self_vt = null;
         // console.log(other_server_pos2);
         //*/
         //var pos;
@@ -2444,36 +2453,36 @@ core_client.prototype.client_process_net_updates = function()
         // console.log(target);
         // console.log('got evt flag', _.has(target, 'fc'), this.events.length);
         // first, check for chest events (dynamic)
-        if (_.has(target, 'ec'))
+        if (_.has(this.nu_target, 'ec'))
         {
             // avoid reduncancy
-            if (!target.ec) return false; // break
+            if (!this.nu_target.ec) return false; // break
 
-            console.log('got chest event', target.ec.i);
-            _this.core.addChest(target.ec, this.xport);
+            console.log('got chest event', this.nu_target.ec.i);
+            _this.core.addChest(this.nu_target.ec, this.xport);
             // clear it to avoid duplicate reads
-            target.ec = null;
+            this.nu_target.ec = null;
         }
-        if (_.has(target, 'fc'))
+        if (_.has(this.nu_target, 'fc'))
         {
-            console.log('* fc evt', target.fc);
+            console.log('* fc evt', this.nu_target.fc);
 
             // get client flag (clientCooldown)
-            var cflag = _.find(_this.core.clientCooldowns, {'name':target.fc.f});
-            cflag.heldBy = target.fc.p;
-            cflag.timer = target.fc.t;
+            var cflag = _.find(_this.core.clientCooldowns, {'name':this.nu_target.fc.f});
+            cflag.heldBy = this.nu_target.fc.p;
+            cflag.timer = this.nu_target.fc.t;
 
             // get flag obj
-            var flag = _.find(_this.core.config.flagObjects, {'name':target.fc.f});
+            var flag = _.find(_this.core.config.flagObjects, {'name':this.nu_target.fc.f});
 
             // set client flag target slot
-            cflag.target = flag.targetSlot;
+            cflag.this.nu_target = flag.targetSlot;
             cflag.src = flag.sourceSlot;
             // console.log(":::", cflag);
             //console.log('flag', flag);
 
             // get player
-            var ply = _.find(this.core.getplayers.allplayers, {"userid":target.fc.p});
+            var ply = _.find(this.core.getplayers.allplayers, {"userid":this.nu_target.fc.p});
             // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
             if (ply)
             {
@@ -2486,23 +2495,23 @@ core_client.prototype.client_process_net_updates = function()
                 //console.log('* flg', flag);
                 //console.log('* player', ply);
             }
-            else console.warn("unable to retrieve player by flag held", target.fc);
+            else console.warn("unable to retrieve player by flag held", this.nu_target.fc);
             //if (player)
             //player.carryingFlag.timer = target.fc.t;
         }
-        if (_.has(target, 'fs'))
+        if (_.has(this.nu_target, 'fs'))
         {
             //console.log('has flagslotted cd evt');
-            console.log('* fs evt', target.fs);
+            console.log('* fs evt', this.nu_target.fs);
             // get client flag (clientCooldown)
             /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
             cflag.timer = target.fs.t;
             console.log('cflag', cflag);*/
-            var flg = _.find(this.core.config.flagObjects, {'name':target.fs.f});
-            flg.timer = target.fs.t;//cflag.timer;
+            var flg = _.find(this.core.config.flagObjects, {'name':this.nu_target.fs.f});
+            flg.timer = this.nu_target.fs.t;//cflag.timer;
 
             // add flg.isActive check to ensure it runs only once
-            if (target.fs.t === 0 && flg.isActive === false)
+            if (this.nu_target.fs.t === 0 && flg.isActive === false)
             {
                 console.log('* fs evt = 0!');
 
@@ -2541,11 +2550,11 @@ core_client.prototype.client_process_net_updates = function()
         //{
             // TODO: bug below - "self_pp" is undefined
             //*
-            if (self_pp && self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
+            if (this.nu_self_pp && this.nu_self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
             {
                 this.players.self.pos =
                     this.v_lerp(this.players.self.pos,
-                    this.v_lerp(self_pp, self_tp, time_point),//this.core._pdt*this.client_smooth),
+                    this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point),//this.core._pdt*this.client_smooth),
                     this.core._pdt*this.client_smooth
                 );
             }
@@ -2625,7 +2634,7 @@ core_client.prototype.client_process_net_updates = function()
     } //if target && previous
     //else console.log('target/previoius', target, previous);
     
-
+// this.nu_target[player.userid] = undefined
 }; //game_core.client_process_net_updates
 
 core_client.prototype.client_onserverupdate_recieved = function(data)

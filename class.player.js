@@ -24,6 +24,9 @@ function game_player(player_instance, isHost, pindex, config)
     this.config = config;
     this.game_buffs = new game_buffs();
     this.playerPort = null;
+
+    // avoid duplicates
+    this.lastdata = [];
     // if (this.instance)
     //     this.game = this.instance.game;
     this.isBot = false;
@@ -81,7 +84,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.consumeDispatch = null // server only
     this.bonusDispatch = null;
     
-    this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
+    this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:1, b:0, c:0}, {i:3, a:1, b:0, c:0}];
     this.bonusSlot = 0;
 
     this.bubbleRespawnTime = 15; // 2 stacks: 10 seconds, 3 stacks: 5 seconds
@@ -246,20 +249,26 @@ game_player.prototype.bufferRead = function()
 }
 game_player.prototype.setFromBuffer = function(data)
 {
+    // console.log(data[0]);
+    // if (data === this.lastdata) console.log('******', data);
+    // this.lastdata = data;
     this.dir = data[2];
     this.flap = (data[3] === 1) ? true : false;
     this.landed = data[4];
     this.vuln = (data[5] === 1) ? true : false;
     // add/remove buff
-    if (data[6])
+    if (data[6])// !== this.lastdata[6])
     {
-        console.log("* add/remove buff", data[6]);
+        console.log("* add/remove buff", data[6], data);
         // < 100 = addBuff / > 100 = removeBuff
         if (data[6] < 100)
             this.addBuff(data[6]);
         else if (data[6] < 200)
             this.removeBuff(data[6] - 100);
         else this.miscBuff(data[6]);
+
+        // clear it
+        data[6] = 0;
     }
     // bonus slot is data[7]
     // score
@@ -275,6 +284,9 @@ game_player.prototype.setFromBuffer = function(data)
     if (data[10])
         this.drawAbility = data[10];
     else this.drawAbility = 0;
+
+    // data = null;
+    // this.lastdata = data;
 };
 
 game_player.prototype.buffIdsToSlots = function(ids)
@@ -477,8 +489,9 @@ game_player.prototype.addBuff = function(buff)
 
     // get image
     var buffImage = this.game_buffs.getImageById(buff);
-
-    if (this.slots[0].b === 0 || this.slots[1].a === 0)
+    var buff1Image, buff2Image;
+    // slot 1
+    if (this.slots[1].a === 0 || this.slots[0].b === 0)
     {
         console.log('* added buff', buff, 'to slot 1...');
 
@@ -486,7 +499,7 @@ game_player.prototype.addBuff = function(buff)
         if (this.slots[0].b > 0)
         {
             console.log('* replacing existing buff, remove it it appropriately...');
-            this.removeBuff(this.slots[0].b);
+            this.deactivateBuff(this.slots[0].b);
         }
         this.slots[0].b = buff;
         this.slots[0].c = cooldown;
@@ -499,20 +512,32 @@ game_player.prototype.addBuff = function(buff)
         }
     }
     // slot 2
-    else if (this.slots[1].b === 0 || this.slots[2].a === 0)
+    else if (this.slots[2].a === 0 || this.slots[1].b === 0)
     {
-        console.log('* added buff', buff, 'to slot 2...');        
+        console.log('* added buff', buff, 'to slot 2...');
+        // var buff1Image;
         // remove extant buff
         if (this.slots[1].b > 0)
         {
             console.log('* replacing existing buff, remove it it appropriately...');
-            this.removeBuff(this.slots[1].b);
+            // remove buff in slot 1
+            this.deactivateBuff(this.slots[0].b);
+            // move buff in slot 2 to slot 1
+            this.slots[0].b = this.slots[1].b;
+            this.slots[0].c = this.slots[1].c;
+            buff1Image = this.game_buffs.getImageById(this.slots[0].b);
         }
+        // add new buff to slot 2
         this.slots[1].b = buff;
         this.slots[1].c = cooldown;
         
         if (!this.config.server && this.isLocal)
         {
+            if (buff1Image)
+            {
+                document.getElementById('buff1').className = "buffslot-on";
+                document.getElementById('buff1').style.backgroundImage = "url('" + buffImage + "')";
+            }
             document.getElementById('buff2').className = "buffslot-on";
             document.getElementById('buff2').style.backgroundImage = "url('" + buffImage + "')";
         }
@@ -522,16 +547,37 @@ game_player.prototype.addBuff = function(buff)
     {
         console.log('* added buff', buff, 'to slot 3...');        
         // remove extant buff
+        // var buff1Image, buff2Image;
         if (this.slots[2].b > 0)
         {
             console.log('* replacing existing buff, remove it it appropriately...');
-            this.removeBuff(this.slots[2].b);
+            // deactivate buff in slot 1
+            // this.removeBuff(this.slots[0].b);
+            this.deactivateBuff(this.slots[0].b);
+            // move buff in slot 2 to slot 1
+            this.slots[0].b = this.slots[1].b;
+            this.slots[0].c = this.slots[1].c;
+            // move buff in slot 3 to slot 2
+            this.slots[1].b = this.slots[2].b;
+            this.slots[1].c = this.slots[2].c;
+            buff1Image = this.game_buffs.getImageById(this.slots[0].b);
+            buff2Image = this.game_buffs.getImageById(this.slots[1].b);
         }
         this.slots[2].b = buff;
         this.slots[2].c = cooldown;
         
         if (!this.config.server && this.isLocal)
         {
+            if (buff1Image)
+            {
+                document.getElementById('buff1').className = "buffslot-on";
+                document.getElementById('buff1').style.backgroundImage = "url('" + buff1Image + "')";
+            }
+            if (buff2Image)
+            {
+                document.getElementById('buff2').className = "buffslot-on";
+                document.getElementById('buff2').style.backgroundImage = "url('" + buff2Image + "')";
+            }
             document.getElementById('buff3').className = "buffslot-on";
             document.getElementById('buff3').style.backgroundImage = "url('" + buffImage + "')";
         }
@@ -592,9 +638,10 @@ game_player.prototype.removeBuff = function(buff)
 
     if (this.slots[0].b === buff)
     {
-        // if slot 2 has no buff, clear slot 1
+        // if slot 2 has no buff, simply clear slot 1
         if (this.slots[1].b === 0)
         {
+            console.log('* single slot only');
             this.slots[0].b = 0;
             this.slots[0].c = 0;
 
@@ -604,19 +651,22 @@ game_player.prototype.removeBuff = function(buff)
                 document.getElementById('buff1').style.backgroundImage = "none";
             }
         }
-        // replace slot 1 if slot 2 taken
-        else
+        else // slot 2 has a buff
         {
+            console.log('* moving slot 2 to slot 1');
+            // move slot 2 to slot 1
             this.slots[0].b = this.slots[1].b;
             this.slots[0].c = this.slots[1].c;
 
             if (!this.config.server && this.isLocal)
             {
-                document.getElementById('buff1').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[1].b) + "')";
+                document.getElementById('buff1').className = "buffslot-on";
+                document.getElementById('buff1').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[0].b) + "')";
             }
-            // slot 3
+            // slot 3 is empty
             if (this.slots[2].b === 0)
             {
+                console.log('* slot 3 is empty');
                 // clear slot 2
                 this.slots[1].b = 0;
                 this.slots[1].c = 0;
@@ -627,15 +677,17 @@ game_player.prototype.removeBuff = function(buff)
                     document.getElementById('buff2').style.backgroundImage = "none";
                 }
             }
-            else
+            else // slot 3 not empty, move to slot 2
             {
+                console.log("* moving slot 3 to slot 2");
                 // replace slot 2 if slot 3 taken
                 this.slots[1].b = this.slots[2].b;
                 this.slots[1].c = this.slots[2].c;
                 // move slot image
                 if (!this.config.server && this.isLocal)
                 {
-                    document.getElementById('buff2').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[2].b) + "')";
+                    document.getElementById('buff2').className = "buffslot-on";
+                    document.getElementById('buff2').style.backgroundImage = "url('" + this.game_buffs.getImageById(this.slots[1].b) + "')";
                 }
                 // and clear slot 3 (now at slot 2)
                 this.slots[2].b = 0;
@@ -652,9 +704,11 @@ game_player.prototype.removeBuff = function(buff)
     // slot 2
     else if (this.slots[1].b === buff)
     {
+        // first, move 
         // if slot 3 empty
         if (this.slots[2].b === 0)
         {
+            // clear slot 2
             this.slots[1].b = 0;
             this.slots[1].c = 0;
         }
@@ -675,7 +729,7 @@ game_player.prototype.removeBuff = function(buff)
         this.slots[2].b = 0;
         this.slots[2].c = 0;
     }
-
+    console.log('* slots', this.slots);
     this.deactivateBuff(buff);
 };
 
@@ -735,7 +789,7 @@ game_player.prototype.buffExpired = function(slot)
     this.removeBuff(slot.b);
 
     // clear buffer on server
-    slot.b = 0;
+    // slot.b = 0;
 };
 
 game_player.prototype.miscBuff = function(id)
@@ -833,6 +887,7 @@ game_player.prototype.reset = function()
     this.nextlevel = 2000;
     this.progression = 0;
 
+    this.health = 50;
     this.thrustModifier = 40;
 
     console.log('disconnected', this.disconnected);
@@ -1819,7 +1874,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
                             // inflict stun (vuln) and remove 1 buff
                             console.log("* player stunned!");
                             this.stunned = true;
-                            var rngBuff = this.getRandomBuff();
+                            var rngBuff = this.getRandomBuffSlot();
                             // remove/expire buff (and update buffs?)
                             this.buffExpired(rngBuff);
                         }

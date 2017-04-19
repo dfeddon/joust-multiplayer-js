@@ -177,7 +177,7 @@ game_consumable.prototype.doTake = function(player)//, chests)
 
   this.takenBy = player;//.mp;
 
-  // send to server (if not health potion; we'll send open health *after* bonus in player.addHealthToServer)
+  // send to server (if category is *not* health potion. We'll send open health *after* bonus applied in player.addHealthToServer)
   if (this.data.c !== CONSUMABLE_CATEGORY_POTION_HEALTH)
     player.instance.room(player.playerPort).write([15, this.id, player.id]);
   

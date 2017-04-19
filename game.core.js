@@ -2284,12 +2284,14 @@ game_core.prototype.server_update = function()
     // clear laststate
     //console.log('pre', laststate);
     // pool.free(this.serverPool);
-    /*for (var k in laststate) 
+    //*
+    for (var k in this.laststate) 
     {
-        delete laststate[k];
+        delete this.laststate[k];
     }
     //console.log('post', laststate);
-    laststate = null;*/
+    // this.laststate = null;
+    //*/
 
     // check round timer
     var roomRound;
