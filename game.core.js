@@ -1976,9 +1976,9 @@ game_core.prototype.server_update = function()
             //*
             // TODO: Avoid redundancies here (send data point only *when changed*)
             // if (this.suPlayer.pos.x!==this.suPlayer.old_state.x)
-            this.bufView[h][i][0] = this.suPlayer.pos.x;//.fixed(0);
+            this.bufView[h][i][0] = ~~(this.suPlayer.pos.x);//.toFixed();//0);
             // if (this.suPlayer.pos.y!==this.suPlayer.old_state.y)
-            this.bufView[h][i][1] = this.suPlayer.pos.y;//.fixed(0);//.fixed(2);
+            this.bufView[h][i][1] = ~~(this.suPlayer.pos.y);//.toFixed();//.toFixed(0);//.fixed(2);
             this.bufView[h][i][2] = this.suPlayer.dir;
             this.bufView[h][i][3] = (this.suPlayer.flap) ? 1 : 0;
             this.bufView[h][i][4] = this.suPlayer.landed;
@@ -2036,7 +2036,7 @@ game_core.prototype.server_update = function()
             // laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
             this.laststate[allrooms[h]][this.suPlayer.instance.userid] = this.bufView[h][i];
             
-            // console.log('buffer', laststate);
+            // console.log('buffer', this.laststate);
             
             //pool.free(buffer);
             // if (player.mp == "cp1")

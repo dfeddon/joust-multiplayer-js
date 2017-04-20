@@ -8,7 +8,7 @@ var game_buffs = require('./class.buffs');
 const SPEED_VAL_MAX = 50; // this is the slowest value
 const SPEED_VAL_MIN = 30; // this is the fastest value
 
-Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
+Number.prototype.fixed = function(n) { n = n || 0; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)
 {
     // console.log('== game_player.constructor');//, player_instance);//, game_instance, player_instance);
@@ -1703,9 +1703,9 @@ game_player.prototype.update = function()
     }
     else this.vx *= 1;
 
-    this.pos.x = this.pos.x.fixed(2);
-    this.pos.y = this.pos.y.fixed(2);
-    this.vx = this.vx.fixed(2);
+    // this.pos.x = ~~(this.pos.x);//.fixed(0);
+    // this.pos.y = ~~(this.pos.y);//.fixed(0);
+    // this.vx = this.vx.fixed(2);
 };
 
 game_player.prototype.setAngle = function(a)

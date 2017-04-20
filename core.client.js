@@ -2476,7 +2476,7 @@ core_client.prototype.client_process_net_updates = function()
             var flag = _.find(_this.core.config.flagObjects, {'name':this.nu_target.fc.f});
 
             // set client flag target slot
-            cflag.this.nu_target = flag.targetSlot;
+            cflag.target = flag.targetSlot;
             cflag.src = flag.sourceSlot;
             // console.log(":::", cflag);
             //console.log('flag', flag);
