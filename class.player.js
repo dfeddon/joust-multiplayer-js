@@ -84,7 +84,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.consumeDispatch = null // server only
     this.bonusDispatch = null;
     
-    this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:1, b:0, c:0}, {i:3, a:1, b:0, c:0}];
+    this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
     this.bonusSlot = 0;
 
     this.bubbleRespawnTime = 15; // 2 stacks: 10 seconds, 3 stacks: 5 seconds
@@ -331,6 +331,15 @@ game_player.prototype.setBubble = function(bool)
                     console.log("* bubble respawn set to", this.bubbleRespawn);
                 }
             }
+        }
+
+        // check bonusSlot
+        // TODO: check bubble stacks to set respawn timer (15/10/5)
+        if (this.bonusSlot && this.bonusSlot === this.game_buffs.BUFFS_BUBBLE)
+        {
+            console.log("* bonusSlot is bubble -- set respawn...");
+            this.bubbleRespawn = Math.floor(this.config.server_time + this.bubbleRespawnTime);
+            console.log("* bubble respawn set to", this.bubbleRespawn);
         }
     }
 };
@@ -1544,7 +1553,7 @@ game_player.prototype.update = function()
     if (this.config.server)
     {
         // blinking? (stacking -> 1=3, 2=2, 3=1)
-        if (this.blinking === true && Math.floor(this.config.server_time) % 3 === 0)
+        if (this.blinking === true && ~~(this.config.server_time) % 3 === 0)
             this.drawAbility = 1;
         else if (this.drawAbility === 1)
             this.drawAbility = 0;
@@ -1826,7 +1835,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             }
             // set base damage (5 - 15) + victor bonus (victor.total) + victor buffs (victor.damageBonus) + (option for 5% + victor bonus to inflict double-damage) - victim.damageReduce bonus - victim bonus
             // base damage 5 - 15;
-            var dmg = Math.floor(Math.random() * 11) + 5;
+            var dmg = ~~(Math.random() * 11) + 5;
             console.log("+ base", dmg);
             // victor modifiers (dmg buff + bonus)
             dmg += (dmg * (victor.damageBonus / 100) + (dmg * (victor.bonusTotal / 100)));
@@ -2545,7 +2554,7 @@ game_player.prototype.timeoutVuln = function()
 
 game_player.prototype.getGrid = function()
 {
-    return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
+    return { x: ~~(this.pos.x / 64), y: ~~(this.pos.y / 64) };
 };
 
 game_player.prototype.getCoord = function()
@@ -2553,43 +2562,43 @@ game_player.prototype.getCoord = function()
     // direction-dependent, account for
     this.nw =
     {
-        x: Math.floor((this.pos.x + this.size.offset) / 64),
-        y: Math.floor(this.pos.y / 64)
+        x: ~~((this.pos.x + this.size.offset) / 64),
+        y: ~~(this.pos.y / 64)
     };
     this.ne =
     {
-        x: Math.floor((this.pos.x + this.size.hx) / 64),
-        y: Math.floor(this.pos.y / 64)
+        x: ~~((this.pos.x + this.size.hx) / 64),
+        y: ~~(this.pos.y / 64)
     };
     this.sw =
     {
-        x: Math.floor((this.pos.x + this.size.offset) / 64),
-        y: Math.floor((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x + this.size.offset) / 64),
+        y: ~~((this.pos.y + this.size.hy) / 64)
     };
     this.se =
     {
-        x: Math.floor((this.pos.x + this.size.hx) / 64),
-        y: Math.floor((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x + this.size.hx) / 64),
+        y: ~~((this.pos.y + this.size.hy) / 64)
     };
     this.n =
     {
-        x: Math.floor((this.pos.x + (this.size.hx/2)) / 64),
-        y: Math.floor((this.pos.y - (this.size.offset)) / 64)
+        x: ~~((this.pos.x + (this.size.hx/2)) / 64),
+        y: ~~((this.pos.y - (this.size.offset)) / 64)
     };
     this.s =
     {
-        x: Math.floor((this.pos.x + (this.size.hx/2)) / 64),
-        y: Math.floor((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x + (this.size.hx/2)) / 64),
+        y: ~~((this.pos.y + this.size.hy) / 64)
     };
     this.e =
     {
-        x: Math.floor((this.pos.x + this.size.hx - this.size.offset) / 64),
-        y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
+        x: ~~((this.pos.x + this.size.hx - this.size.offset) / 64),
+        y: ~~((this.pos.y + (this.size.hy/2)) / 64)
     };
     this.w =
     {
-        x: Math.floor((this.pos.x + this.size.offset) / 64),
-        y: Math.floor((this.pos.y + (this.size.hy/2)) / 64)
+        x: ~~((this.pos.x + this.size.offset) / 64),
+        y: ~~((this.pos.y + (this.size.hy/2)) / 64)
     };
     return { nw:this.nw, ne:this.ne, sw:this.sw, se:this.se, n:this.n, s:this.s, e:this.e, w:this.w };
     //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };

@@ -796,6 +796,18 @@ domready(function()
 		document.getElementById("btnStart").innerText = "Join Game";
 		
 		assets.loaded = true;
+
+		// auto-join simulated user
+		/*console.log("*", window.location.href);
+		var url = new URL(window.location.href);
+		var sim = url.searchParams.get("sim");
+		console.log("* url sim", sim);
+		if (sim == 1)
+		{
+			var join = document.getElementById("btnStart");
+			console.log("* join", join);
+			join.click();
+		}*/
 	});
 
 	var startGame = function()
@@ -913,6 +925,8 @@ domready(function()
 
 			case "B": // left up
 			game.getKeyboard()._onKeyChange({keyCode:37}, false);
+			// ...and right to avoid "sticky" keys
+			game.getKeyboard()._onKeyChange({keyCode:39}, false);
 			break;
 
 			case "D": // right down
@@ -921,6 +935,8 @@ domready(function()
 
 			case "E": // right up
 			game.getKeyboard()._onKeyChange({keyCode:39}, false);
+			// ...and left to avoid "sticky" keys
+			game.getKeyboard()._onKeyChange({keyCode:37}, false);
 			break;
 
 			case "u": // flap down

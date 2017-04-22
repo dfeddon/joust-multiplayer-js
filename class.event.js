@@ -84,7 +84,7 @@ game_event.prototype.update = function(port)
   // console.log('== event.update() ==');
   //var _this = this;
   //console.log('event.update');
-  this.dif = Math.floor(this.config.server_time - this.triggerOn);
+  this.dif = ~~(this.config.server_time - this.triggerOn);
   //console.log(this.dif);
   //console.log('triggered in', dif, 'seconds', this.triggeredAt, this.triggerOn);// at', this.triggerOn);
 
@@ -200,7 +200,7 @@ game_event.prototype.update = function(port)
         //console.log('selected spawn', this.spawn);
         // 3. rng chest content
         // this.passive = this.shuffle(this.config.passives)[0];
-        this.consumableData.c = Math.floor((Math.random() * 3) + 1);
+        this.consumableData.c = ~~((Math.random() * 3) + 1);
 
         // get value based on category
         switch(this.consumableData.c)

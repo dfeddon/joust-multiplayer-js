@@ -2878,7 +2878,7 @@ core_client.prototype.client_update = function()
         // console.log('* round timer');
         
         // this.client_draw_info();
-        this.rt = this.config.round.endtime - Math.floor(this.config.server_time);
+        this.rt = this.config.round.endtime - ~~(this.config.server_time);
         var roundTimerTxt = document.getElementById('txtRoundTimer');
         if (this.rt > 0)
             roundTimerTxt.innerHTML = (this.rt-(this.rt%=60))/60+(9<this.rt?':':':0')+this.rt;
@@ -3347,12 +3347,12 @@ core_client.prototype.tilemapper = function()
                             tile = tmContext.getImageData
                             (
                                 col * tileWidth,// tileHeight, // x
-                                (Math.floor(t / colMax)) * tileWidth, // y
+                                (~~(t / colMax)) * tileWidth, // y
                                 tileWidth, // w
                                 tileHeight // h
                             );
                             //context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
-                            cContext.putImageData(tile, (count % width) * tileHeight, Math.floor(count / width) * tileWidth);
+                            cContext.putImageData(tile, (count % width) * tileHeight, ~~(count / width) * tileWidth);
                         }
                         count++;
                     }
@@ -3522,11 +3522,11 @@ core_client.prototype.prerenderer = function()
     //console.log('orbz',orbs.length);//, this.orbs);
     for (var k = 0; k < this.orbs.length; k++)
     {
-        size = Math.floor(Math.random() * 4) + 2;
-        c = colors[Math.floor(Math.random() * colors.length)];
+        size = ~~(Math.random() * 4) + 2;
+        c = colors[~~(Math.random() * colors.length)];
         // TODO: Avoid foreground tiles
-        x = Math.floor(Math.random() * this.config.world.width) + 1;
-        y = Math.floor(Math.random() * this.config.world.height) + 1;
+        x = ~~(Math.random() * this.config.world.width) + 1;
+        y = ~~(Math.random() * this.config.world.height) + 1;
 
         // create new orb if undefined
         /*if (orbs[k]===undefined)
@@ -3710,7 +3710,7 @@ core_client.prototype.updateTerritory = function()
 
     function pixelToBrick(x)
     {
-        return Math.floor(x / (brickWidth + brickPadding));
+        return ~~(x / (brickWidth + brickPadding));
     }
     /*function brickToPixel(col)
     {

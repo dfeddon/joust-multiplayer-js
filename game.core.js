@@ -2012,56 +2012,11 @@ game_core.prototype.server_update = function()
 
             // store old data, to avoid redundancy
             // this.suPlayer.old_state = this.suPlayer.pos;
-            
-            // potion health
-            // if (player.healthDispatch)
-            // {
-            //     bufView[9] = player.healthDispatch;
-            //     player.healthDispatch = null;
-            // }
-            // potion bonus
-            // if (player.territoryDispatch)
-            // {
-
-            // }
-            // bufView[8] = (player.active) ? 1 : 0;
-            // bufView[15] = 16; // open item
-            //*/
-            //bufView[11] = new Date();
-            // if (player.mp == "cp2")
-            //     console.log('->', bufView, 'x:', player.pos.x.toFixed(2));
-            //if (bufView[11] > 0) console.log('IAMDEADIAMDEADIAMDEAD!!!!');
-            // console.log('bufView', player.mp, bufView);
-            
-            // laststate[player.instance.userid] = bufView;//_this.serverPool;//bufArr;
             this.laststate[allrooms[h]][this.suPlayer.instance.userid] = this.bufView[h][i];
-            
+            this.laststate[allrooms[h]][this.suPlayer.mis] = this.suPlayer.last_input_seq;
             // console.log('buffer', this.laststate);
             
             //pool.free(buffer);
-            // if (player.mp == "cp1")
-            // console.log(player.playerName, player.instance.userid, this.instance.id, this.bufView[i]);
-            
-            //*/
-            /*
-            _this.laststate[player.mp] = 
-            {
-                x:player.pos.x,
-                y:player.pos.y,
-                //pos:player.pos,
-                d:player.dir,
-                f:player.flap,
-                l:player.landed,
-                v:player.vuln,
-                a:player.a,//player.abil,
-                vx:player.vx,
-                vy:player.vy,
-                g:player.hasFlag,
-                b:player.bubble
-            };//*/
-            // console.log('*', player.last_input_seq);
-            /* {cis1: '3991'} */
-            this.laststate[allrooms[h]][this.suPlayer.mis] = this.suPlayer.last_input_seq;
 
             // reset flap on server instance
             if (this.suPlayer.flap === true) this.suPlayer.flap = false;
@@ -2361,7 +2316,7 @@ game_core.prototype.roundComplete = function(port, round)
         
         // set round for bonus stage
         round.stage = 2;
-        round.endtime = Math.floor(this.config.server_time + round.bonusDuration);//(round.duration * 60);
+        round.endtime = ~~(this.config.server_time + round.bonusDuration);//(round.duration * 60);
 
         // pick winners (player.score - player.lastscore = round score)
         var p = this.getplayers.fromRoom(port, 0);
@@ -2386,7 +2341,7 @@ game_core.prototype.roundComplete = function(port, round)
         var rng;
         for (var x = 0; x < 4; x++)
         {
-            rng = Math.floor((Math.random() * ordered.length - 4) + 4);
+            rng = ~~((Math.random() * ordered.length - 4) + 4);
             console.log('splicing', rng - 1);
             
             ordered.splice(rng - 1, 1);

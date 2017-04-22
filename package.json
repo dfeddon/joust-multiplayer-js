@@ -57,6 +57,7 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-git": "^1.0.3",
     "gulp-concat-util": "^0.5.5",
-    "gulp-uglify": "^2.1.2"
+    "gulp-uglify": "^2.1.2",
+    "loadtest": "*"
   }
 }
