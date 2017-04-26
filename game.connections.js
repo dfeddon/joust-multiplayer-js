@@ -65,6 +65,7 @@ game_connections.prototype.createConnection = function(svr, gamecore)
             // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
             namespace: 'metroplex',
             redis: ioredis.createClient()
+            // redis: new ioredis(6379, "wingdom-redis-001.t1sekd.0001.use1.cache.amazonaws.com")
         });
     }
     else

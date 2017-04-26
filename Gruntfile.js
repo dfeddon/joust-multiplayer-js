@@ -119,6 +119,7 @@ module.exports = function(grunt)
                     // server files
                     // { src: ['./bundle.server.min.js'], dest: '../wingdom-server-dist/'},
                     { src: ['./package.json'], dest: '../wingdom-server-dist/' },
+                    // { src: ['./.ebextensions/proxy.config'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.css'], dest: '../wingdom-server-dist/' },
                     { src: ['./primus.js'], dest: '../wingdom-server-dist/' },
