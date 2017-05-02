@@ -192,7 +192,7 @@ core_client.prototype.pingFnc = function()
 }
 
 core_client.prototype.client_create_ping_timer = function() {
-    var _this = this;
+    // var _this = this;
         //Set a ping timer to 1 second, to maintain the ping/latency between
         //client and server and calculated roughly how our connection is doing
 
@@ -970,9 +970,9 @@ core_client.prototype.client_onnetmessage = function(data) {
 
 }; //client_onnetmessage
 
-core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
+core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, health)
 {
-    console.log('client player hit', victim_id, victor_id, dmg);
+    console.log('* client player hit', victim_id, victor_id, dmg, health);
 
     var victim, victor;
     var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
@@ -990,19 +990,21 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
     console.log('for', dmg, 'damage');
     
     // reduce health
-    if (victim.health - dmg <= 0)
+    if (health <= 0)//victim.health - dmg <= 0)
     {
+        console.log("* player", victim, "is DEAD!");
+
         // victim is dead!
         victim.health = 0;
         // victor.doHitClientVictor(victim, dmg);
-        victim.doKill(victor);//, dmg);
+        // victim.doKill(victor);//, dmg);
     }
     else
     { 
         // victim.health -= dmg;
         // victim.isHit = 1; // flags hit asset/animation
         // victor.doHitClientVictor(victim, dmg);
-        victim.doHitClientVictim(victor, dmg);
+        victim.doHitClientVictim(victor, dmg, health);
     }
 
 
@@ -1013,9 +1015,9 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg)
     // }        
 };
 
-core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
+core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)//, dmg, health)//victim_id, victor_id)
 {
-    console.log('client player killed', victim_id, victor_id);
+    console.log('== client_onplayerkilled ==', victim_id, victor_id);
 
     var victim, victor;
     var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
@@ -1039,6 +1041,23 @@ core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)
         victim.doKill(victor);
     }
     else victim.doKill();
+}
+
+core_client.prototype.client_onplayerreturned = function(userid)
+{
+    console.log("== client_onplayerreturned ==", userid, this.core.getplayers.allplayers.length);
+
+    for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--)
+    {
+        console.log("*", this.core.getplayers.allplayers[i].userid);
+        if (this.core.getplayers.allplayers[i].userid == userid)
+        {
+            console.log("* found returned player", userid);
+            this.core.getplayers.allplayers[i].active = true;
+            this.core.getplayers.allplayers[i].visible = true;
+            break;
+        }
+    }
 }
 
 core_client.prototype.client_ondisconnect = function(userid) {
@@ -1176,9 +1195,17 @@ core_client.prototype.client_connect_to_server = function(data)
             // case "onconnected": _this.client_onconnected(data);//.bind(this);
             // break;
             
-            // player hit/killed
-            // 1: victim id, 2: victor id, 3:dmg
-            case 5: _this.client_onplayerhit(data[1], data[2], data[3]); break;
+            // player hit
+            // 1: victim id, 2: victor id, 3: dmg, 4: total health
+            case 5: _this.client_onplayerhit(data[1], data[2], data[3], data[4]); break;
+
+            // player killed
+            // 1: victim id, 2: victor id, 3: dmg, 4: total health
+            case 6: _this.client_onplayerkilled(data[1], data[2]); break;//, data[3], data[4]); break;
+            
+            // player re-joining game after death
+            // 1: returned player id
+            case 7: _this.client_onplayerreturned(data[1]); break;
 
             // join game
             case 10: _this.client_onjoingame(data); break;
@@ -1260,7 +1287,7 @@ core_client.prototype.client_connect_to_server = function(data)
     this.socket.on('onhostgame', this.client_onhostgame.bind(this));
     // this.socket.on('onjoingame', this.client_onjoingame.bind(this));
     this.socket.on('onreadygame', this.client_onreadygame.bind(this));
-    this.socket.on('onplayerkill', this.client_onplayerhit.bind(this));
+    // this.socket.on('onplayerkill', this.client_onplayerhit.bind(this));
     this.socket.on('ondisconnect', this.client_ondisconnect.bind(this));
     this.socket.on('onplayernames', this.client_onplayernames.bind(this));
 
@@ -1731,7 +1758,8 @@ core_client.prototype.client_onroundcomplete = function(winners)
     setTimeout(function()
     {
         callout.style.display = "none";
-        _this.roundWinnersView(winners); 
+        if (!_this.players.self.dead && !_this.players.self.dying)
+            _this.roundWinnersView(winners); 
     }, 5000);
 }
 

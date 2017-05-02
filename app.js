@@ -78,6 +78,8 @@ const
     // throng          = require('throng'),
     // WORKERS         = process.env.WEB_CONCURRENCY || 4;
 
+    // pm2 keymetrics provider
+    //*
     pmx = require('pmx').init(
     {
         http          : true, // HTTP routes logging (default: true)
@@ -86,7 +88,7 @@ const
         custom_probes : true, // Auto expose JS Loop Latency and HTTP req/s as custom metrics
         network       : true, // Network monitoring at the application level
         ports         : true  // Shows which ports your app is listening on (default: false)
-    });
+    });//*/
     
     // var game_server     = require('./game.server.js');
     var game_connections = require('./game.connections');
@@ -629,7 +631,7 @@ if (gameInstanceType === 2)
 else gamecore2 = gamecore;
 if (connectionType !== 1)
 {
-    proxy2 = proxy1.createConnection(server1, gamecore2);
+    proxy2 = proxy.createConnection(server1, gamecore2);
     // etc...
 }
 // else proxy2 = game_connections().createConnection(server2, gamecore);

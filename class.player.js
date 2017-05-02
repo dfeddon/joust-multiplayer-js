@@ -402,7 +402,7 @@ game_player.prototype.addConsumable = function(consumable)
     }
 };
 
-game_player.prototype.updateHealth = function(val)
+game_player.prototype.updateHealth = function(val, hitBy)
 {
     console.log('== player.updateHealth ==', val);
     console.log('health now', this.health);
@@ -432,7 +432,16 @@ game_player.prototype.updateHealth = function(val)
     console.log('* revised health', this.health);
     if (this.health === 0)
     {
-        console.log('*', this.playerName, 'is dead!');        
+        console.log('*', this.playerName, 'is dead!', val);
+        if (this.config.server)
+        {
+            console.warn("* player.updateHealth -- Add doKill socket fnc!");
+            this.doKill(hitBy);
+            if (!hitBy) hitBy = 0;
+            this.instance.room(this.playerPort).write([6, this.id, hitBy]);//, Math.abs(val), this.health]);
+            // this.doKill();
+        }
+        return;
     }
 
     // adjust player speed (50 slow, 40 medium, 30 fast)
@@ -882,7 +891,7 @@ game_player.prototype.reset = function()
     console.log('== player.reset() ==');
     this.dead = false;
     this.dying = false;
-    this.visible = false;
+    // this.visible = false;
     //this.vuln = true; // this disables input
     this.active = false;
     this.landed = 1;
@@ -903,8 +912,16 @@ game_player.prototype.reset = function()
     
     if (this.disconnected)
         this.pos = this.config.gridToPixel(0,0);
-    else if (this.config.server) 
-        this.respawn();
+    else 
+    {
+        if (this.config.server)
+        {
+            console.log("* server respawning dead player...");
+            this.respawn();
+        }
+        // go ahead (both server & client) and unhide player (now at spawn point)
+        // this.active = true;
+    }
 
 };
 game_player.prototype.setPlayerName = function(name)
@@ -1087,6 +1104,9 @@ game_player.prototype.respawn = function()
 
     this.pos = startPos;
     //assets.respawnPos = startPos;
+
+    this.active = true;
+    this.visible = true;
 };
 
 game_player.prototype.botAction = function()
@@ -1209,7 +1229,7 @@ game_player.prototype.doLand = function()
             var dmg = this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3));
             this.updateHealth(0 - dmg);
             // send to client
-            this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg]);
+            this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
             // this.setTextFloater(100, Math.abs(dmg), 1);
         }
 
@@ -1650,12 +1670,12 @@ game_player.prototype.update = function()
                 this.vy *= -1;
                 this.isVuln(750);
                 // dmg 1 - 5
-                if (this.config.server)
+                if (this.config.server && this.isLocal)
                 {
                     var dmg = this.getRandomRange(1, 5);
                     // console.log("* from below dmg", dmg);
                     this.updateHealth(0 - dmg);
-                    this.instance.room(this.playerPort).write([5, this.id, null, dmg]);
+                    this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
                 }
                 // dmgText = 0 - 2;
                 // add floating text with damage (id: 100 = damage text)
@@ -1749,11 +1769,12 @@ game_player.prototype.doStand = function(id)
 //     // i am the victor
 // };
 
-game_player.prototype.doHitClientVictim = function(victor, dmg)
+game_player.prototype.doHitClientVictim = function(victor, dmg, health)
 {
     console.log('== player.doHitClientVictim ==');
     if (victor) console.log('by', victor.playerName);
-    console.log('for dmg', dmg);
+    console.log('* for dmg', dmg, 'total health', health);
+    this.health = health;
 
     // i am the victim, so show damage callout
     this.isHit = 1;
@@ -1768,7 +1789,9 @@ game_player.prototype.doHitClientVictim = function(victor, dmg)
         dmgText = dmg;
     else
     { 
-        this.updateHealth(0 - dmg);
+        //this.updateHealth(0 - dmg);
+        // this.health = health;
+        // console.log("* doHitClientVicti")
         dmgText = 0 - dmg;
     }
 
@@ -1812,7 +1835,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             {
                 console.log("* bubble!")
                 // remove bubble
-                this.setBubble(false);;
+                this.setBubble(false);
                 // set bubble on 10 sec cooldown (if cd doesn't expire first)
                 // TODO: also check for round slot bubble buff
                 for (var i = this.slots.length - 1; i >= 0; i--)
@@ -1849,7 +1872,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             // damage cannot be negative
             if (dmg < 0) dmg = 0;
 
-            this.updateHealth(0 - dmg);
+            this.updateHealth(0 - dmg, victor);
             if (this.health <= 0)
             {
                 console.log('*', this.playerName, 'is dead!');
@@ -1858,6 +1881,10 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 victor.protection = true;
                 // add protection cooldown
                 // don't "bounce" victor if victim is dead
+                // player kill
+                // if (victor)
+                //     this.doKill(victor);
+                // else this.doKill();
             }
             else 
             {
@@ -1913,7 +1940,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             }
             // notify client
             if (victor && victor.instance)
-                victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg]);
+                victor.instance.room(victor.playerPort).write([5, this.id, victor.id, dmg, this.health]);
         }
         else // tie (players collide but no hit)
         {
@@ -1932,8 +1959,8 @@ game_player.prototype.doHitServer = function(victor, isHit)
 
 game_player.prototype.doKill = function(victor)
 {
-    console.log('playerKill', this.playerName);
-    if (victor) console.log('by', victor.playerName, 'dead?', this.dead);
+    console.log('== player.doKill ==', victor);//, this.playerName);
+    if (victor) console.log(this.playerName, 'killed by', victor.playerName, 'dead?', this.dead);
     // this.active = false;
 
     // avoid reduncancy
@@ -1943,8 +1970,8 @@ game_player.prototype.doKill = function(victor)
     console.log('player dying', this.playerName);
 
     // // update all players
-    if (this.config.server)
-        this.instance.room(this.playerPort).write([5, this.id]);//, victor.id]);
+    // if (this.config.server)
+    //     this.instance.room(this.playerPort).write([5, this.id]);//, victor.id]);
     // this.config._.forEach(this.instance.game.gamecore.getplayers.allplayers, function(p, i)
     // {
     //     if (p.instance && p.mp != "hp")
@@ -1973,16 +2000,21 @@ game_player.prototype.doKill = function(victor)
     this.vy = 0;
     this.a = 0;
 
-    // remove bubble
-    this.bubble = false;
+    this.vuln = true;
+    // remove buffs and bonuses
+    // if (this.config.server)
+    // {
+        this.purgeBuffsAndBonuses();
+        // this.vuln = true;
+    // }
     // console.log(this.getplayers);
-    if (!this.config.server && this.isLocal)//this.config.players.self.mp)
+    if (!this.config.server)// && this.isLocal) 
     {
         this.vx = 0;
         this.vy = 0;
         this.a = 0;
-        this.dead = true;
-        this.vuln = true;
+        // this.dead = true;
+        // this.vuln = true;
     }
 
     // if carrying flag, drop it
@@ -2064,6 +2096,7 @@ game_player.prototype.timeoutRespawn = function()
     assets.myLastscore = this.score;
 
     this.reset();
+
     // if (this.disconnected)
     // {
         // this.dead = false;
@@ -3026,7 +3059,7 @@ game_player.prototype.draw = function()
 
     if (this.bubble === true && this.drawAbility === 0)
         this.config.ctx.drawImage(assets.ability_bubble, this.pos.x - 8, this.pos.y - 8, 76, 76);
-    if (this.isHit > 0)
+    if (this.isHit > 0 && !this.dead)
     {
         this.config.ctx.drawImage(assets.animate_hit, this.pos.x - 8, this.pos.y - 8, 76, 76);
         if (this.isLocal && this.isHit === 1)

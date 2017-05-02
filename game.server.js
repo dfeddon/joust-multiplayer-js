@@ -207,28 +207,82 @@ game_server.prototype._onMessage = function(spark,message)
     {    //A client is asking for lag simulation
         this.fake_latency = parseFloat(message_parts[1]);
     }
-    else if (message_type == 'n') // store playerName and playerSkin
+    else if (message.n) // store playerName and playerSkin
     {
-        var mp = message_parts[1];
-        var gameId = message_parts[2];
-        var split = message_parts[3].split("|");
+        this.log("@ message type n", message.n);//_parts);
+        var message_parts = message.n.split(".");
+        var userid = message_parts[0];
+        var port = message_parts[1];
+        var split = message_parts[2].split("|");
         var playerName = split[0];
         var playerSkin = split[1];
-        this.log('getting player names for', message_parts);// '...');
-        var p = spark.game.gamecore.getplayers.allplayers;
+        // this.log('getting player names for', message_parts);// '...');
+        var p = spark.game.gamecore.getplayers.fromRoom(port);//.allplayers;
         var arr = [];
         var source;
-        for (var j = 0; j < p.length; j++)
+
+        // update all clients that user has returned (reactive user);
+        p[0].instance.room(port).write([7, userid]);
+        /*
+        for (j = p.length - 1; j >= 0; j--)
         {
-            this.log(p[j].mp, p[j].playerName, p[j].team, p[j].skin);
-            if (p[j].mp != mp && p[j].instance)
+            if (p[j].userid == userid)
+            {
+                this.log("@ respawning player");
+                // respawning
+                // move to base: set start position (based on team)
+                /*var startPos = {x:0,y:0};
+                var teamRed_x = 3;
+                var teamRed_y = 4;
+                var teamBlue_x = 47;
+                var teamBlue_y = 26;
+                var sx, sy;
+                // var sx = Math.floor(Math.random() * teamRed_x) + 1;
+                // var sy = Math.floor(Math.random() * teamRed_y) + 1;
+                if (p[j].team === 1) // red
+                {
+                    sx = teamRed_x;
+                    sy = teamRed_y;
+                }
+                else if (p[j].team === 2)
+                {
+                    sx = teamBlue_x;
+                    sy = teamBlue_y;
+                }
+                else 
+                {
+                    console.warn("player team undecided!"); return;
+                }
+                // TODO: set position based on team
+                var pos = spark.game.gamecore.gridToPixel(sx, sy);//3,4);
+                p[j].pos = pos;
+                // startPos.x = pos.x;
+                // startPos.y = pos.y;
+
+                // reactivate player
+                // p[j].respawn();
+                // p[j].visible = true;
+                // p[j].active = true;
+            }
+            else // update "other" players
+            {
+                p[j].instance.write()
+                // p[j].visible = true;
+                // p[j].active = true;
+            }
+        }
+        //*/
+        /*for (var j = 0; j < p.length; j++)
+        {
+            this.log(p[j].userid, p[j].playerName, p[j].team, p[j].skin);
+            if (p[j].userid != userid && p[j].instance)
             {
                 // update others' server player
-                arr.push({mp:p[j].mp, name:p[j].playerName, team:p[j].team, skin:p[j].skin});
+                arr.push({userid:p[j].userid, name:p[j].playerName, team:p[j].team, skin:p[j].skin});
                 // also, 'notify' other's client of the new player (name, skin, etc. that isn't sent live)
                 // p[j].instance.send('s.n.' + mp + name + skin);
             }
-            else if (p[j].mp == mp)
+            else if (p[j].userid == userid)
             {
                 // update server's player name and skin
                 this.log('* updating my server creds', playerName, playerSkin);
@@ -241,15 +295,16 @@ game_server.prototype._onMessage = function(spark,message)
                 p[j].active = true;
             }
         }
-        this.log(arr);
+        this.log(arr);*/
 
         // update player(s) in the appropriate game
-        var thegame = this.games[gameId];
+        // this.log("games", this.games);
+        /*var thegame = this.games[Object.keys(this.games)[0]];
         for (i = 0; i < thegame.player_clients.length; i++)
         {
-            console.log('* clients', thegame.player_clients[i].mp, thegame.player_clients[i].userid);
+            console.log('* clients', thegame.player_clients[i].userid, thegame.player_clients[i].userid);
             
-            if (thegame.player_clients[i].mp == mp)
+            if (thegame.player_clients[i].userid == userid)
             {
                 // send other players data to requesting (new) client
                 // thegame.player_clients[i].send('s.n.' + JSON.stringify(arr));
@@ -268,7 +323,7 @@ game_server.prototype._onMessage = function(spark,message)
                 
             //     thegame.player_clients[i].send('s.n.' + JSON.stringify({mp:mp,name:playerName,skin:playerSkin}));
             // }
-        }
+        }*/
 
 
         

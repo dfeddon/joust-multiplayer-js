@@ -421,16 +421,16 @@ domready(function()
 				if (assets.playerName)
 					game.core_client.players.self.playerName = assets.playerName;
 				// skin
-				game.core_client.players.self.skin = skin;//"skin" + assets.skinIndex.toString();
+				game.core_client.players.self.skin = assets.playerSkin;//skin;//"skin" + assets.skinIndex.toString();
 				// start pos
 				//game.players.self.pos = assets.respawnPos;
 				//game.players.self.respawn();
 				// if (!game.gameid) game.gameid = "1";
-				game.core_client.socket.emit('message', 'n.' + game.core_client.players.self.mp + '.' + game.gameid + '.' + assets.playerName + '|' + assets.playerSkin);
+				console.log('@ socket', game.core_client.socket);
+				game.core_client.socket.write({'n': game.core_client.players.self.userid + '.' + game.core_client.playerPort + '.' + assets.playerName + '|' + assets.playerSkin});
 
 				// start the game loop
 				// game.update( new Date().getTime() );		
-
 			}
 
 			// notify iOS that we're starting/respawning the game (turn on controls)

@@ -930,7 +930,7 @@ game_core.prototype.check_collision = function( player )
 {
     //console.log('##+@@check_collision', player.mp);
     // TODO: May need to remove hp check below (and elsewhere)
-    if (player.mp == 'hp')// || player.active === false)
+    if (player.mp == 'hp' || !player.active)
     {
         //console.log('standing', player.mp);
         return;
