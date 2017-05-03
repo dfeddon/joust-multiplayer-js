@@ -119,6 +119,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.health = 50; // start at half-health
     this.healthMax = 100;
     this.healthbarColor = 'lime';
+    this.healthChanged = false; // server only
     this.engaged = false;
     this.vuln = false;
     this.dying = false;
@@ -285,8 +286,15 @@ game_player.prototype.setFromBuffer = function(data)
         this.drawAbility = data[10];
     else this.drawAbility = 0;
 
+    if (data[11])// !== this.lastdata[11])
+    {
+        console.log("health updated!", data[11]);
+        this.health = data[11];
+        this.healthAdjustments();
+    }
+
     // data = null;
-    // this.lastdata = data;
+    this.lastdata = data;
 };
 
 game_player.prototype.buffIdsToSlots = function(ids)
@@ -388,7 +396,7 @@ game_player.prototype.addConsumable = function(consumable)
         break;
 
         case 2: // health potion
-            this.updateHealth(consumable.v);
+            // this.updateHealth(consumable.v);
             // if (this.health + consumable.v >= this.healthMax)
             //     this.health = this.healthMax;
             // else this.health += consumable.v;
@@ -430,6 +438,7 @@ game_player.prototype.updateHealth = function(val, hitBy)
     }
 
     console.log('* revised health', this.health);
+    this.healthChanged = true;
     if (this.health === 0)
     {
         console.log('*', this.playerName, 'is dead!', val);
@@ -445,6 +454,8 @@ game_player.prototype.updateHealth = function(val, hitBy)
     }
 
     // adjust player speed (50 slow, 40 medium, 30 fast)
+    this.healthAdjustments();
+    /*
     // get percentage of health relative to healthMax
     // this.health / this.healthMax;
     var perc = this.health / this.healthMax;
@@ -460,7 +471,30 @@ game_player.prototype.updateHealth = function(val, hitBy)
     else if (this.health < 50)
         this.healthbarColor = 'orange';
     else this.healthbarColor = 'lime';
+    console.log("healthbarColor", this.healthbarColor);
+    */
 };
+
+game_player.prototype.healthAdjustments = function()
+{
+    var perc = this.health / this.healthMax;
+    // take % between range (30 - 50)
+    var newval = ((perc * (SPEED_VAL_MAX - SPEED_VAL_MIN) / 100) * 100) + SPEED_VAL_MIN;
+    // finally, reverse the value / val = ((percent * (max - min) / 100) + min
+    this.thrustModifier = this.reverseVal(newval, SPEED_VAL_MIN, SPEED_VAL_MAX);
+    console.log("* thrustModifier", this.thrustModifier, newval, perc);
+    // this.thrustModifier += healthVal;//val;//this.health;
+
+    if (!this.config.server)
+    {
+        if (this.health < 20)
+            this.healthbarColor = '#f93822';
+        else if (this.health < 50)
+            this.healthbarColor = 'orange';
+        else this.healthbarColor = 'lime';
+        console.log("healthbarColor", this.healthbarColor);
+    }
+}
 
 game_player.prototype.reverseVal = function(val, min, max)
 {
@@ -1226,7 +1260,8 @@ game_player.prototype.doLand = function()
         // inflict fall damage
         if (this.config.server)
         {
-            var dmg = this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3));
+            var dmg = Math.abs(this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3)));
+            console.log("* bounce damage", dmg);
             this.updateHealth(0 - dmg);
             // send to client
             this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
@@ -1670,7 +1705,7 @@ game_player.prototype.update = function()
                 this.vy *= -1;
                 this.isVuln(750);
                 // dmg 1 - 5
-                if (this.config.server && this.isLocal)
+                if (this.config.server)// && this.isLocal)
                 {
                     var dmg = this.getRandomRange(1, 5);
                     // console.log("* from below dmg", dmg);
@@ -1787,7 +1822,7 @@ game_player.prototype.doHitClientVictim = function(victor, dmg, health)
     var dmgText = dmg;
     if (victor && this.userid === victor.userid)
         dmgText = dmg;
-    else
+    else if (dmg > 0)
     { 
         //this.updateHealth(0 - dmg);
         // this.health = health;
@@ -2582,6 +2617,8 @@ game_player.prototype.dropFlag = function()
 game_player.prototype.timeoutVuln = function()
 {
     this.vuln = false;
+    if (!this.config.server)
+        this.drawAbilities();
     console.log('...no longer vulnerable');
 };
 
@@ -2665,7 +2702,7 @@ game_player.prototype.hitGrid = function()
 
 game_player.prototype.drawAbilities = function()
 {
-    //console.log('drawAbil', this.engaged);
+    // console.log('== player.drawAbilities ==', this.engaged, this.health, this.healthMax);
     if (this.engaged === false)
     {
         this.config.ctx.beginPath();

@@ -1055,6 +1055,7 @@ core_client.prototype.client_onplayerreturned = function(userid)
             console.log("* found returned player", userid);
             this.core.getplayers.allplayers[i].active = true;
             this.core.getplayers.allplayers[i].visible = true;
+            this.core.getplayers.allplayers[i].healthAdjustments();
             break;
         }
     }
@@ -2807,7 +2808,7 @@ core_client.prototype.client_update_physics = function()
         // console.log('nd:', nd);
         
         //if (nd.x === 0 && nd.y == 0)
-            //this.players.self.update();
+            // this.players.self.update();
         //else 
         this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, this.core.process_input(this.players.self));
         this.players.self.state_time = this.core.local_time;
@@ -3505,7 +3506,7 @@ core_client.prototype.addSpriteSheets = function()
 
 core_client.prototype.prerenderer = function()
 {
-    //console.log('## preprenderer', this.orbs.length);
+    console.log('## preprenderer', this.orbs.length);
     var self = this;
     var context2, max, canvas2;
     //*
@@ -4162,6 +4163,7 @@ core_client.prototype.roundWinnersView = function(winners)
     
     // assign bonusSlots to winners
     var p;
+    console.log('* winners', ply);
     for (var w = 0; w < winners.length; w++)
     {
         if (winners[w][1])

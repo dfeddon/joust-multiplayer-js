@@ -1006,7 +1006,7 @@ game_core.prototype.check_collision = function( player )
 
         // player collision (server managed)
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    if (this.config.server)
+    if (this.config.server || player.isLocal)
     {
         var other;
         // _.forEach(_this.getplayers.allplayers, function(other)
@@ -1348,7 +1348,7 @@ game_core.prototype.check_collision = function( player )
         {
             //console.log(h.sw.t,h.se.t);
             
-            // red gate across
+            // red gate across (tile id is 121)
             if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) 
             {
                 player.pos.y += gatepush;
@@ -2009,6 +2009,12 @@ game_core.prototype.server_update = function()
             }
             if (this.suPlayer.drawAbility > 0)
                 this.bufView[h][i][10] = this.suPlayer.drawAbility;
+            
+            if (this.suPlayer.healthChanged)
+            {
+                this.suPlayer.healthChanged = false;
+                this.bufView[h][i][11] = this.suPlayer.health;
+            }
 
             // store old data, to avoid redundancy
             // this.suPlayer.old_state = this.suPlayer.pos;
