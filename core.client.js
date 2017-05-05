@@ -71,6 +71,8 @@ function core_client(core, config)
     this.flashBang = 0;
     this.rt = 0;
 
+    this.totalRounds = 0;
+
     // tilemap
     this.api(); // load and build tilemap
 
@@ -768,6 +770,21 @@ core_client.prototype.client_onhostgame = function(data, callback)
     });
 
     this.updateTerritory();
+
+    // if round complete (stage === 2) show callout
+    if (round.stage === 2)
+    {
+        var callout = document.getElementById('roundCompleteCallout');
+        callout.innerHTML = "One moment.<br/> Your first round will begin soon! ";// " + round.endtime - this.config.server_time + " seconds...";
+        callout.style.display = "block";
+        callout.style.animationPlayState = 'running';
+
+        // setTimeout(function()
+        // {
+        //     callout.style.display = "none";
+        //     // showWinners(false);
+        // }, 3000);
+    }
 }
 
 core_client.prototype.client_onhostgame_orig = function(data) {
@@ -1728,12 +1745,27 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
 {
     console.log('== client_onbonusroundcomplete ==');
 
+    // update client round total
+    this.totalRounds++;
+
     // restore timer
     this.config.round = round;
+    // var nextRound = round.clientTotal + 1;
 
     // restore local round and player
     this.config.round.active = true;
     this.players.self.active = true;
+
+    // remove callout (if present)
+    var go = document.getElementById('roundCompleteCallout');
+    go.innerHTML = "Round " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
+    go.style.display = "block";
+    go.style.animationPlayState = 'running';
+    setTimeout(function()
+    {
+        go.style.display = "none";
+    }, 2000);
+    // go.style.display = "none";
 };
 
 core_client.prototype.client_onroundcomplete = function(winners)
@@ -1753,7 +1785,7 @@ core_client.prototype.client_onroundcomplete = function(winners)
 
     // callout
     var callout = document.getElementById('roundCompleteCallout');
-    callout.innerHTML = "Round " + this.config.round.total.toString() + " Complete!";
+    callout.innerHTML = "Round " + this.totalRounds.toString() + " Complete!";
     callout.style.display = "block";
     callout.style.animationPlayState = 'running';
 
@@ -2784,7 +2816,7 @@ core_client.prototype.client_update_local_position = function()
                 console.log('* got message from worker!', evt);    
             }
         }
-        else//*/ 
+        else//*/
         this.core.check_collision(this.players.self);
 
     //}  //if(this.client_predict)
@@ -4133,7 +4165,9 @@ core_client.prototype.roundWinnersView = function(winners)
     document.getElementById('uiInfoBar').style.display = "none";
     document.getElementById('uiTopBar').style.display = "none";
     // document.getElementById('uiInfoBarBottom').style.display = "none";
+    document.getElementById('level-ui').style.display = "none";
     document.getElementById('scoreboard').style.display = "none";
+    document.getElementById('score-text-container').style.display = "none";
 
     var mobilecontrols;
     var mcr = document.getElementById('mobile-controls-r');
@@ -4171,12 +4205,15 @@ core_client.prototype.roundWinnersView = function(winners)
         if (winners[w][1])
         {
             p = this.config._.find(ply, {userid:winners[w][1]});
-            if (!p) console.log('* Error: unable to find winning player!', winners[w]);
-            if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
-            console.log(winners[w][2]);
-            p.bonusSlot = winners[w][2] + 1;
-            p.activateBuff(p.bonusSlot);
-            console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
+            if (!p) console.log('* Error: unable to find winning (disconnected) player!', winners[w]);
+            else if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
+            else // player found on client!
+            {
+                console.log(winners[w][2]);
+                p.bonusSlot = winners[w][2] + 1;
+                p.activateBuff(p.bonusSlot);
+                console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
+            }
         }
     }
 
@@ -4186,15 +4223,17 @@ core_client.prototype.roundWinnersView = function(winners)
     // show bonus round text
     var bonusText = function()
     {
+        document.getElementById('winnerTopText').innerHTML = "ROUND " + _this.totalRounds.toString() + ": TOP 3 SCORERS";
+
         var callout = document.getElementById('roundCompleteCallout');
-        callout.innerHTML = "BONUS ROUND<br>Your team's <b>TOP 3 Round</b> " + _this.config.round.total.toString() + " Scorers";
+        callout.innerHTML = "BONUS ROUND<br/>Your team's <b>top</b> scorers!";
         callout.style.display = "block";
         callout.style.animationPlayState = 'running';
 
         setTimeout(function()
         {
             showWinners(false);
-        }, 1500);
+        }, 2000);
     };
     bonusText();
 
@@ -4341,8 +4380,9 @@ core_client.prototype.roundWinnersView = function(winners)
             card3.classList.add('flippedBack');
             card3.classList.remove('flipped');
             
+            document.getElementById('winnerTopText').innerHTML = "ROUND " + _this.totalRounds.toString() + ": TOP 10 SCORERS";
             var callout = document.getElementById('roundCompleteCallout');
-            callout.innerHTML = "Your <b>TOP 10</b> Round " + _this.config.round.total.toString() + " Scorers<br><i>(Selected at Random)</i>";
+            callout.innerHTML = "Top 4 - 10<br/><i>(Selected at Random)</i>";
             callout.style.display = "block";
             // callout.style.animationPlayState = 'running';
 
@@ -4431,6 +4471,8 @@ core_client.prototype.roundWinnersView = function(winners)
             document.getElementById('uiTopBar').style.display = "block";
             // document.getElementById('uiInfoBarBottom').style.display = "block";
             document.getElementById('scoreboard').style.display = "block";
+            document.getElementById('level-ui').style.display = "flex";
+            document.getElementById('score-text-container').style.display = "flex";
             console.log('mobilecontrols', mobilecontrols);
             
             if (mobilecontrols)

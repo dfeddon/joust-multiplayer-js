@@ -930,7 +930,7 @@ game_core.prototype.check_collision = function( player )
 {
     //console.log('##+@@check_collision', player.mp);
     // TODO: May need to remove hp check below (and elsewhere)
-    if (player.mp == 'hp' || !player.active)
+    if (player.mp == 'hp' || !player.active)// || player.dead)
     {
         //console.log('standing', player.mp);
         return;
@@ -1006,7 +1006,7 @@ game_core.prototype.check_collision = function( player )
 
         // player collision (server managed)
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    if (this.config.server || player.isLocal)
+    if (this.config.server || player.isLocal && !player.dead)
     {
         var other;
         // _.forEach(_this.getplayers.allplayers, function(other)
@@ -1188,61 +1188,9 @@ game_core.prototype.check_collision = function( player )
     //if (player.mp == "cp2")
     //console.log(player.mp, this.orbs.length);
 
-    // orbs
-    for (var k = 0; k < this.orbs.length; k++)
-    {
-        //console.log(player.mp);
-        /*if (this.orbs[k].r===true)// == undefined)
-        {
-            console.log('skip undefined');
-            continue;
-        }*/
-        //console.log('platform', this.platforms[j]);
-        if (
-            player.pos.x < (this.orbs[k].x + this.orbs[k].w) &&
-            (player.pos.x + player.size.hx) > this.orbs[k].x &&
-            player.pos.y < (this.orbs[k].y + this.orbs[k].h) &&
-            (player.pos.y + player.size.hy) > this.orbs[k].y
-        )
-        {
-            //console.log('orb hit!', this.orbs[k]);//this.orbs[k].id, this.server);
-            var rid = this.orbs[k].id;
-            //console.log('by player', player.mp, this.server);//this.players.self.mp);
-
-            //if (player.mp == this.players.self.mp)
-                //player.updateMana(this.orbs[k].w);
-
-            //console.log('ids', player.id, this.players.self.id);
-
-            // add orb to player mana store
-            //console.log('::player', player);
-            player.updateMana(this.orbs[k].w);
-
-            // remove it (from server only)
-            //if (this.server)
-            this.orbs.splice(k, 1);
-
-            //console.log('=>',this.server,player.mp,this.mp,this.players.self.mp);
-            for (var l = 0; l < this.getplayers.allplayers.length; l++)
-            {
-                if (this.getplayers.allplayers[l].instance && this.getplayers.allplayers[l].mp != player.mp)
-                {
-                    //console.log('remote orb removal index', rid);//, this.players.self.mp);
-                    this.getplayers.allplayers[l].instance.send('o.r.' + rid + '|' + player.mp);//, k );
-                }
-            }
-
-            // remove orb from view
-            /*if (!this.server) this.prerenderer();*/
-
-            // get out
-            break;
-        }
-    }
-
     //console.log('chests', this.chests.length, player.mp);
     // _.forEach(this.chests, function(chest)
-    if (this.config.server)
+    if (this.config.server && !player.dead && !player.vuln)
     {
         var consumable;
         room = this.getplayers.fromRoom(player.playerPort, 2);
@@ -1272,7 +1220,7 @@ game_core.prototype.check_collision = function( player )
     }
 
     // flagObjects (flags and slots)
-    if (this.config.server)
+    if (this.config.server && !player.dead)
     {
         // _.forEach(this.config.flagObjects, function(fo)
         var fo;
@@ -1312,6 +1260,9 @@ game_core.prototype.check_collision = function( player )
     var b = 10; // bounce
     var gatepush = 128;
     var h = player.hitGrid();
+    // if (this.config.server)
+    // console.log("@@@", this.getplayers.fromRoom(player.playerPort, 5).stage, player.playerPort);
+    // else console.log("***", this.core_client.config.round.stage);
     //console.log(c);
     // console.log('::', h);
     if (h !== undefined)
@@ -1329,7 +1280,15 @@ game_core.prototype.check_collision = function( player )
             // blue gate across
             if (h.ne.t === 122 && h.nw.t === 122 && player.team === 2) 
             {
-                player.pos.y -= gatepush;
+                // only if round is active
+                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                    player.pos.y -= gatepush;
+                else
+                {
+                    player.pos.y += b;
+                    player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
+                    player.collision = true;
+                }
             }
             else
             {
@@ -1351,7 +1310,14 @@ game_core.prototype.check_collision = function( player )
             // red gate across (tile id is 121)
             if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) 
             {
-                player.pos.y += gatepush;
+                // only if round is active
+                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                    player.pos.y += gatepush;
+                else
+                {
+                    player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                    player.doLand();
+                }
             }
             else
             {
@@ -1376,9 +1342,17 @@ game_core.prototype.check_collision = function( player )
         {
             //console.log('hit w wall', h.nw.t, h.sw.t, player.team);
             // blue gate down
-            if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2) 
+            if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2)
             {
-                player.pos.x -= gatepush;
+                // only if round is active
+                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                    player.pos.x -= gatepush;
+                else
+                {
+                    player.pos.x += 15; // bounce
+                    player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                    player.collision = true;
+                }
             }
             else
             {
@@ -1397,7 +1371,15 @@ game_core.prototype.check_collision = function( player )
             // red gate down
             if (h.ne.t === 73 && h.se.t === 73 && player.team === 1) 
             {
-                player.pos.x += gatepush;
+                // only if round is active
+                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                    player.pos.x += gatepush;
+                else
+                {
+                    player.pos.x -= 15; //bounce
+                    player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
+                    player.collision = true;
+                }
             }
             else
             {
@@ -2263,8 +2245,8 @@ game_core.prototype.server_update = function()
         // console.log(roomRound.endtime, this.config.server_time);
         if (roomRound.active && this.config.server_time >= roomRound.endtime)
         {
-            console.log('ROUND HAS COMPLETED', roomRound);
             roomRound.active = false;
+            console.log('ROUND HAS COMPLETED', roomRound);
             this.roundComplete(allrooms[m], roomRound);
         }
     }
@@ -2314,7 +2296,7 @@ game_core.prototype.server_update = function()
 
 game_core.prototype.roundComplete = function(port, round)
 {
-    console.log('== roundComplete', port, '==');
+    console.log('== roundComplete ==', port, round);
 
     if (round.stage === 1) // game round complete
     {
@@ -2394,13 +2376,14 @@ game_core.prototype.roundComplete = function(port, round)
             if (p[i].instance && p[i].dead !== true)
             {
                 // notify client
-                p[i].instance.room(port).write([30, top10]);
+                //p[i].instance.room(port).write([30, top10]);
+                p[i].instance.write([30, top10]);
             }
         }
     }
     else if (round.stage === 2) // Bonus Round complete
     {
-        console.log('Bonus Round Complete');
+        console.log('@@ Bonus Round Complete', round);
         
         // set round for game
         round.stage = 1;
@@ -2415,12 +2398,13 @@ game_core.prototype.roundComplete = function(port, round)
             if (p[i].instance)
             {
                 // notify client
-                p[i].instance.room(port).write([31, round]);
+                p[i].instance.write([31, round]);
             }
         }        
     }
 
     // lastly, reactivate round
+    console.log("@ reactivating round", round);
     round.active = true;
     // force players to move
 }

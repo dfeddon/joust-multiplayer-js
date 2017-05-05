@@ -26,6 +26,7 @@ html, body {
 img 
 {
 	max-width: 100%;
+	border: none;
 }
 
 @font-face {
@@ -308,19 +309,25 @@ a:hover, a:visited, a:link, a:active
 #holder
 {
 	display: flex;
-	margin-top: 20px;
-	width: 100%;
-	overflow-y: hidden;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-around;
+	align-items: center;
+	align-content: center;
+	/*margin-top: 20px;*/
+	/*width: 100%;*/
+	/*overflow-y: hidden;
 	vertical-align: middle;
-	text-align: center;
+	text-align: center;*/
 }
 #holder > div
 {
-	flex: 1;
+	/*flex: 1;*/
 }
 
 #namewrapper
 {
+	order: 1;
 	display: relative;
 	width: 45%;
 	max-width: 350px;
@@ -379,8 +386,8 @@ a:hover, a:visited, a:link, a:active
 
 #respawnTimer
 {
-	padding-top: 30px;
-	display: relative;
+	/*padding-top: 30px;*/
+	/*display: relative;*/
     font-family: Mirza, sans-serif;
     color: #fff;
     font-weight: 100;
@@ -404,11 +411,16 @@ a:hover, a:visited, a:link, a:active
 	border-radius: 5px;
 	border-color: yellow; */
 }
+#box3
+{
+	order: 3;
+}
 #skinwrapper
 {
+	order: 2;
 	display: relative;
 	height: 150px;
-	width: 45%;
+	width: 400px;/*90%;/*45%;*/
 	/*max-width: 250px;*/
 	float: right;
 	margin-right: 5px;
@@ -488,8 +500,8 @@ a:hover, a:visited, a:link, a:active
 #cf1 {
   /*position:fixed;*/
   position:relative;
-  height:200px;
-  width:300px;
+  height:250px;
+  width:250px;
   margin:0 auto;
   /*top: 100px;*/
   /*top: 50%;
@@ -498,10 +510,10 @@ a:hover, a:visited, a:link, a:active
   margin:0 auto;*/
 }
 
-#cf2 {
-  position:relative;
-  height:200px;
-  width:300px;
+#info-cards-player {
+  /*position:relative;*/
+  height:250px;
+  width:250px;
   /*margin:0 auto;*/
 }
 
@@ -514,12 +526,12 @@ a:hover, a:visited, a:link, a:active
 
 .cf img {
 	background-size: contain;
-	width: 75%;
-	height: 75%;
+	/*width: 100%;
+	height: 100%;*/
     position: absolute;
-    transform: translateX(-50%);
-    left: 50%;
-    top:0;
+    /*transform: translateX(-50%);
+    left: 50%;*/
+    /*top:0;*/
     -webkit-animation-name: fade;
     -webkit-animation-iteration-count: infinite;
     -webkit-animation-duration: 15s;
@@ -543,17 +555,42 @@ a:hover, a:visited, a:link, a:active
     100% {opacity: 0;}
 }
 #f1 {
-    /*background-color: lightblue;*/
 }
 #f2 {
     -webkit-animation-delay: -10s;
 	opacity: 0;
-    /*background-color: yellow;*/
 }
 #f3 {
 	opacity: 0;
-    -webkit-animation-delay: -5s;
-    /*background-color: lightgreen;*/
+    -webkit-animation-delay: -7s;
+}
+#f4 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f5 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f6 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f7 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f8 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f9 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
+}
+#f10 {
+	opacity: 0;
+    -webkit-animation-delay: -7s;
 }
 /*
 .form button {
@@ -1335,17 +1372,35 @@ h5
 	color: yellow;
 	font-size: 0.25em;
 }
+#bonus-arc-text
+{
+	/*display: absolute;*/
+	/*bottom: 20px;*/
+	display: block;
+	margin-top: -15px;
+	/*align-self: flex-start;*/
+	/*margin-top: -20px;*/
+	/*margin-right: 10px;*/
+	/*margin-left: 5px;*/
+	border: none;
+	outline: none;
+	background-image: transparent;
+	/*width: 42px;*/
+	/*height: 17px;*/
+	/*background: url('https://s3.amazonaws.com/com.dfeddon.wingdom/bonus-text-arc.png') no-repeat top left;*/
+}
 #bonus-total-text
 {
 	/*border:solid 1px red;*/
-	display: inline-block;
-	/*margin-left: 30%;
-	margin-right: 20%;*/
+	display: relative;/*inline-block;*/
+	margin-left: 25%;
+	margin-right: 10%;
 	width: 50px;
 	text-align: center;
-	vertical-align: center;
+	/*border: 5px solid red;*/
+	/*vertical-align: center;*/
 	/*transform-origin: center 50;*/
-	line-height: 60px;
+	line-height: 45px;
 	font-family: 'Mirza', small-caps;
 	/*font-weight: bold;*/
 	font-size: 1.5em;
@@ -1584,13 +1639,13 @@ h5
 #helper
 {
 	display: none;
-	margin: 0;
-	padding: 0;
-	top: 0px;
-	left: 0px;
+	flex-flow: column nowrap;
 	width: 100%;
 	height: 100%;
+	/*height: 100%;*/
 	background-color: black;
+	/*overflow: auto;*/
+	overflow-y: auto;
 }
 #closeHelper
 {
@@ -1598,7 +1653,23 @@ h5
 	margin-left: 15px;
 	float: left;
 }
-
+#info-cards
+{
+	width: 100%;
+	/*height: 100px;/*min-content;*/
+	/*height: 100%;*/
+	/*margin: 0;
+	padding: 0;
+	top: 0px;
+	left: 0px;*/
+	display: -ms-flexbox;
+	-webkit-flex-flow: row wrap; 
+	flex-flow: row wrap; 
+	display: -webkit-box;
+	display: flex;
+	align-items: flex-start;
+	/*overflow-y: auto;*/
+}
 .comic {
   display:flex;
   flex-wrap:wrap;
@@ -1749,6 +1820,15 @@ h5
 	background-repeat: no-repeat;
 	background-position: center;
 	overflow: hidden;
+}
+#winnerTopText
+{
+	display: block;
+	text-align: center;
+	font-family: 'Mirza', serif;/*Comic Sans', cursive;*/
+	font-size: 3em;
+	color: white;
+	padding-top: 10px;
 }
 #winnerBottom
 {
@@ -1921,7 +2001,7 @@ h5
 {
 	text-align: center;
 	font-family: 'Mirza', serif;/*Comic Sans', cursive;*/
-	font-size: 1.3em;
+	font-size: 1em;
 }
 .winnerImage
 {
@@ -1958,7 +2038,7 @@ h5
 
 .cardContainer {
     width: 15vw;
-    height: 35vh;
+    height: 25vw;/*35vh;*/
 	margin: 0;
     position: relative;
 	-webkit-animation: dropdownFX 0.5s;

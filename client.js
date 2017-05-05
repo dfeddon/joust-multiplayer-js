@@ -659,6 +659,8 @@ domready(function()
 	{
 		//var clock = document.getElementById(id);
 		var respawnTimer = document.getElementById('respawnWrapper');
+		var infoCardsPlayer = document.getElementById('info-cards-player');
+		infoCardsPlayer.style.display = "none";
 		respawnTimer.style.display = "block";
 		//   var daysSpan = clock.querySelector('.days');
 		//   var hoursSpan = clock.querySelector('.hours');

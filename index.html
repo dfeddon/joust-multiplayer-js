@@ -430,7 +430,6 @@
 		<!--
 		########################### PLAYER LEVEL/BUFF UI ##########################
 		-->
-
 		<div id="level-ui" class="container">
 			<div id="abilities-container">
 				<div id="modifiers-container">
@@ -459,7 +458,8 @@
 						</div>-->
 						<div id="bonus-total-container-positive">
 							<!--<label id="bonus-total-title">BONUS</label>-->
-							<label id="bonus-total-text">0</label>
+							<img id="bonus-arc-text" src="https://s3.amazonaws.com/com.dfeddon.wingdom/bonus-text-arc.png"><img/>
+							<label id="bonus-total-text" src="">0</label>
 						</div>
 				</div>
 				<div id="bonusslot-container">
@@ -493,7 +493,9 @@
 		</div>
 
 		<div id="roundWinnersView">
-			<div id="winnerTop"></div>
+			<div id="winnerTop">
+				<label id="winnerTopText">TOP 3 SCORERS</label>
+			</div>
 			<div id="winnerInner">
 				<div id="winnerLeft"></div>
 				<div id="winnerMid">
@@ -555,11 +557,22 @@
 			<div id="closeHelper" onclick="document.getElementById('helper').style.display='none';document.getElementById('splash').style.display='block'">
 				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/close-button.png" width="32" height="32" alt="Close"/>
 			</div>
-			<br><br>
-			<article class="comic">
-				<!-- glide, flap, speed, vulnerability, collision, teams, territory, rule! -->
+			<div id="info-cards"><br><br>
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/controls.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/attacks.png" alt="Arrow Key Navigation" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/bonus.png" alt="Collect Chests" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/healthbar.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/hit-vector.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/levelup.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/player-buffs.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/red-vs-blue.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/round-winners.png" alt="Red versus Blue" />
+				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/knockouts.png" alt="Red versus Blue" />
+			</div>
+			
+			<!--<br><br>-->
+<!--			<article class="comic">
 			<div class="panel">
-				<!--<p class="text top-left">Player Controls</p>-->
 				<p class="speech">So how do I get around in here?</p>
 				<p class="text bottom-right">...hold down the keys to glide and walk</p>
 			</div>
@@ -585,7 +598,7 @@
 			<div class="panel">
 				<p class="text bottom-right">THE END</p>
 			</div>
-			</article>
+			</article>-->
 
 
 		</div>
@@ -595,7 +608,7 @@
 		<!-- Initially empty and invisible -->
 		<div id="splash">
 
-			<div id="help" onclick="document.getElementById('helper').style.display='block';document.getElementById('splash').style.display='none'">
+			<div id="help" onclick="document.getElementById('helper').style.display='flex';document.getElementById('splash').style.display='none'">
 				<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/help-button.png" width="32" height="32" alt="Instructions"/>
 			</div>
 
@@ -667,21 +680,29 @@
 					
 					</div>
 
-					<!-- respawn timer -->
-					<div id="respawnTimer">
-						<div id="respawnWrapper">
-							<div id="respawnLabel">Respawning</div>
-							<div id="timerSeconds"></div>
+					<div id="box3">
+						<!-- respawn timer -->
+						<div id="respawnTimer">
+							<div id="respawnWrapper">
+								<div id="respawnLabel">Respawning</div>
+								<div id="timerSeconds"></div>
+							</div>
+						</div>
+
+						<!-- how to play -->
+						<div id="info-cards-player" class="cf">
+							<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/controls.png" alt="Red versus Blue" />
+							<img id="f2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/attacks.png" alt="Arrow Key Navigation" />
+							<img id="f3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/bonus.png" alt="Collect Chests" />
+							<img id="f4" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/healthbar.png" alt="Red versus Blue" />
+							<img id="f5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/hit-vector.png" alt="Red versus Blue" />
+							<img id="f6" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/levelup.png" alt="Red versus Blue" />
+							<img id="f7" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/player-buffs.png" alt="Red versus Blue" />
+							<img id="f8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/red-vs-blue.png" alt="Red versus Blue" />
+							<img id="f9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/round-winners.png" alt="Red versus Blue" />
+							<img id="f10" src="http://s3.amazonaws.com/com.dfeddon.wingdom/info-cards/knockouts.png" alt="Red versus Blue" />
 						</div>
 					</div>
-
-					<!-- how to play -->
-					<!--<div id="cf2" class="cf">
-						<img id="f3" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-chests.png" alt="Collect Chests" />
-						<img id="f2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-keyboard.png" alt="Arrow Key Navigation" />
-						<img id="f1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slider-redvblue.png" alt="Red versus Blue" />
-					</div>-->
-
 					
 					
 				</div>
