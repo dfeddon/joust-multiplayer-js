@@ -172,7 +172,7 @@ game_connections.prototype.vPlayers = function()
     var tot = 29;
     var socket;
     var hostname = "localhost";
-    var socketPort = "4004";
+    var socketPort = "3000";
     var _this = this;
     var Primus = require('./primus/primus');
     var vplayer = function()
@@ -199,7 +199,7 @@ game_connections.prototype.vPlayers = function()
             }
         });
         // socket = new Primus.Socket(url);
-        console.log(socket.socket);
+        console.log('@ socket', socket);
         // socket.write({cc: undefined + "|" + undefined + "|" + "4004"});
         socket.send('connection', {})
         vp++;

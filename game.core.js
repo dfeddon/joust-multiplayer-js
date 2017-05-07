@@ -15,8 +15,8 @@
 
 'use strict';
 
-var MAX_PLAYERS_PER_GAME = 30;
-var MAX_GAMES_PER_SERVER = 20;
+var MAX_PLAYERS_PER_GAME = 40;
+var MAX_GAMES_PER_SERVER = 10;
 
 // include modules
 // var WebSocket         = require('ws');
@@ -2334,7 +2334,7 @@ game_core.prototype.roundComplete = function(port, round)
             
             ordered.splice(rng - 1, 1);
         }
-        console.log("top10:", ordered);
+        // console.log("top10:", ordered);
         var buffs = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"];
         var top10 = [];
         for (var y = ordered.length - 1; y >= 0; y--)

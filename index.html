@@ -494,7 +494,8 @@
 
 		<div id="roundWinnersView">
 			<div id="winnerTop">
-				<label id="winnerTopText">TOP 3 SCORERS</label>
+				<label id="winnerTopTextRound">ROUND 1</label>
+				<label id="winnerTopTextScorers">Top 3 Scorers</label>
 			</div>
 			<div id="winnerInner">
 				<div id="winnerLeft"></div>
@@ -646,38 +647,47 @@
 				<div id="holder">
 
 					<div id="namewrapper">
-						<input id="nickname" type="text" placeholder="Your Nickname" maxLength="18" minLength="3" pattern="[a-zA-Z0-9]{3,18}" autofocus/>
-
-						<button id="btnStart">One sec...</button>
+						<textarea id="holderText">LATEST NEWS
+Dolor sit amet, consectetur adipiscing elit. Aliquam sem sapien, lacinia sit amet nisi non, viverra pretium arcu.</textarea>
 					</div>
 
 					<!-- skins -->
 					<div id="skinwrapper">
 						<br><br>
 						<label id="skinSelectLabel">&#9753; Select a Wingling &#9753;</label>
-						<br><br>
-						<div id="leftArrow" class="float">
-							<button class="btn">
-								<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowLeft.png" alt="Previous Skin"/>
-							</button>
+						
+
+						<div id="skinControls">
+							
+							<div id="leftArrow" class="float">
+								<button class="btn">
+									<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowLeft.png" alt="Previous Skin"/>
+								</button>
+							</div>
+
+							<div id="skin" class="float">
+								<img class="slides" id="skin1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png" alt="Skin 1"/>
+								<img class="slides" id="skin2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin2.png" alt="Skin 2"/>
+								<img class="slides" id="skin5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin5.png" alt="Skin 5"/>
+								<img class="slides" id="skin8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin8.png" alt="Skin 8"/>
+								<img class="slides" id="skin9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin9.png" alt="Skin 9"/>
+								<img class="slides" id="skin10" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin10.png" alt="Skin 10"/>			
+								<img class="slides" id="skin11" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin11.png" alt="Skin 11"/>			
+							</div>
+							
+							<div id="rightArrow" class="float">
+								<button class="btn">
+									<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png" alt="Next Skin"/>
+								</button>
+							</div>
 						</div>
 
-						<div id="skin" class="float">
-							<img class="slides" id="skin1" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png" alt="Skin 1"/>
-							<img class="slides" id="skin2" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin2.png" alt="Skin 2"/>
-							<img class="slides" id="skin5" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin5.png" alt="Skin 5"/>
-							<img class="slides" id="skin8" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin8.png" alt="Skin 8"/>
-							<img class="slides" id="skin9" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin9.png" alt="Skin 9"/>
-							<img class="slides" id="skin10" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin10.png" alt="Skin 10"/>			
-							<img class="slides" id="skin11" src="http://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin11.png" alt="Skin 11"/>			
-						</div>
-						
-						<div id="rightArrow" class="float">
-							<button class="btn">
-								<img src="http://s3.amazonaws.com/com.dfeddon.wingdom/arrowRight.png" alt="Next Skin"/>
-							</button>
-						</div>
-					
+						<input id="nickname" type="text" placeholder="Your Nickname" maxLength="18" minLength="3" pattern="[a-zA-Z0-9]{3,18}" autofocus/>
+
+						<button id="btnStart">One sec...</button>
+						<label id="holderStatus"></label>
+
+
 					</div>
 
 					<div id="box3">
@@ -708,14 +718,14 @@
 				</div>
 
 				<div id="scoring">
-					<br>
+					<!--<br>-->
 					<div id="mylastscore">
-						<label id="lblYourscore">Your Score:</label>
+						<label id="lblYourscore">My Score:</label>
 						<label id="txtYourscore">0</label>
 					</div>
 					
 					<div id="myhighscore">
-						<label id="lblHighscore">Highscore:</label>
+						<label id="lblHighscore">My Highscore:</label>
 						<label id="txtHighscore">0</label>
 					</div>
 					<br>

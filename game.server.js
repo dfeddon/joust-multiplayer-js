@@ -8,7 +8,7 @@ MIT Licensed.
 
 'use strict';
 
-const MAX_PLAYERS_PER_LOCAL_SERVER = 30;
+const MAX_PLAYERS_PER_LOCAL_SERVER = 40;
 const MAX_PLAYERS_PER_GAME_INSTANCE = MAX_PLAYERS_PER_LOCAL_SERVER * 10;
 const MAX_GAMES_PER_SUPER_SERVER = 1;
 
@@ -106,12 +106,47 @@ game_server.prototype._onMessage = function(spark,message)
     // this.log('@@ _onMessage', message);//, spark);//, client.mp);
     if (message.cc) // new client connected
     {
-
-        // /end
+        this.log("@ new client connected (cc)", this.games);
+        // create uid
         spark.userid = getUid();
-        spark.playerdata = message.cc;
-        // split string on delimiter
+
+        // next, determine the game port has available slot
+        // otherwise, we'll need to set a new (arbitrary) port home
+        // (client can reside on home port uri yet move to another port node)
         var split = message.cc.split("|");
+
+        // only check counts if game exists
+        var game = this.games[Object.keys(this.games)[0]];
+        if (game !== undefined)
+        {
+            // var game = this.games[Object.keys(this.games)[0]];
+            var room = game.gamecore.getplayers.fromRoom(split[2]);
+            var totalUsers = 0;
+            if (room)
+            {
+                for (var j = room.length - 1; j >= 0; j--)
+                {
+                    if (room[j].instance)
+                        totalUsers++;//console.log("@ we have a user!");
+                }
+            }
+            this.log("@ server has", totalUsers, "users");
+            if (totalUsers > 0)//MAX_PLAYERS_PER_LOCAL_SERVER)
+            {
+                console.log("@ game is full, move client to a new port!");
+                // find available port
+                // store new port in messsage.cc[2];
+                // message.cc[2] = 4005;
+                split[2] = 4005;
+            }
+            else this.log("@ game slot available, assigning user to game on port", split[2]);
+        }
+        else this.log("@ this is the first connection on server!");
+        // store data
+        spark.playerdata = message.cc;
+
+        // split string on delimiter
+        // var split = message.cc.split("|");
         // get player name
         var playerName = 0;
         if (split[0] != "undefined")
@@ -141,7 +176,7 @@ game_server.prototype._onMessage = function(spark,message)
         });
         // also, we will sort rooms by port (split[2])
 
-        spark.emit('onconnected', [spark.userid,playerName,skinNum]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
+        spark.write([1, spark.userid, playerName, skinNum, playerPort]);//{ id: spark.userid, playerName: playerName, playerSkin: skinNum });
         // var buffer = new ArrayBuffer(16);
         // var view = new Int32Array(buffer);
         // view[0] = spark.userid;
@@ -513,77 +548,6 @@ game_server.prototype.endGame = function(gameid, userid)
                     break;
                 }
             }
-            /*
-            if (disconnected_mp)
-            {
-                for (var k = 0; k < allplayers.length; k++)
-                {
-                    if (allplayers[k].mp != disconnected_mp && allplayers[k].mp != "hp" && allplayers[k].instance)
-                    {
-                        console.log('@@ informing player', allplayers[k].mp, 'about', disconnected_mp);                    
-                        allplayers[k].instance.send('s.e.' + disconnected_mp);
-                        //thegame.gamecore.players.self = allplayers[k];
-                    }
-                }
-                this.log("player clients", thegame.player_clients.length);
-            }
-            */
-
-            // if host, send the players the msg the game is ending
-            // if (userid == host.userid)
-            // {
-            //     //the host left, oh snap. Lets try join another game
-            //     for (var j = 0; j < nonhosts.length; j++)
-            //     {
-            //         if(nonhosts[j])
-            //         {
-            //             //tell them the game is over
-            //             nonhosts[j].send('s.e');
-            //             //now look for/create a new game.
-            //             this.findGame(nonhosts[j]);
-            //         }
-            //     }
-            // }
-            // else // not host
-            // {
-            //     //the other player left, we were hosting
-            //     if (host)
-            //     {
-            //         //tell the client the game is ended
-            //         host.send('s.e');
-            //         //i am no longer hosting, this game is going down
-            //         host.hosting = false;
-            //         //now look for/create a new game.
-            //         this.findGame(host);
-            //     }
-            // }
-
-            // if host, send the players the message the game is ending
-            /*if(userid == thegame.player_host.userid)
-            {
-                //the host left, oh snap. Lets try join another game
-                if(thegame.player_client)
-                {
-                    //tell them the game is over
-                    thegame.player_client.send('s.e');
-                    //now look for/create a new game.
-                    this.findGame(thegame.player_client);
-                }
-
-            }
-            else // not host
-            {
-                //the other player left, we were hosting
-                if(thegame.player_host)
-                {
-                    //tell the client the game is ended
-                    thegame.player_host.send('s.e');
-                    //i am no longer hosting, this game is going down
-                    thegame.player_host.hosting = false;
-                    //now look for/create a new game.
-                    this.findGame(thegame.player_host);
-                }
-            }*/
         }
         else
         {
@@ -636,9 +600,13 @@ game_server.prototype.startGame = function(game, newplayer)
 
     var teamObj = this.getTeams(newplayer.playerPort, game);//game);
     this.log('* team obj', teamObj);
+    // teamObj.isfull = true;
     if (teamObj.isfull)
     {
         console.warn("Game is full!");
+        // players = game_instance.gamecore.getplayers.fromRoom(client.playerPort);
+        newplayer.write([50]);
+        return;
     }
     else team = teamObj.recommend;
     this.log('* teams', team);
@@ -966,7 +934,7 @@ game_server.prototype.findGame = function(client)
     {
         if (game_instance !== undefined)
         {
-            var playersOnPort = game_instance.gamecore.getplayers.fromGame(client.playerPort);
+            var playersOnPort = game_instance.gamecore.getplayers.fromRoom(client.playerPort);
             if (playersOnPort === undefined) localGames = 0; // port game not yet instantiated
             else localGames = playersOnPort.length;
         }
@@ -1183,9 +1151,9 @@ game_server.prototype.getTeams = function(port, game_instance)
     //total--; // remove "host" player
     total--; // remove new player
 
-    _this.log('red', red, 'blue', blue);
+    _this.log('red', red, 'blue', blue, 'total', total);
 
-    if (total === MAX_PLAYERS_PER_GAME_INSTANCE)
+    if (total > MAX_PLAYERS_PER_GAME_INSTANCE)
         full = true;
     else
     {

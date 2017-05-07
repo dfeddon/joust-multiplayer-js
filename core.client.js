@@ -71,7 +71,7 @@ function core_client(core, config)
     this.flashBang = 0;
     this.rt = 0;
 
-    this.totalRounds = 0;
+    this.totalRounds = 1;
 
     // tilemap
     this.api(); // load and build tilemap
@@ -830,17 +830,26 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 
 }; //client_onhostgame
 
-core_client.prototype.client_onconnected = function(data) {
-    //if (glog)
-    console.log('## client_onconnected')
-    console.log(data, '(self.id=' + data[0] + ") ##");
-    //console.log('data', data);
+core_client.prototype.client_onconnected = function(userid, playerName, skinNumber, playerPort) 
+{
+    console.log('== client_onconnected ==', userid, playerName, skinNumber, playerPort);
 
-    this.players.self.id = data[0];
-    this.players.self.userid = data[0];
-    if (data[1] !== 0)
-        this.players.self.setPlayerName(data[1]);
-    this.players.self.skin = "skin" + data[2].toString();
+    // userid
+    this.players.self.id = userid;//data[0];
+    this.players.self.userid = userid;//data[0];
+
+    // player name
+    /*
+    if (playerName !== 0)
+        this.players.self.setPlayerName(playerName);
+
+    // player skin
+    this.players.self.skin = "skin" + skinNumber.toString();
+    */
+
+    // player port
+    this.xport = playerPort;
+    this.playerPort = playerPort;
     
     /*var playerdata = data.playerdata.split("|");
 
@@ -1117,35 +1126,12 @@ core_client.prototype.client_ondisconnect = function(userid) {
 
 core_client.prototype.client_connect_to_server = function(data)
 {
-    //if (glog)
-    console.log('client_connect_to_server', data);
+    console.log('== client_connect_to_server ==', data);
 
     var _this = this;
 
-    //Store a local reference to our connection to the server
-    // this.socket = io.connect("http://192.168.86.106:4004", 
-    /*
-    var primus = new Primus(server, { transformer: 'websockets' });
-    this.Socket = primus.Socket;
-    this.socket = new Socket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin);//,
-    */
-
-    /*
-    this.socket = new WebSocket('ws://localhost:3000/?playerdata=' + assets.playerName + "|" + assets.playerSkin,
-    {
-        perMessageDeflate: false            
-    });
-    //*/
-    //*
-    // var url = "ws://192.168.86.112:3000";///?playerdata=" + assets.playerName + "|" + assets.playerSkin;
-    // url = "ws://localhost:3000";
-    // var x_port = document.getElementById('portCall');
-    // console.log('x_port:', x_port);
     console.log('xport', xport);
-
     this.xport = xport.toString();
-    // this.core.chests = this.core.getplayers.fromRoom()
-    
     this.core.getplayers.addRoom(this.xport.toString());
     
     console.log('server port', location.port, location.hostname, location.host);
@@ -1157,20 +1143,7 @@ core_client.prototype.client_connect_to_server = function(data)
     
     
     var socketPort = "3000";
-    // switch(parseInt(location.port))
-    // {
-    //     case 4004:
-    //         socketPort = "3000";
-    //         break;
-
-    //     case 4005:
-    //         socketPort = "3000";
-    //         break;
-    // }
-
     var hostname = location.hostname;
-    // if (hostname == "192.168.86.108");
-    //     hostname = 'localhost';
     // dynamic, server/port-based endpoint
     var dynamicEndpoint = "ws://" + hostname + ":" + xport;
     this.playerPort = xport;
@@ -1199,7 +1172,7 @@ core_client.prototype.client_connect_to_server = function(data)
     //and are placed in a game by the server. The server sends us a message for that.
     this.socket.on('open', function open()
     {
-        console.log('== client_connect_to_server ==');
+        console.log('* socket open');
         
         this.players.self.state = 'connecting';
         // console.log(this.socket.primus.latency);
@@ -1212,7 +1185,8 @@ core_client.prototype.client_connect_to_server = function(data)
 
         switch(data[0])
         {
-            // case "onconnected": _this.client_onconnected(data);//.bind(this);
+            // 1: userid, 2: playerName, 3: skinNum, 4: playerPort
+            case 1: _this.client_onconnected(data[1], data[2], data[3], data[4]); break;
             // break;
             
             // player hit
@@ -1253,6 +1227,9 @@ core_client.prototype.client_connect_to_server = function(data)
 
             // bonus round complete
             case 31: _this.client_onbonusroundcomplete(data[1]); break;
+
+            // game is full
+            case 50: _this.client_ongamefull(); break;
 
             // onserverupdate (streaming)
             default: _this.client_onserverupdate_recieved(data); break;
@@ -1796,6 +1773,19 @@ core_client.prototype.client_onroundcomplete = function(winners)
         if (!_this.players.self.dead && !_this.players.self.dying)
             _this.roundWinnersView(winners); 
     }, 5000);
+}
+
+core_client.prototype.client_ongamefull = function()
+{
+    console.log('== client_ongamefull ==');
+    var currentPort = parseInt(this.xport);
+    console.log('current port', currentPort);
+    var nextPort = currentPort + 1;
+    if (nextPort > 4013)
+        nextPort = 4004;
+    console.log("next port", nextPort);
+
+    document.getElementById('holderStatus').innerHTML = "Game is full!";
 }
 
 core_client.prototype.client_on_orbremoval = function(data)
@@ -4223,7 +4213,8 @@ core_client.prototype.roundWinnersView = function(winners)
     // show bonus round text
     var bonusText = function()
     {
-        document.getElementById('winnerTopText').innerHTML = "ROUND " + _this.totalRounds.toString() + ": TOP 3 SCORERS";
+        document.getElementById('winnerTopTextRound').innerHTML = "ROUND " + _this.totalRounds.toString();// + ": TOP 3 SCORERS";
+        document.getElementById('winnerTopTextScorers').innerHTML = "Top 3 Scorers";
 
         var callout = document.getElementById('roundCompleteCallout');
         callout.innerHTML = "BONUS ROUND<br/>Your team's <b>top</b> scorers!";
@@ -4380,7 +4371,7 @@ core_client.prototype.roundWinnersView = function(winners)
             card3.classList.add('flippedBack');
             card3.classList.remove('flipped');
             
-            document.getElementById('winnerTopText').innerHTML = "ROUND " + _this.totalRounds.toString() + ": TOP 10 SCORERS";
+            document.getElementById('winnerTopTextScorers').innerHTML = "Top 10 Scorers";
             var callout = document.getElementById('roundCompleteCallout');
             callout.innerHTML = "Top 4 - 10<br/><i>(Selected at Random)</i>";
             callout.style.display = "block";
