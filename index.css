@@ -404,6 +404,16 @@ a:hover, a:visited, a:link, a:active
 	padding-top: 10px;
 	padding-bottom: 10px;
 	color: lightblue;
+	outline: none;
+    /*-webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;*/
+}
+#textLabel
+{
+	font-family: Mirza, sans-serif;
+    font-size: 24px;
+	color: lightblue;
 }
 #holderText
 {
@@ -418,7 +428,8 @@ a:hover, a:visited, a:link, a:active
     font-family: Mirza, sans-serif;
     color: #fff;
     font-size: 18px;
-    text-align: center;
+    text-align: left;
+	outline: none;
 }
 #respawnTimer
 {
@@ -485,6 +496,7 @@ a:hover, a:visited, a:link, a:active
 {
 	font-family: Mirza, serif;
 	font-size: 30px;
+	color: lightblue;
 }
 /*#nameContainer
 {

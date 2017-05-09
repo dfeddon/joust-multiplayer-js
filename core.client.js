@@ -730,6 +730,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
                     
                     p[i].userid = other.userid;
                     p[i].id = other.userid;
+                    p[i].userid = other.userid;
                     p[i].active = true;
                     p[i].visible = true;
                     // if (other.playerName != 'undefined')
@@ -1025,7 +1026,7 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, h
         // victim is dead!
         victim.health = 0;
         // victor.doHitClientVictor(victim, dmg);
-        // victim.doKill(victor);//, dmg);
+        //victim.doKill(victor);//, dmg);
     }
     else
     { 
@@ -1062,10 +1063,10 @@ core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)//, 
     // var split = data.split("|");
     // var victim = _.find(_this.core.getplayers.allplayers, 'id', victim);
     // var victor = _.find(_this.core.getplayers.allplayers, {'id':victor});
-    console.log('victim', victim);
+    console.log('victim', victim.mp, victim.playerName);
     if (victor)
     {
-        console.log('victor', victor.mp);
+        console.log('victor', victor.mp, victor.playerName);
         victim.doKill(victor);
     }
     else victim.doKill();
@@ -1080,10 +1081,13 @@ core_client.prototype.client_onplayerreturned = function(userid)
         console.log("*", this.core.getplayers.allplayers[i].userid);
         if (this.core.getplayers.allplayers[i].userid == userid)
         {
-            console.log("* found returned player", userid);
+            console.log("* found returned player", userid, this.players.self.userid);
             this.core.getplayers.allplayers[i].active = true;
             this.core.getplayers.allplayers[i].visible = true;
+            this.core.getplayers.allplayers[i].vuln = false;
             this.core.getplayers.allplayers[i].healthAdjustments();
+            console.log("* self", this.players.self);
+            // this.players.self = this.core.getplayers.allplayers[i];
             break;
         }
     }
@@ -2883,8 +2887,7 @@ core_client.prototype.client_update = function()
         // clamp(value, min, max)
         // return Math.max(min, Math.min(value, max));
         // console.log('lpos', this.players.self.campos.x, this.players.self.pos.x);
-        this.cam.pos = //this.players.self.pos;
-        this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
+        this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
         this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
         this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
@@ -2977,18 +2980,7 @@ core_client.prototype.client_update = function()
     //////////////////////////////////////////
     // Draw Players
     //////////////////////////////////////////
-    //Now they should have updated, we can draw the entity
-    //this.players.other.draw();
-    //for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
-    // TODO: Only draw 'onscreen' players
-    // console.log('p', this.players.self.pos);
-    
-    //console.log('cam', this.players.self.mp, this.cam.y, this.viewport.height);
-    //console.log(':',this.players.self.pos.x + this.cam.x, (this.players.self.pos.x + this.cam.x)*2);//, this.players.self.pos.y)
-    // console.log("# players", this.core.getplayers.fromRoom(this.xport));
-    // _.forEach(this.core.getplayers.fromRoom(_this.xport), function(ply)
-    // _.forEach(this.core.getplayers.allplayers, function(ply)
-    // var ply;
+    // Only draw 'onscreen' players
     for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
     {
         // console.log('ply', ply);

@@ -11,6 +11,8 @@ MIT Licensed.
 const MAX_PLAYERS_PER_LOCAL_SERVER = 40;
 const MAX_PLAYERS_PER_GAME_INSTANCE = MAX_PLAYERS_PER_LOCAL_SERVER * 10;
 const MAX_GAMES_PER_SUPER_SERVER = 1;
+const PORT_RANGE_START = 4004;
+const PORT_RANGE_END = 4013;
 
 const
     // game_server = module.exports = { games : {}, game_count:0 },
@@ -126,18 +128,24 @@ game_server.prototype._onMessage = function(spark,message)
             {
                 for (var j = room.length - 1; j >= 0; j--)
                 {
+                    // check for non-instance player
                     if (room[j].instance)
                         totalUsers++;//console.log("@ we have a user!");
                 }
             }
             this.log("@ server has", totalUsers, "users");
-            if (totalUsers > 0)//MAX_PLAYERS_PER_LOCAL_SERVER)
+            if (totalUsers > MAX_PLAYERS_PER_LOCAL_SERVER)
             {
                 console.log("@ game is full, move client to a new port!");
-                // find available port
-                // store new port in messsage.cc[2];
-                // message.cc[2] = 4005;
-                split[2] = 4005;
+                // find *first available* port
+                var currentPort = parseInt(this.xport);
+                console.log('current port', currentPort);
+                var nextPort = currentPort + 1;
+                if (nextPort > PORT_RANGE_END)
+                    nextPort = PORT_RANGE_START;
+                split[2] = nextPort;
+                console.log("next port", nextPort);
+                // store new port in (rebuilt!) messsage.cc[2];
             }
             else this.log("@ game slot available, assigning user to game on port", split[2]);
         }
@@ -253,6 +261,17 @@ game_server.prototype._onMessage = function(spark,message)
         var playerSkin = split[1];
         // this.log('getting player names for', message_parts);// '...');
         var p = spark.game.gamecore.getplayers.fromRoom(port);//.allplayers;
+        /*for (i = p.length - 1; i >= 0; i--)
+        {
+            this.log("@ userid", p[i].userid, userid);
+            if (p[i].userid === userid)
+            {
+                this.log("@ found respawned player");
+                p[i].active = true;
+                p[i].visible = true;
+                p[i].vuln = false;
+            }
+        }*/
         var arr = [];
         var source;
 
@@ -751,7 +770,8 @@ game_server.prototype.startGame = function(game, newplayer)
         {
             this.log('@@', nonhosts[j].userid, nonhosts[j].mp, nonhosts.pos);
             //var playerName, playerMP;
-            p = game_instance.gamecore.getplayers.allplayers;
+            // p = game_instance.gamecore.getplayers.allplayers;
+            p = game_instance.gamecore.getplayers.fromRoom(playerPort);
             for (x = 0; x < p.length; x++)
             {
                 //this.log("**", p[x].mp, nonhosts[j].mp, newplayer.mp);
@@ -791,7 +811,8 @@ game_server.prototype.startGame = function(game, newplayer)
             }
             var flagsArray = [];
             var flag;
-            var fo = game_instance.gamecore.config.flagObjects;
+            // var fo = game_instance.gamecore.config.flagObjects;
+            var fo = game_instance.gamecore.getplayers.fromRoom(playerPort, 3);
             // if (fo)
             // {
             for (var l = 0; l < fo.length; l++)
@@ -864,6 +885,7 @@ game_server.prototype.startGame = function(game, newplayer)
                 this.log('@ onhostgame', data);
                 // this.log('roundEndTime', game_instance.gamecore.roundEndTime);
                 nonhosts[j].send('onhostgame', data);
+                this.log('@ data', data);
 
                 // nonhosts[j].send('onhostgame', playerMP + "|" + this.games[game.id].id + "|" + JSON.stringify(chestsarray) + "|" + team + "|" + playerName + "|" + JSON.stringify(flagsArray) + "|" + playerUserId + "|" + JSON.stringify(others), function(err, success)
                 // {

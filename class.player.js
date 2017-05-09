@@ -447,7 +447,8 @@ game_player.prototype.updateHealth = function(val, hitBy)
             console.warn("* player.updateHealth -- Add doKill socket fnc!");
             this.doKill(hitBy);
             if (!hitBy) hitBy = 0;
-            this.instance.room(this.playerPort).write([6, this.id, hitBy]);//, Math.abs(val), this.health]);
+            this.instance.room(this.playerPort).write([6, this.id, hitBy.userid]);//, Math.abs(val), this.health]);
+            console.log("******", this.playerPort, this.id, hitBy.userid, this.instance);
             // this.doKill();
         }
         return;
@@ -1994,7 +1995,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
 
 game_player.prototype.doKill = function(victor)
 {
-    console.log('== player.doKill ==', victor);//, this.playerName);
+    console.log('== player.doKill ==');//, victor);//, this.playerName);
     if (victor) console.log(this.playerName, 'killed by', victor.playerName, 'dead?', this.dead);
     // this.active = false;
 
@@ -2035,7 +2036,7 @@ game_player.prototype.doKill = function(victor)
     this.vy = 0;
     this.a = 0;
 
-    this.vuln = true;
+    // this.vuln = true;
     // remove buffs and bonuses
     // if (this.config.server)
     // {
@@ -2796,7 +2797,7 @@ game_player.prototype.draw = function()
             // draw buff image
             if (this.textFloater[5])
                 this.config.ctx.drawImage(this.textFloater[5], this.pos.x - 95, this.pos.y - 60 - this.textFloater[2], 50, 50);
-            this.config.ctx.fillText(this.textFloater[0],this.pos.x,this.pos.y - 30 - this.textFloater[2]);
+            this.config.ctx.fillText(this.textFloater[0], this.pos.x, this.pos.y - 30 - this.textFloater[2]);
             this.textFloater[2] += 0.25;
             // this.config.ctx.restore();
             if (this.config.server_time >= this.textFloater[3])

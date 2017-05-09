@@ -260,7 +260,7 @@ game_core.prototype.init = function(game_instance)//, io)
 
         // server update vars (optimized!)
         this.laststate = {};
-        this.bufView = new Array(20);//this.MAX_GAMES_PER_SERVER); // where 20 is the max number of games per server
+        this.bufView = new Array(10);//this.MAX_GAMES_PER_SERVER); // where 20 is the max number of games per server
         for (var i = 0; i < this.bufView.length; i++)
         {
             this.bufView[i] = new Array(40); // 40 players per game

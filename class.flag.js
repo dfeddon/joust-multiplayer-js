@@ -516,7 +516,7 @@ game_flag.prototype.slotFlag = function(player)
     // var test = this.getplayers.game_instance.inRoomFlags['4004'];
     // console.log('test:', test);
     var flg = this.config._.find(roomFlags, {"name":clientFlag.name});
-    console.log('* flag', flg, roomFlags);
+    // console.log('* flag', flg, roomFlags);
 
     player.hasFlag = 0;
 
@@ -526,8 +526,8 @@ game_flag.prototype.slotFlag = function(player)
     this.sourceSlot = this.name;
     console.log('flag.name:', this.name);
     flg.sourceSlot = this.name;
-    flg.targetSlot = this.getTargetSlot(player.team, flg.sourceSlot);
-    console.log('flag new src/trg', flg.sourceSlot, flg.targetSlot);
+    // flg.targetSlot = this.getTargetSlot(player.team, flg.sourceSlot);
+    console.log('flag new src/trg', flg.sourceSlot);//, flg.targetSlot);
     
     // stop cooldown (clientFlag)
 

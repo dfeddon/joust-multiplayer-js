@@ -127,16 +127,18 @@ game_event.prototype.update = function(port)
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
         console.log('evt update slotted cooldown complete');
-        //this.flag.isHeld = false;
-        var userid = this.flag.heldBy;
-        var player = this.getplayers.getPlayerByUserId(userid);
+        this.flag.isHeld = false;
+        // var userid = this.flag.heldBy;
+        // var player = this.getplayers.getPlayerByUserId(userid);
+        // console.log("*", player.playerName, 'slotted flag!');
+        
         // var room = this.getplayers.fromRoom(roomName);
         // var player = this.config._.find(room, {"userid":userid});
         
         this.flag.isActive = true;
         this.flag.heldBy = null;
         this.flag.onCooldown = false;
-        this.flag.targetSlot = this.flag.getTargetSlot(player.team, this.flag.sourceSlot);
+        // this.flag.targetSlot = this.flag.getTargetSlot(player.team, this.flag.sourceSlot);
         //console.log('this.flag', this.flag);
 
       break;
