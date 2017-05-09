@@ -1227,6 +1227,144 @@ h5
 	/*float: right;*/
 }
 
+#buffInfo
+{
+	display: none;
+	align-self: flex-start;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-around;
+	align-items: center;
+	align-content: center;	
+	position: absolute;
+	bottom: 15%;
+	text-align: center;
+	vertical-align: middle;
+	margin: 0 auto;
+	padding-top: 20px;
+	padding-bottom: 15px;
+	width: 100%;
+	z-index: 310;
+	background-color: rgba(0, 0, 0, 0.5);
+    -moz-animation: cssAnimation 5s forwards;
+    /* Firefox */
+    -webkit-animation: cssAnimation 5s forwards;
+    /* Safari and Chrome */
+    -o-animation: cssAnimation 5s forwards;
+    /* Opera */
+    animation: cssAnimation 5s forwards;
+    -webkit-animation-fill-mode: forwards;	
+}
+@keyframes cssAnimation {
+    0%   {opacity: 1;}
+    90%  {opacity: 1;}
+    100% {opacity: 0;}
+}
+@-webkit-keyframes cssAnimation {
+    0%   {opacity: 1;}
+    90%  {opacity: 1;}
+    100% {opacity: 0;}
+}
+#buffImageContainer
+{
+	display: flex;
+	align-self: flex-start;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-around;
+	align-items: center;
+	align-content: center;	
+}
+#buffInfoImage
+{
+	order: 1;
+	display: block;
+	border: solid 1px black;
+	width: 50px;
+	height: 50px;
+	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-bubble.png');
+	background-size: cover;
+	/*background-position: center center;*/
+}
+#buffInfoLabel
+{
+	order: 2;
+	margin-top: 5px;
+	margin-left: 10px;
+	font-size: 1.5em;
+	font-family: 'Mirza', serif;
+	font-weight: bold;
+	color: white;
+}
+
+#levelup
+{
+	display: none;
+	align-self: flex-start;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	justify-content: space-around;
+	align-items: center;
+	align-content: center;	
+	position: absolute;
+	bottom: 25%;
+	text-align: center;
+	vertical-align: middle;
+	margin: 0 auto;
+	padding-top: 20px;
+	padding-bottom: 15px;
+	width: 100%;
+	z-index: 310;
+	background-color: rgba(0, 0, 0, 0.5);
+    -moz-animation: cssAnimation2 5s forwards;
+    /* Firefox */
+    -webkit-animation: cssAnimation2 5s forwards;
+    /* Safari and Chrome */
+    -o-animation: cssAnimation2 5s forwards;
+    /* Opera */
+    animation: cssAnimation2 5s forwards;
+    -webkit-animation-fill-mode: forwards;	
+}
+
+@keyframes cssAnimation2 {
+    0%   {opacity: 1;}
+    90%  {opacity: 1;}
+    100% {opacity: 0;}
+}
+@-webkit-keyframes cssAnimation2 {
+    0%   {opacity: 1;}
+    90%  {opacity: 1;}
+    100% {opacity: 0;}
+}
+#levelupLabel
+{
+	order: 1;
+	font-size: 3em;
+	font-family: 'Mirza', serif;
+	font-weight: bold;
+	color: yellow;
+}
+#levelupText1
+{
+	order: 1;
+	font-size: 1.25em;
+	font-family: 'Mirza', serif;
+	color: lightblue;
+}
+#levelupText2
+{
+	order: 2;
+	font-size: 1.25em;
+	font-family: 'Mirza', serif;
+	color: lightblue;
+}
+#levelupText3
+{
+	order: 3;
+	font-size: 1.5em;
+	font-family: 'Mirza', serif;
+	color: white;
+}
 #level-ui
 {
 	/*border:solid 1px #aqua;*/
@@ -1296,7 +1434,7 @@ h5
 	width: 50px;
 	height: 10px;
 	text-align: right;
-	background-color: rgba(0, 0, 0, 0.5);;
+	background-color: rgba(0, 0, 0, 0.5);
 	border:solid 1px #fff;
 	font-size: 0.75em;
 	padding-right: 2px;

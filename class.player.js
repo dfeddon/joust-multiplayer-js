@@ -636,6 +636,19 @@ game_player.prototype.addBuff = function(buff)
         }
     }
 
+    if (!this.config.server && this.isLocal)
+    {
+        console.log("* adding buff callout!");
+        document.getElementById('buffInfoImage').style.backgroundImage = "url('" + buffImage + "')";
+        document.getElementById('buffInfoLabel').innerHTML = this.game_buffs.getTextById(buff);
+        document.getElementById('buffInfo').style.display = "flex";
+        document.getElementById('buffInfo').addEventListener('webkitAnimationEnd', function()
+        {
+            console.log("* animation end");
+            this.style.display = "none";
+        }, false);
+    }
+
     this.activateBuff(buff);
 };
 
@@ -1024,6 +1037,15 @@ game_player.prototype.addToScore = function(val)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('levelupLabel').innerHTML = "LEVEL 2!";
+            document.getElementById('levelupText3').style.display = "none";
+            document.getElementById('levelup').style.display = "flex";
+            document.getElementById('levelup').style.webkitAnimationName = 'cssAnimation';
+            document.getElementById('levelup').addEventListener('webkitAnimationEnd', function()
+            {
+                console.log("* animation end");
+                this.style.display = "none";
+            }, false);
         }
     }
     else if (this.level === 2 && this.score >= this.levels[2])
@@ -1037,6 +1059,17 @@ game_player.prototype.addToScore = function(val)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('levelupLabel').innerHTML = "LEVEL 3!";
+            document.getElementById('levelupText3').style.display = "flex";
+            document.getElementById('levelup').style.display = "flex";
+            document.getElementById('levelup').style.webkitAnimationName = 'cssAnimation';
+            document.getElementById('levelup').addEventListener('webkitAnimationEnd', function()
+            {
+                console.log("* animation end");
+                this.style.display = "none";
+            }, false);
         }
     }
     else if (this.level === 3 && this.score >= this.levels[3])
@@ -1049,6 +1082,17 @@ game_player.prototype.addToScore = function(val)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('levelupLabel').innerHTML = "LEVEL 4!";
+            document.getElementById('levelupText3').style.display = "none";
+            document.getElementById('levelup').style.display = "flex";
+            document.getElementById('levelup').style.webkitAnimationName = 'cssAnimation';
+            document.getElementById('levelup').addEventListener('webkitAnimationEnd', function()
+            {
+                console.log("* animation end");
+                this.style.display = "none";
+            }, false);
         }
     }
     else if (this.level === 5 && this.score >= this.levels[4])
@@ -1062,6 +1106,17 @@ game_player.prototype.addToScore = function(val)
         {
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = "*";//this.level + 1;
+            document.getElementById('txtLevelC').innerHTML = this.level;
+            document.getElementById('txtLevelN').innerHTML = this.level + 1;
+            document.getElementById('levelupLabel').innerHTML = "LEVEL 5!";
+            document.getElementById('levelupText3').style.display = "flex";
+            document.getElementById('levelup').style.display = "flex";
+            document.getElementById('levelup').style.webkitAnimationName = 'cssAnimation';
+            document.getElementById('levelup').addEventListener('webkitAnimationEnd', function()
+            {
+                console.log("* animation end");
+                this.style.display = "none";
+            }, false);
         }
     }
 

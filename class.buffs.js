@@ -2,25 +2,33 @@
 
 var assets = require('./singleton.assets');
 
-const getUid      = require('get-uid');
+const getUid = require('get-uid');
 
 const path = "https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/";
 const BUFFS_BUBBLE = 1;
 const BUFFS_BUBBLE_IMAGE = path + "buff-bubble.png";
+const BUFFS_BUBBLE_TEXT = "Survive Hit";
 const BUFFS_ALACRITY = 2;
 const BUFFS_ALACRITY_IMAGE = path + "buff-alacrity.png";
+const BUFFS_ALACRITY_TEXT = "+25% Speed Increase";
 const BUFFS_PRECISION = 3;
 const BUFFS_PRECISION_IMAGE = path + "buff-precision.png";
+const BUFFS_PRECISION_TEXT = "+25% Attack";
 const BUFFS_RECOVER = 4;
 const BUFFS_RECOVER_IMAGE = path + "buff-recover.png";
+const BUFFS_RECOVER_TEXT = "+25% Defense";
 const BUFFS_BLINK = 5;
 const BUFFS_BLINK_IMAGE = path + "buff-blink.png";
+const BUFFS_BLINK_TEXT = "Brief Invisibility";
 const BUFFS_REVEAL = 6;
 const BUFFS_REVEAL_IMAGE = path + "buff-reveal.png";
+const BUFFS_REVEAL_TEXT = "Detect Invisibility";
 const BUFFS_BRUISE = 7;
 const BUFFS_BRUISE_IMAGE = path + "buff-bruise.png";
+const BUFFS_BRUISE_TEXT = "+25% Damage";
 const BUFFS_PLATE = 8;
 const BUFFS_PLATE_IMAGE = path + "buff-plate.png";
+const BUFFS_PLATE_TEXT = "25% Damage Reduction";
 
 const BUFFS_TOTAL = 8;
 
@@ -73,6 +81,21 @@ game_buffs.prototype.getImageById = function(id)
         case BUFFS_REVEAL: return BUFFS_REVEAL_IMAGE;
         case BUFFS_BRUISE: return BUFFS_BRUISE_IMAGE;
         case BUFFS_PLATE: return BUFFS_PLATE_IMAGE;
+    }
+};
+
+game_buffs.prototype.getTextById = function(id)
+{
+    switch(id)
+    {
+        case BUFFS_BUBBLE: return BUFFS_BUBBLE_TEXT;
+        case BUFFS_ALACRITY: return BUFFS_ALACRITY_TEXT;
+        case BUFFS_PRECISION: return BUFFS_PRECISION_TEXT;
+        case BUFFS_RECOVER: return BUFFS_RECOVER_TEXT;
+        case BUFFS_BLINK: return BUFFS_BLINK_TEXT;
+        case BUFFS_REVEAL: return BUFFS_REVEAL_TEXT;
+        case BUFFS_BRUISE: return BUFFS_BRUISE_TEXT;
+        case BUFFS_PLATE: return BUFFS_PLATE_TEXT;
     }
 };
 

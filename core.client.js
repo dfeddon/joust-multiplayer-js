@@ -775,6 +775,9 @@ core_client.prototype.client_onhostgame = function(data, callback)
     // if round complete (stage === 2) show callout
     if (round.stage === 2)
     {
+        // ensure we don't begin on round 2
+        if (this.totalRounds === 1)
+            this.totalRounds = 0;
         var callout = document.getElementById('roundCompleteCallout');
         callout.innerHTML = "One moment.<br/> Your first round will begin soon! ";// " + round.endtime - this.config.server_time + " seconds...";
         callout.style.display = "block";
