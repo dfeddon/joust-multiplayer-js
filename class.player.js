@@ -26,7 +26,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.playerPort = null;
 
     // avoid duplicates
-    this.lastdata = [];
+    // this.lastdata = [];
     // if (this.instance)
     //     this.game = this.instance.game;
     this.isBot = false;
@@ -294,7 +294,7 @@ game_player.prototype.setFromBuffer = function(data)
     }
 
     // data = null;
-    this.lastdata = data;
+    // this.lastdata = data;
 };
 
 game_player.prototype.buffIdsToSlots = function(ids)
