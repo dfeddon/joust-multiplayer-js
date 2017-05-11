@@ -716,6 +716,17 @@ core_client.prototype.client_onhostgame = function(data, callback)
             this.players.self.landed = 0;
             this.players.self.pos = {x:0,y:0};
             this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
+
+            // update bonus stats
+            var teamBonus;
+            if (team === 1)
+                teamBonus = round.redBonus;
+            else teamBonus = round.blueBonus;
+            console.log("* round", team, round);
+            this.players.self.teamBonus = teamBonus;
+            this.players.self.playerBonus = 0;
+            this.players.self.potionBonus = 0;
+            this.players.self.updateBonusesClient([this.players.self.teamBonus, 0, 0]);
         }
         else if (!p[i].userid)
         {

@@ -1241,18 +1241,18 @@ h5
 	text-align: center;
 	vertical-align: middle;
 	margin: 0 auto;
-	padding-top: 20px;
-	padding-bottom: 15px;
+	padding-top: 10px;
+	padding-bottom: 5px;
 	width: 100%;
 	z-index: 310;
 	background-color: rgba(0, 0, 0, 0.5);
-    -moz-animation: cssAnimation 5s forwards;
+    -moz-animation: cssAnimation 3.5s forwards;
     /* Firefox */
-    -webkit-animation: cssAnimation 5s forwards;
+    -webkit-animation: cssAnimation 3.5s forwards;
     /* Safari and Chrome */
-    -o-animation: cssAnimation 5s forwards;
+    -o-animation: cssAnimation 3.5s forwards;
     /* Opera */
-    animation: cssAnimation 5s forwards;
+    animation: cssAnimation 3.5s forwards;
     -webkit-animation-fill-mode: forwards;	
 }
 @keyframes cssAnimation {
@@ -1453,11 +1453,13 @@ h5
 	height: 10px;
 	padding-left: 5px;
 	/*font-family: 'Mirza', serif;*/
-	background-color: #D0011B;
-	border:solid 1px #F06576;
+	/*background-color: #D0011B;
+	border:solid 1px #F06576;*/
+	background-color: #417505;
+	border:solid 1px #B8E986;
 	font-size: 0.75em;
 	padding-right: 2px;
-	color: white;
+	color: #B8E986;
 	font-family: 'Mirza', serif;
 	font-weight: bold;
 	/*text-shadow: 2px 2px black;*/
@@ -1590,18 +1592,61 @@ h5
 	/*height: 17px;*/
 	/*background: url('https://s3.amazonaws.com/com.dfeddon.wingdom/bonus-text-arc.png') no-repeat top left;*/
 }
-#bonus-total-text
+#bonus-total-container
 {
 	/*border:solid 1px red;*/
-	display: relative;/*inline-block;*/
-	margin-left: 25%;
-	margin-right: 10%;
+	display: flex;/*inline-block;*/
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	/*margin-left: 25%;
+	margin-right: 10%;*/
+	margin-top: -22px;
 	width: 50px;
 	text-align: center;
 	/*border: 5px solid red;*/
 	/*vertical-align: center;*/
 	/*transform-origin: center 50;*/
 	line-height: 45px;
+	/*font-family: 'Mirza', small-caps;*/
+	/*font-weight: bold;*/
+	/*font-size: 1.5em;*/
+	/*color: #B8E986;*/
+}
+#bonus-total-sign
+{
+	order: 1;
+	width: 33%;
+	font-family: 'Mirza', small-caps;
+	font-size: 0.75em;
+	color: #B8E986;
+	text-align: right;
+}
+#bonus-total-percent
+{
+	order: 3;
+	width: 33%;
+	font-family: 'Mirza', small-caps;
+	font-size: 0.75em;
+	color: #B8E986;
+	text-align: left;
+}
+#bonus-total-text
+{
+	order: 2;
+	/*border:solid 1px red;*/
+	display: inline-block;
+	/*margin-left: 25%;
+	margin-right: 10%;*/
+	width: 30px;
+	text-align: center;
+	margin-top: 8%;
+	/*border: 5px solid red;*/
+	/*vertical-align: center;*/
+	/*transform-origin: center 50;*/
+	/*line-height: 40px;*/
 	font-family: 'Mirza', small-caps;
 	/*font-weight: bold;*/
 	font-size: 1.5em;

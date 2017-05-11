@@ -883,29 +883,66 @@ game_player.prototype.updateBonusesClient = function(array)
     this.potionBonus = array[2];
     this.bonusTotal = this.teamBonus + this.playerBonus + this.potionBonus;
 
+    var bgRed = '#D0011B';
+    var borderRed = "#F06576";
+    var bgGreen = '#417505';
+    var borderGreen = "#B8E986";
+
     console.log('* bonusTotal', this.bonusTotal);
     
+    if (!this.isLocal && !this.config.server) return;
+    
     // update total circle bg color
-
-    if (this.bonusTotal >= 0 && this.isLocal)
+    if (this.teamBonus >= 0)
     {
-        document.getElementById('bonus-total-container-positive').style.backgroundColor = '#417505';// 'rbg(' + 0 +',' + 100 +',' + 0 + ',' + 0.65 +')';
-        document.getElementById('bonus-total-container-positive').style.borderColor = "#B8E986";
+        document.getElementById('modify1-text').style.backgroundColor = bgGreen;
+        document.getElementById('modify1-text').style.borderColor = borderGreen;
     }
-    else if (this.isLocal)
+    else
     {
-        document.getElementById('bonus-total-container-positive').style.backgroundColor = '#D0011B';//rbg(' + 255 +',' + 0 +',' + 0 + ',' + 0.65 +')';
-        document.getElementById('bonus-total-container-positive').style.borderColor = "#F06576";
+        document.getElementById('modify1-text').style.backgroundColor = bgRed;
+        document.getElementById('modify1-text').style.borderColor = borderRed;
+    }
+    if (this.playerBonus >= 0)
+    {
+        document.getElementById('modify2-text').style.backgroundColor = bgGreen;
+        document.getElementById('modify2-text').style.borderColor = borderGreen;
+    }
+    else
+    {
+        document.getElementById('modify2-text').style.backgroundColor = bgRed;
+        document.getElementById('modify2-text').style.borderColor = borderRed;
+    }
+    if (this.potionBonus >= 0)
+    {
+        document.getElementById('modify3-text').style.backgroundColor = bgGreen;
+        document.getElementById('modify3-text').style.borderColor = borderGreen;
+    }
+    else
+    {
+        document.getElementById('modify2-text').style.backgroundColor = bgRed;
+        document.getElementById('modify2-text').style.borderColor = borderRed;
+    }
+    if (this.bonusTotal >= 0)
+    {
+        if (this.bonusTotal === 0)
+            document.getElementById('bonus-total-sign').innerHTML = "";
+        else document.getElementById('bonus-total-sign').innerHTML = "+";
+        document.getElementById('bonus-total-container-positive').style.backgroundColor = bgGreen;
+        document.getElementById('bonus-total-container-positive').style.borderColor = borderGreen;
+    }
+    else
+    {
+        document.getElementById('bonus-total-sign').innerHTML = "-";
+        document.getElementById('bonus-total-container-positive').style.backgroundColor = bgRed;//rbg(' + 255 +',' + 0 +',' + 0 + ',' + 0.65 +')';
+        document.getElementById('bonus-total-container-positive').style.borderColor = borderRed;
     }
 
     // update UI
-    if (this.isLocal)
-    {
-        document.getElementById('modify1-text').innerHTML = (array[0] > 0 && array[0] < 10) ? "+0" + array[0] : array[0];//this.teamBonus;
-        document.getElementById('modify2-text').innerHTML = (array[1] > 0 && array[1] < 10) ? "+0" + array[1] : "+" + array[1]//this.playerBonus;
-        document.getElementById('modify3-text').innerHTML = (array[2] > 0 && array[2] < 10) ? "+0" + array[2] : "+" + array[2]//this.potionBonus;
-        document.getElementById('bonus-total-text').innerHTML = (this.bonusTotal < 10 && this.bonusTotal > 0) ? "0" + this.bonusTotal : this.bonusTotal;//array[0] + array[1] + array[2];
-    }
+    document.getElementById('modify1-text').innerHTML = (array[0] >= 0) ? "+" + array[0] : array[0];//this.teamBonus;
+    document.getElementById('modify2-text').innerHTML = (array[1] >= 0) ? "+" + array[1] : array[1]//this.playerBonus;
+    document.getElementById('modify3-text').innerHTML = (array[2] >= 0) ? "+" + array[2] : array[2]//this.potionBonus;
+    document.getElementById('bonus-total-text').innerHTML = (this.bonusTotal > 0) ? "" + this.bonusTotal : Math.abs(this.bonusTotal);//array[0] + array[1] + array[2];
 };
 
 game_player.prototype.updateBonuses = function(teamBonus)

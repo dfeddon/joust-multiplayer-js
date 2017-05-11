@@ -2323,13 +2323,13 @@ game_core.prototype.roundComplete = function(port, round)
         var ordered = _.orderBy(p, ['roundscore'], ['desc']);
         // reduce to top 10
         ordered.splice(9, ordered.length - 10);
-        // console.log('ordered:', ordered);//.length);
+        console.log('ordered:', ordered);//.length);
         
         // remove 3 users from 4 - 10
         var rng;
         for (var x = 0; x < 4; x++)
         {
-            rng = ~~((Math.random() * ordered.length - 4) + 4);
+            rng = ~~((Math.random() * ordered.length) + 4);
             console.log('splicing', rng - 1);
             
             ordered.splice(rng - 1, 1);
