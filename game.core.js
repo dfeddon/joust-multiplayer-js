@@ -2193,10 +2193,13 @@ game_core.prototype.server_update = function()
     // ensure room tags are removed
     for (var x in this.laststate)
     {
-        // console.log(x, laststate[x]);
+        // console.log(x, this.laststate[x]);
         this.laststate[x].t = this.config.server_time;        
         if (Boolean(this.suPlayer.instance))
+        {
+            // console.log("***", this.suPlayer.instance.userid, this.suPlayer.playerPort);
             this.suPlayer.instance.room(x).write(this.laststate[x]);
+        }
     }
     //}
         // player.instance.room(this.gameid).write(laststate);

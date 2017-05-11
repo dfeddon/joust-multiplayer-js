@@ -428,7 +428,7 @@ game_server.prototype.createGame = function(client)
     var thegame =
     {
         id : getUid(),                 //generate a new id for the game
-        player_host: client,         //so we know who initiated the game
+        // player_host: client,         //so we know who initiated the game
         player_client: null,         //nobody else joined yet, since its new
         player_clients: clients,
         player_count: 0              //for simple checking of state
@@ -845,6 +845,7 @@ game_server.prototype.startGame = function(game, newplayer)
             // {
             if (nonhosts[j].mp == newplayer.mp)
             {
+                this.log('* instance =', nonhosts[j].userid);
                 this.log('* sending hostgame event to', nonhosts[j].mp);//, nonhosts[j].hosting);
                 this.log("* data:", playerMP, playerName, playerSkin, playerPort);
 

@@ -90,7 +90,7 @@ game_event.prototype.update = function(port)
 
   if (this.dif >= 1)
   {
-    console.log('* new event triggered!', this.type);
+    // console.log('* new event triggered!', this.type);
 
     // prep data for the getEvent() fnc
     switch(this.type)
@@ -126,7 +126,7 @@ game_event.prototype.update = function(port)
       break;
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
-        console.log('evt update slotted cooldown complete');
+        // console.log('evt update slotted cooldown complete');
         this.flag.isHeld = false;
         // var userid = this.flag.heldBy;
         // var player = this.getplayers.getPlayerByUserId(userid);
@@ -161,7 +161,7 @@ game_event.prototype.update = function(port)
             }
         }*/
 
-        console.log('* prep chest', this.chestSpawnPoints.length);
+        // console.log('* prep chest', this.chestSpawnPoints.length);
 
         // 1. ensure a new chest is acceptable (max number?)
         var ct = 0;
@@ -175,11 +175,11 @@ game_event.prototype.update = function(port)
             ct++;
           else availChests.push(this.chestSpawnPoints[i]);
         }
-        console.log('* num active chests', ct, 'of', MAX_CHESTS);// * this.getplayers.totalRooms()));
+        // console.log('* num active chests', ct, 'of', MAX_CHESTS);// * this.getplayers.totalRooms()));
         // no more than n
         if (ct >= MAX_CHESTS)// * this.getplayers.totalRooms()))
         {
-          console.log('* max chests reached...');
+          // console.log('* max chests reached...');
           
           // resart rnd timer
           this.setRandomTriggerTime(5, 15);
