@@ -460,7 +460,7 @@ domready(function()
 			var info = document.getElementById('uiInfoBar');
 			// var infoBottom = document.getElementById('uiInfoBarBottom');
 			var scoreboard = document.getElementById('scoreboard');
-			ui.style.display = "block";
+			ui.style.display = "flex";
 			info.style.display = "block";
 			// infoBottom.style.display = "block";
 			scoreboard.style.display = "block";
@@ -619,7 +619,7 @@ domready(function()
 		// uiInfoBarBottom.style.display = "none";
 		
 		// show splash
-		ui.style.display = "inline-block";
+		ui.style.display = "flex";//inline-block";
 		// ...and score
 		var myLastscoreDiv = document.getElementById('mylastscore');
 		myLastscoreDiv.style.display = "block";

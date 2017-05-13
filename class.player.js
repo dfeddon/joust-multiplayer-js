@@ -992,6 +992,10 @@ game_player.prototype.reset = function()
 
     this.health = 50;
     this.thrustModifier = 40;
+    this.teamBonus = 0;
+    this.playerBonus = 0;
+    this.potionBonus = 0;
+    // TODO: clear buffs
 
     console.log('disconnected', this.disconnected);
     
@@ -2225,29 +2229,30 @@ game_player.prototype.timeoutRespawn = function()
 
     this.reset();
 
-    // if (this.disconnected)
-    // {
-        // this.dead = false;
-        // this.dying = false;
-        // this.visible = false;
-        // //this.vuln = true; // this disables input
-        // this.active = true;
-        // this.landed = 1;
-        // this.bubble = false;
-        // this.score = 0;
-        // this.progression = 0;
-        // this.pos = this.config.gridToPixel(0,0);
+    if (this.disconnected)
+    {
+        this.disconnected = false;
+        this.dead = false;
+        this.dying = false;
+        this.visible = false;
+        //this.vuln = true; // this disables input
+        this.active = true;
+        this.landed = 1;
+        this.bubble = false;
+        this.score = 0;
+        this.progression = 0;
+        this.pos = this.config.gridToPixel(0,0);
 
-    //     if (this.mp == this.config.players.self.mp)
-    //     {
-    //         var ui = document.getElementById('splash');
-    //         if (assets.device == "phone")
-    //             ui = document.getElementById('splash-phone');
-    //         ui.style.display = "block";
-    //         //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
-    //     }
-    //     return;
-    // }
+        if (this.mp == this.config.players.self.mp)
+        {
+            var ui = document.getElementById('splash');
+            if (assets.device == "phone")
+                ui = document.getElementById('splash-phone');
+            ui.style.display = "block";
+            //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
+        }
+        return;
+    }
 
     // ...otherwise, not disconnected. Player can respawn...
     

@@ -1182,7 +1182,7 @@ core_client.prototype.client_connect_to_server = function(data)
             retries: 3 // Number: How many times we should try to reconnect.
         }
     });
-    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin + "|" + xport});
+    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin + "|" + this.xport});
 
     console.log('primus', this.socket);
 
@@ -4465,7 +4465,7 @@ core_client.prototype.roundWinnersView = function(winners)
             // show game ui
             document.getElementById('viewport').style.display = "block";
             document.getElementById('uiInfoBar').style.display = "block";
-            document.getElementById('uiTopBar').style.display = "block";
+            document.getElementById('uiTopBar').style.display = "flex";
             // document.getElementById('uiInfoBarBottom').style.display = "block";
             document.getElementById('scoreboard').style.display = "block";
             document.getElementById('level-ui').style.display = "flex";

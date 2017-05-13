@@ -34,7 +34,7 @@ const BUFFS_TOTAL = 8;
 
 function game_buffs()
 {
-    console.log('== game_buffs constructor ==', assets);
+    // console.log('== game_buffs constructor ==', assets);
 
     this.BUFFS_BUBBLE = BUFFS_BUBBLE;
     this.BUFFS_ALACRITY = BUFFS_ALACRITY;

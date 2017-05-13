@@ -8,9 +8,15 @@ MIT Licensed.
 
 'use strict';
 
-const MAX_PLAYERS_PER_LOCAL_SERVER = 40;
-const MAX_PLAYERS_PER_GAME_INSTANCE = MAX_PLAYERS_PER_LOCAL_SERVER * 10;
-const MAX_GAMES_PER_SUPER_SERVER = 1;
+// players per game: 40 (20 per team)
+// games per server: 10
+// total players per server: ppg * gps = 400;
+const MAX_PLAYERS_PER_GAME = 40;
+const MAX_PLAYERS_PER_TEAM = MAX_PLAYERS_PER_GAME / 2;
+const MAX_GAMES_PER_SERVER = 10;
+const MAX_PLAYERS_PER_SERVER = MAX_PLAYERS_PER_GAME * MAX_GAMES_PER_SERVER;
+// const MAX_GAMES_PER_SUPER_SERVER = 1;
+
 const PORT_RANGE_START = 4004;
 const PORT_RANGE_END = 4013;
 
@@ -134,7 +140,7 @@ game_server.prototype._onMessage = function(spark,message)
                 }
             }
             this.log("@ server has", totalUsers, "users");
-            if (totalUsers > MAX_PLAYERS_PER_LOCAL_SERVER)
+            if (totalUsers > MAX_PLAYERS_PER_GAME)
             {
                 console.log("@ game is full, move client to a new port!");
                 // find *first available* port
@@ -168,7 +174,7 @@ game_server.prototype._onMessage = function(spark,message)
         // if ()
         // if not, create one
         // add room array to getplayers class by server's port number
-        //this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME_INSTANCE);
+        //this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
         // strip alpha chars and convert to int
         var skinNum = parseInt(playerSkin.replace(/\D/g,''));
         this.log('player cc:', playerName, playerSkin, skinNum, spark.userid, playerPort);
@@ -457,7 +463,7 @@ game_server.prototype.createGame = function(client)
     if (thegame.gamecore.getplayers.fromRoom(newconnect.port) === undefined)
     {
         this.log('@ room doesnt exist -- creating...', newconnect.port);
-        thegame.gamecore.getplayers.addRoom(newconnect.port);//, MAX_PLAYERS_PER_GAME_INSTANCE);
+        thegame.gamecore.getplayers.addRoom(newconnect.port);//, MAX_PLAYERS_PER_GAME);
     }
     // this.log("::", thegame.gamecore.getplayers.game_instance.inRoom);
 
@@ -509,7 +515,8 @@ game_server.prototype.endGame = function(gameid, userid)
         if(thegame.player_count > 1)
         {
             // get host client and all non-hosting clients
-            var allplayers = thegame.gamecore.getplayers.allplayers;
+            // var allplayers = thegame.gamecore.getplayers.allplayers;
+            var allplayers = thegame.gamecore.getplayers.fromRoomByUserId(userid);
             //var host;
             var nonhosts = [];
             var game_instance = this.games[gameid];
@@ -530,7 +537,7 @@ game_server.prototype.endGame = function(gameid, userid)
                     // tell client game is ended
                     //p.emit('ondisconnect');
                     // inform other players
-                    this.log('userid', p.userid, p.playerPort, p);//mp);
+                    this.log('userid', p.userid, p.playerPort);//, p);//mp);
                     //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
                     // thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
                     // p.room(p.playerPort).send('ondisconnect', p.mp);
@@ -774,7 +781,7 @@ game_server.prototype.startGame = function(game, newplayer)
             p = game_instance.gamecore.getplayers.fromRoom(playerPort);
             for (x = 0; x < p.length; x++)
             {
-                //this.log("**", p[x].mp, nonhosts[j].mp, newplayer.mp);
+                this.log("**", p[x].userid, nonhosts[j].userid, newplayer.userid);
                 if (p[x].mp == nonhosts[j].mp)// && nonhosts[j].mp == newplayer.mp)
                 {
                     //this.log("found HOST");//this.log("p:", p[x].mp);
@@ -860,7 +867,7 @@ game_server.prototype.startGame = function(game, newplayer)
                 nonhosts[j].join(playerPort);//game.id); // <- port/ip address
 
                 // add room array to getplayers class by server's port number
-                // this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME_INSTANCE);
+                // this.games[game.id].gamecore.getplayers.addRoom(playerPort, MAX_PLAYERS_PER_GAME);
 
                 this.log("player joined game", playerPort, game.id);
                 // this.log("player", nonhosts[j]);
@@ -989,9 +996,9 @@ game_server.prototype.findGame = function(client)
             var game_instance = this.games[gameid];
 
             //If the game is a player short
-            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME_INSTANCE, game_instance.player_clients.length);
+            this.log('@@ player count', game_instance.player_count, 'of', MAX_PLAYERS_PER_GAME, game_instance.player_clients.length);
 
-            if(game_instance.player_count < MAX_PLAYERS_PER_GAME_INSTANCE)
+            if(game_instance.player_count < MAX_PLAYERS_PER_GAME)
             {
                 this.log("@@ player", client.userid, "joining game", gameid);
                 //someone wants us to join!
@@ -1176,7 +1183,7 @@ game_server.prototype.getTeams = function(port, game_instance)
 
     _this.log('red', red, 'blue', blue, 'total', total);
 
-    if (total > MAX_PLAYERS_PER_GAME_INSTANCE)
+    if (total > MAX_PLAYERS_PER_GAME)
         full = true;
     else
     {

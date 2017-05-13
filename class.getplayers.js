@@ -198,7 +198,6 @@ getplayers.prototype.addRoom = function(port)
         round.redBonus = 0;
         round.blueBonus = 0;
         // console.log('roundEndTime:', round.endtime);
-        
     }
     else
     {
