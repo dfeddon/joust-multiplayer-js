@@ -745,7 +745,8 @@ a:hover, a:visited, a:link, a:active
 	/*top: 0px;*/
 	/*height: 29px;*/
 	/*width: 75px;*/
-	background: rgba(155,0,0,0.9);
+	background: rgba(0,0,0,0.9);
+
 	/*border: 1px solid;
 	border-color: gray;*/
 	/*font-size: 20px;*/
@@ -851,6 +852,7 @@ a:hover, a:visited, a:link, a:active
 {
 	animation: blinking 2s linear infinite;
 	-webkit-animation-play-state: paused;
+	/*animation-fill-mode: backwards;*/
 }
 #flagMid
 {
@@ -870,6 +872,7 @@ a:hover, a:visited, a:link, a:active
 {
 	animation: blinking 2s linear infinite;
 	-webkit-animation-play-state: paused;
+	/*animation-fill-mode: backwards;*/
 }
 #flag6
 {
@@ -885,6 +888,7 @@ a:hover, a:visited, a:link, a:active
 {
 	animation: blinking 2s linear infinite;
 	-webkit-animation-play-state: paused;
+	/*animation-fill-mode: backwards;*/
 }
 #flag7
 {
@@ -973,7 +977,7 @@ a:hover, a:visited, a:link, a:active
 	/*height: 29px;*/
 	/*right: 0px;*/
 	/*width: 75px;*/
-	background: rgba(70,142,229,0.9);
+	background: rgba(0,0,0,0.9);
 	/*border: 1px solid;*/
 	/*border-color: gray;*/
 	/*font-size: 20px;*/
@@ -989,18 +993,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 }
 
-#blinking {
-  -webkit-animation: blinking 2s linear infinite;
-}
+/*.blinking {
+  -webkit-animation: blinking 1s linear infinite;
+}*/
 @keyframes blinking {
-  from,
-  49.9% {
-    opacity: 1;
-  }
-  50%,
-  to {
-    opacity: 0;
-  }
+	50% { opacity: 0; }
 }
 /*#flagData
 {

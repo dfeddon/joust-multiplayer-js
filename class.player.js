@@ -1069,7 +1069,7 @@ game_player.prototype.addToScore = function(val)
     if (val)
     this.score += val;
 
-    if (this.level === 1 && this.score >= this.levels[1])
+    if (this.level === 1 && this.score >= 200)//this.levels[1])
     {
         console.log('* LEVEL UP - 2!');
         this.level = 2;
@@ -1099,6 +1099,8 @@ game_player.prototype.addToScore = function(val)
         this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
+            document.getElementById('buff2').className = "buffslot-empty";
+
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = this.level + 1;
             document.getElementById('txtLevelC').innerHTML = this.level;
@@ -1146,6 +1148,8 @@ game_player.prototype.addToScore = function(val)
         this.playerBonus += 5;
         if (!this.config.server && this.isLocal)
         {
+            document.getElementById('buff3').className = "buffslot-empty";
+
             document.getElementById('txtLevelC').innerHTML = this.level;
             document.getElementById('txtLevelN').innerHTML = "*";//this.level + 1;
             document.getElementById('txtLevelC').innerHTML = this.level;
