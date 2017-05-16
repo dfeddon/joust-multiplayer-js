@@ -768,8 +768,15 @@ a:hover, a:visited, a:link, a:active
 	font-family: Mirza;
 	text-align: center;
 	line-height: 35px;
-	background-color: rgba(155,0,0,0.9);
+	background-color: red;/*rgba(155,0,0,0.9);*/
 }
+
+#flagRedtxt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
+
 #flag1
 {
 	order: 3;
@@ -779,6 +786,11 @@ a:hover, a:visited, a:link, a:active
 	text-align: center;
 	line-height: 35px;
 	background: rgba(155,0,0,0.9);
+}
+#flag1txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flag2
 {
@@ -790,6 +802,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: rgba(155,0,0,0.9);
 }
+#flag2txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
 #flag3
 {
 	order: 5;
@@ -799,6 +816,11 @@ a:hover, a:visited, a:link, a:active
 	text-align: center;
 	line-height: 35px;
 	background: rgba(155,0,0,0.9);
+}
+#flag3txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flag4
 {
@@ -810,6 +832,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: rgba(155,0,0,0.9);
 }
+#flag4txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
 #flag5
 {
 	order: 7;
@@ -819,6 +846,11 @@ a:hover, a:visited, a:link, a:active
 	text-align: center;
 	line-height: 35px;
 	background: rgba(155,0,0,0.9);
+}
+#flag5txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flagMid
 {
@@ -830,6 +862,14 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: white;
 	color: black;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+#flagMidtxt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flag6
 {
@@ -841,6 +881,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: rgba(70,142,229,0.9);
 }
+#flag6txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
 #flag7
 {
 	order: 10;
@@ -850,6 +895,11 @@ a:hover, a:visited, a:link, a:active
 	text-align: center;
 	line-height: 35px;
 	background: rgba(70,142,229,0.9);
+}
+#flag7txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flag8
 {
@@ -861,6 +911,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: rgba(70,142,229,0.9);
 }
+#flag8txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
 #flag9
 {
 	order: 12;
@@ -870,6 +925,11 @@ a:hover, a:visited, a:link, a:active
 	text-align: center;
 	line-height: 35px;
 	background: rgba(70,142,229,0.9);
+}
+#flag9txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #flag10
 {
@@ -881,6 +941,11 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 	background: rgba(70,142,229,0.9);
 }
+#flag10txt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
+}
 #flagBlueBase
 {
 	order: 14;
@@ -889,7 +954,13 @@ a:hover, a:visited, a:link, a:active
 	font-family: Mirza;
 	text-align: center;
 	line-height: 35px;
-	background: rgba(70,142,229,0.9);
+	/*border: solid 0.25px white;*/
+	background: blue;/*rgba(70,142,229,0.9);*/
+}
+#flagBluetxt
+{
+	animation: blinking 2s linear infinite;
+	-webkit-animation-play-state: paused;
 }
 #uiScoreBlue
 {
@@ -918,6 +989,19 @@ a:hover, a:visited, a:link, a:active
 	line-height: 35px;
 }
 
+#blinking {
+  -webkit-animation: blinking 2s linear infinite;
+}
+@keyframes blinking {
+  from,
+  49.9% {
+    opacity: 1;
+  }
+  50%,
+  to {
+    opacity: 0;
+  }
+}
 /*#flagData
 {
 	width: 50%;

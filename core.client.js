@@ -1674,14 +1674,74 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     else if (flagTaken.name == "blueFlag")
         playerSource.hasFlag = 3;
 
-    console.log('playerSource hasFlag', playerSource.hasFlag);
+    console.log('* playerSource hasFlag', playerSource.hasFlag);
+    console.log("* flag source", flagTaken.sourceSlot);
+    console.log("* target slot", flagTaken.targetSlot);
+    console.log("* by team", playerSource.team); // 1=red, 2=blue
 
+    // set player navigation notifers
+    if (playerSource.isLocal)
+    {
+        var flagTarget = this.config._.find(this.core.config.flagObjects, {"name":flagTaken.targetSlot});
+        console.log("* setting flagTargetPos", flagTarget.x, flagTarget.y);
+
+        playerSource.flagTargetPos.x = flagTarget.x;
+        playerSource.flagTargetPos.y = flagTarget.y;
+    }
+
+    // activate topbar UI
+    // source slot becomes color of team
+    switch(flagTaken.sourceSlot)
+    {
+        case "midSlot": // flagMid
+            document.getElementById("flagMid").style.border = (playerSource.team === 1) ? "1px solid red" : "1px solid blue";
+        break;
+
+        case "slotRed": // flagRedBase
+            document.getElementById("flagRedBase").style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
+        break;
+
+        case "slotBlue": // flagBlueBase
+            document.getElementById("flagBlueBase").style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
+        break;
+
+        default: 
+            var num = flagTaken.sourceSlot.split("slot")[1];
+            document.getElementById("flag" + num).style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
+        break;
+    }
+
+    // target slot blinks
+    switch(flagTaken.targetSlot)
+    {
+        case "slotRed": // flagRedBase
+            document.getElementById("flagRedtxt").style.animationPlayState = "running";
+        break;
+
+        case "slotBlue": // flagBlueBase
+            document.getElementById("flagBluetxt").style.animationPlayState = "running";
+        break;
+
+        case "midSlot": // flagBlueBase
+            document.getElementById("flagMidtxt").style.animationPlayState = "running";
+        break;
+
+        default: 
+            var num2 = flagTaken.targetSlot.split("slot")[1];
+            console.log("* num", num2, flagTaken.targetSlot, flagTaken.targetSlot.split("slot"));
+            document.getElementById("flag" + num2 + "txt").style.animationPlayState = "running";
+        break;
+    }
 
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
-    //if (playerSource.mp != this.players.self.mp)
-    //{
+    if (playerSource.isLocal)
+    {
+        // use buff UI, pic of target slot and text
+    }
+    else
+    {
         var msg =
         {
             action: "takeFlag",
@@ -1691,7 +1751,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
             targetSlot: flagTaken.targetSlot//"Placque #3"
         };
         new game_toast().show(msg);
-    //}
+    }
 };
 
 // take flag from placque
@@ -3782,7 +3842,67 @@ core_client.prototype.updateTerritory = function()
     var red = _.find(this.core.config.flagObjects, {'name':'redFlag'});
     var mid = _.find(this.core.config.flagObjects, {'name':'midFlag'});
     var blue = _.find(this.core.config.flagObjects, {'name':'blueFlag'});
-    //console.log(red, mid, blue);
+    // all slots *behind* red are blue
+    function slotToIndex(s, isBlue)
+    {
+        console.log("== slotToIndex ==", s);
+        if (s == "slotRed")
+            return 0;
+        else if (s == "slotBlue")
+            return 12;
+        else if (s == "midSlot")
+        {
+            return 6;
+        }
+        else
+        {
+            var num = parseInt(s.split("slot")[1]);
+            if (isBlue)
+                return num+1;
+            else return num;
+        }
+    }
+    // all slots *behind* blue are red
+    // slots behind mid are red, before mid are blue
+    // add red and mid to index 0
+    // all slots *after* mid are index + 1 (to account for +mid)
+    var slots = Array(13).fill(0);//["redBase", "slot1", "slot2", "slot3", "slot4", "slot5", "midSlot", "slot6", "slot7", "slot8", "slot9", "slot10", "blueBase"];
+
+    // process mid first (we need it in the fnc)
+    var midIndex = slotToIndex(mid.sourceSlot, false);
+    var redIndex = slotToIndex(red.sourceSlot, false);
+    var blueIndex = slotToIndex(blue.sourceSlot, true);
+    console.log("red, mid, blue", redIndex, midIndex, blueIndex);
+    for (var i = redIndex; i < midIndex; i++)
+        slots[i] = 1; // red
+    for (i = midIndex; i < blueIndex; i++)
+        slots[i + 1] = 2; // blue
+    if (redIndex > 0)
+    {
+        for (i = 0; i < redIndex; i++)
+            slots[i] = 2; // blue
+    }
+    if (blueIndex < 12)
+    {
+        for (i = 12; i > blueIndex; i--)
+            slots[i] = 1; // red
+    }
+    slots[redIndex] = "red";
+    slots[midIndex] = "mid";
+    slots[blueIndex] = "blue";
+    console.log("* slots", slots);
+    // slots < red == blue : if (redIndex) > 0)
+    // slot >= redIndex && < midIndex == red
+    // slots <= blueindex && > midIndex == blue
+    // slots > blueIndex == redIndex : if (blueIndex < 12)
+
+    // number [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    // console.log('* flag slot red', red.sourceSlot);
+    // console.log('* flag slot mid', mid.sourceSlot);
+    // console.log('* flag slot blue', blue.sourceSlot);
+
+    // adjust top terrotory UI
+
     //console.log('territory', red, mid.x, blue.x);
     var redflagX = pixelToBrick( (red.x + (red.width/2)) );
     var midflagX = pixelToBrick( (mid.x + (mid.width/2)) );

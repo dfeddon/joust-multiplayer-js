@@ -782,6 +782,7 @@ domready(function()
 	assets.flag_slot_8 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-8.png");
 	assets.flag_slot_9 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-9.png");
 	assets.flag_slot_10 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png");
+	assets.carrier_arrow = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/carrier-arrow.png");
 
 	// loader progress
 	loader.addProgressListener(function(e)

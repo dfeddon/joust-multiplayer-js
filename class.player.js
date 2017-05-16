@@ -156,6 +156,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.hasHelment = false;//true;
     this.hasFlag = 0; // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     this.flagTakenAt = 0;
+    this.flagTargetPos = {x:1000, y:1000};
     this.disconnected = false;
 
     // draw vars
@@ -3180,6 +3181,89 @@ game_player.prototype.draw = function()
         //*/
         //game.ctx.restore();
 
+        // draw direction arrow
+        // get diff
+        var fx = 1; // 0=w, 1=n/s, 2=e
+        var fy = 1; // 0=n, 1=e/w, 2=s
+        var posx = this.pos.x + (this.size.hx / 2);
+        var posy = 0;
+        var difx = this.pos.x - this.flagTargetPos.x;
+        var dify = this.pos.y - this.flagTargetPos.y;
+        var rot = 0;
+        // above or below (diff between 64)
+        // console.log("* difx", difx);
+        if (difx > 64)
+        {
+            fx = 0; // target is west
+            posx = this.pos.x - 64;
+        }
+        else if (difx < -64)
+        {
+            fx = 2; // target is east
+            posx = this.pos.x + this.size.hx + 32;
+        }
+        if (dify > 64)
+        {
+            fy = 2;
+            posy = this.pos.y - 64;
+            if (fx === 2)
+                rot = 45;
+            else if (fx === 0)
+                rot = -45;
+        }
+        else if (dify < -64)
+        {
+            fy = 0;
+            posy = this.pos.y + this.size.hy + 32;
+            rot = 180;
+            if (fx === 2)
+                rot = 145;
+            else if (fx === 0)
+                rot = 235;
+            //20*Math.PI/180
+        }
+        // y id mid
+        else
+        {
+            posy = this.pos.y + (this.size.hy / 2);
+            // console.log("* fx", fx);
+            if (fx === 0) // west
+            {
+                posx = this.pos.x - 64;
+                rot = -90;
+            }
+            else if (fx === 2) // east
+            {
+                posx = this.pos.x + this.size.hx + 64;
+                rot = 90;
+            }
+            else // on target! hide arrow
+            {
+                posx = 0;
+                posy = 0;
+            }
+        }
+        // combine
+        // if (difx === 1 || dify === 1)
+        // {
+
+        // }
+        var size = 25;
+        if (~~this.config.server_time % 2 === 0)
+        {
+            size = 50;
+        }
+        if (rot !== 0)
+        {
+            this.config.ctx.save();
+            this.config.ctx.translate(posx + (size/2), posy + (size/2));
+            this.config.ctx.rotate(rot * Math.PI / 180);
+            this.config.ctx.translate(-posx-size/2, -posy-size/2);
+            this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
+            this.config.ctx.restore();
+        }
+        else if (posx !== 0 && posy !== 0)
+            this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
     }
 
     //game.ctx.beginPath();
