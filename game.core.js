@@ -1913,9 +1913,10 @@ game_core.prototype.server_update = function()
         
         for (var i = this.suRoom.length - 1; i >= 0; i--)
         {
-            this.suPlayer = this.suRoom[i];
+            // this.suPlayer = this.suRoom[i];
             // console.log('================\n' + player.playerName);//player.playerName);
-            if (!this.suPlayer.instance) continue;//return;
+            if (!this.suRoom[i].instance) continue;//return;
+            else this.suPlayer = this.suRoom[i];
             // this.bufView = [];
             // clear bufView array
             // console.log(h, i);
@@ -2191,16 +2192,22 @@ game_core.prototype.server_update = function()
     //console.log(player);
 
     // ensure room tags are removed
-    for (var x in this.laststate)
+    if (this.suPlayer)
     {
-        // console.log(x, this.laststate[x]);
-        this.laststate[x].t = this.config.server_time;        
-        if (Boolean(this.suPlayer.instance))
+        for (var x in this.laststate)
         {
-            // console.log("***", this.suPlayer.instance.userid, this.suPlayer.playerPort);
-            this.suPlayer.instance.room(x).write(this.laststate[x]);
+            // console.log(x, this.laststate[x]);
+            this.laststate[x].t = this.config.server_time;        
+            // if (Boolean(this.suPlayer.instance))
+            if (this.suPlayer.instance)
+            {
+                // console.log("***", this.suPlayer.instance.userid, this.suPlayer.playerPort);
+                this.suPlayer.instance.room(x).write(this.laststate[x]);
+            }
+            // else console.log("*** instance failed");//, this.suPlayer.userid);
         }
     }
+    this.suPlayer = null;
     //}
         // player.instance.room(this.gameid).write(laststate);
     // else console.log('no io');

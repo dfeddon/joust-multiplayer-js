@@ -503,6 +503,18 @@ game_player.prototype.reverseVal = function(val, min, max)
     return (max + min) - val;
 };
 
+game_player.prototype.getRandomBuffSlot = function()
+{
+    var avail = [];
+    for (var i = this.slots.length - 1; i >= 0; i--)
+    {
+        if (this.slots[i].a === 1)//b === buffType)
+            avail.push(this.slots[i]);
+    }
+    var rand = avail[Math.floor(Math.random() * avail.length)];
+    return rand;
+};
+
 game_player.prototype.hasBuff = function()//buffType)
 {
     console.log('== player.hasBuff ==');//, buffType);
@@ -996,7 +1008,8 @@ game_player.prototype.reset = function()
     this.teamBonus = 0;
     this.playerBonus = 0;
     this.potionBonus = 0;
-    // TODO: clear buffs
+    // clear buffs
+    this.purgeBuffsAndBonuses();
 
     console.log('disconnected', this.disconnected);
     
@@ -1069,7 +1082,7 @@ game_player.prototype.addToScore = function(val)
     if (val)
     this.score += val;
 
-    if (this.level === 1 && this.score >= 200)//this.levels[1])
+    if (this.level === 1 && this.score >= this.levels[1])
     {
         console.log('* LEVEL UP - 2!');
         this.level = 2;
@@ -1990,7 +2003,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
                         }
                     }
                 }
-                // get out
+                // no damage taken, so get out
                 return;
             }
             // set base damage (5 - 15) + victor bonus (victor.total) + victor buffs (victor.damageBonus) + (option for 5% + victor bonus to inflict double-damage) - victim.damageReduce bonus - victim bonus
@@ -2036,7 +2049,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
                     if (rng <= bonusDiff)
                     {
                         // victim inflicted with stun and rng debuff
-                        console.log("* victim inflicted!");
+                        console.log("* victim KNOCKOUT!");
                         // vulnerable for 1.5 seconds
                         this.isVuln(1500);
                         // rng 1 or 2
@@ -2059,6 +2072,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
                             // subtract bonusDiff from playerBonus
                             this.playerBonus -= this.dazed;
                             // update bonus
+                            // set cooldown on bonus penalty
                         }
                     }
                 }
@@ -2141,7 +2155,7 @@ game_player.prototype.doKill = function(victor)
     // remove buffs and bonuses
     // if (this.config.server)
     // {
-        this.purgeBuffsAndBonuses();
+    this.purgeBuffsAndBonuses();
         // this.vuln = true;
     // }
     // console.log(this.getplayers);
@@ -2248,7 +2262,7 @@ game_player.prototype.timeoutRespawn = function()
         this.progression = 0;
         this.pos = this.config.gridToPixel(0,0);
 
-        if (this.mp == this.config.players.self.mp)
+        if (!this.server && this.isLocal)//this.mp == this.config.players.self.mp)
         {
             var ui = document.getElementById('splash');
             if (assets.device == "phone")

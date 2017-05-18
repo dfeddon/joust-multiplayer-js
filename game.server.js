@@ -111,10 +111,12 @@ game_server.prototype.onMessage = function(spark,message)
 
 game_server.prototype._onMessage = function(spark,message)
 {
+    // TODO: if no players on server, force player (required) to port 4004 (primary game port)
+    
     // this.log('@@ _onMessage', message);//, spark);//, client.mp);
     if (message.cc) // new client connected
     {
-        this.log("@ new client connected (cc)", this.games);
+        this.log("@ new client connected (cc)");//, this.games);
         // create uid
         spark.userid = getUid();
 
@@ -543,7 +545,7 @@ game_server.prototype.endGame = function(gameid, userid)
                     // p.room(p.playerPort).send('ondisconnect', p.mp);
                     p._rooms.primus.room(p.playerPort).write([25, p.userid]);
                     // leaving game
-                    p.leave(gameid);
+                    p.leave(p.playerPort);
 
                     // remove client socket
                     //console.log("* is client host?, player_client", thegame.player_clients[i]);//.hosting, thegame.gamecore.players.self.host);
@@ -575,11 +577,11 @@ game_server.prototype.endGame = function(gameid, userid)
                 }
             }
         }
-        else
+        else // last player has disconnected
         {
-            this.log("last player in game has disconnected...")
+            this.log("last player in game has disconnected...", thegame.player_clients[0].playerPort);
 
-            thegame.player_clients[0].send('s.e');
+            // thegame.player_clients[0].send('s.e');
 
             this.log('mp', thegame.player_clients[0].mp);
             // the allplayer instance
@@ -595,7 +597,7 @@ game_server.prototype.endGame = function(gameid, userid)
                 }
             }
             // leaving game
-            thegame.player_clients[0].leave(gameid);
+            thegame.player_clients[0].leave(thegame.player_clients[0].playerPort);
             // remove client
             thegame.player_clients.splice(0, 1);
             thegame.player_count--;
