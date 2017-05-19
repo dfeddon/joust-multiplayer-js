@@ -1738,7 +1738,17 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     /////////////////////////////////////
     if (playerSource.isLocal)
     {
+        // flagTaken.targetSlot
+        var url = flagTaken.getUrlBySlotName(flagTaken.targetSlot);
         // use buff UI, pic of target slot and text
+        document.getElementById('buffInfoImage').style.backgroundImage = "url('" + url + "')";
+        document.getElementById('buffInfoLabel').innerHTML = "Plant the " + flagTaken.name + " into " + flagTaken.getSlotName(flagTaken.targetSlot) + "!";
+        document.getElementById('buffInfo').style.display = "flex";
+        document.getElementById('buffInfo').addEventListener('webkitAnimationEnd', function()
+        {
+            console.log("* animation end");
+            this.style.display = "none";
+        }, false);
     }
     else
     {
@@ -1842,7 +1852,9 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
     console.log('toastMsg', toastMsg);    
     if (toastMsg)
     {
-        new game_toast().show(toastMsg);
+        // suppress message if round complete
+        if (this.config.round.active != true)
+            new game_toast().show(toastMsg);
     }
 };
 

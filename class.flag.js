@@ -786,17 +786,17 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
       console.log('fcEvent:', fcEvent.uid);
       fcEvent.doStop();
       
-      _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
-      {
+      // _.forEach(_this.getplayers.fromRoom(this.port), function(ply)
+      // {
         // TODO: omit self if self was failed carrier
-        if (Boolean(ply.instance))// && !ply.isLocal)
-        {
-          console.log('* fc to player', ply.userid, ply.playerPort, _this.heldBy);
+        // if (Boolean(ply.instance))// && !ply.isLocal)
+        // {
+          console.log('* fc to player', playerSource.userid, playerSource.playerPort, _this.heldBy);
           
-          ply.instance.room(ply.playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
+          playerSource.instance.room(playerSource.playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
           // ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
-        }
-      });
+        // }
+      // });
     }
   }
   console.log('flag slotted and reset');
@@ -830,6 +830,41 @@ game_flag.prototype.cooldownComplete = function()
   this.onCooldownLength = 15; // reset counter
   this.onCooldown = false; // turn off cooldown
   this.isActive = true; // reactivate flag
+};
+
+game_flag.prototype.getUrlBySlotName = function(s)
+{
+  switch(s)
+  {
+    case "midSlot":
+      return "http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-mid.png";
+    case "slotRed":
+      return "http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-red.png";
+    case "slotBlue":
+      return "http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-blue.png";
+    default:
+      var num = s.split("slot")[1].toString();
+      return "http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-" + num + ".png";
+  }
+};
+
+game_flag.prototype.getSlotName = function(s)
+{
+  switch(s)
+  {
+    case "midSlot":
+      return "the Mid Placque";
+
+    case "slotRed":
+      return "the Red Placque";
+
+    case "slotBlue":
+      return "the Blue Placque";
+
+    default:
+      var num = s.split("slot")[1].toString();
+      return "Placque #" + num;
+  }
 };
 
 game_flag.prototype.setCtx = function(ctx)

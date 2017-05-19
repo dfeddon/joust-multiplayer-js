@@ -2324,9 +2324,12 @@ game_core.prototype.roundComplete = function(port, round)
             console.log('* roundScore', p[z].roundscore);
 
             // clear all server buffs and bonuses
+            p[z].purgeBuffsAndBonuses();
+            // remove flags from flagholders
+            if (p[z].hasFlag > 0)
+                p[z].dropFlag();
             // p[z].deactivateBuff(p[z].bonusSlot);
             // p[z].bonusSlot = 0;
-            p[z].purgeBuffsAndBonuses();
             // reset position to team base
             p[z].respawn();
         }

@@ -1472,13 +1472,13 @@ h5
 	width: 100%;
 	z-index: 310;
 	background-color: rgba(0, 0, 0, 0.5);
-    -moz-animation: cssAnimation 3.5s forwards;
+    -moz-animation: cssAnimation 4.5s forwards;
     /* Firefox */
-    -webkit-animation: cssAnimation 3.5s forwards;
+    -webkit-animation: cssAnimation 4.5s forwards;
     /* Safari and Chrome */
-    -o-animation: cssAnimation 3.5s forwards;
+    -o-animation: cssAnimation 4.5s forwards;
     /* Opera */
-    animation: cssAnimation 3.5s forwards;
+    animation: cssAnimation 4.5s forwards;
     -webkit-animation-fill-mode: forwards;	
 }
 @keyframes cssAnimation {

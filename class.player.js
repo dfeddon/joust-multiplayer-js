@@ -2706,7 +2706,7 @@ game_player.prototype.isVuln = function(len)
 game_player.prototype.dropFlag = function()
 {
     console.log("== player.dropFlag ==", this.hasFlag);
-    if (this.hasFlag)
+    if (this.hasFlag > 0)
     {
         // 1 = midFlag, 2 = redBase, 3 = blueBase
         var flagName;
