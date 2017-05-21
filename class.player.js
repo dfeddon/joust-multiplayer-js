@@ -251,7 +251,9 @@ game_player.prototype.bufferRead = function()
 }
 game_player.prototype.setFromBuffer = function(data)
 {
-    // console.log(data[0]);
+    // console.log(~~this.pos.x - data[0], ~~this.pos.y - data[1]);//, this.pos);
+    // if (~~this.pos.x - ~~data[0] > 20 || ~~this.pos.x - data[0] < -20) console.log('x',this.pos.x - data[0]);
+    // if (~~this.pos.y - ~~data[1] > 20 || ~~this.pos.y - data[1] < -20) console.log('y',this.pos.x - data[0]);
     // if (data === this.lastdata) console.log('******', data);
     // this.lastdata = data;
     this.dir = data[2];
@@ -989,7 +991,7 @@ game_player.prototype.reset = function()
     console.log('== player.reset() ==');
     this.dead = false;
     this.dying = false;
-    // this.visible = false;
+    this.visible = false;
     //this.vuln = true; // this disables input
     this.active = false;
     this.landed = 1;
@@ -1014,7 +1016,10 @@ game_player.prototype.reset = function()
     console.log('disconnected', this.disconnected);
     
     if (this.disconnected)
+    {
         this.pos = this.config.gridToPixel(0,0);
+        this.disconnected = false;
+    }
     else 
     {
         if (this.config.server)
@@ -1279,83 +1284,20 @@ game_player.prototype.doFlap = function()
 
     // set flap flag
     this.flap = true;
-    // if (!this.config.server)
-    // this.glideRight = true;
 
     // clear landed flag
     this.landed = 0;
-    //console.log('a', this.a);
 
-    //if (vy < -6)
-    //console.log('vy1', this.vy);
-    // if (this.vy > 0)
-    // this.vy -= (this.thrust + this.thrustModifier) * 5;
-    // else
     this.vy = -(this.thrust) * 5;
-    //console.log('vy2', this.vy);
+
     if (this.a !== 0)
         this.vx = (this.thrust);///10;
-    
-    // console.log('a', this.a, 'vx', this.vx, 'vy', this.vy, 'thrustMod', this.thrustModifier);
-
-    /*this.ax = Math.cos(this.a) * this.thrust * 10;
-    this.ay = Math.cos(this.a) * this.thrust * 10;
-
-    if (this.dir === 1)
-    {
-        //this.ax = -(this.ax);
-        this.vx += this.ax;
-    }
-    else {
-        this.vx += this.ax;
-    }
-
-    // increase velocity
-    this.vy -= this.ay;*/
-    //this.vy = -1;
-
-    // console.log('=====================');
-    // console.log('a', this.a, 'dir', this.dir);
-    // console.log('ax', this.ax);
-    // console.log('ay', this.ay);
-    // console.log('vx', this.vx);
-    // console.log('vy', this.vy);
-    // console.log('=====================');
-
 };
 
 game_player.prototype.doLand = function()
 {
     // console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
 
-    // var _this = this;
-
-    // if falling fataly fast...
-    /*if (this.vy > 10)
-    {
-        console.log('fatal bounce!', this.vy);
-        
-        this.vy = 0;
-
-        if (this.config.server)
-        {
-            console.log('dead!', this.instance.game.id);
-            
-            // this.instance.room(this.instance.game.id).write({type:'pk', action: this.mp + '|' + ""});
-            this.instance.room(this.instance.game.id).write([5, this.id, 0]);//this.mp + '|' + ""]));
-            // this.config._.forEach(_this.instance.game.gamecore.getplayers.allplayers, function(p, i)
-            // {
-            //     if (p.instance)// && p.mp != "hp")
-            //     {
-            //         console.log('sending...', p.mp);
-                    
-            //         p.instance.send('p.k.' + _this.mp + '|' + "");
-            //     }
-            // });
-        }
-        this.doKill();
-        return;
-    }*/
     // ...survivably fast
     if (this.vy > 5)// && this.config.server)
     {
@@ -1409,7 +1351,7 @@ game_player.prototype.doLand = function()
     }
     else if (this.vx < 0)
     {
-        //console.log('* slowing -', this.vx);
+        // console.log('* slowing -', this.vx);
         
         //this.vx += 200;
         this.landed = 2; // walking
@@ -1425,6 +1367,7 @@ game_player.prototype.doLand = function()
     }
     if (this.vx === 0)
     {
+        // console.log("* stuck it!");
         // stuck landing (no velocity)
         this.vx = 0;
         //this.vy = 25;
@@ -1709,7 +1652,7 @@ game_player.prototype.hitFrom = 0;
 game_player.prototype.target = null;
 game_player.prototype.update = function()
 {
-    // console.log('== player.update ==', this.config.server_time);//server, this.isBot, this.mp);
+    // console.log('== player.update ==', this.pos, this.config.server_time);//server, this.isBot, this.mp);
     //if (this.mp == "cp1")
     //console.log('p:', this.mp, this.visible, this.active);
     
@@ -1802,17 +1745,18 @@ game_player.prototype.update = function()
     //else
     if (this.collision === true)
     {
-        console.log('collision', this.hitFrom);
+        console.log('* collision', this.hitFrom);
         
         switch(this.hitFrom)
         {
             case 0: // from the side
+                console.log('pre', this.vx, this.a);
                 this.vx *= -1;
                 this.a *= -1;
                 //this.collision = false;
                 //if (!this.vuln)
                     //this.isVuln();
-                //console.log('vx', this.vx);
+                console.log('vx', this.vx, this.a);
             break;
             case 1: // from below
                 //this.vx *= -1;
@@ -2175,8 +2119,8 @@ game_player.prototype.doKill = function(victor)
         this.dropFlag();
         hadFlag = true; // needed for victor scoring below
 
-        if (!this.config.server && this.isLocal)//this.mp == this.config.players.self.mp)
-            this.dropFlag();
+        // if (!this.config.server && this.isLocal)//this.mp == this.config.players.self.mp)
+        //     this.dropFlag();
     }
 
     //this.pos = this.config.gridToPixel(2, 2);
@@ -2235,7 +2179,7 @@ game_player.prototype.doKill = function(victor)
 
 game_player.prototype.timeoutRespawn = function()
 {
-    console.log('player dead complete', this.disconnected, this.mp);
+    console.log('* player dead complete', this.disconnected, this.mp);
 
     // revise highscore?
     if (assets.myHighscore < this.score)
@@ -2246,23 +2190,22 @@ game_player.prototype.timeoutRespawn = function()
     }
     assets.myLastscore = this.score;
 
-    this.reset();
-
     if (this.disconnected)
     {
+        console.log('* dead player disconnected!');
         this.disconnected = false;
-        this.dead = false;
-        this.dying = false;
-        this.visible = false;
-        //this.vuln = true; // this disables input
-        this.active = true;
-        this.landed = 1;
-        this.bubble = false;
-        this.score = 0;
-        this.progression = 0;
+        // this.dead = false;
+        // this.dying = false;
+        // this.visible = false;
+        // //this.vuln = true; // this disables input
+        // this.active = false;
+        // this.landed = 1;
+        // this.bubble = false;
+        // this.score = 0;
+        // this.progression = 0;
         this.pos = this.config.gridToPixel(0,0);
 
-        if (!this.server && this.isLocal)//this.mp == this.config.players.self.mp)
+        if (!this.config.server && this.isLocal)//this.mp == this.config.players.self.mp)
         {
             var ui = document.getElementById('splash');
             if (assets.device == "phone")
@@ -2270,8 +2213,10 @@ game_player.prototype.timeoutRespawn = function()
             ui.style.display = "block";
             //document.body.style.backgroundImage = "url(" + assets.bg_splash + ")";
         }
+        this.reset();
         return;
     }
+    else this.reset();
 
     // ...otherwise, not disconnected. Player can respawn...
     
@@ -2296,8 +2241,8 @@ game_player.prototype.timeoutRespawn = function()
         // this.config.players.self.dead = false;
         // this.config.players.self.landed = 1;
 
-        if (!this.config.server)
-        {
+        // if (!this.config.server)
+        // {
             console.log('* client-only...');
 
             var event = document.createEvent('Event');
@@ -2305,7 +2250,7 @@ game_player.prototype.timeoutRespawn = function()
             // event.game = this.game;
             event.initEvent('playerRespawn', true, true);
             document.dispatchEvent(event);
-        }
+        // }
         // else // server
         // {
         // }
@@ -2676,7 +2621,11 @@ game_player.prototype.timeoutEngaged = function()
 
 game_player.prototype.isVuln = function(len)
 {
-    if (this.vuln===true) return;
+    if (this.vuln===true) 
+    {
+        console.log("* player already vulnerable, getting out...");
+        return;
+    }
 
     console.log('Im vulnerable!', len);
     //var _this = this;
@@ -2696,14 +2645,16 @@ game_player.prototype.isVuln = function(len)
         // get out?
     }
 
-    setTimeout(this.timeoutVuln.bind(this), len);
-
     // if carrying flag, drop it
-    if (this.config.server && this.hasFlag)
+    // if (this.config.server && this.hasFlag)
+    console.log('* hasFlag', this.hasFlag);
+    if (this.hasFlag)
         this.dropFlag();    
+
+    setTimeout(this.timeoutVuln.bind(this), len);
 };
 
-game_player.prototype.dropFlag = function()
+game_player.prototype.dropFlag = function(disconnectedGamecore)
 {
     console.log("== player.dropFlag ==", this.hasFlag);
     if (this.hasFlag > 0)
@@ -2723,12 +2674,37 @@ game_player.prototype.dropFlag = function()
         // var flag = this.config._.find(this.config.flagObjects, {"name":flagName});
         // console.log('gamecore:', this.instance);
         var roomFlags;
-        if (!this.instance)
+        if (!this.config.server)
             roomFlags = this.config.flagObjects;
-        else roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
-        var flag = this.config._.find(roomFlags, {"name":flagName});
-        //flag.slotFlag(this);
-        flag.reset(false);//, this.game);
+        else if (!this.disconnected) // disconnected players have no instance
+             roomFlags = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 3);
+        else if (disconnectedGamecore)
+            roomFlags = disconnectedGamecore.getplayers.fromRoom(this.playerPort, 3);
+        if (roomFlags)
+        {
+            var flag = this.config._.find(roomFlags, {"name":flagName});
+            console.log("* flag dropped", flag.name);
+        }
+        else console.warn("* unable to find roomFlags!");
+
+        // TODO: stub for disconnected players, forcing this now, reset() will handle it
+        /*if (this.disconnected)
+        {
+            // flag.isHeld = true;
+            // flag.heldby = this.userid;
+            console.log("* disconnected player", this);
+            // stop flag cooldown event
+            // var roomEvents = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 1);
+            // console.log('re:', roomEvents, this.port);
+            // var fcEvent = _.find(roomEvents, {"type":2});
+            // console.log('fcEvent:', fcEvent);//.uid);
+            // fcEvent.doStop();
+        }
+        else
+        {*/
+            //flag.slotFlag(this);
+            flag.reset(false);//, this.game);
+        //}
     }
 }
 game_player.prototype.timeoutVuln = function()
@@ -3122,10 +3098,11 @@ game_player.prototype.draw = function()
         //var ct = Math.floor(this.config.server_time - this.flagTakenAt);
         //ct = 60 - ct;
         //console.log('carrying flag', this.carryingFlag.name);
-        //console.log('flag.timer', flag.timer);
         if (flag && flag.timer === 0)
         {
+            console.log('flag.timer', flag.timer);
             console.log('* player.draw: flag reset', this.hasFlag);
+            flag.timer = 60; // set to avoid pre-mature 0 on flag.take
             // reset flag
             // for (var f = this.config.flagObjects.length - 1; f >= 0; f--)
             var roomFlags;
@@ -3135,11 +3112,11 @@ game_player.prototype.draw = function()
             for (var f = roomFlags.length - 1; f >= 0; f--)
             {
                 if (roomFlags[f].name == "midFlag" && this.hasFlag === 1)
-                    roomFlags[f].reset(false, this.game);
+                    roomFlags[f].reset(false);//, this.game);
                 else if (roomFlags[f].name == "redFlag" && this.hasFlag === 2)
-                    roomFlags[f].reset(false, this.game);
+                    roomFlags[f].reset(false);//, this.game);
                 else if (roomFlags[f].name == "blueFlag" && this.hasFlag === 3)
-                    roomFlags[f].reset(false, this.game);
+                    roomFlags[f].reset(false);//, this.game);
             }
             //console.log('resetting flag', this.flagType);
             //console.log('flags', this.config.flagObjects);
@@ -3175,7 +3152,7 @@ game_player.prototype.draw = function()
         //game.ctx.save();
         //console.log('flagImg', flagImg, this.dir);
         // if flag is undefined, it's been removed
-        if (this.drwFlagImg && flag)
+        if (this.drwFlagImg && flag && !this.dead)
         {
             this.config.ctx.drawImage(this.drwFlagImg, (this.dir === 0) ? this.pos.x - ((this.size.hx+this.size.offset)/2) : this.pos.x + ((this.size.hx+this.size.offset)/2), this.pos.y - ((this.size.hx + this.size.offset)/2), 64, 64);
             // draw timer
@@ -3201,87 +3178,90 @@ game_player.prototype.draw = function()
 
         // draw direction arrow
         // get diff
-        var fx = 1; // 0=w, 1=n/s, 2=e
-        var fy = 1; // 0=n, 1=e/w, 2=s
-        var posx = this.pos.x + (this.size.hx / 2);
-        var posy = 0;
-        var difx = this.pos.x - this.flagTargetPos.x;
-        var dify = this.pos.y - this.flagTargetPos.y;
-        var rot = 0;
-        // above or below (diff between 64)
-        // console.log("* difx", difx);
-        if (difx > 64)
+        if (this.isLocal)
         {
-            fx = 0; // target is west
-            posx = this.pos.x - 64;
-        }
-        else if (difx < -64)
-        {
-            fx = 2; // target is east
-            posx = this.pos.x + this.size.hx + 32;
-        }
-        if (dify > 64)
-        {
-            fy = 2;
-            posy = this.pos.y - 64;
-            if (fx === 2)
-                rot = 45;
-            else if (fx === 0)
-                rot = -45;
-        }
-        else if (dify < -64)
-        {
-            fy = 0;
-            posy = this.pos.y + this.size.hy + 32;
-            rot = 180;
-            if (fx === 2)
-                rot = 145;
-            else if (fx === 0)
-                rot = 235;
-            //20*Math.PI/180
-        }
-        // y id mid
-        else
-        {
-            posy = this.pos.y + (this.size.hy / 2);
-            // console.log("* fx", fx);
-            if (fx === 0) // west
+            var fx = 1; // 0=w, 1=n/s, 2=e
+            var fy = 1; // 0=n, 1=e/w, 2=s
+            var posx = this.pos.x + (this.size.hx / 2);
+            var posy = 0;
+            var difx = this.pos.x - this.flagTargetPos.x;
+            var dify = this.pos.y - this.flagTargetPos.y;
+            var rot = 0;
+            // above or below (diff between 64)
+            // console.log("* difx", difx);
+            if (difx > 64)
             {
+                fx = 0; // target is west
                 posx = this.pos.x - 64;
-                rot = -90;
             }
-            else if (fx === 2) // east
+            else if (difx < -64)
             {
-                posx = this.pos.x + this.size.hx + 64;
-                rot = 90;
+                fx = 2; // target is east
+                posx = this.pos.x + this.size.hx + 32;
             }
-            else // on target! hide arrow
+            if (dify > 64)
             {
-                posx = 0;
-                posy = 0;
+                fy = 2;
+                posy = this.pos.y - 64;
+                if (fx === 2)
+                    rot = 45;
+                else if (fx === 0)
+                    rot = -45;
             }
-        }
-        // combine
-        // if (difx === 1 || dify === 1)
-        // {
+            else if (dify < -64)
+            {
+                fy = 0;
+                posy = this.pos.y + this.size.hy + 32;
+                rot = 180;
+                if (fx === 2)
+                    rot = 145;
+                else if (fx === 0)
+                    rot = 235;
+                //20*Math.PI/180
+            }
+            // y id mid
+            else
+            {
+                posy = this.pos.y + (this.size.hy / 2);
+                // console.log("* fx", fx);
+                if (fx === 0) // west
+                {
+                    posx = this.pos.x - 64;
+                    rot = -90;
+                }
+                else if (fx === 2) // east
+                {
+                    posx = this.pos.x + this.size.hx + 64;
+                    rot = 90;
+                }
+                else // on target! hide arrow
+                {
+                    posx = 0;
+                    posy = 0;
+                }
+            }
+            // combine
+            // if (difx === 1 || dify === 1)
+            // {
 
-        // }
-        var size = 25;
-        if (~~this.config.server_time % 2 === 0)
-        {
-            size = 50;
+            // }
+            var size = 25;
+            if (~~this.config.server_time % 2 === 0)
+            {
+                size = 50;
+            }
+            if (rot !== 0)
+            {
+                this.config.ctx.save();
+                this.config.ctx.translate(posx + (size/2), posy + (size/2));
+                this.config.ctx.rotate(rot * Math.PI / 180);
+                this.config.ctx.translate(-posx-size/2, -posy-size/2);
+                this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
+                this.config.ctx.restore();
+            }
+            else if (posx !== 0 && posy !== 0)
+                this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
         }
-        if (rot !== 0)
-        {
-            this.config.ctx.save();
-            this.config.ctx.translate(posx + (size/2), posy + (size/2));
-            this.config.ctx.rotate(rot * Math.PI / 180);
-            this.config.ctx.translate(-posx-size/2, -posy-size/2);
-            this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
-            this.config.ctx.restore();
-        }
-        else if (posx !== 0 && posy !== 0)
-            this.config.ctx.drawImage(assets.carrier_arrow, posx, posy, size, size);
     }
 
     //game.ctx.beginPath();

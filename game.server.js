@@ -517,10 +517,8 @@ game_server.prototype.endGame = function(gameid, userid)
         if(thegame.player_count > 1)
         {
             // get host client and all non-hosting clients
-            // var allplayers = thegame.gamecore.getplayers.allplayers;
-            var allplayers = thegame.gamecore.getplayers.fromRoomByUserId(userid);
-            //var host;
-            var nonhosts = [];
+            // var allplayers = thegame.gamecore.getplayers.fromRoomByUserId(userid);
+            // var nonhosts = [];
             var game_instance = this.games[gameid];
             this.log("player clients", thegame.player_clients.length);
             // remove client from clients array
@@ -529,50 +527,53 @@ game_server.prototype.endGame = function(gameid, userid)
                 // if (thegame.player_clients[i].hosting)
                 //     host = thegame.player_clients[i];
                 // else nonhosts.push(thegame.player_clients[i]);
-                this.log(thegame.player_clients.length, thegame.player_clients[i].userid, userid);//, thegame.player_clients[i].hosting);
+                this.log(thegame.player_clients[i].userid, userid);//, thegame.player_clients[i].hosting);
                 if (thegame.player_clients[i].userid == userid)
                 {
-                    console.log('@@ removing client id', userid);//, thegame.player_clients[i].hosting);
-
+                    console.log('@@ removing client id', userid);
                     var p = thegame.player_clients[i];
 
-                    // tell client game is ended
-                    //p.emit('ondisconnect');
                     // inform other players
                     this.log('userid', p.userid, p.playerPort);//, p);//mp);
-                    //thegame.allplayers[k].instance.send('s.e.' + thegame.player_clients[i].mp);
-                    // thegame.player_clients[i].room(thegame.id).send('ondisconnect', thegame.player_clients[i].mp);
-                    // p.room(p.playerPort).send('ondisconnect', p.mp);
                     p._rooms.primus.room(p.playerPort).write([25, p.userid]);
+
                     // leaving game
                     p.leave(p.playerPort);
 
                     // remove client socket
-                    //console.log("* is client host?, player_client", thegame.player_clients[i]);//.hosting, thegame.gamecore.players.self.host);
-                    //console.log('* players.self', thegame.gamecore.players.self);
-                    
+                    this.log("* pre", thegame.player_clients);
                     thegame.player_clients.splice(i, 1);
+                    this.log("* post", thegame.player_clients);
                 }
             } // end for loop
 
-            // remove player from allplayer array
-            var disconnected_mp;
+            // remove player from getplayers array
             var room = thegame.gamecore.getplayers.fromRoom(p.playerPort);
             for (var j = 0; j < room.length; j++)
             {
                 if (room[j].id == userid)
                 {
-                    console.log('@@ removing player', room[j].playerPort, userid, room[j].playerName);//, allplayers[j].host);
+                    console.log('@@ removing player', room[j].playerPort, userid, room[j].playerName);
                     
-                    disconnected_mp = room[j].mp;
-                    // if (!allplayers[j].host)
+                    // disconnected_mp = room[j].mp;
                     room[j].instance = null;//.splice(j, 1);
-                    // else this.log("* not disconnecting host player...");
                     room[j].disconnected = true;
+
+                    // drop and reset flag
+                    if (room[j].hasFlag > 0)
+                    {
+                        room[j].dropFlag(thegame.gamecore);
+                        var roomEvents = thegame.gamecore.getplayers.fromRoom(p.playerPort, 1);
+                        // console.log('re:', roomEvents, this.port);
+                        var fcEvent = _.find(roomEvents, {"type":2});
+                        // console.log('fcEvent:', fcEvent);//.uid);
+                        fcEvent.doStop();
+                    }
                     // allplayers[j].active = false;
                     // allplayers[j].pos = {x:0, y:0};
                     room[j].reset();
                     game_instance.player_count--;
+                    console.log('* player count', game_instance.player_count);
                     break;
                 }
             }
@@ -912,10 +913,10 @@ game_server.prototype.startGame = function(game, newplayer)
                     10,//'onjoingame', 
                     playerUserId,//playerMP,
                     this.games[game.id].id,
-                    chestsarray,//JSON.stringify(chestsarray),
+                    [],// chestsarray,
                     team,
                     playerName,
-                    flagsArray,//JSON.stringify(flagsArray),
+                    [],//flagsArray,
                     playerMP,
                     playerSkin
                 ];

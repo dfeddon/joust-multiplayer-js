@@ -572,24 +572,24 @@ core_client.prototype.client_onjoingame = function(data)
         }
     }
 
-    _.forEach(chests, function(chest)
-    {
-        console.log('adding chest to game!');
+    // _.forEach(chests, function(chest)
+    // {
+    //     console.log('adding chest to game!');
         
-        _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
-    });
+    //     _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
+    // });
 
-    var cflag;
-    //console.log('flags', flags, this.core.config.flagObjects);
-    this.config.preflags = [];
-    _.forEach(flags, function(flag)
-    {
-        cflag = _.find(_this.core.config.flagObjects, {'name': flag.name});
-        //console.log('cflag', cflag);
-        if (cflag)
-            cflag.visible = flag.visible;
-        else _this.config.preflags.push(flag);
-    });
+    // var cflag;
+    // //console.log('flags', flags, this.core.config.flagObjects);
+    // this.config.preflags = [];
+    // _.forEach(flags, function(flag)
+    // {
+    //     cflag = _.find(_this.core.config.flagObjects, {'name': flag.name});
+    //     //console.log('cflag', cflag);
+    //     if (cflag)
+    //         cflag.visible = flag.visible;
+    //     else _this.config.preflags.push(flag);
+    // });
 
     // console.log('local player mp =', this.players.self.mp);
     // set mp val
@@ -764,7 +764,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     });
 
     var cflag;
-    console.log('flags', flags);//, this.core.config.flagObjects);
+    console.log('* flags', flags);//, this.core.config.flagObjects);
     this.config.preflags = [];
     _.forEach(flags, function(flag)
     {
@@ -1115,12 +1115,14 @@ core_client.prototype.client_ondisconnect = function(userid) {
     var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--)
     {
-        console.log(room[i]);
+        // console.log(room[i]);
         if (room[i].userid == userid)
         {
             console.log('* removing player', room[i].mp);//, data);
             room[i].disconnected = true;
             room[i].doKill();//active = false;
+            if (room[i].hasFlag > 0)
+                room[i].dropFlag();
             //room[i].visible = false;
             //room[i].pos = {x:0, y:0};
             //this.core.getplayers.allplayers.splice(i, 1);
@@ -1655,16 +1657,18 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
         {
             flagTaken = flag;
             flagTaken.targetSlot = flag.getTargetSlot(parseInt(playerSource.team), flag.sourceSlot);
-            console.log('tslot', flagTaken.targetSlot);
+            console.log('* tslot', flagTaken.targetSlot);
             return false; // break
         }
     });
-    console.log('flag taken', flagTaken);
+    console.log('* flag taken pre', flagTaken.name, flagTaken.visible, flagTaken.image);
     // disable taken flag
     flagTaken.visible = false;
     flagTaken.isHeld = true;
+    flagTaken.timer = -1; // if 0, flag will auto-reset
     flagTaken.isActive = false;
     flagTaken.heldBy = playerSource.userid;//mp;
+    console.log('* flag taken post', flagTaken.name, flagTaken.visible, flagTaken.image);
 
     // set player's has flag attribute // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
     if (flagTaken.name == "midFlag")

@@ -109,7 +109,7 @@ game_event.prototype.update = function(port)
         for (var i = 0; i < room.length; i++)
         {
           // console.log('**', room[i]);
-          if (room[i].instance.userid == userid)
+          if (room[i].userid == userid)
           {
             console.log("* found player", room[i].instance.userid);
             player = room[i];
@@ -126,7 +126,7 @@ game_event.prototype.update = function(port)
       break;
 
       case this.TYPE_FLAG_SLOTTED_COOLDOWN:
-        // console.log('evt update slotted cooldown complete');
+        console.log('evt update slotted cooldown complete');
         this.flag.isHeld = false;
         // var userid = this.flag.heldBy;
         // var player = this.getplayers.getPlayerByUserId(userid);
@@ -237,7 +237,7 @@ game_event.prototype.update = function(port)
   else if (this.type === this.TYPE_FLAG_CARRIED_COOLDOWN || this.type === this.TYPE_FLAG_SLOTTED_COOLDOWN)
   {
     this.timer = Math.abs(Math.floor(this.config.server_time - this.triggerOn));
-    //console.log('timer', this.timer);
+    console.log('* evt timer', this.timer);
     if (this.timer == this.lastTimer) return false;
     else
     {

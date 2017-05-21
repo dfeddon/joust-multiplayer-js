@@ -719,11 +719,12 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
     msg = {};
 
     // carrier
-    var roomName = this.getplayers.getRoomNameByUserId(this.heldBy);
-    console.log("room name", roomName);
+    // if (this.config.server)
+      // var roomName = this.getplayers.fromRoom(this.port);//getRoomNameByUserId(this.heldBy);
+    // console.log("room name", roomName);
     var room;
     if (this.config.server)
-      room = this.getplayers.fromRoom(roomName);
+      room = this.getplayers.fromRoom(this.port);//roomName);
     else room = this.getplayers.allplayers;
     // console.log("room:", room);
     var playerSource = _.find(room, {'userid':_this.heldBy});
@@ -793,13 +794,28 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
         // {
           console.log('* fc to player', playerSource.userid, playerSource.playerPort, _this.heldBy);
           
-          playerSource.instance.room(playerSource.playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
+          // disconnected flag-carriers have no instance
+          if (playerSource.instance)
+            playerSource.instance.room(playerSource.playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
+          else
+          {
+            // "borrow" instance from existing player
+            for (var i = room.length - 1; i >= 0; i--)
+            {
+              if (room[i].instance)
+              {
+                room[i].instance.room(room[i].playerPort).write([22, _this.name, _this.visible, msg, _this.heldBy]);
+                break;
+              }
+            }
+          }
           // ply.instance.send('f.c.' + _this.name + "|" + _this.visible + "|" + msg);
         // }
       // });
     }
   }
-  console.log('flag slotted and reset');
+  this.timer = 60; // reset timer
+  console.log('flag slotted and reset', this);
 };
 
 game_flag.prototype.timeoutCooldown = function()

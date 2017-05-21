@@ -1392,13 +1392,13 @@ game_core.prototype.check_collision = function( player )
         //////////////////////////////
         // side collision (full, right)
         //////////////////////////////
-        else if (h.ne.t > 0 && h.se.t > 0)
+        /*else if (h.ne.t > 0 && h.se.t > 0)
         {
             player.pos.x -= 15; //bounce
             player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
             player.collision = true;
             //player.vx = 0; // stop accel
-        }
+        }*/
         //////////////////////////////
         // slid off platform
         //////////////////////////////
@@ -1831,8 +1831,7 @@ game_core.prototype.server_update_physics = function()
 
             //ply.update();
 
-            //Keep the physics position in the world
-            
+            //Keep the physics position in the world            
             this.check_collision( this.phyPlayer );
             
 
@@ -2320,7 +2319,10 @@ game_core.prototype.roundComplete = function(port, round)
         var p = this.getplayers.fromRoom(port, 0);
         for (var z = p.length - 1; z >= 0; z--)
         {
-            p[z].roundscore = p[z].score - p[z].lastscore;
+            // reset roundscore of inactive players
+            if (p[z].active === false)
+                p[z].roundscore = 0;
+            else p[z].roundscore = p[z].score - p[z].lastscore;
             console.log('* roundScore', p[z].roundscore);
 
             // clear all server buffs and bonuses
