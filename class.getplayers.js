@@ -572,6 +572,38 @@ getplayers.prototype.addToRoom = function(obj, port, type)
     }
 };
 
+getplayers.prototype.getNextOpenPort = function(cport)//, maxport)
+{
+    console.log('== getplayers.getNextOpenPort ==');//, port, maxport);
+    // we don't know the room, so we'll check them all
+    var allrooms = Object.keys(this.fromAllRooms());
+    // console.log('allrooms', allrooms);
+    var room, h, j;
+
+    if (this.game_instance)
+    {
+        for (h = allrooms.length - 1; h >= 0; h--)
+        {
+            // skip port already checked
+            if (allrooms[h] == cport) continue;
+            
+            room = this.fromRoom(allrooms[h]);
+            // console.log("* room", room);
+            for (j = 0; j < room.length; j++)
+            {
+                // console.log(room[j]);
+                if (room[j].instance)
+                {
+                    // console.log("* found room name", allrooms[h]);
+                    return allrooms[h];
+                }
+            }
+        }
+        // didn't find an open port -- server is full!
+        return "full";
+    }
+};
+
 getplayers.prototype.flagsDefault = [];
 
 module.exports = getplayers;

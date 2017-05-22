@@ -146,11 +146,19 @@ game_server.prototype._onMessage = function(spark,message)
             {
                 console.log("@ game is full, move client to a new port!");
                 // find *first available* port
-                var currentPort = parseInt(this.xport);
-                console.log('current port', currentPort);
-                var nextPort = currentPort + 1;
-                if (nextPort > PORT_RANGE_END)
-                    nextPort = PORT_RANGE_START;
+                // var currentPort = parseInt(this.xport);
+                // console.log('current port', currentPort);
+                // var nextPort = currentPort + 1;
+                // if (nextPort > PORT_RANGE_END)
+                //     nextPort = PORT_RANGE_START;
+                // // TODO: keep iterating ports until a free space is found!
+                var nextPort = game.gamecore.getplayers.getNextOpenPort(this.xport.toString());
+                if (nextPort == "full")
+                {
+                    // server is full
+                    spark.write([50]);
+                    return;
+                }
                 split[2] = nextPort;
                 console.log("next port", nextPort);
                 // store new port in (rebuilt!) messsage.cc[2];

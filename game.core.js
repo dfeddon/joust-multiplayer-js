@@ -1528,12 +1528,12 @@ game_core.prototype.process_input = function( player )
                     }
                 }
                 //else player.cycle = false;
-                else if (key == "sp")
+                /*else if (key == "sp")
                 {
                     //console.log('ABILITY');
                     if (player.cooldown === false)
                         player.doAbility();
-                }
+                }*/
                 // else
                 // {
                 // }
@@ -1607,11 +1607,11 @@ game_core.prototype.process_input = function( player )
         //console.log('no input...');
         //this.players.self.old_state.pos = this.pos(this.players.self.pos);
         /*
-        if (this.config.server && player.active)
+        if (!this.config.server && player.active)
         {
-            //console.log('* updating', player.mp);
+            console.log('* updating', this.core_client.players.self.mp);
             
-            player.update();
+            this.core_client.players.self.update();
         }
         //*/
         //this.client_update();
@@ -1997,6 +1997,12 @@ game_core.prototype.server_update = function()
                 this.suPlayer.healthChanged = false;
                 this.bufView[h][i][11] = this.suPlayer.health;
             }
+            // if (this.suPlayer.hadCollision > 0)
+            // {
+            //     this.bufView[h][i][12] = true;//this.suPlayer.vx;
+            //     // this.bufView[h][i][13] = this.suPlayer.vy;
+            //     this.suPlayer.hadCollision = 0;//false;
+            // }
 
             // store old data, to avoid redundancy
             // this.suPlayer.old_state = this.suPlayer.pos;

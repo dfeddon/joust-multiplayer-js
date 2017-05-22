@@ -619,7 +619,7 @@ domready(function()
 		// uiInfoBarBottom.style.display = "none";
 		
 		// show splash
-		ui.style.display = "flex";//inline-block";
+		ui.style.display = "block";//inline-block";
 		// ...and score
 		var myLastscoreDiv = document.getElementById('mylastscore');
 		myLastscoreDiv.style.display = "block";

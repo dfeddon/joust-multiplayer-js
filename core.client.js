@@ -2447,7 +2447,8 @@ core_client.prototype.client_process_net_updates = function()
                     //player.pos = p.pos;
 
                 // client-server interpolation (if decent fps avg)
-                if (this.fps_avg > 50)
+                // console.log("**", p.pos, this.nu_ghostStub);
+                // if (this.fps_avg > 50)
                     player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
                 //else
                 //{ 
@@ -2746,13 +2747,13 @@ core_client.prototype.client_process_net_updates = function()
         //if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
         //{
             // TODO: bug below - "self_pp" is undefined
-            //*
+            //* player interpolation
             if (this.nu_self_pp && this.nu_self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
             {
                 this.players.self.pos =
                     this.v_lerp(this.players.self.pos,
                     this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point),//this.core._pdt*this.client_smooth),
-                    this.core._pdt*this.client_smooth
+                    this.core._pdt * this.client_smooth
                 );
             }
             //*/

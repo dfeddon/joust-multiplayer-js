@@ -84,6 +84,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.consumeDispatch = null // server only
     this.bonusDispatch = null;
     
+    // i = index, a = active, b = buff, c = cooldown
     this.slots = [{i:1, a:1, b:0, c:0}, {i:2, a:0, b:0, c:0}, {i:3, a:0, b:0, c:0}];
     this.bonusSlot = 0;
 
@@ -108,7 +109,7 @@ function game_player(player_instance, isHost, pindex, config)
     // this.slots[0].b = 1; this.slots[0].c = 100; this.slots[0].a = 1;
 
     this.bubble = false; // bubble
-    this.blinking = false; // blink
+    this.blinking = 0; // blink
     this.unblinker = false; // reveal
     this.defenseBonus = 0; // recover / base - (25% of 15) * Bonus
     this.attackBonus = 0; // precision / base + (25% of 15) * Bonus
@@ -158,6 +159,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.flagTakenAt = 0;
     this.flagTargetPos = {x:1000, y:1000};
     this.disconnected = false;
+
+    // this.hadCollision = false;
 
     // draw vars
     this.nameplateOffset = 20;
@@ -296,6 +299,12 @@ game_player.prototype.setFromBuffer = function(data)
         this.healthAdjustments();
     }
 
+    // if (data[12])
+    // {
+    // this.vx *= -1;//data[12];
+    // if (data[13])
+    // this.vy *=-1;//data[13];
+    // }
     // data = null;
     // this.lastdata = data;
 };
@@ -670,6 +679,28 @@ game_player.prototype.addBuff = function(buff)
 game_player.prototype.activateBuff = function(buff)
 {
     console.log('== activateBuff ==', buff);
+
+    // check for stacks
+    // check for stacks
+    var stack = 0;
+    for (var i = 0; i < this.slots.length; i++)
+    {
+        if (this.slots[i].b === buff && this.slots[i].a)
+        {
+            console.log("* we have a stack!", this.slots[i]);
+            if (stack < 4) // 3 stack maximum
+                stack++;
+            else console.log("* stack reached 3 maximum!");
+        }
+    }
+    // check this.bonusSlot
+    console.log("* bonus slot", this.bonusSlot);
+    if (this.bonusSlot === buff)
+    {
+        console.log("* bonus slot stacked!");
+        stack++;
+    }
+    console.log('* activate buff stacks', stack);
     
     // activate buff
     switch(buff) // buff
@@ -680,34 +711,42 @@ game_player.prototype.activateBuff = function(buff)
 
         case this.game_buffs.BUFFS_BUBBLE:
             // on hit
+            // bubbleRespawnTime: 1: 15 seconds, 2 stacks: 10 seconds, 3 stacks: 5 seconds
+            switch(stack)
+            {
+                case 1: this.bubbleRespawnTime = 15; break;
+                case 2: this.bubbleRespawnTime = 10; break;
+                case 3: this.bubbleRespawnTime = 5; break;
+            }
+
             this.setBubble(true);//this.bubble = true;
         break;
         case this.game_buffs.BUFFS_ALACRITY:
             // 25% speed buff (on physics)
-            this.thrustModifier -= 5;// * 0.00025);
-            this.speedBonus = 25;
+            this.thrustModifier -= (5 * stack);// * 0.00025);
+            this.speedBonus = 25 * stack;
         break;
         case this.game_buffs.BUFFS_PRECISION:
             // +25% opponent hit radius (on collision)
-            this.attackBonus = this.config.hitBase * .25;
+            this.attackBonus = this.config.hitBase * (.25 * stack);
         break;
         case this.game_buffs.BUFFS_RECOVER:
             // -25% self hit radius (on collision)
-            this.defenseBonus = this.config.hitBase * .25;
+            this.defenseBonus = this.config.hitBase * (.25 * stack);
         break;
         case this.game_buffs.BUFFS_BLINK:
-            this.blinking = true;
+            this.blinking = stack;
         break;
         case this.game_buffs.BUFFS_REVEAL:
             this.unblinker = true;
         break;
         case this.game_buffs.BUFFS_BRUISE:
             // 25% damage bonus (on hit as victor);
-            this.damageBonus = 25;
+            this.damageBonus = (25 * stack);
         break;
         case this.game_buffs.BUFFS_PLATE:
             // 25% damage reduction (on hit as victim)
-            this.damageReduce = 25;
+            this.damageReduce = (25 * stack);
         break;
     }
     this.setTextFloater(1, 0, 1, buff);
@@ -817,6 +856,27 @@ game_player.prototype.removeBuff = function(buff)
 game_player.prototype.deactivateBuff = function(buff)
 {
     console.log('== player.deactivateBuff', buff);
+
+    // check for stacks
+    var stack = 0;
+    for (var i = 0; i < this.slots.length; i++)
+    {
+        if (this.slots[i].b === buff && this.slots[i].a === true)
+        {
+            console.log("* we have a stack!");
+            if (stack < 4) // avoid negatives, just in case...
+                stack++;
+            else console.log("* min stack reached!");
+        }
+    }
+    // check this.bonusSlot
+    console.log("* bonus slot", this.bonusSlot);
+    if (this.bonusSlot === buff)
+    {
+        console.log("* bonus slot stacked!");
+        stack++;
+    }
+    console.log('* deactivate buff stacks', stack);
     
     // deactivate buff
     switch(buff) // buff
@@ -826,30 +886,45 @@ game_player.prototype.deactivateBuff = function(buff)
         // break;
 
         case this.game_buffs.BUFFS_BUBBLE:
-            this.bubble = false;
-            this.bubbleRespawn = 0; // cancel unspawned bubble
+            if (stack === 0)
+            {
+                this.bubble = false;
+                this.bubbleRespawn = 0; // cancel unspawned bubble
+                this.bubbleRespawnTime = 15; // reset to max
+            }
+            else 
+            {
+                console.log("* we have additional stacks of bubble!")
+                switch(stack)
+                {
+                    case 1: this.bubbleRespawnTime = 15; break;
+                    case 2: this.bubbleRespawnTime = 10; break;
+                    case 3: this.bubbleRespawnTime = 15; break; // this case should not occur!
+                }
+            }
         break;
         case this.game_buffs.BUFFS_ALACRITY:
-            this.thrustModifier += 5;
-            this.speedBonus = 0;
+            this.thrustModifier += (5 * stack);
+            this.speedBonus = 25 * stack;
         break;
         case this.game_buffs.BUFFS_PRECISION:
-            this.attackBonus = 0;
+            this.attackBonus = this.config.hitBase * (.25 * stack);
         break;
         case this.game_buffs.BUFFS_RECOVER:
-            this.defenseBonus = 0;
+            this.defenseBonus = this.config.hitBase * (.25 * stack);
         break;
         case this.game_buffs.BUFFS_REVEAL:
-            this.unblinker = false;
+            if (stack === 0)
+                this.unblinker = false;
         break;
         case this.game_buffs.BUFFS_BRUISE:
-            this.damageBonus = 0;
+            this.damageBonus = (25 * stack);
         break;
         case this.game_buffs.BUFFS_PLATE:
-            this.damageReduce = 0;
+            this.damageReduce = (25 * stack);
         break;
         case this.game_buffs.BUFFS_BLINK:
-            this.blinking = false;
+            this.blinking = stack;
         break;
     }
     
@@ -996,7 +1071,7 @@ game_player.prototype.reset = function()
     this.active = false;
     this.landed = 1;
     this.bubble = false;
-    this.blinking = false;
+    this.blinking = 0;
     this.unblinker = false;
     this.drawAbility = 0;
 
@@ -1666,11 +1741,23 @@ game_player.prototype.update = function()
     if (this.config.server)
     {
         // blinking? (stacking -> 1=3, 2=2, 3=1)
-        if (this.blinking === true && ~~(this.config.server_time) % 3 === 0)
-            this.drawAbility = 1;
+        // if (this.blinking === true && ~~(this.config.server_time) % 3 === 0)
+        if (this.blinking > 0)
+        {
+            var rate = 3; // default
+            switch(this.blinking)
+            {
+                case 2: rate = 2; break;
+                case 3: rate = 1; break;
+            }
+            console.log('* blink rate stack', rate);
+            if (~~(this.config.server_time) % rate === 0)
+                this.drawAbility = 1;
+            else this.drawAbility = 0;
+        }
         else if (this.drawAbility === 1)
             this.drawAbility = 0;
-
+        console.log("* ", this.drawAbility);
         // check buff slots (local player only)
         if (this.isLocal)
         {
@@ -1750,7 +1837,7 @@ game_player.prototype.update = function()
         switch(this.hitFrom)
         {
             case 0: // from the side
-                console.log('pre', this.vx, this.a);
+                console.log('side collision', this.vx, this.a);
                 this.vx *= -1;
                 this.a *= -1;
                 //this.collision = false;
@@ -1796,7 +1883,7 @@ game_player.prototype.update = function()
                     
                 // }
                 //this.target.vx *= -1;
-                console.log('pre', this.vx, this.a);
+                console.log('PvP!', this.vx, this.a);
                 
                 this.vx *= -1;
                 this.vy *= -1;
@@ -1821,6 +1908,7 @@ game_player.prototype.update = function()
         }
         // reset vars
         this.collision = false;
+        // this.hadCollision = true;
         this.hitfrom = -1;
         this.target = null;
     }
