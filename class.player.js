@@ -369,9 +369,11 @@ game_player.prototype.purgeBuffsAndBonuses = function()
     // deactive bonus slot buff
     if (this.bonusSlot)
     {
-        this.deactivateBuff(this.bonusSlot);
+        var val = this.bonusSlot; // store it
+        this.bonusSlot = 0; // clear it
+        this.deactivateBuff(val); // send it
     }
-    this.bonusSlot = 0;
+    // this.bonusSlot = 0;
 
     // deactivate all buffs and bonuses
     // first up, buffs
@@ -1750,14 +1752,14 @@ game_player.prototype.update = function()
                 case 2: rate = 2; break;
                 case 3: rate = 1; break;
             }
-            console.log('* blink rate stack', rate);
+            // console.log('* blink rate stack', rate);
             if (~~(this.config.server_time) % rate === 0)
                 this.drawAbility = 1;
             else this.drawAbility = 0;
         }
         else if (this.drawAbility === 1)
             this.drawAbility = 0;
-        console.log("* ", this.drawAbility);
+        // console.log("* ", this.drawAbility);
         // check buff slots (local player only)
         if (this.isLocal)
         {
@@ -2043,10 +2045,14 @@ game_player.prototype.doHitServer = function(victor, isHit)
             var dmg = ~~(Math.random() * 11) + 5;
             console.log("+ base", dmg);
             // victor modifiers (dmg buff + bonus)
-            dmg += (dmg * (victor.damageBonus / 100) + (dmg * (victor.bonusTotal / 100)));
+            if (victor.bonusTotal >= 0)
+                dmg += (dmg * (victor.damageBonus / 100) + (dmg * (victor.bonusTotal / 100)));
+            else dmg += (dmg * (victor.damageBonus / 100) - (dmg * (victor.bonusTotal / 100)));
             console.log("+ victor bonuses", dmg, victor.damageBonus, victor.bonusTotal);
             // victim modifiers (dmg reduce + bonus)
-            dmg -= (dmg * (this.damageReduce / 100) - (dmg * (this.bonusTotal / 100)));
+            if (this.bonusTotal >= 0)
+                dmg -= (dmg * (this.damageReduce / 100) - (dmg * (this.bonusTotal / 100)));
+            else dmg -= (dmg * (this.damageReduce / 100) + (dmg * (this.bonusTotal / 100)));
             console.log("- victim bonuses", dmg, this.damageReduce, this.bonusTotal);
             // round it
             dmg = Math.round(dmg);

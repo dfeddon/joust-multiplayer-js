@@ -1008,9 +1008,11 @@ game_core.prototype.check_collision = function( player )
         //for (var i = 0; i < this.getplayers.allplayers.length; i++)
     if (this.config.server || player.isLocal && !player.dead)
     {
-        var other;
+        var other, room;
         // _.forEach(_this.getplayers.allplayers, function(other)
-        var room = this.getplayers.fromRoom(player.playerPort);
+        if (this.config.server)
+            room = this.getplayers.fromRoom(player.playerPort);
+        else room = this.getplayers.allplayers;
         for (var i = room.length - 1; i >= 0; i--)
         {
             other = room[i];//this.getplayers.allplayers[i];
@@ -1047,7 +1049,7 @@ game_core.prototype.check_collision = function( player )
                     // player y - player attackBonus - player bonusTotal / player y - recover bonus 
                     // (pos.y - attackBonus - bonusTotal) - (pos.y - defenseBonus - bonusTotal)
                     this.hitDiff = (player.pos.y - player.attackBonus - player.bonusTotal) - (other.pos.y - other.defenseBonus - other.bonusTotal);
-                    console.log("* HIT DIFF", this.hitDiff);// player.mp, player.pos.y, other.mp, other.pos.y);
+                    console.log("* HIT DIFF", this.hitDiff, this.hitBase);// player.mp, player.pos.y, other.mp, other.pos.y);
 
                     if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
                     {
