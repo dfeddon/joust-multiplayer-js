@@ -1875,7 +1875,8 @@ game_player.prototype.update = function()
                 //this.collision = false;
                 //console.log('vx', this.vx);
             break;
-            case 3: // opponent
+            case 3: // opponent hit
+            case 6: // opponent miss
                 // if dif >= 15 && dif <= 15 no victim
                 // add bonus/buff modifiers to dif below
                 // console.log('opponent - dif', this.pos.y - this.target.pos.y);
@@ -1893,10 +1894,11 @@ game_player.prototype.update = function()
                 // if velocity greater by 2 then player will "push thru"
                 // var vxDiff = this.v
                 
-                // if horiz collision 
-                this.vx *= -.5;
-                // else vert collision
-                this.vy *= -.5;
+                // if horiz collision (not hit)
+                if (this.hitFrom === 6)
+                    this.vx *= -.5;
+                // else vert collision (hit)
+                else this.vy *= -.5;
                 // adjust this
                 this.a *= -1;
 
@@ -2146,8 +2148,8 @@ game_player.prototype.doHitServer = function(victor, isHit)
             victor.collision = true;
             this.collision = true;
             // hit by player
-            victor.hitFrom = 3;
-            this.hitFrom = 3;
+            victor.hitFrom = 6;
+            this.hitFrom = 6;
             // set collidee
             victor.target = this;
             this.target = victor;

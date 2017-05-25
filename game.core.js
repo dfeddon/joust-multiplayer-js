@@ -1030,12 +1030,14 @@ game_core.prototype.check_collision = function( player, i )
             if (other.mp != player.mp && other.team != player.team && other.active)
             {
                 //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
-                if ( 
-                    player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) 
-                    && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) 
-                    && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) 
-                    && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
-                )
+                if (Math.sqrt( (player.pos.x - other.pos.x) * (player.pos.x - other.pos.x) + (player.pos.y - other.pos.y) * (player.pos.y - other.pos.y) ) < 32)
+                // console.log("+", dist, '<', '128');
+                // if ( 
+                //     player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) 
+                //     && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) 
+                //     && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) 
+                //     && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
+                // )
                 {
                     console.log('HIT!', player.mp, player.team, other.mp, other.team);
                     
@@ -1209,12 +1211,14 @@ game_core.prototype.check_collision = function( player, i )
             consumable = room[i];
             // console.log('collision().chests', chest.taken);
             // Note: hy + 10 below accounts for birds unseen legs.
-            if (
-                player.pos.x < (consumable.x + consumable.width) &&
-                (player.pos.x + player.size.hx) > consumable.x &&
-                player.pos.y < (consumable.y + consumable.height) &&
-                (player.pos.y + player.size.hy) > consumable.y
-            )
+            // if (
+            //     player.pos.x < (consumable.x + consumable.width) &&
+            //     (player.pos.x + player.size.hx) > consumable.x &&
+            //     player.pos.y < (consumable.y + consumable.height) &&
+            //     (player.pos.y + player.size.hy) > consumable.y
+            // )
+            if (Math.sqrt( (player.pos.x - consumable.x) * (player.pos.x - consumable.x) + (player.pos.y - consumable.y) * (player.pos.y - consumable.y) ) < 32)
+            
             {
                 // console.log('consumable hit');
                 if (!consumable.taken)
@@ -1239,13 +1243,14 @@ game_core.prototype.check_collision = function( player, i )
         {
             fo = room[i];//this.config.flagObjects[k];
             // console.log('======= flag ======\n', fo.id, fo.name, fo.x, fo.y, '\n=======');
-            if (
-                //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
-                player.pos.x < (fo.x + (fo.width/2)) &&
-                (player.pos.x + (player.size.hx/2)) > fo.x &&
-                player.pos.y < (fo.y + (fo.height/2)) &&
-                (player.pos.y + (player.size.hy/2)) > fo.y
-            )
+            if (Math.sqrt( (player.pos.x - fo.x) * (player.pos.x - fo.x) + (player.pos.y - fo.y) * (player.pos.y - fo.y) ) < 32)
+            // if (
+            //     //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
+            //     player.pos.x < (fo.x + (fo.width/2)) &&
+            //     (player.pos.x + (player.size.hx/2)) > fo.x &&
+            //     player.pos.y < (fo.y + (fo.height/2)) &&
+            //     (player.pos.y + (player.size.hy/2)) > fo.y
+            // )
             {
                 //console.log('hit flag obj', fo.name, fo.isHeld, fo.isActive, player.hasFlag);
 
