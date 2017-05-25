@@ -926,7 +926,7 @@ game_core.prototype.pk = function(victor, victim, dmg)
     // victim.doHit(victor, dmg);
     // victim.doKill(victor);
 }
-game_core.prototype.check_collision = function( player )
+game_core.prototype.check_collision = function( player, i )
 {
     //console.log('##+@@check_collision', player.mp);
     // TODO: May need to remove hp check below (and elsewhere)
@@ -1013,9 +1013,15 @@ game_core.prototype.check_collision = function( player )
         if (this.config.server)
             room = this.getplayers.fromRoom(player.playerPort);
         else room = this.getplayers.allplayers;
-        for (var i = room.length - 1; i >= 0; i--)
+
+        var c = 0; 
+        if (this.config.server) // collision optimization and avoids double-hits!
+            c = i + 1;
+
+        // for (var i = room.length - 1; i >= 0; i--)
+        for (var j = c; j < room.length; j++)
         {
-            other = room[i];//this.getplayers.allplayers[i];
+            other = room[j];//room[i];//this.getplayers.allplayers[i];
             //console.log('->', other.team, player.team);
             //other.pos.x = other.pos.x.fixed(4);
             //other.pos.y = other.pos.y.fixed(4);
@@ -1834,7 +1840,7 @@ game_core.prototype.server_update_physics = function()
             //ply.update();
 
             //Keep the physics position in the world            
-            this.check_collision( this.phyPlayer );
+            this.check_collision( this.phyPlayer, i );
             
 
             //this.players.self.inputs = []; //we have cleared the input buffer, so remove this

@@ -901,7 +901,7 @@ game_player.prototype.deactivateBuff = function(buff)
                 {
                     case 1: this.bubbleRespawnTime = 15; break;
                     case 2: this.bubbleRespawnTime = 10; break;
-                    case 3: this.bubbleRespawnTime = 15; break; // this case should not occur!
+                    case 3: this.bubbleRespawnTime = 5; break; // this case should not occur!
                 }
             }
         break;
@@ -1886,9 +1886,18 @@ game_player.prototype.update = function()
                 // }
                 //this.target.vx *= -1;
                 console.log('PvP!', this.vx, this.a);
+
+                // determine players directions and point of contact/angle/velocity
+                // adjust velocity and angle...
+                // player with greater velocity will push other...
+                // if velocity greater by 2 then player will "push thru"
+                // var vxDiff = this.v
                 
-                this.vx *= -1;
-                this.vy *= -1;
+                // if horiz collision 
+                this.vx *= -.5;
+                // else vert collision
+                this.vy *= -.5;
+                // adjust this
                 this.a *= -1;
 
                 // if opponent is stationary, move him
