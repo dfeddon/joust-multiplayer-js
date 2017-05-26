@@ -800,6 +800,9 @@ core_client.prototype.client_onhostgame = function(data, callback)
         //     // showWinners(false);
         // }, 3000);
     }
+    // land player
+    this.players.self.landed = 0; // flying
+    this.players.self.doFlap();
 }
 
 core_client.prototype.client_onhostgame_orig = function(data) {
@@ -1105,6 +1108,8 @@ core_client.prototype.client_onplayerreturned = function(userid)
             break;
         }
     }
+    this.players.self.landed = 0; // flying
+    this.players.self.doFlap();
 }
 
 core_client.prototype.client_ondisconnect = function(userid) {
@@ -1876,6 +1881,9 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     // restore local round and player
     this.config.round.active = true;
     this.players.self.active = true;
+    // this.players.vy = -2;
+    this.players.self.landed = 0; // flying
+    this.players.self.doFlap();
 
     // remove callout (if present)
     var go = document.getElementById('roundCompleteCallout');

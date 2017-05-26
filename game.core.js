@@ -1978,37 +1978,41 @@ game_core.prototype.server_update = function()
             this.bufView[h][i][3] = (this.suPlayer.flap) ? 1 : 0;
             this.bufView[h][i][4] = this.suPlayer.landed;
             this.bufView[h][i][5] = (this.suPlayer.vuln) ? 1 : 0;
+            
+            this.bufView[h][i][6] = this.suPlayer.vx;
+            this.bufView[h][i][7] = this.suPlayer.vy;
+            this.bufView[h][i][8] = this.suPlayer.hasFlag;
             // buff add/remove
             if (this.suPlayer.slotDispatch)
             {
                 console.log("* add/remove buff (svr)", this.suPlayer.slotDispatch);
-                this.bufView[h][i][6] = this.suPlayer.slotDispatch;
+                this.bufView[h][i][10] = this.suPlayer.slotDispatch;
                 this.suPlayer.slotDispatch = null;
             }
             // bonus slot add/remove
             if (this.suPlayer.bonusSlot > 100)
             {
                 this.suPlayer.bonusSlot -= 100;
-                this.bufView[h][i][7] = this.suPlayer.bonusSlot;
+                this.bufView[h][i][11] = this.suPlayer.bonusSlot;
             }
             if (this.suPlayer.score != this.suPlayer.oldscore)
             {
-                this.bufView[h][i][8] = this.suPlayer.score;//(player.dead) ? 1 : 0;//player.team;
+                this.bufView[h][i][12] = this.suPlayer.score;//(player.dead) ? 1 : 0;//player.team;
                 this.suPlayer.oldscore = this.suPlayer.score;
             }
             if (this.suPlayer.bonusDispatch)
             {
                 console.log("* bonusDispatch", this.suPlayer.playerName, this.suPlayer.bonusDispatch);
-                this.bufView[h][i][9] = this.suPlayer.bonusDispatch;
+                this.bufView[h][i][13] = this.suPlayer.bonusDispatch;
                 this.suPlayer.bonusDispatch = null;
             }
             if (this.suPlayer.drawAbility > 0)
-                this.bufView[h][i][10] = this.suPlayer.drawAbility;
+                this.bufView[h][i][14] = this.suPlayer.drawAbility;
             
             if (this.suPlayer.healthChanged)
             {
                 this.suPlayer.healthChanged = false;
-                this.bufView[h][i][11] = this.suPlayer.health;
+                this.bufView[h][i][15] = this.suPlayer.health;
             }
             // if (this.suPlayer.hadCollision > 0)
             // {
