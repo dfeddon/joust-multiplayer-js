@@ -713,7 +713,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
             this.players.self.visible = true;
             this.players.self.dead = false;
             this.players.self.vuln = false;
-            this.players.self.landed = 0;
+            this.players.self.landed = 1;
             this.players.self.pos = {x:0,y:0};
             this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
 
@@ -801,8 +801,14 @@ core_client.prototype.client_onhostgame = function(data, callback)
         // }, 3000);
     }
     // land player
-    this.players.self.landed = 0; // flying
-    this.players.self.doFlap();
+    setTimeout(function()
+    {
+        if (_this.players.self.active)
+        {
+            _this.players.self.landed = 0; // flying
+            _this.players.self.doFlap();
+        }
+    }, 3000);
 }
 
 core_client.prototype.client_onhostgame_orig = function(data) {
@@ -1103,7 +1109,7 @@ core_client.prototype.client_onplayerreturned = function(userid)
             this.core.getplayers.allplayers[i].visible = true;
             this.core.getplayers.allplayers[i].vuln = false;
             this.core.getplayers.allplayers[i].healthAdjustments();
-            console.log("* self", this.players.self);
+            // console.log("* self", this.players.self);
             // this.players.self = this.core.getplayers.allplayers[i];
             break;
         }
@@ -1253,6 +1259,9 @@ core_client.prototype.client_connect_to_server = function(data)
             // bonus round complete
             case 31: _this.client_onbonusroundcomplete(data[1]); break;
 
+            // protection ended
+            case 35: _this.client_onprotectioncomplete(); break;
+
             // game is full
             case 50: _this.client_ongamefull(); break;
 
@@ -1350,7 +1359,7 @@ core_client.prototype.client_refresh_fps = function()
 core_client.prototype.client_draw_info = function() 
 {
     // if (glog) 
-    // console.log('client_draw_info');
+    console.log('client_draw_info');
     var _this = this;
 
     /////////////////////////////////
@@ -1866,6 +1875,13 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
             new game_toast().show(toastMsg);
     }
 };
+
+core_client.prototype.client_onprotectioncomplete = function()
+{
+    console.log('== client_onprotectioncomplete ==');
+    this.players.self.protection = false;
+    document.getElementById('protection-badge').style.display = "none";
+}
 
 core_client.prototype.client_onbonusroundcomplete = function(round)
 {

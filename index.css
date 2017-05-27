@@ -1643,6 +1643,11 @@ h5
 	align-items: center;
 	align-content: center;
 }
+#protection-badge
+{
+	display: none;
+	margin-top: -15px;
+}
 .modifier
 {
 	/*width: 90%;*/

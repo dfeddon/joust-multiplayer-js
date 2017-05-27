@@ -55,6 +55,7 @@ function game_server(game_core)
     this.games = {};
     this.game_count = 0;
 
+    this.game_super = null;
     this.game_core = game_core;
 
     setInterval(function()
@@ -276,7 +277,15 @@ game_server.prototype._onMessage = function(spark,message)
         var playerName = split[0];
         var playerSkin = split[1];
         // this.log('getting player names for', message_parts);// '...');
+
+        // TODO: got error: Cannot read property 'gamecore' of undefined
+        if (!spark.game)
+        {
+            // reassociate game ref
+            spark.game = this.game_super;
+        }
         var p = spark.game.gamecore.getplayers.fromRoom(port);//.allplayers;
+        
         /*for (i = p.length - 1; i >= 0; i--)
         {
             this.log("@ userid", p[i].userid, userid);
@@ -449,6 +458,7 @@ game_server.prototype.createGame = function(client)
         player_clients: clients,
         player_count: 0              //for simple checking of state
     };
+    this.game_super = thegame;
 
     this.log("@@ game id", thegame.id);
 

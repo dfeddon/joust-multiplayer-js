@@ -1373,7 +1373,7 @@ game_player.prototype.doFlap = function()
         this.vx = (this.thrust);///10;
 };
 
-game_player.prototype.doRecoil = function(x, y)
+game_player.prototype.doRecoil = function(x, y, a)
 {
     console.log('* doRecoil', this.playerName, x, y);//this.dir);
 
@@ -1381,15 +1381,11 @@ game_player.prototype.doRecoil = function(x, y)
     this.flap = true;
 
     // clear landed flag to walking
-    // this.landed = 0;
+    // this.landed = 2;
 
-    this.vy = -(this.thrust) * y;//5;
-
-    // if (this.a !== 0)
-    this.vx = x;//(this.thrust) * x;///10;
-    if (x > 0)
-    this.a = 90;
-    else this.a = -90;
+    this.vy = -(this.thrust) * y;
+    this.vx = x;
+    this.a = a;
 };
 
 game_player.prototype.doLand = function()
@@ -1782,8 +1778,8 @@ game_player.prototype.update = function()
             this.drawAbility = 0;
         // console.log("* ", this.drawAbility);
         // check buff slots (local player only)
-        if (this.isLocal)
-        {
+        //if (this.isLocal)
+        //{
             if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
                 this.buffExpired(this.slots[0]);
             if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
@@ -1814,7 +1810,17 @@ game_player.prototype.update = function()
                 this.bubbleRespawn = 0;
                 this.setBubble(true);
             }
-        }
+
+            // and protection cooldown
+            if (this.protection && this.config.server_time >= this.protectionCooldown)
+            {
+                console.log('* protection ended');
+                this.protection = false;
+                this.protectionCooldown = null;
+                // notify client via socket.write
+                this.instance.write([35]);
+            }
+        //}
     } // end this.server
 
     // ensure tilemap data is loaded (locally)
@@ -1897,7 +1903,7 @@ game_player.prototype.update = function()
                 //console.log('vx', this.vx);
             break;
             case 3: // opponent hit
-            case 6: // opponent miss
+            case 6: // opponent nohit (tie)
                 // if dif >= 15 && dif <= 15 no victim
                 // add bonus/buff modifiers to dif below
                 // console.log('opponent - dif', this.pos.y - this.target.pos.y);
@@ -1907,9 +1913,9 @@ game_player.prototype.update = function()
                     
                 // }
                 //this.target.vx *= -1;
-                console.log('PvP!', this.isLocal, 'vx diff', this.vx, this.target.vx, '=>', this.vx - this.target.vx);
-                console.log('PvP!', this.isLocal, 'vy diff', this.vy, this.target.vy, '=>', this.vy - this.target.vy);
-                console.log('PvP!', this.isLocal, 'a', this.a, this.target.a, '=>', this.a - this.target.a);
+                // console.log('PvP!', this.isLocal, 'vx diff', this.vx, this.target.vx, '=>', this.vx - this.target.vx);
+                // console.log('PvP!', this.isLocal, 'vy diff', this.vy, this.target.vy, '=>', this.vy - this.target.vy);
+                // console.log('PvP!', this.isLocal, 'a', this.a, this.target.a, '=>', this.a - this.target.a);
 
                 // determine players directions and point of contact/angle/velocity
                 // adjust velocity and angle...
@@ -1919,44 +1925,40 @@ game_player.prototype.update = function()
                 
                 // if opponent is stationary, move him
                 // console.log("* target landed", this.target.landed);
-                if (this.target && this.target.landed > 0)
+                if (this.target && this.target.landed > 0) // target landed
                 {
-                    console.log("* landed")
-                    console.log('* thrust', this.thrust, this.target.thrust);
-                    console.log("* vx", this.vx, this.target.vx);
                     this.target.landed = 2; // walking //this.target.update();
-                    // this.target.vx += this.vx / 2;
-                    // this.thrust = .25;
-                    console.log('* new vx', this.target.vx, this.thrust);
-                    // this.target.doFlap();
-                    this.target.doRecoil(this.vx / 8, this.vy / 8);
-                    // if (this.x > this.target.x)
-                    // this.target.doRecoil(-2.28,15);
-                    // else this.target.doRecoil(2.28,15);
+                    this.target.doRecoil(this.vx, this.vy, this.a);
                 }
-                else if (this.target)
+                else if (this.target && this.landed === 0) // both players in flight
                 {
-                    console.log("* target", this.target.playerName, "NOT landed, is flying!", this.hitFrom);
+                    console.log("* target", this.target.playerName, "NOT landed, is flying! Both in the air!", this.hitFrom);
+                    // this.target.doRecoil(this.vx, this.vy, this.a);//this.a);
+                    // this.doRecoil(this.target.vx, this.target.vy, this.target.a);
+                    // if horiz collision (not hit, tie)
+                    if (this.target.hitFrom === 6)
+                        this.target.vx *= -1;
+                    // else vert collision (hit)
+                    else this.target.vy *= -1;
+                    if (Math.abs(this.a) > Math.abs(this.target.a))
+                        this.target.a = this.a;
+                    else this.target.a *= -1;
+                    this.target.doFlap();
+                    console.log("* a", this.target.a, this.a);
                 }
-
-                // if horiz collision (not hit)
+                // else{
+                // if horiz collision (not hit, tie)
                 if (this.hitFrom === 6)
-                    this.vx *= -.5;
+                    this.vx *= -1;
                 // else vert collision (hit)
-                else this.vy *= -.5;
-                // TODO: adjust this
+                else this.vy *= -1;
                 this.a *= -1;
+                // }
 
                 // bump
                 /*if (this.pos.x > this.target.pos.x)
                     this.pos.x += this.size.hx/2;
                 else this.pos.x -= this.size.hx/2;*/
-                //this.vuln = true;
-                // console.log('post', this.vx, this.a);
-
-                //this.isVuln(500);
-                //this.target.isVuln(500);
-                
                 break;
                 
         }
@@ -2133,7 +2135,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             else 
             {
                 // if victim *doesn't* has protection
-                if (this.protection !== true)
+                if (!this.protection)
                 {
                     // rng 1 - 100
                     var rng = this.getRandomRange(1, 100);
@@ -2175,11 +2177,11 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 console.log("my vx", this.vx, victor.vx);
                 // victor.vx *= -1;
                 victor.collision = true;
-                this.collision = true;
+                // this.collision = true;
                 victor.hitFrom = 3;
-                this.hitFrom = 3;
+                // this.hitFrom = 3;
                 victor.target = this;
-                this.target = victor;
+                // this.target = victor;
                 // if victim is standing, set to walking so player "bumped" location will update
                 // if (this.landed === 1) this.landed = 2;
             }
@@ -2193,6 +2195,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
             // have collided (if one standing or walking then fastest player wins)
             if (this.landed > 0 && victor.landed > 0)
             {
+                console.log("* both players grounded...");
                 if (Math.abs(this.vx) > Math.abs(victor.vx))
                 {
                     console.log("* this dictating");
@@ -2219,13 +2222,13 @@ game_player.prototype.doHitServer = function(victor, isHit)
             {
                 console.log("* both in flight!")
                 victor.collision = true;
-                this.collision = true;
+                // this.collision = true;
                 // hit by player
                 victor.hitFrom = 6;
-                this.hitFrom = 6;
+                // this.hitFrom = 6;
                 // set collidee
                 victor.target = this;
-                this.target = victor;
+                // this.target = victor;
             }
             else
             {
@@ -2354,6 +2357,24 @@ game_player.prototype.doKill = function(victor)
         if (hadFlag)
             victor.addToScore(1500);
         else victor.addToScore(500);
+
+        // award protection to victor
+        victor.protection = true;
+
+        if (!this.config.server)
+        {
+            // if client player, show protection badge
+            if (victor.userid === this.config.client.players.self.userid)
+            {
+                document.getElementById('protection-badge').style.display = "block";
+            }
+            else console.log("* not local");
+        }
+        else
+        {
+            // start 90 sec cooldown
+            victor.protectionCooldown = this.config.server_time + 90;
+        }
 
         // var victim = this.mp.replace ( /[^\d.]/g, '' );
         // this.killedBy = parseInt(victim);

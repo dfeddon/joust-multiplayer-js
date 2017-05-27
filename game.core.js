@@ -1748,8 +1748,15 @@ game_core.prototype.update_physics = function()
     else // client
     {
         // console.log('client_xport:', this.core_client.xport);
-        
-        this.phyRoom = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
+        if (this.core_client.players.self.active)
+        {
+            this.core_client.players.self.update();
+            if (this.core_client.players.self.a > 0)
+                this.core_client.players.self.a-=0.5;
+            else if (this.core_client.players.self.a < 0)
+                this.core_client.players.self.a+=0.5;
+        }
+        /*this.phyRoom = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
         if (this.phyRoom === undefined) this.phyRoom = []; // <-- TODO: stub
         for (var j = this.phyRoom.length - 1; j >= 0; j--)
         {
@@ -1765,7 +1772,7 @@ game_core.prototype.update_physics = function()
                 this.phyPlayer.a-=0.5;
             else if (this.phyPlayer.a < 0)
                 this.phyPlayer.a+=0.5;
-        }
+        }*/
     }
 
     ////////////////////////////////////////////////////////
@@ -1979,8 +1986,8 @@ game_core.prototype.server_update = function()
             this.bufView[h][i][4] = this.suPlayer.landed;
             this.bufView[h][i][5] = (this.suPlayer.vuln) ? 1 : 0;
             
-            this.bufView[h][i][6] = this.suPlayer.vx;
-            this.bufView[h][i][7] = this.suPlayer.vy;
+            this.bufView[h][i][6] = this.suPlayer.vx.fixed(2);
+            this.bufView[h][i][7] = this.suPlayer.vy.fixed(2);
             this.bufView[h][i][8] = this.suPlayer.hasFlag;
             // buff add/remove
             if (this.suPlayer.slotDispatch)
