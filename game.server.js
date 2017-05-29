@@ -559,9 +559,9 @@ game_server.prototype.endGame = function(gameid, userid)
                     p.leave(p.playerPort);
 
                     // remove client socket
-                    this.log("* pre", thegame.player_clients);
+                    this.log("* pre", thegame.player_clients.length);
                     thegame.player_clients.splice(i, 1);
-                    this.log("* post", thegame.player_clients);
+                    this.log("* post", thegame.player_clients.length);
                 }
             } // end for loop
 
@@ -590,6 +590,7 @@ game_server.prototype.endGame = function(gameid, userid)
                     // allplayers[j].active = false;
                     // allplayers[j].pos = {x:0, y:0};
                     room[j].reset();
+                    room[j].active = false;
                     game_instance.player_count--;
                     console.log('* player count', game_instance.player_count);
                     break;
@@ -613,6 +614,7 @@ game_server.prototype.endGame = function(gameid, userid)
                     room[j].instance = null;
                     room[j].disconnected = true;
                     room[j].reset();
+                    room[j].active = false;
                 }
             }
             // leaving game

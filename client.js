@@ -713,6 +713,12 @@ domready(function()
 	assets.skins.skin9 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin9.png');
 	assets.skins.skin10 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin10.png');
 	assets.skins.skin11 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin11.png');
+	assets.skins.skin12 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin12.png');
+	assets.skins.skin13 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin13.png');
+	assets.skins.skin14 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin14.png');
+	assets.skins.skin15 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin15.png');
+	assets.skins.skin16 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin16.png');
+	assets.skins.skin17 = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skins/spritesheet-skin17.png');
 	
 	// assets.p2r = loader.addImage('http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-right.png');
 	// assets.p2l = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/skin1-fly-left.png");

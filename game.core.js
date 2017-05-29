@@ -1039,7 +1039,7 @@ game_core.prototype.check_collision = function( player, i )
                 //     && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
                 // )
                 {
-                    console.log('HIT!', player.mp, player.team, other.mp, other.team);
+                    console.log('HIT!', player.active, player.playerName, player.team, other.active, other.playerName, other.team);
                     
                     // TODO: if vulnerable (stunned) then vuln user is victim
 
@@ -2362,13 +2362,14 @@ game_core.prototype.roundComplete = function(port, round)
                 p[z].dropFlag();
             // p[z].deactivateBuff(p[z].bonusSlot);
             // p[z].bonusSlot = 0;
-            // reset position to team base
-            p[z].respawn();
+            // reset instanced players position to team base
+            if (p[z].instance)
+                p[z].respawn();
         }
         var ordered = _.orderBy(p, ['roundscore'], ['desc']);
         // reduce to top 10
         ordered.splice(9, ordered.length - 10);
-        console.log('ordered:', ordered);//.length);
+        console.log('ordered:', ordered.length);
         
         // remove 3 users from 4 - 10
         var rng;
@@ -2379,7 +2380,7 @@ game_core.prototype.roundComplete = function(port, round)
             
             ordered.splice(rng - 1, 1);
         }
-        // console.log("top10:", ordered);
+        console.log("top10:", ordered.length);
         var buffs = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"];
         var top10 = [];
         for (var y = ordered.length - 1; y >= 0; y--)
@@ -2439,10 +2440,10 @@ game_core.prototype.roundComplete = function(port, round)
         p = this.getplayers.fromRoom(port, 0);
         for (i = 0; i < p.length; i++)
         {
-            p[i].active = true;
             if (p[i].instance)
             {
                 // notify client
+                p[i].active = true; // reactivate player
                 p[i].instance.write([31, round]);
             }
         }        

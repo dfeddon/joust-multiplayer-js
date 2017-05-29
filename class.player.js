@@ -1101,7 +1101,8 @@ game_player.prototype.reset = function()
     }
     else 
     {
-        if (this.config.server)
+        // server respawn *IF* player still has instance
+        if (this.config.server)// && this.instance)
         {
             console.log("* server respawning dead player...");
             this.respawn();
@@ -1851,10 +1852,10 @@ game_player.prototype.update = function()
     // thrustModifier
     this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust));// + this.thrustModifier));//.fixed(2);
 
-    this.pos.y += this.vy;//.fixed(2);
+    this.pos.y += this.vy.fixed(2);
 
     // /10 = slower /25 = faster /50 = fast
-    this.pos.x += this.vx;//.fixed(2);//((this.a/25) * Math.cos(this.vx));
+    this.pos.x += this.vx.fixed(2);//((this.a/25) * Math.cos(this.vx));
     //console.log('vs', this.vx, this.vy);
 
     //if (this.pos.x < 165) this.vx *=-1;
@@ -2044,7 +2045,7 @@ game_player.prototype.getRandomRange = function(min, max)
 
 game_player.prototype.doHitServer = function(victor, isHit)
 {
-    console.log('== player.doHitServer ==', victor.userid, victor.id);  
+    console.log('== player.doHitServer ==', victor.userid, victor.playerName, victor.instance);  
 
     // i am the victim
 
@@ -2368,7 +2369,7 @@ game_player.prototype.doKill = function(victor)
             {
                 document.getElementById('protection-badge').style.display = "block";
             }
-            else console.log("* not local");
+            // else console.log("* not local");
         }
         else
         {
@@ -2478,7 +2479,11 @@ game_player.prototype.timeoutRespawn = function()
         //this.visible = false;
     }
     
-    if (this.config.server) this.respawn();
+    if (this.config.server) 
+    {
+        console.log("* respawning player after death...");
+        this.respawn();
+    }
 
     // // show respawn screen (ads)
     // if (!this.config.server && victor.mp != this.config.players.self.mp)

@@ -790,7 +790,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
         if (this.totalRounds === 1)
             this.totalRounds = 0;
         var callout = document.getElementById('roundCompleteCallout');
-        callout.innerHTML = "One moment.<br/> Round 1 will begin shortly! ";// " + round.endtime - this.config.server_time + " seconds...";
+        callout.innerHTML = "One moment.<br/> Wave 1 will begin shortly! ";// " + round.endtime - this.config.server_time + " seconds...";
         callout.style.display = "block";
         callout.style.animationPlayState = 'running';
 
@@ -807,6 +807,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
         {
             _this.players.self.landed = 0; // flying
             _this.players.self.doFlap();
+            console.log("nudging", _this.players.self.playerName);
         }
     }, 3000);
 }
@@ -1114,8 +1115,12 @@ core_client.prototype.client_onplayerreturned = function(userid)
             break;
         }
     }
-    this.players.self.landed = 0; // flying
-    this.players.self.doFlap();
+    if (this.players.self.active)
+    {
+        this.players.self.landed = 0; // flying
+        this.players.self.doFlap();
+        console.log("nudging", this.players.self.playerName);
+    }
 }
 
 core_client.prototype.client_ondisconnect = function(userid) {
@@ -1887,6 +1892,8 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
 {
     console.log('== client_onbonusroundcomplete ==');
 
+    var _this = this;
+
     // update client round total
     this.totalRounds++;
 
@@ -1898,17 +1905,21 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     this.config.round.active = true;
     this.players.self.active = true;
     // this.players.vy = -2;
-    this.players.self.landed = 0; // flying
-    this.players.self.doFlap();
 
     // remove callout (if present)
     var go = document.getElementById('roundCompleteCallout');
-    go.innerHTML = "Round " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
+    go.innerHTML = "Wave " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
     go.style.display = "block";
     go.style.animationPlayState = 'running';
     setTimeout(function()
     {
         go.style.display = "none";
+        if (_this.players.self.active && _this.players.self.landed > 0)
+        {
+            _this.players.self.landed = 0; // flying
+            _this.players.self.doFlap();
+            console.log("nudging", _this.players.self.playerName);
+        }
     }, 2000);
     // go.style.display = "none";
 };
@@ -1930,7 +1941,7 @@ core_client.prototype.client_onroundcomplete = function(winners)
 
     // callout
     var callout = document.getElementById('roundCompleteCallout');
-    callout.innerHTML = "Round " + this.totalRounds.toString() + " Complete!";
+    callout.innerHTML = "Wave " + this.totalRounds.toString() + " Complete!";
     callout.style.display = "block";
     callout.style.animationPlayState = 'running';
 
@@ -3051,7 +3062,8 @@ core_client.prototype.client_update = function()
         // var pad = 0;
         // clamp(value, min, max)
         // return Math.max(min, Math.min(value, max));
-        // console.log('lpos', this.players.self.campos.x, this.players.self.pos.x);
+        // console.log('lpos', this.players.self.campos, this.players.self.pos);
+        // console.log(this.core._pdt, this.client_smooth);
         this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
         this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
@@ -4482,11 +4494,11 @@ core_client.prototype.roundWinnersView = function(winners)
     // show bonus round text
     var bonusText = function()
     {
-        document.getElementById('winnerTopTextRound').innerHTML = "ROUND " + _this.totalRounds.toString();// + ": TOP 3 SCORERS";
+        document.getElementById('winnerTopTextRound').innerHTML = "WAVE " + _this.totalRounds.toString();// + ": TOP 3 SCORERS";
         document.getElementById('winnerTopTextScorers').innerHTML = "Top 3 Scorers";
 
         var callout = document.getElementById('roundCompleteCallout');
-        callout.innerHTML = "BONUS ROUND<br/>Your team's <b>top</b> scorers!";
+        callout.innerHTML = "WAVE BONUS<br/>Your team's <b>top</b> scorers!";
         callout.style.display = "block";
         callout.style.animationPlayState = 'running';
 
