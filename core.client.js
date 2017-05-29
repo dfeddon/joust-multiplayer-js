@@ -4494,7 +4494,7 @@ core_client.prototype.roundWinnersView = function(winners)
     // show bonus round text
     var bonusText = function()
     {
-        document.getElementById('winnerTopTextRound').innerHTML = "WAVE " + _this.totalRounds.toString();// + ": TOP 3 SCORERS";
+        document.getElementById('winnerTopTextRound').innerHTML = "WAVE " + _this.totalRounds.toString() + " Bonus";// + ": TOP 3 SCORERS";
         document.getElementById('winnerTopTextScorers').innerHTML = "Top 3 Scorers";
 
         var callout = document.getElementById('roundCompleteCallout');

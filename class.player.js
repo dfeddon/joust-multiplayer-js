@@ -1092,7 +1092,7 @@ game_player.prototype.reset = function()
     // clear buffs
     this.purgeBuffsAndBonuses();
 
-    console.log('disconnected', this.disconnected);
+    console.log('disconnected', this.playerName, this.disconnected);
     
     if (this.disconnected)
     {
@@ -2412,7 +2412,7 @@ game_player.prototype.timeoutRespawn = function()
     if (this.disconnected)
     {
         console.log('* dead player disconnected!');
-        this.disconnected = false;
+        // this.disconnected = false;
         // this.dead = false;
         // this.dying = false;
         // this.visible = false;
