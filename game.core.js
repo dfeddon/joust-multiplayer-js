@@ -1986,10 +1986,13 @@ game_core.prototype.server_update = function()
             this.bufView[h][i][4] = this.suPlayer.landed;
             this.bufView[h][i][5] = (this.suPlayer.vuln) ? 1 : 0;
             
+            /* // perhaps send below data *only* on collision?
             this.bufView[h][i][6] = this.suPlayer.vx.fixed(2);
             this.bufView[h][i][7] = this.suPlayer.vy.fixed(2);
+            */
+            // TODO: add setter (player.flagChanged = int)
             this.bufView[h][i][8] = this.suPlayer.hasFlag;
-            // buff add/remove
+            // TODO: buff add/remove
             if (this.suPlayer.slotDispatch)
             {
                 console.log("* add/remove buff (svr)", this.suPlayer.slotDispatch);

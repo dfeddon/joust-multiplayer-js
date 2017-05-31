@@ -3119,7 +3119,11 @@ game_player.prototype.draw = function()
     else // not local player
     {
         // blinking manager
-        if (this.drawAbility === 1 && this.config.client.players.self.unblinker === false && this.vuln === false) return;
+        if (this.drawAbility === 1 && this.config.client.players.self.unblinker === false && this.vuln === false)
+        {
+            // TODO: always show flag-carrier -- even if blinking
+            return;
+        }
     }
     // else
     // {
