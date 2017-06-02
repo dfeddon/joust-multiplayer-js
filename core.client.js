@@ -29,6 +29,7 @@ function core_client(core, config)
     // this.core.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
     this.playerPort = null;
     this.core.chests = [];
+    this.core.emitters = [];
 
     // client net_updates vars
     this.nu_current_time,this.nu_target,this.nu_previous,this.nu_point,this.nu_next_point,this.nu_difference,this.nu_max_difference,this.nu_time_point,this.nu_ghostStub,this.nu_vt,this.nu_vp,this.nu_lerp_t,this.nu_lerp_p,this.nu_self_pp,this.nu_self_tp,this.nu_self_vt,this.nu_self_vp;
@@ -2404,9 +2405,10 @@ core_client.prototype.client_process_net_updates = function()
             // else console.log('#', player.userid, _this.players.self.userid);
             
             // "other" player, not local player "self"
-            if (!player.isLocal)//userid != _this.players.self.userid)// && previous[player.mp])
+            // if (!player.isLocal)//userid != _this.players.self.userid)// && previous[player.mp])
+            if (!player.isLocal)//player.userid != _this.players.self.userid)
             {
-                // console.log('**', target[player.mp]);
+                // console.log('**');//, target[player.mp]);
                 // check for bad objects
                 if (this.nu_target[player.userid] === undefined)
                 {
@@ -2485,6 +2487,7 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log("**", p.pos, this.nu_ghostStub);
                 // if (this.fps_avg > 50)
                     player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
+                // console.log('==', player.pos);
                 //else
                 //{ 
                     //window.alert(p.pos);
@@ -2560,8 +2563,12 @@ core_client.prototype.client_process_net_updates = function()
                 this.nu_self_pp = {x:parseInt(this.nu_previous[player.userid][0]), y:parseInt(this.nu_previous[player.userid][1])};
                 player.bufferIndex = j;
                 // console.log('vt', self_vt);
-                
-                _this.players.self.setFromBuffer(this.nu_target[player.userid]);
+                // console.log("*");
+                // console.log(this.nu_self_pp, this.nu_self_tp);
+                // console.log("=", this.players.self.pos);
+                this.players.self.pos = this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.core._pdt * this.client_smooth);
+
+                this.players.self.setFromBuffer(this.nu_target[player.userid]);
                 // console.log('svrtime', this.config.server_time);
                 
                 /*
@@ -3237,6 +3244,13 @@ core_client.prototype.client_update = function()
         if (this.core.config.flagObjects[j].type == "flag")
             this.core.config.flagObjects[j].draw();
     }
+
+    // emitters
+    for(j = this.core.emitters.length - 1; j >= 0; j++)
+    {
+        this.core.emitters[j].draw();
+    }
+
 
 
     //this.ctx.save();

@@ -1223,6 +1223,7 @@ game_core.prototype.check_collision = function( player, i )
                 // console.log('consumable hit');
                 if (!consumable.taken)
                 {
+                    // TODO: if consumable is health pot and player's health is max, don't take!
                     consumable.doTake(player);
                     // only 1 consumable is available at once, so vamos!
                     break;
@@ -1473,6 +1474,8 @@ game_core.prototype.check_collision = function( player, i )
             //console.log(player.n, player.s, player.e, player.w);
         }
     }
+    // player.pos.x = player.pos.x.fixed(4);
+    // player.pos.y = player.pos.y.fixed(4);
 }; //game_core.check_collision
 
 game_core.prototype.process_input = function( player )

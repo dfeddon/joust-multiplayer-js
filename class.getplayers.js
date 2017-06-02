@@ -335,7 +335,7 @@ getplayers.prototype.fromRoomNextActiveConsumable = function(port)
     
     for (var i = this.game_instance.inRoomConsumables[port].length - 1; i >= 0; i--)
     {
-        console.log('* isactive',this.game_instance.inRoomConsumables[port][i].active);
+        // console.log('* isactive',this.game_instance.inRoomConsumables[port][i].active);
         
         if (this.game_instance.inRoomConsumables[port][i].active === false)
         {
