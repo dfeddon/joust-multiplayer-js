@@ -1271,7 +1271,7 @@ game_core.prototype.check_collision = function( player, i )
     }
 
     // tilemap
-    var b = 10; // bounce
+    var b = 5; // bounce
     var gatepush = 128;
     var h = player.hitGrid();
     // if (this.config.server)
@@ -1354,7 +1354,7 @@ game_core.prototype.check_collision = function( player, i )
         //////////////////////////////
         else if (h.nw.t > 0 && h.sw.t > 0) // hit side wall
         {
-            //console.log('hit w wall', h.nw.t, h.sw.t, player.team);
+            console.log('=+=+=+=+=+ HIT w wall', player.pos.x, player.pos.y);
             // blue gate down
             if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2)
             {
@@ -1363,14 +1363,14 @@ game_core.prototype.check_collision = function( player, i )
                     player.pos.x -= gatepush;
                 else
                 {
-                    player.pos.x += 15; // bounce
+                    player.pos.x += b; // bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             }
             else
             {
-                player.pos.x += 15; // bounce
+                player.pos.x += b; // bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             }
@@ -1382,6 +1382,7 @@ game_core.prototype.check_collision = function( player, i )
         //////////////////////////////
         else if (h.ne.t > 0 && h.se.t > 0)
         {
+            console.log('=+=+=+=+=+ HIT e wall', player.pos.x, player.pos.y);//h.nw.t, h.sw.t, player.team);
             // red gate down
             if (h.ne.t === 73 && h.se.t === 73 && player.team === 1) 
             {
@@ -1390,14 +1391,14 @@ game_core.prototype.check_collision = function( player, i )
                     player.pos.x += gatepush;
                 else
                 {
-                    player.pos.x -= 15; //bounce
+                    player.pos.x -= b; //bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             }
             else
             {
-                player.pos.x -= 15; //bounce
+                player.pos.x -= b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
                 //player.vx = 0; // stop accel
@@ -1428,7 +1429,7 @@ game_core.prototype.check_collision = function( player, i )
             //console.log('* edge left', h.n.t, h.s.t, h.e.t);
             if (h.e.t > 0) // east (side collision)
             {
-                player.pos.x -= 15; //bounce
+                player.pos.x -= b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             }
@@ -1453,7 +1454,7 @@ game_core.prototype.check_collision = function( player, i )
             //console.log('* edge right', h.n.t, h.s.t, h.w.t);
             if (h.w.t > 0) // east (side collision)
             {
-                player.pos.x += 15; //bounce
+                player.pos.x += b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             }

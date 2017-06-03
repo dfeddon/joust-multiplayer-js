@@ -2565,8 +2565,10 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log('vt', self_vt);
                 // console.log("*");
                 // console.log(this.nu_self_pp, this.nu_self_tp);
+                // console.log("*", this.players.self.pos);
+                this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point),
+                this.core._pdt * this.client_smooth);
                 // console.log("=", this.players.self.pos);
-                this.players.self.pos = this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.core._pdt * this.client_smooth);
 
                 this.players.self.setFromBuffer(this.nu_target[player.userid]);
                 // console.log('svrtime', this.config.server_time);
@@ -3058,28 +3060,6 @@ core_client.prototype.client_update = function()
 
     // var _this = this;
 
-    //////////////////////////////////////////
-    // Camera
-    //////////////////////////////////////////
-    // Clear the screen area (just client's viewport, not world)
-    // if player stopped, use last camera pos
-    // TODO: lerp camera movement for extra smoothness
-    if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
-    {
-        // var pad = 0;
-        // clamp(value, min, max)
-        // return Math.max(min, Math.min(value, max));
-        // console.log('lpos', this.players.self.campos, this.players.self.pos);
-        // console.log(this.core._pdt, this.client_smooth);
-        this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
-        // console.log('lpos', this.cam.pos, this.players.self.pos);
-        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
-        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
-        //this.cam.x = parseInt(camX);
-        //this.cam.y = parseInt(camY);
-
-        this.players.self.campos = this.players.self.pos;
-    }
     /*if (this.barriers)
     {
         var bctx = this.barriers.getContext('2d');
@@ -3251,6 +3231,28 @@ core_client.prototype.client_update = function()
         this.core.emitters[j].draw();
     }
 
+    //////////////////////////////////////////
+    // Camera
+    //////////////////////////////////////////
+    // Clear the screen area (just client's viewport, not world)
+    // if player stopped, use last camera pos
+    // TODO: lerp camera movement for extra smoothness
+    if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
+    {
+        // var pad = 0;
+        // clamp(value, min, max)
+        // return Math.max(min, Math.min(value, max));
+        // console.log('lpos', this.players.self.campos, this.players.self.pos);
+        // console.log(this.core._pdt, this.client_smooth);
+        this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
+        // console.log('lpos', this.cam.pos, this.players.self.pos);
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
+        //this.cam.x = parseInt(camX);
+        //this.cam.y = parseInt(camY);
+
+        this.players.self.campos = this.players.self.pos;
+    }
 
 
     //this.ctx.save();

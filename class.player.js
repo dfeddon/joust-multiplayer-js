@@ -1867,7 +1867,7 @@ game_player.prototype.update = function()
         switch(this.hitFrom)
         {
             case 0: // from the side
-                console.log('side collision', this.vx, this.a);
+                console.log('side collision', this.pos.x, this.pos.y, this.vx, this.a);
                 this.vx *= -1;
                 this.a *= -1;
                 //this.collision = false;
