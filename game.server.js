@@ -826,7 +826,7 @@ game_server.prototype.startGame = function(game, newplayer)
             for (var k = roomChests.length - 1; k >= 0; k--)
             {
                 chest = roomChests[k];//game_instance.gamecore.chests[k];
-                this.log("* consumable:", chest);
+                // this.log("* consumable:", chest);
                 // { c: 2, v: 5, t: 1, i: 1192407040, x: '1904', y: '1408' }
                 obj =
                 {

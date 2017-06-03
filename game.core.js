@@ -658,7 +658,7 @@ game_core.prototype.apiNodePost = function(flags)
             if (roomEvents[j].id == "ec")
             {
                 roomEvents[j].chestSpawnPoints = this.config._.clone(this.chestSpawnPoints);
-                console.log('* chestSpawnPoints', roomEvents[j]);
+                // console.log('* chestSpawnPoints', roomEvents[j]);
             }
         }
         // _this.getplayers.inRoomFlags[allrooms[h]] = _this.getplayers.flagsDefaut;

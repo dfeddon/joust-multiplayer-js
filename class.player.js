@@ -366,6 +366,8 @@ game_player.prototype.setBubble = function(bool)
 
 game_player.prototype.purgeBuffsAndBonuses = function()
 {
+    console.log("== purgeBuffsAndBonuses ==");
+
     // deactive bonus slot buff
     if (this.bonusSlot)
     {
@@ -393,7 +395,7 @@ game_player.prototype.purgeBuffsAndBonuses = function()
         this.potionBonus = 0;
         this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
     }
-}
+};
 
 game_player.prototype.addHealthConsumable = function(consumable)
 {
@@ -572,7 +574,7 @@ game_player.prototype.addBuff = function(buff)
     // slot 1
     if (this.slots[1].a === 0 || this.slots[0].b === 0)
     {
-        console.log('* added buff', buff, 'to slot 1...');
+        console.log('* added buff', buff, this.game_buffs.getTextById(buff), 'to slot 1...');
 
         // remove extant buff
         if (this.slots[0].b > 0)
@@ -593,12 +595,12 @@ game_player.prototype.addBuff = function(buff)
     // slot 2
     else if (this.slots[2].a === 0 || this.slots[1].b === 0)
     {
-        console.log('* added buff', buff, 'to slot 2...');
+        console.log('* added buff', buff, this.game_buffs.getTextById(buff), 'to slot 2...');
         // var buff1Image;
         // remove extant buff
         if (this.slots[1].b > 0)
         {
-            console.log('* replacing existing buff, remove it it appropriately...');
+            console.log('* replacing existing buff, remove it appropriately...');
             // remove buff in slot 1
             this.deactivateBuff(this.slots[0].b);
             // move buff in slot 2 to slot 1
@@ -615,7 +617,7 @@ game_player.prototype.addBuff = function(buff)
             if (buff1Image)
             {
                 document.getElementById('buff1').className = "buffslot-on";
-                document.getElementById('buff1').style.backgroundImage = "url('" + buffImage + "')";
+                document.getElementById('buff1').style.backgroundImage = "url('" + buff1Image + "')";
             }
             document.getElementById('buff2').className = "buffslot-on";
             document.getElementById('buff2').style.backgroundImage = "url('" + buffImage + "')";
@@ -624,7 +626,7 @@ game_player.prototype.addBuff = function(buff)
     // slot 3
     else
     {
-        console.log('* added buff', buff, 'to slot 3...');        
+        console.log('* added buff', buff, this.game_buffs.getTextById(buff), 'to slot 3...');        
         // remove extant buff
         // var buff1Image, buff2Image;
         if (this.slots[2].b > 0)
@@ -857,7 +859,7 @@ game_player.prototype.removeBuff = function(buff)
 
 game_player.prototype.deactivateBuff = function(buff)
 {
-    console.log('== player.deactivateBuff', buff);
+    console.log('== player.deactivateBuff', buff, this.game_buffs.getTextById(buff));
 
     // check for stacks
     var stack = 0;
@@ -1272,6 +1274,9 @@ game_player.prototype.addToScore = function(val)
 
         var prog = Math.floor((this.score * 100) / this.levels[this.level]);
         document.getElementById('level-progressbar').style.width =  prog + "%";
+
+        // update bonuses
+        this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
 
         switch(this.level)
         {
@@ -2045,7 +2050,7 @@ game_player.prototype.getRandomRange = function(min, max)
 
 game_player.prototype.doHitServer = function(victor, isHit)
 {
-    console.log('== player.doHitServer ==', victor.userid, victor.playerName, victor.instance);  
+    console.log('== player.doHitServer ==', victor.userid, victor.playerName);//, victor.instance);  
 
     // i am the victim
 

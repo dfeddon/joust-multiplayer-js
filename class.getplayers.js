@@ -161,7 +161,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
 
 getplayers.prototype.addRoom = function(port)
 {
-    console.log('adding room to getplayers by port id', port, this.game_instance);//typeof(port));
+    console.log('adding room to getplayers by port id', port);//, this.game_instance);//typeof(port));
     var round;
 
     // first, ensure room doesn't already exist
@@ -535,7 +535,7 @@ getplayers.prototype.addToRoom = function(obj, port, type)
         break;
 
         case 3: // flags
-            console.log('flgs:', obj.length, obj);
+            // console.log('flgs:', obj.length, obj);
             // console.log('flagObjects', this.config.flagObjects);
 
             if (this.flagsDefault.length === 0)
@@ -560,7 +560,7 @@ getplayers.prototype.addToRoom = function(obj, port, type)
                 // console.log('@@', this.flagsDefault[i].port);
             }
 
-            console.log('@ total flags:', this.game_instance.inRoomFlags[port]);
+            // console.log('@ total flags:', this.game_instance.inRoomFlags[port]);
             // console.log('test1', this.config.flagObjects);
             
             // console.log('test', this.game_instance.config.flagObjects);

@@ -3153,31 +3153,26 @@ core_client.prototype.client_update = function()
         {
             // console.log('#p', ply.pos);
             //ply.draw();
+            /*
             if 
             (
                 // ply is *above* local player
                 (this.core.getplayers.allplayers[j].pos.y + this.cam.y + this.core.getplayers.allplayers[j].size.hy > 0)
                 &&
                 // ply is *below* local player
-                (this.core.getplayers.allplayers[j].pos.y + this.cam.y - this.core.getplayers.allplayers[j].size.hy) <= this.viewport.height//(_this.players.self.pos.y + _this.cam.y) * 2
-                /* || 
-                (
-                    _this.players.self.pos.y + _this.cam.y <= 
-                    ((_this.players.self.pos.y + _this.cam.y) * 2) 
-                    && 
-                    (_this.players.self.pos.y + _this.cam.y) > 0
-                ) */
+                (this.core.getplayers.allplayers[j].pos.y + this.cam.y - this.core.getplayers.allplayers[j].size.hy) <= this.viewport.height
                 &&
                 // ply is visible left of local player
                 (this.core.getplayers.allplayers[j].pos.x + this.cam.x - this.core.getplayers.allplayers[j].size.hx) <= this.viewport.width
-                //ply.pos.x + (Math.abs(_this.cam.x) * 2) < _this.players.self.pos.x
                 &&
                 // ply is visible right of local player
                 (this.core.getplayers.allplayers[j].pos.x + this.cam.x + this.core.getplayers.allplayers[j].size.hx > 0)
-            )//<= _this.players.self.pos.y + _this.cam.y)
+            )
+            //*/
+            if (Math.sqrt( (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) ) < window.innerWidth / 2)
             {
+                // console.log('draw', this.core.getplayers.allplayers[j].playerName, window.innerWidth, window.innerHeight, screen.width, screen.height);
                 this.core.getplayers.allplayers[j].draw();
-                //if (ply.mp == "cp1")console.log(ply.pos.x, _this.cam.x, _this.players.self.pos.x, _this.viewport.width);
             }
             //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
         }
@@ -4472,6 +4467,8 @@ core_client.prototype.roundWinnersView = function(winners)
         mobilecontrols = mcl;//document.getElementById('mobile-controls-l');
     }
     else mobilecontrols = null;
+
+    // TODO: send command to hide native UI on iOS/Android
 
     // document.getElementById('winnersRow').style.display = "none";
 
