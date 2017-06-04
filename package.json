@@ -53,10 +53,10 @@
     "grunt-browserify": "^5.0.0",
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-uglify": "^3.0.0",
+    "grunt-contrib-uglify": "^3.0.1",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-git": "^1.0.3",
     "gulp-concat-util": "^0.5.5",
-    "gulp-uglify": "^2.1.2"
+    "gulp-uglify": "^3.0.0"
   }
 }

@@ -22,7 +22,7 @@ var MAX_GAMES_PER_SERVER = 10;
 // var WebSocket         = require('ws');
 // var Primus            = require('primus');
 
-const 
+var 
     _                   = require('./node_modules/lodash/lodash.min'),
     // moment              = require('moment'),
     // UUID                = require('node-uuid'),

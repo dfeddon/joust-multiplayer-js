@@ -1,4 +1,4 @@
-const game_server     = require('./game.server.js'),
+var game_server     = require('./game.server.js'),
     Primus          = require('primus'),
     Rooms           = require('primus-rooms'),
     // PrimusCluster   = require('primus-cluster'),//require('primus-redis-rooms'),

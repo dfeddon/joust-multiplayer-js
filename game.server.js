@@ -11,16 +11,16 @@ MIT Licensed.
 // players per game: 40 (20 per team)
 // games per server: 10
 // total players per server: ppg * gps = 400;
-const MAX_PLAYERS_PER_GAME = 40;
-const MAX_PLAYERS_PER_TEAM = MAX_PLAYERS_PER_GAME / 2;
-const MAX_GAMES_PER_SERVER = 10;
-const MAX_PLAYERS_PER_SERVER = MAX_PLAYERS_PER_GAME * MAX_GAMES_PER_SERVER;
-// const MAX_GAMES_PER_SUPER_SERVER = 1;
+var MAX_PLAYERS_PER_GAME = 40;
+var MAX_PLAYERS_PER_TEAM = MAX_PLAYERS_PER_GAME / 2;
+var MAX_GAMES_PER_SERVER = 10;
+var MAX_PLAYERS_PER_SERVER = MAX_PLAYERS_PER_GAME * MAX_GAMES_PER_SERVER;
+// var MAX_GAMES_PER_SUPER_SERVER = 1;
 
-const PORT_RANGE_START = 4004;
-const PORT_RANGE_END = 4013;
+var PORT_RANGE_START = 4004;
+var PORT_RANGE_END = 4013;
 
-const
+var
     // game_server = module.exports = { games : {}, game_count:0 },
     // UUID        = require('node-uuid'),
     getUid      = require('get-uid'),

@@ -5,8 +5,8 @@ var assets = require('./singleton.assets');
 var game_spritesheet = require('./class.spritesheet');
 var game_buffs = require('./class.buffs');
 
-const SPEED_VAL_MAX = 50; // this is the slowest value
-const SPEED_VAL_MIN = 30; // this is the fastest value
+var SPEED_VAL_MAX = 50; // this is the slowest value
+var SPEED_VAL_MIN = 30; // this is the fastest value
 
 Number.prototype.fixed = function(n) { n = n || 0; return parseFloat(this.toFixed(n)); };
 function game_player(player_instance, isHost, pindex, config)

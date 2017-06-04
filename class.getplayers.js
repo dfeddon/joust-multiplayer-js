@@ -1,10 +1,10 @@
 'use strict';
 
-const game_player = require('./class.player');
-const game_event_server = require('./class.event');
-const game_flag = require('./class.flag');
-const game_consumable = require('./class.consumable');
-// const game_round = require('./class.round');
+var game_player = require('./class.player');
+var game_event_server = require('./class.event');
+var game_flag = require('./class.flag');
+var game_consumable = require('./class.consumable');
+// var game_round = require('./class.round');
 
 function getplayers(game_instance, total_players_per_game, client_gamecore_instance, config)
 {

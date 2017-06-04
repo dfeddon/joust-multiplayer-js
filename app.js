@@ -10,7 +10,7 @@
 
 'use strict';
  
-const
+var
     // gameport        = process.env.PORT || 4004,
 
     server_port_1   = process.env.POST || 4004,

@@ -10,10 +10,10 @@ console.log('diff ' + (e.getTime() - now.getTime())/1000);
 */
 //var config = require('./class.globals');
 //var getplayers = require('./class.getplayers');
-const getUid      = require('get-uid');
-const game_buffs  = require('./class.buffs');
+var getUid      = require('get-uid');
+var game_buffs  = require('./class.buffs');
 
-const MAX_CHESTS  = 6;
+var MAX_CHESTS  = 6;
 
 function game_event(getplayers, config)//game_instance)
 {

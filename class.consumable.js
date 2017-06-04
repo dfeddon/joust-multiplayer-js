@@ -14,7 +14,7 @@ var _           = require('./node_modules/lodash/lodash.min');
 var game_buffs  = require('./class.buffs');
 var getUid      = require('get-uid');
 
-const CONSUMABLE_CATEGORY_CHEST = 1,
+var CONSUMABLE_CATEGORY_CHEST = 1,
       CONSUMABLE_CATEGORY_POTION_HEALTH = 2,
       CONSUMABLE_CATEGORY_POTION_FOCUS = 3;
       // CONSUMABLE_CATEGORY_POTION_POTENCY = 2,

@@ -2,35 +2,35 @@
 
 var assets = require('./singleton.assets');
 
-const getUid = require('get-uid');
+var getUid = require('get-uid');
 
-const path = "https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/";
-const BUFFS_BUBBLE = 1;
-const BUFFS_BUBBLE_IMAGE = path + "buff-bubble.png";
-const BUFFS_BUBBLE_TEXT = "BUBBLE: Absorb Hits";
-const BUFFS_ALACRITY = 2;
-const BUFFS_ALACRITY_IMAGE = path + "buff-alacrity.png";
-const BUFFS_ALACRITY_TEXT = "ALACRITY: +25% Speed Increase";
-const BUFFS_PRECISION = 3;
-const BUFFS_PRECISION_IMAGE = path + "buff-precision.png";
-const BUFFS_PRECISION_TEXT = "PRECISION: +25% Attack";
-const BUFFS_RECOVER = 4;
-const BUFFS_RECOVER_IMAGE = path + "buff-recover.png";
-const BUFFS_RECOVER_TEXT = "RECOVER: +25% Defense";
-const BUFFS_BLINK = 5;
-const BUFFS_BLINK_IMAGE = path + "buff-blink.png";
-const BUFFS_BLINK_TEXT = "BLINK: Temp Invisibility";
-const BUFFS_REVEAL = 6;
-const BUFFS_REVEAL_IMAGE = path + "buff-reveal.png";
-const BUFFS_REVEAL_TEXT = "REVEAL: Detect Invisibility";
-const BUFFS_BRUISE = 7;
-const BUFFS_BRUISE_IMAGE = path + "buff-bruise.png";
-const BUFFS_BRUISE_TEXT = "BRUISE: +25% Damage";
-const BUFFS_PLATE = 8;
-const BUFFS_PLATE_IMAGE = path + "buff-plate.png";
-const BUFFS_PLATE_TEXT = "PLATE: 25% Damage Reduction";
+var path = "https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/";
+var BUFFS_BUBBLE = 1;
+var BUFFS_BUBBLE_IMAGE = path + "buff-bubble.png";
+var BUFFS_BUBBLE_TEXT = "BUBBLE: Absorb Hits";
+var BUFFS_ALACRITY = 2;
+var BUFFS_ALACRITY_IMAGE = path + "buff-alacrity.png";
+var BUFFS_ALACRITY_TEXT = "ALACRITY: +25% Speed Increase";
+var BUFFS_PRECISION = 3;
+var BUFFS_PRECISION_IMAGE = path + "buff-precision.png";
+var BUFFS_PRECISION_TEXT = "PRECISION: +25% Attack";
+var BUFFS_RECOVER = 4;
+var BUFFS_RECOVER_IMAGE = path + "buff-recover.png";
+var BUFFS_RECOVER_TEXT = "RECOVER: +25% Defense";
+var BUFFS_BLINK = 5;
+var BUFFS_BLINK_IMAGE = path + "buff-blink.png";
+var BUFFS_BLINK_TEXT = "BLINK: Temp Invisibility";
+var BUFFS_REVEAL = 6;
+var BUFFS_REVEAL_IMAGE = path + "buff-reveal.png";
+var BUFFS_REVEAL_TEXT = "REVEAL: Detect Invisibility";
+var BUFFS_BRUISE = 7;
+var BUFFS_BRUISE_IMAGE = path + "buff-bruise.png";
+var BUFFS_BRUISE_TEXT = "BRUISE: +25% Damage";
+var BUFFS_PLATE = 8;
+var BUFFS_PLATE_IMAGE = path + "buff-plate.png";
+var BUFFS_PLATE_TEXT = "PLATE: 25% Damage Reduction";
 
-const BUFFS_TOTAL = 8;
+var BUFFS_TOTAL = 8;
 
 function game_buffs()
 {
