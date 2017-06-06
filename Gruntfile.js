@@ -140,6 +140,8 @@ module.exports = function(grunt)
                     { src: ['./lib/keyboard.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/pxloader-images.min.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./robots.txt'], dest: '../wingdom-server-dist/' },
+                    {expand: true, src: ['./theme/*'], dest: '../wingdom-server-dist/theme/', filter: 'isFile'},
+                    {expand: true, src: ['./bootstrap/*'], dest: '../wingdom-server-dist/bootstrap/', filter: 'isFile'},
                 ],
             },
         },

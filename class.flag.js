@@ -367,7 +367,13 @@ game_flag.prototype.doTake = function(player)
 
   if (player.hasFlag !== 0)
   {
-    console.warn('* player has flag already');
+    console.log('* player has flag already');
+    this.isHeld = false;
+    return;
+  }
+  if (player.teamBonus === 30)
+  {
+    console.log("* player team own all territory, cannot take the flag...");
     this.isHeld = false;
     return;
   }

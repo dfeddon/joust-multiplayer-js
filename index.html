@@ -695,13 +695,29 @@
 			</div>
 
 			<div id="legal">
-				<a href="privacy.html">Privacy</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-				<a href="terms.html">Terms of Service</a>
+				<a href="privacy.html " target="_blank">Privacy</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+				<a href="terms.html" target="_blank">Terms of Service</a>
 			</div>
 
 			<div id="iogames">
 				<a id="iogamesa" href="http://iogames.space/" target="_blank">More io Games</a>
 			</div>
+
+			<!--<div id="misc">-->
+				<div id="feedback">
+					<script type="text/javascript">
+						window.doorbellOptions = {
+							appKey: 'vJ20CYzhqj5r0q5g2rqKQgn01Q5B74ndctcleAgdwAtf3Z8SqllxZgkENfaaTE09'
+						};
+						(function(w, d, t) {
+							var hasLoaded = false;
+							function l() { if (hasLoaded) { return; } hasLoaded = true; window.doorbellOptions.windowLoaded = true; var g = d.createElement(t);g.id = 'doorbellScript';g.type = 'text/javascript';g.async = true;g.src = 'https://embed.doorbell.io/button/6280?t='+(new Date().getTime());(d.getElementsByTagName('head')[0]||d.getElementsByTagName('body')[0]).appendChild(g); d.getElementById("feedback").appendChild(g)}
+							if (w.attachEvent) { w.attachEvent('onload', l); } else if (w.addEventListener) { w.addEventListener('load', l, false); } else { l(); }
+							if (d.readyState == 'complete') { l(); }
+						}(window, document, 'script'));
+					</script>
+				</div>
+			<!--</div>-->
 
 			<!-- TITLE -->
 			<div id="wrapper">
@@ -714,7 +730,7 @@
 
 					<div id="namewrapper">
 						<label id="textLabel">Latest News</label>
-						<textarea id="holderText" readonly>Still tuning servers to account for reported lag. Once things stabalize we expect to spin up more servers to handle the load. In the interim: expect full servers and nightly reboots.</textarea>
+						<textarea id="holderText" readonly>Currently in limited Alpha.</textarea>
 					</div>
 
 					<!-- skins -->

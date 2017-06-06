@@ -821,6 +821,12 @@ domready(function()
 
 	var startGame = function()
 	{
+		// if mobile, remove doorbell
+		var doorbell = document.getElementById('doorbellScript');
+		var feedback = document.getElementById('feedback');
+		feedback.style.display = "none";
+		// doorbell.style.display = "none";
+		console.log("* doorbell", doorbell);
 		// // remove bg
 		// document.body.style.backgroundImage = "none";
 
