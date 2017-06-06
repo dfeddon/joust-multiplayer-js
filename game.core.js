@@ -1554,7 +1554,8 @@ game_core.prototype.process_input = function( player )
                 // else
                 // {
                 // }
-                if(key == 'u') { // flap
+                if(key == 'u') 
+                { // flap
                     //TODO: up should take player direction into account
                     // console.log('flap!', player.mp, player.pos);
 
@@ -1670,8 +1671,8 @@ game_core.prototype.process_input = function( player )
         
         //console.log(x_dir, y_dir, this._pdt);
     }
-    if (!this.server)
-        this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
+    // if (!this.server)
+    //     this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     /*if (player.mp == "cp1")
@@ -1686,7 +1687,8 @@ game_core.prototype.process_input = function( player )
     //console.log('resulting_vector', resulting_vector);
     // if (resulting_vector.x > 0 || resulting_vector.y > 0)
     //     console.log('vector', resulting_vector);
-    if(player.inputs.length) {
+    if(player.inputs.length) 
+    {
         //we can now clear the array since these have been processed
 
         player.last_input_time = player.inputs[ic-1].time;
