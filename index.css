@@ -622,6 +622,7 @@ a:hover, a:visited, a:link, a:active
 	-webkit-overflow-scrolling: touch;
 	overflow-y: scroll;
 	height: 100%;
+	max-width: 100%;
 	/*border-style: solid;
 	border-color: yellow;
 	border-radius: 5px;

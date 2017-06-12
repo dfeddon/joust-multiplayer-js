@@ -1422,7 +1422,7 @@ core_client.prototype.client_draw_info = function()
     // } //reached 10 frames
     console.log('* latency', this.latency);//, this.last_ping_time, this.socket);//.timers.timers.heartbeat);
     // TODO: move html ui out of this fnc. Text should be updated via event...
-    /*
+    //*
     if (this.socket && document.getElementById('txtPing').innerHTML != this.latency)
     {
         document.getElementById('txtPing').innerHTML = this.latency;//net_ping;// + "/" + this.last_ping_time;
