@@ -263,6 +263,9 @@ game_player.prototype.setFromBuffer = function(data)
     this.flap = (data[3] === 1) ? true : false;
     this.landed = data[4];
     this.vuln = (data[5] === 1) ? true : false;
+
+    // hadFlag
+    // this.hasFlag = data[6];
     // add/remove buff
     if (data[10])// !== this.lastdata[6])
     {
@@ -1926,6 +1929,23 @@ game_player.prototype.update = function()
                 // determine players directions and point of contact/angle/velocity
                 // adjust velocity and angle...
                 // player with greater velocity will push other...
+                var baseVx = this.target.vx;
+                var diffVx = this.target.vx - this.vx;
+                
+                if (this.vx > this.target.vx)
+                {
+                    baseVx = this.vx;
+                    diffVx = this.vx - this.target.vx;
+                }
+                
+                var baseVy = this.target.vy;
+                var diffVy = this.target.vy - this.vy;
+                
+                if (this.vy > this.target.vy)
+                {
+                    baseVy = this.vy;
+                    diffVy = this.vy - this.target.vy;
+                }
                 // if velocity greater by 2 then player will "push thru"
                 // var vxDiff = this.v
                 
@@ -1941,23 +1961,30 @@ game_player.prototype.update = function()
                     console.log("* target", this.target.playerName, "NOT landed, is flying! Both in the air!", this.hitFrom);
                     // this.target.doRecoil(this.vx, this.vy, this.a);//this.a);
                     // this.doRecoil(this.target.vx, this.target.vy, this.target.a);
+
                     // if horiz collision (not hit, tie)
                     if (this.target.hitFrom === 6)
                         this.target.vx *= -1;
+                        // this.target.vx = (this.vx/2);// * -1;
                     // else vert collision (hit)
                     else this.target.vy *= -1;
+                    // else this.target.vy = (this.vy/2);// * -1;
+                    
                     if (Math.abs(this.a) > Math.abs(this.target.a))
                         this.target.a = this.a;
                     else this.target.a *= -1;
                     this.target.doFlap();
+                    
                     console.log("* a", this.target.a, this.a);
                 }
                 // else{
                 // if horiz collision (not hit, tie)
                 if (this.hitFrom === 6)
                     this.vx *= -1;
+                    // this.vx = (this.target.vx/2) * -1;
                 // else vert collision (hit)
                 else this.vy *= -1;
+                // else this.vy = (this.target.vy/2) * -1;
                 this.a *= -1;
                 // }
 

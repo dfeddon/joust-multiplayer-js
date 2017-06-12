@@ -39,6 +39,15 @@ domready(function()
 //{
 	console.log('client DOM Loaded...');
 
+	// hide default doorbell.io button
+	// var doorbellButton = document.getElementById('doorbell-button');
+	// doorbellButton.style.display = "none";
+
+	// function feedbackFnc()
+	// {
+	// 	console.log("feedback!");
+	// }
+
 	//A window global for our game root variable.
 	var game = {};
 	var player = {};
@@ -308,7 +317,7 @@ domready(function()
 	}
 	if (splash)
 	{
-		var splash, nickname, btnStart, adContainer, skins, leftArrow, rightArrow;
+		var splash, nickname, btnStart, adContainer, skins, leftArrow, rightArrow, feedbackButton, htmlContainer;
 		//console.log('screen.width', screen.width);
 		
 		// is phone?
@@ -337,6 +346,8 @@ domready(function()
 			nickname = document.getElementById('nickname');
 			adContainer = document.getElementById('adContainer');
 			btnStart = document.getElementById('btnStart');
+			feedbackButton = document.getElementById('doorbellButton');
+			htmlContainer = document.getElementById('htmlContainer');
 			//skins = document.getElementsByClassName("slides");
 		}
 		splash.style.display = "block";
@@ -346,7 +357,15 @@ domready(function()
 			// TODO: only hide is inapp adremove is false
 			//adContainer.style.display = "none";
 		}
-
+		
+		htmlContainer.innerHTML='<object id="headlines" type="text/html" data="headlines.html" style="width=100% height=400px;"></object>';
+		// doorbellButton = document.getElementById('feedbackButton');
+		doorbellButton.addEventListener('click', function(e)
+		{
+			console.log("feedback button!", e);
+			window.doorbell.show();
+			// document.getElementById('doorbell-button').show();
+		})
 		nickname.addEventListener("change", function(e)
 		{
 			console.log('nickname changed', e.target.value, e);
@@ -659,8 +678,10 @@ domready(function()
 	{
 		//var clock = document.getElementById(id);
 		var respawnTimer = document.getElementById('respawnWrapper');
-		var infoCardsPlayer = document.getElementById('info-cards-player');
-		infoCardsPlayer.style.display = "none";
+		var htmlContainer = document.getElementById('htmlContainer');
+		// var infoCardsPlayer = document.getElementById('info-cards-player');
+		// infoCardsPlayer.style.display = "none";
+		htmlContainer.style.display = "none";
 		respawnTimer.style.display = "block";
 		//   var daysSpan = clock.querySelector('.days');
 		//   var hoursSpan = clock.querySelector('.hours');
@@ -821,12 +842,12 @@ domready(function()
 
 	var startGame = function()
 	{
-		// if mobile, remove doorbell
-		var doorbell = document.getElementById('doorbellScript');
-		var feedback = document.getElementById('feedback');
-		feedback.style.display = "none";
-		// doorbell.style.display = "none";
-		console.log("* doorbell", doorbell);
+		console.log("## startGame");
+
+		// // hide default doorbell.io button
+		var doorbellButton = document.getElementById('doorbell-button');
+		doorbellButton.style.display = "none";
+
 		// // remove bg
 		// document.body.style.backgroundImage = "none";
 

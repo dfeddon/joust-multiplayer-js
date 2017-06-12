@@ -239,10 +239,11 @@ game_server.prototype._onMessage = function(spark,message)
         this.onInput(spark, message_parts);//message.is);//_parts);
     }
     //return;
-    // else if(message_type == 'p')
-    // {
-    //     spark.send('s.p.' + message_parts[1]);
-    // }
+    else if(message.pp)// 'p')
+    {
+        this.log("@ ping");
+        spark.send('s.p.' + message_parts[1]);
+    }
     else if(message_type == 'c')
     {    //Client changed their color!
         //if(other_client)

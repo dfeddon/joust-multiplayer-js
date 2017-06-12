@@ -1671,8 +1671,8 @@ game_core.prototype.process_input = function( player )
         
         //console.log(x_dir, y_dir, this._pdt);
     }
-    // if (!this.server)
-    //     this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
+    if (!this.server)
+        this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     /*if (player.mp == "cp1")
@@ -1684,7 +1684,8 @@ game_core.prototype.process_input = function( player )
     
     //we have a direction vector now, so apply the same physics as the client
     var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
-    //console.log('resulting_vector', resulting_vector);
+    // if (resulting_vector.x !== 0 || resulting_vector.y !== 0)
+    // console.log('resulting_vector', resulting_vector);
     // if (resulting_vector.x > 0 || resulting_vector.y > 0)
     //     console.log('vector', resulting_vector);
     if(player.inputs.length) 
@@ -2471,7 +2472,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     if (this.server)
     {
         var player, room;
-        room = this.getplayers.fromRoom(client.playerPort);
+        room = this.getplayers.fromRoom(client.playerPort, 0);
 
         for (var h = room.length - 1; h >= 0; h--)
         {
@@ -2487,7 +2488,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     }
     if (!this.server && client.userid == this.players.self.instance.userid)
     {
-        player_client = this.players.self;//.instance.userid);
+        // player_client = this.players.self;//.instance.userid);
         // console.log('self', this.players.self.instance);
     }
 }; //game_core.handle_server_input

@@ -27,6 +27,12 @@ function game_connections()
 
 game_connections.prototype.createConnection = function(svr, gamecore)
 {
+    // var parser = 
+    // {
+    //     encoder: function encoder(data, fn) { fn(undefined, data); },
+    //     decoder: function decoder(data, fn) { fn(undefined, data); }
+    // }
+
     var gameserver = new game_server(gamecore);
     var primus;
 
@@ -56,11 +62,13 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         }
 
         // var primus = new Primus(svr, 
-        primus = Primus.createServer(
+        primus = new Primus.createServer(
         {
+            // parser: parser,
             port: singlePort,
             transformer: 'uws',
             parser: 'binary',
+            pingInterval: 1000,
             iknowhttpsisbetter: true,
             // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
             namespace: 'metroplex',
@@ -74,6 +82,7 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         {
             transformer: 'uws',
             parser: 'binary',
+            pong: 1000,
             iknowhttpsisbetter: true,
             // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
             namespace: 'metroplex',
@@ -130,6 +139,18 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         console.log('spark :: player ' + spark.userid + ' connected');*/
 
         //They send messages here, and we send them to the game_server to handle.
+        spark.on('heartbeat', function()
+        {
+            // console.log("@ heartbeat");
+        });
+        spark.on('outgoing::ping', function(time)
+        {
+            // console.log('@ ping', time);
+        });
+        spark.on('incoming::pong', function(time)
+        {
+            // console.log('@ pong', time);
+        });
         spark.on('data', function(data)
         {
             // console.log('spark.on', data);

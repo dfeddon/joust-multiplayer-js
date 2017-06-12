@@ -26,6 +26,9 @@ function core_client(core, config)
     this.config = config;
     this.config.server_time = 0; // <- init here
 
+    // last client_draw_info update time
+    this.lastInfoUpdate = 0;
+
     // this.core.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
     this.playerPort = null;
     this.core.chests = [];
@@ -118,7 +121,8 @@ function core_client(core, config)
 
     //We start pinging the server to determine latency
     // TODO: Replaced ping timer with this.socket.primus.latency
-    //this.client_create_ping_timer();
+    // this.client_create_ping_timer();
+    this.latency = 0;
 
     //Set their colors from the storage or locally
     // this.color = localStorage.getItem('color') || '#cc8822' ;
@@ -158,9 +162,10 @@ core_client.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.
 //Simple linear interpolation between 2 vectors
 core_client.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
 
+// core_client.prototype.doorbell = function()
 core_client.prototype.api = function()
 {
-    var self = this;
+    var _this = this;
 
     console.log('## api call');//, this.players.self.instance);//.instance.game);
     var xmlhttp = new XMLHttpRequest();
@@ -180,8 +185,8 @@ core_client.prototype.api = function()
             //alert(xmlhttp.responseText);
             //console.log('data', xmlhttp.responseText);
             //return xmlhttp.responseText;
-            self.tilemap = xmlhttp.responseText;
-            self.tilemapper();
+            _this.tilemap = xmlhttp.responseText;
+            _this.tilemapper();
             //self.prerenderer();
             //self.buildPlatforms();
         }
@@ -190,8 +195,9 @@ core_client.prototype.api = function()
 
 core_client.prototype.pingFnc = function()
 {
+    console.log("pingFnc");
     this.last_ping_time = new Date().getTime() - this.fake_lag;
-    this.socket.emit('p.' + (this.last_ping_time) );
+    this.socket.write({pp: + (this.last_ping_time) });
 }
 
 core_client.prototype.client_create_ping_timer = function() {
@@ -383,7 +389,7 @@ core_client.prototype.client_onreadygame = function(data) {
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
     */
-    this.core.local_time = server_time + this.socket.latency;//this.net_latency;
+    this.core.local_time = server_time + this.latency;//this.net_latency;
     console.log('## server time is about ' + this.core.local_time);
     /*
     //Store their info colors for clarity. server is always blue
@@ -822,7 +828,7 @@ core_client.prototype.client_onhostgame_orig = function(data) {
     var server_time = parseFloat(data.replace('-','.'));
 
     //Get an estimate of the current time on the server
-    this.core.local_time = server_time + this.socket.latency;//this.net_latency;
+    this.core.local_time = server_time + this.latency;//this.net_latency;
 
     //Set the flag that we are hosting, this helps us position respawns correctly
     this.players.self.host = true;
@@ -928,7 +934,7 @@ core_client.prototype.client_onping = function(data) {
 
     this.net_ping = new Date().getTime() - parseFloat( data );
     this.net_latency = this.net_ping/2;
-
+    console.log('onping!');
 }; //client_onping
 
 core_client.prototype.client_onnetmessage = function(data) {
@@ -1216,9 +1222,41 @@ core_client.prototype.client_connect_to_server = function(data)
 
     }.bind(this));
 
+    this.socket.on('incoming::ping', function(date)
+    {
+        // console.log("* client ping", date, Date.now());//Math.floor(new Date().getTime() / 1000));
+        _this.latency = (Date.now() - date) * 2;
+        // console.log(this.latency);
+
+        // update round timer
+        _this.rt = _this.config.round.endtime - ~~(_this.config.server_time);
+        var roundTimerTxt = document.getElementById('txtRoundTimer');
+        if (_this.rt > 0)
+            roundTimerTxt.innerHTML = (_this.rt-(_this.rt%=60))/60+(9<_this.rt?':':':0')+_this.rt;
+        else roundTimerTxt.innerHTML = "--:--";
+
+        // update leaderboard every 10 sec
+        // console.log(!!_this.config.server_time%10);
+        if (~~_this.config.server_time % 10 === 0)// && _this.config.server_time.toFixed(1) !== _this.lastInfoUpdate)
+        {
+            _this.client_draw_info();
+            // store this tick to avoid redundancy
+            _this.lastInfoUpdate = _this.config.server_time.toFixed(1);
+        }
+    });
+    this.socket.on('outgoing::pong', function(date)
+    {
+        // console.log("* client pong", date);
+    });
+
+    // this.socket.on('heartbeat', function()
+    // {
+    //     console.log("incomingheartbeat");
+    // });
+
     this.socket.on('data', function message(data)
     {
-        // console.log('* Received @data message from server', this.socket.latency, data);
+        // console.log('* Received @data message from server', this.latency, data);
 
         switch(data[0])
         {
@@ -1382,12 +1420,12 @@ core_client.prototype.client_draw_info = function()
     //     var pingTxt = document.getElementById('txtPing');
     //     pingTxt.innerHTML = this.ping_avg;//net_ping;// + "/" + this.last_ping_time;
     // } //reached 10 frames
-    // console.log('latency', this.socket.latency, );
+    console.log('* latency', this.latency);//, this.last_ping_time, this.socket);//.timers.timers.heartbeat);
     // TODO: move html ui out of this fnc. Text should be updated via event...
     /*
-    if (this.socket && document.getElementById('txtPing').innerHTML != this.socket.latency)
+    if (this.socket && document.getElementById('txtPing').innerHTML != this.latency)
     {
-        document.getElementById('txtPing').innerHTML = this.socket.latency;//net_ping;// + "/" + this.last_ping_time;
+        document.getElementById('txtPing').innerHTML = this.latency;//net_ping;// + "/" + this.last_ping_time;
     }
     /////////////////////////////////
     // fps
@@ -2566,8 +2604,9 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log("*");
                 // console.log(this.nu_self_pp, this.nu_self_tp);
                 // console.log("*", this.players.self.pos);
-                this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point),
-                this.core._pdt * this.client_smooth);
+
+                // local player interpolation
+                this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), this.core._pdt * this.client_smooth);
                 // console.log("=", this.players.self.pos);
 
                 this.players.self.setFromBuffer(this.nu_target[player.userid]);
@@ -3093,7 +3132,9 @@ core_client.prototype.client_update = function()
     // console.log(this.config.server_time);
     //*
     // console.log('**', this.config.server_time, this.config);
-    if (this.config.server_time && this.config.server_time.toFixed(1) % 1 === 0)
+
+
+    /*if (this.config.server_time && this.config.server_time.toFixed(1) % 1 === 0)
     {
         // console.log('* round timer');
         
@@ -3105,9 +3146,15 @@ core_client.prototype.client_update = function()
         else roundTimerTxt.innerHTML = "--:--";
 
         // update leaderboard every 10 sec
-        if (this.config.server_time.toFixed(1) % 10 === 0)
+        if (this.config.server_time.toFixed(1) % 10 === 0 && this.config.server_time.toFixed(1) !== this.lastInfoUpdate)
+        {
             this.client_draw_info();
-    }
+            // store this tick to avoid redundancy
+            this.lastInfoUpdate = this.config.server_time.toFixed(1);
+        }
+    }*/
+
+
     //*/
 
     // draw prerenders
@@ -3169,7 +3216,7 @@ core_client.prototype.client_update = function()
                 (this.core.getplayers.allplayers[j].pos.x + this.cam.x + this.core.getplayers.allplayers[j].size.hx > 0)
             )
             //*/
-            if (Math.sqrt( (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) ) < window.innerWidth / 2)
+            if (Math.sqrt( (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) ) < (window.innerWidth + 64) / 2)
             {
                 // console.log('draw', this.core.getplayers.allplayers[j].playerName, window.innerWidth, window.innerHeight, screen.width, screen.height);
                 this.core.getplayers.allplayers[j].draw();
