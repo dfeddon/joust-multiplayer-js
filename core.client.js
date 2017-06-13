@@ -2247,8 +2247,8 @@ core_client.prototype.client_process_net_prediction_correction = function()
             // var number_to_clear = Math.abs(lastinputseq_index - (-1));
             this.players.self.inputs.splice(0, Math.abs(lastinputseq_index - (-1)));//number_to_clear);
             //The player is now located at the new server position, authoritive server
-            this.players.self.cur_state.pos = this.pos(my_server_pos);
-            /*
+            // this.players.self.cur_state.pos = this.pos(my_server_pos);
+            //*
             this.players.self.cur_state.pos = 
                         this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
             //*/
@@ -3013,7 +3013,7 @@ core_client.prototype.client_update_local_position = function()
         //Then store the states for clarity,
         // var old_state = this.players.self.old_state.pos;
         //if ()
-        var current_state = this.players.self.cur_state.pos;
+        // var current_state = this.players.self.cur_state.pos;
         //console.log("old", old_state, "current", current_state);
         //Make sure the visual position matches the states we have stored
         //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
@@ -3023,8 +3023,8 @@ core_client.prototype.client_update_local_position = function()
         //*
         // console.log(this.core.server_control);
         
-        if (!this.core.server_control)
-            this.players.self.pos = current_state;
+        // if (!this.core.server_control)
+            this.players.self.pos = this.players.self.cur_state.pos;//current_state;
         //*/
 
         //We handle collision on client if predicting.

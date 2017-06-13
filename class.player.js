@@ -2085,6 +2085,9 @@ game_player.prototype.doHitClientVictim = function(victor, dmg, health)
 
     // add floating text with damage (id: 100 = damage text)
     this.setTextFloater(100, dmgText, 1);
+
+    var particles = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
+    this.config.client.particles.push(particles);
 };
 
 game_player.prototype.getRandomRange = function(min, max)
