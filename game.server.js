@@ -301,8 +301,9 @@ game_server.prototype._onMessage = function(spark,message)
         var arr = [];
         var source;
 
-        // update all clients that user has returned (reactive user);
-        p[0].instance.room(port).write([7, userid]);
+        // update all clients (if available) that user has returned (reactive user);
+        if (p[0].instance)
+            p[0].instance.room(port).write([7, userid]);
         /*
         for (j = p.length - 1; j >= 0; j--)
         {
