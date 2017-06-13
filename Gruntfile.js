@@ -88,6 +88,10 @@ module.exports = function(grunt)
                     '../wingdom-server-dist/class.consumable.js': ['class.consumable.js'],
                     '../wingdom-server-dist/class.toast.js': ['class.toast.js'],
                     '../wingdom-server-dist/class.spritesheet.js': ['class.spritesheet.js'],
+                    '../wingdom-server-dist/class.particles.js': ['class.particles.js'],
+                    '../wingdom-server-dist/class.emitter.js': ['class.emitter.js'],
+                    '../wingdom-server-dist/class.particle.js': ['class.particle.js'],
+                    '../wingdom-server-dist/class.particleShrink.js': ['class.particleShrink.js'],
                 }
             },
             dev:

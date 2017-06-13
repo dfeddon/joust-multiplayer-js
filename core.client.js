@@ -32,7 +32,7 @@ function core_client(core, config)
     // this.core.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
     this.playerPort = null;
     this.core.chests = [];
-    this.core.emitters = [];
+    this.particles = [];
 
     // client net_updates vars
     this.nu_current_time,this.nu_target,this.nu_previous,this.nu_point,this.nu_next_point,this.nu_difference,this.nu_max_difference,this.nu_time_point,this.nu_ghostStub,this.nu_vt,this.nu_vp,this.nu_lerp_t,this.nu_lerp_p,this.nu_self_pp,this.nu_self_tp,this.nu_self_vt,this.nu_self_vp;
@@ -807,7 +807,8 @@ core_client.prototype.client_onhostgame = function(data, callback)
         //     // showWinners(false);
         // }, 3000);
     }
-    // land player
+    // nudge player
+    //*
     setTimeout(function()
     {
         if (_this.players.self.active)
@@ -817,6 +818,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
             console.log("nudging", _this.players.self.playerName);
         }
     }, 3000);
+    //*/
 }
 
 core_client.prototype.client_onhostgame_orig = function(data) {
@@ -1122,12 +1124,14 @@ core_client.prototype.client_onplayerreturned = function(userid)
             break;
         }
     }
+    //*
     if (this.players.self.active)
     {
         this.players.self.landed = 0; // flying
         this.players.self.doFlap();
         console.log("nudging", this.players.self.playerName);
     }
+    //*/
 }
 
 core_client.prototype.client_ondisconnect = function(userid) {
@@ -1950,6 +1954,7 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     go.innerHTML = "Wave " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
     go.style.display = "block";
     go.style.animationPlayState = 'running';
+    //*
     setTimeout(function()
     {
         go.style.display = "none";
@@ -1960,6 +1965,7 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
             console.log("nudging", _this.players.self.playerName);
         }
     }, 2000);
+    //*/
     // go.style.display = "none";
 };
 
@@ -3267,10 +3273,19 @@ core_client.prototype.client_update = function()
             this.core.config.flagObjects[j].draw();
     }
 
-    // emitters
-    for(j = this.core.emitters.length - 1; j >= 0; j++)
+    // particles
+    for(j = this.particles.length - 1; j >= 0; j--)
     {
-        this.core.emitters[j].draw();
+        // console.log('* particles', this.particles[j].f);
+        if (this.particles[j].f < 90)
+            this.particles[j].draw();
+        else 
+        {
+            // console.log("** removing particle!");
+            // TODO: cleanup particles release
+            // this.particles[j].doRelease();
+            this.particles.splice(j, 1);
+        }
     }
 
     //////////////////////////////////////////

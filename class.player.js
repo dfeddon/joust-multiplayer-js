@@ -4,6 +4,7 @@
 var assets = require('./singleton.assets');
 var game_spritesheet = require('./class.spritesheet');
 var game_buffs = require('./class.buffs');
+var Particles = require('./class.particles');
 
 var SPEED_VAL_MAX = 50; // this is the slowest value
 var SPEED_VAL_MIN = 30; // this is the fastest value
@@ -117,7 +118,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.damageReduce = 0; // plate
     this.speedBonus = 0; // alacrity
     
-    this.health = 50; // start at half-health
+    this.health = 100; // start at half-health
     this.healthMax = 100;
     this.healthbarColor = 'lime';
     this.healthChanged = false; // server only
@@ -1427,6 +1428,11 @@ game_player.prototype.doLand = function()
             this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
             // this.setTextFloater(100, Math.abs(dmg), 1);
         }
+        else
+        {
+            var particles = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
+            this.config.client.particles.push(particles);
+        }
 
         return;
     }
@@ -1896,6 +1902,11 @@ game_player.prototype.update = function()
                     this.updateHealth(0 - dmg);
                     this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
                 }
+                else
+                {
+                    var particles = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
+                    this.config.client.particles.push(particles);
+                }
                 // dmgText = 0 - 2;
                 // add floating text with damage (id: 100 = damage text)
                 // this.setTextFloater(100, Math.abs(dmg), 1);
@@ -1913,6 +1924,12 @@ game_player.prototype.update = function()
             break;
             case 3: // opponent hit
             case 6: // opponent nohit (tie)
+                if (!this.config.server && this.hitFrom === 3)// && this.config.client.particles.length < 3)
+                {
+                    console.log('* collision HIT!');
+                    var particles = new Particles({x:this.target.pos.x + 32,y:this.target.pos.y+32}, 1, this.config.ctx);
+                    this.config.client.particles.push(particles);
+                }
                 // if dif >= 15 && dif <= 15 no victim
                 // add bonus/buff modifiers to dif below
                 // console.log('opponent - dif', this.pos.y - this.target.pos.y);
@@ -2343,6 +2360,10 @@ game_player.prototype.doKill = function(victor)
         this.a = 0;
         // this.dead = true;
         // this.vuln = true;
+        var particles1 = new Particles({x:this.pos.x + 32,y:this.pos.y + 32}, 1, this.config.ctx);
+        // var particles2 = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
+        this.config.client.particles.push(particles1);
+        // this.config.client.particles.push(particles2);
     }
 
     // if carrying flag, drop it
@@ -3104,7 +3125,7 @@ game_player.prototype.draw = function()
     //console.log(this.pos.x, this.pos.y);
     // var _this = this;
 
-    if (this.active === false) return;
+    if (this.active === false || this.dead) return;
 
     //this.pos.x = this.pos.x.fixed(1);
     //this.pos.y = this.pos.y.fixed(1);

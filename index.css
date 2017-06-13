@@ -632,6 +632,7 @@ a:hover, a:visited, a:link, a:active
 {
 	-webkit-overflow-scrolling: touch;
 	overflow-y: scroll;
+	/*-ms-overflow-style: -ms-autohiding-scrollbar;*/
 	height: 400px;
 	width: 300px;
 	border-style: solid;
