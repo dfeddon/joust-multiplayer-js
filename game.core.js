@@ -2104,7 +2104,7 @@ game_core.prototype.server_update = function()
             {
                 this.suEvt = this.suRoom[n];
                 // evt = this.events[j];
-                // console.log('evt type:', evt.type, evt.state, evt.uid);
+                // console.log('* evt:', allrooms[m], this.suEvt.type, this.suEvt.state, this.suEvt.uid);
                 
                 if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
                 {

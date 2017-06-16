@@ -179,7 +179,7 @@ game_event.prototype.update = function(port)
         // no more than n
         if (ct >= MAX_CHESTS)// * this.getplayers.totalRooms()))
         {
-          // console.log('* max chests reached...');
+          console.log('* max chests reached on port', port);
           
           // resart rnd timer
           this.setRandomTriggerTime(5, 15);
@@ -189,7 +189,7 @@ game_event.prototype.update = function(port)
         //if (this.config.chests.length > 3) return false;
         // 2. randomaly select available chest spawn point (to avoid stacking)
         this.consumable = this.getplayers.fromRoomNextActiveConsumable(port);
-        // console.log('* got consumable from next active', this.consumable);
+        console.log('* got consumable from next active', this.consumable, 'on port', port);
         
         // set ref to active
         this.consumable.active = true;
@@ -217,7 +217,7 @@ game_event.prototype.update = function(port)
         this.consumableData.x = this.spawn.x;
         this.consumableData.y = this.spawn.y;
 
-        console.log("* evt.consumableData ready!", this.consumableData);
+        console.log("* evt.consumableData ready!", this.consumableData, "on port", port);
         
         // update consumable reference (stored in getplayers)
         this.consumable = this.consumable.addData(this.consumableData);

@@ -73,7 +73,7 @@ getplayers.prototype.fromRoom = function(port, type) // 0 = players / 1 = events
             
             break;
 
-            case 2: // chests
+            case 2: // consumables
                 // console.log('getting room chests:', this.game_instance.inRoomConsumables[port]);
 
                 var consumables = this.game_instance.inRoomConsumables[port];
@@ -242,13 +242,19 @@ getplayers.prototype.addRoom = function(port)
         
         // NOTE: evt.chestSpawnPoints defined asyncronously in game_core (culled from Tiled xml file)
         if (this.config.chestSpawnPoints && this.config.chestSpawnPoints.length > 0)
+        {
+            // clone spawn points
             evt_ec.chestSpawnPoints = this.config._.cloneDeep(this.config.chestSpawnPoints);
+            // reset active state to false
+            for (i = evt_ec.chestSpawnPoints.length - 1; i >= 0; i--)
+                evt_ec.chestSpawnPoints[i].active = false;
+        }
         // else its defined once chestSpawnPoints creation (see note above!)
         
         //console.log('evt type', evt.type);
         evt_ec.setRandomTriggerTime(25, 45);
         this.game_instance.inRoomEvents[port].push(evt_ec);
-        //console.log('chest event',this.events);
+        console.log('@ consumable events', this.game_instance.inRoomEvents[port]);
 
         // create flag carried cooldown event
         evt_fc = new game_event_server(this, this.config);//this);

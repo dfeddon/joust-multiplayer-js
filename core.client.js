@@ -2251,6 +2251,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
             //The player is now located at the new server position, authoritive server
             // this.players.self.cur_state.pos = this.pos(my_server_pos);
             //*
+            // interpolate local player (smooth!)
             this.players.self.cur_state.pos = 
                         this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
             //*/
@@ -2458,14 +2459,14 @@ core_client.prototype.client_process_net_updates = function()
                 // check for bad objects
                 if (this.nu_target[player.userid] === undefined)
                 {
-                    //console.log('** bad target', previous[player.mp]);
+                    console.log('** bad target', this.nu_previous[player.mp]);
                     if (this.nu_previous[player.userid])// || previous[player.mp] === undefined) 
                         this.nu_target[player.userid] = this.nu_previous[player.userid];
                     else break;//return;
                 }
                 else if (this.nu_previous[player.userid] === undefined)
                 {
-                    //console.log('** bad previous', target[player.mp]);
+                    console.log('** bad previous', this.nu_target[player.userid]);
                     if (this.nu_target[player.userid]) 
                         this.nu_previous[player.userid] = this.nu_target[player.userid];
                     else break;//return;
@@ -2507,11 +2508,11 @@ core_client.prototype.client_process_net_updates = function()
                 this.nu_lerp_p.x = parseInt(this.nu_vp[0]);
                 this.nu_lerp_p.y = parseInt(this.nu_vp[1]);
 
-                this.nu_ghostStub = _this.v_lerp(
+                /*this.nu_ghostStub = _this.v_lerp(
                     this.nu_lerp_p,
                     this.nu_lerp_t,
                     this.nu_time_point
-                );
+                );*/
                 //console.log(player.mp, player.pos);
                 
                 /*ghostStub = _this.v_lerp(
@@ -2532,7 +2533,8 @@ core_client.prototype.client_process_net_updates = function()
                 // client-server interpolation (if decent fps avg)
                 // console.log("**", p.pos, this.nu_ghostStub);
                 // if (this.fps_avg > 50)
-                    player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
+                    // player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
+                    player.pos = _this.v_lerp(p.pos, this.pos({x:this.nu_lerp_t.x,y:this.nu_lerp_t.y}), _this.core._pdt * _this.client_smooth);
                 // console.log('==', player.pos);
                 //else
                 //{ 
