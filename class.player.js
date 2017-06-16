@@ -118,7 +118,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.damageReduce = 0; // plate
     this.speedBonus = 0; // alacrity
     
-    this.health = 100; // start at half-health
+    this.health = 50; // start at half-health
     this.healthMax = 100;
     this.healthbarColor = 'lime';
     this.healthChanged = false; // server only
@@ -1165,7 +1165,13 @@ game_player.prototype.setSkin = function(skin)
     if (!this.config.server)
     {
         this.sprite = new game_spritesheet(assets.skins[skin]);
-    }    
+    }
+    switch(skin)
+    {
+        case "skin1":
+        break;
+    }
+    
 };
 
 game_player.prototype.addToScore = function(val)
@@ -3564,14 +3570,14 @@ game_player.prototype.draw = function()
     if (this.isHit > 0 && !this.dead)
     {
         this.config.ctx.drawImage(assets.animate_hit, this.pos.x - 8, this.pos.y - 8, 76, 76);
-        if (this.isLocal && this.isHit === 1)
-            document.getElementById('screen-splatter').style.display = "block";
+        // if (this.isLocal && this.isHit === 1)
+        //     document.getElementById('screen-splatter').style.display = "block";
         // only display for 10 frames
         if (this.isHit >= 30)
         {
             this.isHit = 0;
-            if (this.isLocal)
-                document.getElementById('screen-splatter').style.display = "none";
+            // if (this.isLocal)
+            //     document.getElementById('screen-splatter').style.display = "none";
         }
         else this.isHit++;
 

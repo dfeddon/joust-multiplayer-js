@@ -628,12 +628,17 @@ a:hover, a:visited, a:link, a:active
 	border-radius: 5px;
 	border-width: 1px;*/
 }
+/*#headlines > header
+{
+	margin: 0px;
+	padding: 0px;
+}*/
 #htmlContainer
 {
-	-webkit-overflow-scrolling: touch;
-	overflow-y: scroll;
+	/*-webkit-overflow-scrolling: touch;
+	overflow-y: scroll;*/
 	/*-ms-overflow-style: -ms-autohiding-scrollbar;*/
-	height: 400px;
+	height: 300px;
 	width: 300px;
 	border-style: solid;
 	border-color: black;
@@ -1567,7 +1572,9 @@ h5
 	flex-wrap: nowrap;
 	justify-content: space-around;
 	align-items: center;
-	align-content: center;	
+	align-content: center;
+	pointer-events: none;
+
 }
 #buffInfoImage
 {
@@ -1578,6 +1585,8 @@ h5
 	height: 50px;
 	background-image: url('https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-bubble.png');
 	background-size: cover;
+	pointer-events: none;
+
 	/*background-position: center center;*/
 }
 #buffInfoLabel
@@ -1589,6 +1598,7 @@ h5
 	font-family: 'Mirza', serif;
 	font-weight: bold;
 	color: white;
+	pointer-events: none;
 }
 
 #levelup
@@ -1617,7 +1627,9 @@ h5
     -o-animation: cssAnimation2 5s forwards;
     /* Opera */
     animation: cssAnimation2 5s forwards;
-    -webkit-animation-fill-mode: forwards;	
+    -webkit-animation-fill-mode: forwards;
+	animation-fill-mode: forwards;	
+	pointer-events: none;
 }
 
 @keyframes cssAnimation2 {
@@ -1637,6 +1649,8 @@ h5
 	font-family: 'Mirza', serif;
 	font-weight: bold;
 	color: yellow;
+	pointer-events: none;
+
 }
 #levelupText1
 {
@@ -1644,6 +1658,7 @@ h5
 	font-size: 1.25em;
 	font-family: 'Mirza', serif;
 	color: lightblue;
+	pointer-events: none;
 }
 #levelupText2
 {
@@ -1651,6 +1666,7 @@ h5
 	font-size: 1.25em;
 	font-family: 'Mirza', serif;
 	color: lightblue;
+	pointer-events: none;
 }
 #levelupText3
 {
@@ -1658,6 +1674,7 @@ h5
 	font-size: 1.5em;
 	font-family: 'Mirza', serif;
 	color: white;
+	pointer-events: none;
 }
 #level-ui
 {
@@ -2694,7 +2711,7 @@ h5
 	order: 3;
 }
 
-#screen-splatter
+/*#screen-splatter
 {
 	display: none;
 	position: absolute;
@@ -2706,5 +2723,4 @@ h5
 	background-size: "cover";
 	background-repeat: no-repeat;
 	background-position: center;
-	/*overflow: hidden;*/
-}
+}*/

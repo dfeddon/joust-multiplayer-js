@@ -1236,35 +1236,35 @@ game_core.prototype.check_collision = function( player, i )
     if (this.config.server && !player.dead)
     {
         // _.forEach(this.config.flagObjects, function(fo)
-        var fo;
+        // var fo;
         room = this.getplayers.fromRoom(player.playerPort, 3);
         // for (var k = this.config.flagObjects.length - 1; k >= 0; k--)
         // console.log('flags! len', roomFlags.length);
         for (i = room.length - 1; i >= 0; i--)
         {
-            fo = room[i];//this.config.flagObjects[k];
-            // console.log('======= flag ======\n', fo.id, fo.name, fo.x, fo.y, '\n=======');
-            if (Math.sqrt( (player.pos.x - fo.x) * (player.pos.x - fo.x) + (player.pos.y - fo.y) * (player.pos.y - fo.y) ) < 32)
+            // fo = room[i];//this.config.flagObjects[k];
+            // console.log('======= flag ======\n', room[i].id, room[i].name, room[i].x, room[i].y, '\n=======');
+            if (Math.sqrt( (player.pos.x - room[i].x) * (player.pos.x - room[i].x) + (player.pos.y - room[i].y) * (player.pos.y - room[i].y) ) < 32)
             // if (
-            //     //fo.isHeld === false && fo.isActive && player.hasFlag === 0 &&
-            //     player.pos.x < (fo.x + (fo.width/2)) &&
-            //     (player.pos.x + (player.size.hx/2)) > fo.x &&
-            //     player.pos.y < (fo.y + (fo.height/2)) &&
-            //     (player.pos.y + (player.size.hy/2)) > fo.y
+            //     //room[i].isHeld === false && room[i].isActive && player.hasFlag === 0 &&
+            //     player.pos.x < (room[i].x + (room[i].width/2)) &&
+            //     (player.pos.x + (player.size.hx/2)) > room[i].x &&
+            //     player.pos.y < (room[i].y + (room[i].height/2)) &&
+            //     (player.pos.y + (player.size.hy/2)) > room[i].y
             // )
             {
-                //console.log('hit flag obj', fo.name, fo.isHeld, fo.isActive, player.hasFlag);
+                //console.log('hit flag obj', room[i].name, room[i].isHeld, room[i].isActive, player.hasFlag);
 
                 // player takes flag?
-                //console.log('fo.doTake', fo.type, fo.name, fo.isHeld, fo.isActive, player.hasFlag);
-                if (fo.type == "flag" && fo.isHeld === false && fo.isActive && player.hasFlag === 0)
+                //console.log('room[i].doTake', room[i].type, room[i].name, room[i].isHeld, room[i].isActive, player.hasFlag);
+                if (room[i].type == "flag" && room[i].isHeld === false && room[i].isActive && player.hasFlag === 0)
                 {
-                    fo.doTake(player);
+                    room[i].doTake(player);
                 }
                 // player with flag slots it?
                 else if (player.hasFlag > 0)
                 {
-                    fo.slotFlag(player);
+                    room[i].slotFlag(player);
                 }
             }
         }
@@ -2473,7 +2473,7 @@ game_core.prototype.handle_server_input = function(client, input, input_time, in
     {
         var player, room;
         room = this.getplayers.fromRoom(client.playerPort, 0);
-
+        if (!room) return;
         for (var h = room.length - 1; h >= 0; h--)
         {
             player = room[h];

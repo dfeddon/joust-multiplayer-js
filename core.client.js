@@ -1648,7 +1648,9 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
             console.log('tflag', fo);
         }
     });
-    flagSlotted.x = targetSlot.x - (targetSlot.width/2);
+    if (flagSlotted.name == "redFlag" || flagSlotted.name == "blueFlag")
+        flagSlotted.x = targetSlot.x + (targetSlot.width / 2);
+    else flagSlotted.x = targetSlot.x - (targetSlot.width/2);
     flagSlotted.y = targetSlot.y - (targetSlot.height/2);
     flagSlotted.sourceSlot = targetSlot.name;
     flagSlotted.visible = true;

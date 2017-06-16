@@ -88,7 +88,7 @@ function game_flag(data, context, getplayers, config)
         break;
 
       case "blueFlag":
-        this.image = assets.flag_blue_r;
+        this.image = assets.flag_blue_l;
       break;
 
       case "slot1":
@@ -348,7 +348,7 @@ game_flag.prototype.setter = function(obj)
     else if (this.name == "redFlag")
       this.image = assets.flag_red_l;
     else if (this.name == "blueFlag")
-      this.image = assets.flag_blue_r;
+      this.image = assets.flag_blue_l;
   }
 
   console.log('flag image', this.image);
@@ -949,7 +949,7 @@ game_flag.prototype.setCtx = function(ctx)
       this.image = assets.flag_red_l;
     }
     else if (name == "blueFlag")
-      this.image = assets.flag_blue_r;
+      this.image = assets.flag_blue_l;
   }
 
   console.log('setter', this);
@@ -961,7 +961,7 @@ game_flag.prototype.draw = function()
   if (this.name == "redFlag")
   {
     if (this.sourceSlot != "slotRed")
-      this.image = assets.flag_red_r;
+      this.image = assets.flag_red_l;
     else this.image = assets.flag_red_l;
   }
 
@@ -987,7 +987,7 @@ game_flag.prototype.draw = function()
       this.ctx.fillText(
           //this.onCooldownLength -
           this.timer,//Math.floor(this.onCooldownLength - this.stopwatch.getElapsedSeconds()),//this.onCooldownLength,
-          this.x + 25,
+          (this.name == "midFlag") ? this.x + 25 : this.x + 40,
           this.y + 30//txtOffset
           //100
       );
