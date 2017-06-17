@@ -27,6 +27,7 @@ function Particles(pos, type, ctx, rgb)
     if (rgb)
         this.rgb = rgb;
     else this.rgb = "255,255,255"; // default is white
+    this.rgb = "255,255,255";
 
     switch(type)
     {
@@ -50,6 +51,8 @@ Particles.prototype.explosion = function()
 {
     // console.log("particles.explosion()");
 
+    var _this = this;
+
     var emitters = [];
     emitters[0] = new Emitter(
     {
@@ -58,7 +61,7 @@ Particles.prototype.explosion = function()
         particleType: ParticleShrink,
         colorFn:function()
         {
-            var color = 'rgba(' + this.rgb + ',' + Math.random() * .5 + ')';
+            var color = 'rgba(' + _this.rgb + ',' + Math.random() * .5 + ')';
             return color;
         },
         ang: [Math.PI,Math.PI],
@@ -75,7 +78,7 @@ Particles.prototype.explosion = function()
         particlesTotal:15,
         colorFn:function()
         {
-            var color = 'rgba(' + this.rgb + ',1)';
+            var color = 'rgba(' + _this.rgb + ',1)';
             return color;
         },
         ang: [Math.PI,Math.PI],

@@ -3150,6 +3150,7 @@ game_player.prototype.draw = function()
         if ((this.isLocal && this.textFloater[4]) || (!this.textFloater[4]))
         {
             // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
+            this.config.ctx.save();
             this.config.ctx.font = "30px Mirza";
             this.config.ctx.textAlign = 'center';
             this.config.ctx.fillStyle = this.textFloater[1];
@@ -3162,6 +3163,7 @@ game_player.prototype.draw = function()
             // this.config.ctx.restore();
             if (this.config.server_time >= this.textFloater[3])
                 this.textFloater = null;
+            this.config.ctx.restore();
         }
     }
 

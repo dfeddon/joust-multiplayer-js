@@ -39,6 +39,60 @@ domready(function()
 //{
 	console.log('client DOM Loaded...');
 
+	/*
+	// amazon sdk globals
+	AWS.config.region = "us-east-1";
+	AWS.config.apiVersions = 
+	{
+		dynamodb: '2012-08-10',
+		// other service API versions
+	};
+	AWS.config.credentials = new AWS.CognitoIdentityCredentials(
+	{
+		IdentityPoolId: 'us-east-1_hb4YZZz93',
+		Logins: 
+		{ // optional tokens, used for authenticated login
+		// 'graph.facebook.com': 'FBTOKEN',
+		// 'www.amazon.com': 'AMAZONTOKEN',
+		// 'accounts.google.com': 'GOOGLETOKEN'
+		}
+	});
+	AWS.config.credentials.get(function(err)
+	{
+		if (err) console.log(err);
+		else console.log(AWS.config.credentials);
+	})
+	// amazon sdk
+	
+	// dynamodb
+	var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+	var params = 
+	{
+		RequestItems:
+		{
+			"Session":
+			{
+				Keys:
+				[
+					{
+						"Userid": { S: "0" },
+					}
+				]
+			}
+		}
+	}
+	dynamodb.batchGetItem(params, function (err, data) 
+	{
+		if (err) console.log(err, err.stack); // an error occurred
+		else console.log(data); // successful response
+	});
+
+	// s3
+	var appId = "app_id";
+	var roleArn = "role_arn";
+	var bucketName = "s3_bucket_name";
+	//*/
+
 	// hide default doorbell.io button
 	// var doorbellButton = document.getElementById('doorbell-button');
 	// doorbellButton.style.display = "none";

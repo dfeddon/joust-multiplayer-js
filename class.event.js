@@ -179,7 +179,7 @@ game_event.prototype.update = function(port)
         // no more than n
         if (ct >= MAX_CHESTS)// * this.getplayers.totalRooms()))
         {
-          console.log('* max chests reached on port', port);
+          // console.log('* max consumables reached on port', port);
           
           // resart rnd timer
           this.setRandomTriggerTime(5, 15);

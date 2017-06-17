@@ -18,6 +18,7 @@ Particle.prototype.reset = function(opts)
     if (opts.colorFn)
     {
         this.color = opts.colorFn();
+        // console.log("* color fn", opts.colorFn);
     } 
     else 
     {
