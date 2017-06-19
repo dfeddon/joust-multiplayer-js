@@ -8,7 +8,7 @@ var Particle = function(opts)
 
 Particle.prototype.beforeDraw = function(p,ctx)
 {
-    ctx.globalAlpha=p;
+    ctx.globalAlpha = p;
 }
 
 Particle.prototype.reset = function(opts)
@@ -25,9 +25,9 @@ Particle.prototype.reset = function(opts)
         this.color = opts.color || 'white';
     }
     this.r = this.fuzz(opts.r) || 4;
-    this.ang = this.fuzz(opts.ang) || Math.PI*2*Math.random();
-    this.spd = this.fuzz(opts.spd) || Math.random()/5;
-    this.life = this.fuzz(opts.life) || 250+Math.random() * 250;
+    this.ang = this.fuzz(opts.ang) || Math.PI * 2 * Math.random();
+    this.spd = this.fuzz(opts.spd) || Math.random() / 5;
+    this.life = this.fuzz(opts.life) || 250 + Math.random() * 250;
     this.i = opts.i || 0;
     this.animate = opts.animate || ['scale'];
     
@@ -56,12 +56,12 @@ Particle.prototype.draw = function(ctx,i)
         return false;
     }
     
-    var p = (1-(i/this.life));
-    this.beforeDraw(p,ctx);
+    var p = (1 - (i / this.life));
+    this.beforeDraw(p, ctx);
     ctx.rotate(this.angNow);
-    ctx.translate(0,i*this.spdNow);
+    ctx.translate(0,i * this.spdNow);
     ctx.fillStyle = this.colorNow;
-    this.drawFn(ctx,p);
+    this.drawFn(ctx, p);
     
     return this;
 }
@@ -71,7 +71,7 @@ Particle.prototype.drawFn = function(ctx,p)
     // What are we drawing?
     ctx.beginPath();
     
-    ctx.arc(0, 0, this.r*p, 0, 2 * Math.PI, false);
+    ctx.arc(0, 0, this.r * p, 0, 2 * Math.PI, false);
     ctx.fill();
 }
 

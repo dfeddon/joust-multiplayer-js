@@ -628,6 +628,13 @@ a:hover, a:visited, a:link, a:active
 	border-radius: 5px;
 	border-width: 1px;*/
 }
+#howtoplay
+{
+	-webkit-overflow-scrolling: touch;
+	overflow-y: scroll;
+	height: 100%;
+	max-width: 100%;
+}
 /*#headlines > header
 {
 	margin: 0px;

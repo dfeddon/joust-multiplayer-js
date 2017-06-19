@@ -2038,13 +2038,13 @@ game_player.prototype.setAngle = function(a)
         if (this.a > 90)
             this.a = 90;
         //else if (this.a < 0)
-        else this.a+=2;
+        else this.a += 2;
     }
     else // left
     {
         if (this.a < - 90)
             this.a = -90;
-        else this.a-=2;
+        else this.a -= 2;
     }
     //console.log('a', this.a);
 };

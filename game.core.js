@@ -1684,11 +1684,12 @@ game_core.prototype.process_input = function( player )
     
     //we have a direction vector now, so apply the same physics as the client
     var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
+
     // if (resulting_vector.x !== 0 || resulting_vector.y !== 0)
     // console.log('resulting_vector', resulting_vector);
     // if (resulting_vector.x > 0 || resulting_vector.y > 0)
     //     console.log('vector', resulting_vector);
-    if(player.inputs.length) 
+    if (player.inputs.length) 
     {
         //we can now clear the array since these have been processed
 
@@ -1698,7 +1699,7 @@ game_core.prototype.process_input = function( player )
 
     player.lpos = player.pos;
 
-        //give it back
+    //give it back
     return resulting_vector;
 
 }; //game_core.process_input

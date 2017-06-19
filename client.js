@@ -412,7 +412,7 @@ domready(function()
 			//adContainer.style.display = "none";
 		}
 		
-		htmlContainer.innerHTML='<object id="headlines" type="text/html" data="headlines.html" style="width=100% height=400px;"></object>';
+		htmlContainer.innerHTML='<object id="howtoplay" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
 		// doorbellButton = document.getElementById('feedbackButton');
 		doorbellButton.addEventListener('click', function(e)
 		{
