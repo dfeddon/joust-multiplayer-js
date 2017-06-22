@@ -131,6 +131,8 @@ module.exports = function(grunt)
                     { src: ['./privacy.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./terms.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./headlines.html'], dest: '../wingdom-server-dist/' },
+                    { src: ['./howtoplay.html'], dest: '../wingdom-server-dist/' },
+                    { src: ['./leaderboards.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./sitemap.xml'], dest: '../wingdom-server-dist/' },
                     { src: ['./manifest.json'], dest: '../wingdom-server-dist/' },
                     { src: ['./favicon.ico'], dest: '../wingdom-server-dist/' },

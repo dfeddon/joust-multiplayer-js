@@ -1224,7 +1224,12 @@ game_core.prototype.check_collision = function( player, i )
                 if (!consumable.taken)
                 {
                     // TODO: if consumable is health pot and player's health is max, don't take!
-                    consumable.doTake(player);
+                    console.log('*', consumable.type, player.health, player.healthMax);
+                    if (consumable.type === 2 && player.health === player.healthMax)
+                    {
+                        console.log("healthy player cannot take health pot!");
+                    }
+                    else consumable.doTake(player);
                     // only 1 consumable is available at once, so vamos!
                     break;
                 }
@@ -2116,7 +2121,7 @@ game_core.prototype.server_update = function()
                         {
                             case this.suEvt.TYPE_CHEST:
                                 // var id = getUid();//_this.getUID();
-                                console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                                // console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
                                 /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
                                     x: '1152',
                                     y: '576',

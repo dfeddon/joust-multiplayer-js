@@ -268,10 +268,11 @@ a:hover, a:visited, a:link, a:active
     /*width:300px;
     height:300px;*/
 	font-family: Mirza;
-   	background: black;
-	border-radius: 10px;
-	border: 5px solid;
-	border-color: black;
+	font-size: 21px;
+   	background: blue;
+	border-radius: 5px;
+	border: 1px solid;
+	border-color: white;
 	padding:5px 5px 1px 5px;
     bottom:15px;
     /*right:25%;*/
@@ -281,6 +282,16 @@ a:hover, a:visited, a:link, a:active
 #iogamesa
 {
 	color: lightgray;
+}
+#feedbackLabel
+{
+	font-family: Mirza;
+	font-size: 1.5em;
+	color: gray;
+}
+#feedbackLabel:hover
+{
+	color: #ffff00;
 }
 #feedback
 {
@@ -617,12 +628,53 @@ a:hover, a:visited, a:link, a:active
   left: 75%;
   margin:0 auto;*/
 }
-#headlines
+/*#howtoplayButton
+{
+	background: rgb(119,119,119);
+    color: white;
+    display: inline-block;
+    font: bold 15px/1.4 Mirza;
+    padding: 5px 10px;
+}*/
+	
+.pageTab:focus { outline: none; }
+
+.pageTab
+{
+	background: rgb(119,119,119);
+    color: white;
+    display: inline-block;
+    font: bold 15px/1.4 Mirza;/*Arial, Helvetica, sans-serif;*/
+    padding: 5px 10px;
+}
+/*#latestnewsButton:focus { outline: none; }
+#leaderboardsButton
+{
+	background: rgb(119,119,119);
+    color: white;
+    display: inline-block;
+    font: bold 15px/1.4 Mirza;
+    padding: 5px 10px;
+}
+#leaderboardsButton:focus { outline: none; }*/
+
+#leaderboards
 {
 	-webkit-overflow-scrolling: touch;
 	overflow-y: scroll;
-	height: 100%;
+	height: 100%; /* for mobile, set to pixels not percent */
 	max-width: 100%;
+	border: 2px solid;
+	border-radius: 5px;
+}
+#latestnews
+{
+	-webkit-overflow-scrolling: touch;
+	overflow-y: scroll;
+	height: 100%; /* for mobile, set to pixels not percent */
+	max-width: 100%;
+	border: 2px solid;
+	border-radius: 5px;
 	/*border-style: solid;
 	border-color: yellow;
 	border-radius: 5px;
@@ -634,6 +686,8 @@ a:hover, a:visited, a:link, a:active
 	overflow-y: scroll;
 	height: 100%; /* for mobile, set to pixels not percent */
 	max-width: 100%;
+	border: 2px solid;
+	border-radius: 5px;
 }
 /*#headlines > header
 {
@@ -647,8 +701,8 @@ a:hover, a:visited, a:link, a:active
 	overflow-y: scroll;*/
 
 	/*-ms-overflow-style: -ms-autohiding-scrollbar;*/
-	height: 300px;
-	width: 300px;
+	height: 350px;
+	width: 100%;
 	border-style: solid;
 	border-color: black;
 	border-radius: 10px;

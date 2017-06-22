@@ -39,7 +39,7 @@ domready(function()
 //{
 	console.log('client DOM Loaded...');
 
-	/*
+	//*
 	// amazon sdk globals
 	AWS.config.region = "us-east-1";
 	AWS.config.apiVersions = 
@@ -49,7 +49,7 @@ domready(function()
 	};
 	AWS.config.credentials = new AWS.CognitoIdentityCredentials(
 	{
-		IdentityPoolId: 'us-east-1_hb4YZZz93',
+		IdentityPoolId: 'us-east-1:b5e61654-606a-4082-adab-382e69a24413',
 		Logins: 
 		{ // optional tokens, used for authenticated login
 		// 'graph.facebook.com': 'FBTOKEN',
@@ -68,23 +68,17 @@ domready(function()
 	var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 	var params = 
 	{
-		RequestItems:
+		Key:
 		{
-			"Session":
-			{
-				Keys:
-				[
-					{
-						"Userid": { S: "0" },
-					}
-				]
-			}
-		}
-	}
-	dynamodb.batchGetItem(params, function (err, data) 
+			"Userid": { S: "0" }, /* Requried: Primary partition key */
+			"Date": { S: "0" } /* Requried: Primary sort key */
+		},
+		TableName: "Session"
+	};
+	dynamodb.getItem(params, function (err, data) 
 	{
 		if (err) console.log(err, err.stack); // an error occurred
-		else console.log(data); // successful response
+		else console.log("* got AWS item:", data); // successful response
 	});
 
 	// s3
@@ -371,7 +365,7 @@ domready(function()
 	}
 	if (splash)
 	{
-		var splash, nickname, btnStart, adContainer, skins, leftArrow, rightArrow, feedbackButton, htmlContainer;
+		var splash, nickname, btnStart, adContainer, skins, leftArrow, rightArrow, htmlContainer, howtoplayButton, latestnewsButton, leaderboardsButton, feedbackLabel;
 		//console.log('screen.width', screen.width);
 		
 		// is phone?
@@ -400,8 +394,12 @@ domready(function()
 			nickname = document.getElementById('nickname');
 			adContainer = document.getElementById('adContainer');
 			btnStart = document.getElementById('btnStart');
-			feedbackButton = document.getElementById('doorbellButton');
+			// feedbackButton = document.getElementById('doorbellButton');
+			howtoplayButton = document.getElementById('howtoplayButton');
+			latestnewsButton = document.getElementById('latestnewsButton');
+			leaderboardsButton = document.getElementById('leaderboardsButton');
 			htmlContainer = document.getElementById('htmlContainer');
+			feedbackLabel = document.getElementById('feedbackLabel');
 			//skins = document.getElementsByClassName("slides");
 		}
 		splash.style.display = "block";
@@ -412,14 +410,32 @@ domready(function()
 			//adContainer.style.display = "none";
 		}
 		
-		htmlContainer.innerHTML='<object id="howtoplay" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
-		// doorbellButton = document.getElementById('feedbackButton');
-		doorbellButton.addEventListener('click', function(e)
+		htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
+
+		latestnewsButton.addEventListener('click', function()
 		{
-			console.log("feedback button!", e);
+			htmlContainer.innerHTML='<object id="latestnews" class="innerPages" type="text/html" data="headlines.html" style="width=100% height=400px;"></object>';
+		});
+		howtoplayButton.addEventListener('click', function()
+		{
+			htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
+		});
+		leaderboardsButton.addEventListener('click', function()
+		{
+			htmlContainer.innerHTML='<object id="leaderboards" class="innerPages" type="text/html" data="leaderboards.html" style="width=100% height=400px;"></object>';
+		});
+		// doorbellButton = document.getElementById('feedbackButton');
+		feedbackLabel.addEventListener('click', function()
+		{
+			console.log("click feedback");
 			window.doorbell.show();
-			// document.getElementById('doorbell-button').show();
-		})
+		});
+		// feedbackButton.addEventListener('click', function(e)
+		// {
+		// 	console.log("feedback button!", e);
+		// 	window.doorbell.show();
+		// 	// document.getElementById('doorbell-button').show();
+		// })
 		nickname.addEventListener("change", function(e)
 		{
 			console.log('nickname changed', e.target.value, e);
