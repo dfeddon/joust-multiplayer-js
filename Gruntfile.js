@@ -21,7 +21,8 @@ module.exports = function(grunt)
         // broserify
         browserify:
         {
-            'bundle.client.min.js': ['client.js']
+            'bundle.client.min.js': ['client.js'],
+            'leaderboards.min.js': ['leaderboards.js']
         },
         
         // uglify client
@@ -71,6 +72,7 @@ module.exports = function(grunt)
                 files: 
                 {
                     'bundle.client.min.js': ['bundle.client.min.js'],
+                    'leaderboards.min.js': ['leaderboards.min.js'],
                     '../wingdom-server-dist/app.js': ['app.js'],
                     '../wingdom-server-dist/game.connections.js': ['game.connections.js'],
                     '../wingdom-server-dist/game.server.js': ['game.server.js'],
@@ -104,7 +106,8 @@ module.exports = function(grunt)
                 },
                 files: 
                 {
-                    'bundle.client.min.js': ['bundle.client.min.js']
+                    'bundle.client.min.js': ['bundle.client.min.js'],
+                    'leaderboards.min.js': ['leaderboards.min.js']
                 }
             }
         },
@@ -118,6 +121,7 @@ module.exports = function(grunt)
                 [
                     // client files (files uploaded to S3)
                     { src: ['./bundle.client.min.js'], dest: './dist/client/'},
+                    { src: ['./leaderboards.min.js'], dest: './dist/client/'},
                     // { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/'},
                     // server files
@@ -146,6 +150,7 @@ module.exports = function(grunt)
                     { src: ['./assets/launcher-icon-2x.png'], dest: '../wingdom-server-dist/'},
                     { src: ['./lib/keyboard.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/pxloader-images.min.js'], dest: '../wingdom-server-dist/' },
+                    { src: ['./lib/aws-sdk-2.72.0.min.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./robots.txt'], dest: '../wingdom-server-dist/' },
                     {expand: true, src: ['./theme/*'], dest: '../wingdom-server-dist/', filter: 'isFile'},
                     {expand: true, src: ['./bootstrap/*'], dest: '../wingdom-server-dist/', filter: 'isFile'},

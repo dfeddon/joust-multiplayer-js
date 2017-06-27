@@ -10,6 +10,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="stylesheet" href="theme/bootstrap.css" media="screen">
         <link rel="stylesheet" href="theme/usebootstrap.css">
+		<!-- AWS -->
+		<script src="/lib/aws-sdk-2.72.0.min.js"></script>
+		<script type="text/javascript">
+			var script = document.createElement('script');
+			if(document.domain == "localhost" || document.domain == "192.168.86.108")           script.src = 'leaderboards.min.js';
+			else script.src = 'http://s3.amazonaws.com/com.dfeddon.wingdom/leaderboards.min.js';
+			document.head.appendChild(script);
+		</script>
         <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
     </head>
     <body style="margin:0px;padding:0px;overflow-y:scroll">

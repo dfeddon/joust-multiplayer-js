@@ -132,6 +132,8 @@ function game_player(player_instance, isHost, pindex, config)
     this.level = 1;
     this.levels = [0,2500,7500,15000,25000];
 
+    this.totalKills = 0;
+
     this.textFloater = null;
     this.drawAbility = 0; // 0 = none / 1 = blink (unseen yet exposed, or isLocal)
 
@@ -2373,6 +2375,14 @@ game_player.prototype.doKill = function(victor)
         // var particles2 = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
         this.config.client.particles.push(particles1);
         // this.config.client.particles.push(particles2);
+
+        // store session in AWS DynamoDB
+        this.totals = {};
+        this.totals.Waves = this.config.client.totalRounds;
+        this.totals.Score = this.score;
+        this.totals.Kills = this.totalKills;
+        // this.totals.Userid = 111;//this.userid;
+        this.totals.Name = this.playerName;
     }
 
     // if carrying flag, drop it
@@ -2416,6 +2426,9 @@ game_player.prototype.doKill = function(victor)
     if (victor)
     {
         console.log(this.playerName, 'slain by', victor.playerName);
+
+        // update victor kill total
+        victor.totalKills = victor.totalKills + 1;
 
         if (hadFlag)
             victor.addToScore(1500);

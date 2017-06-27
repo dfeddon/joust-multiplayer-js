@@ -65,13 +65,15 @@ domready(function()
 	// amazon sdk
 	
 	// dynamodb
-	var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-	var params = 
+	// var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+	// docClient abstracts away the 'type-casting' requirement of the above dynamoDB
+	var docClient = new AWS.DynamoDB.DocumentClient();
+	/*var params = 
 	{
 		Key:
 		{
-			"Userid": { S: "0" }, /* Requried: Primary partition key */
-			"Date": { S: "0" } /* Requried: Primary sort key */
+			"Userid": { N: "0" }, // Requried: Primary partition key
+			"Date": { S: "0" } // Requried: Primary sort key
 		},
 		TableName: "Session"
 	};
@@ -79,7 +81,75 @@ domready(function()
 	{
 		if (err) console.log(err, err.stack); // an error occurred
 		else console.log("* got AWS item:", data); // successful response
-	});
+	});*/
+	/*function getTop10(index)
+	{
+		var gIndicies = ["TopScoreIndex", "TopKillsIndex", "TopWavesIndex"];
+		var params = 
+		{
+			Key:
+			{
+				"Userid": 1, // Requried: Primary partition key
+				"Date": 1498568140 // Requried: Primary sort key
+			},
+			TableName: "Session",
+			IndexName: gIndicies[index],//"TopScoresIndex",
+			ScanIndexForward: false,
+			KeyConditionExpression: 'GameId = :v_title',// and Date > :rkey',
+			ExpressionAttributeValues: 
+			{
+				':v_title': 1//,
+				// ':rkey': 2015
+			},
+			Limit: 10
+		};
+		console.log(docClient);
+		docClient.query(params, function (err, data) 
+		{
+			if (err) console.log(err, err.stack); // an error occurred
+			else console.log("* got AWS item:", data); // successful response
+		});
+	}
+	// 0 = score, 1 = kills, 2 = waves
+	getTop10(0);
+
+	function addItemToDB(item)
+	{
+		// if no userid, don't save
+		var userid = parseInt(storage("get", "wingdom__userid"));
+		if (!userid) return;
+		var params =
+		{
+			TableName: "Session",
+			Item:
+			{ 
+				"Userid": userid, // get this locally
+				"GameId": 1,
+				"Date": new Date() / 1000,
+				"Name": item.Name,
+				"Score": item.Score,
+				"Kills": item.Kills,
+				"Waves": item.Waves
+			}
+		};
+
+		docClient.put(params, function (err, data) 
+		{
+			if (err) console.log(err, err.stack); // an error occurred
+			else console.log("* got AWS item:", data); // successful response
+		});
+	}*/
+	// var rnd = Math.floor((Math.random() * 10000) + 10000);
+	// var uuid = parseInt(Date.now() + "" + rnd);
+
+	/*var putItem = {};
+	putItem.Userid = uuid;
+	// putItem.GameId = 1;
+	// putItem.Date = new Date() / 1000;
+	putItem.Score = Math.floor((Math.random() * 10000) + 100);
+	putItem.Kills = Math.floor((Math.random() * 30) + 1);
+	putItem.Waves = Math.floor((Math.random() * 20) + 1);
+	addItemToDB(putItem);*/
 
 	// s3
 	var appId = "app_id";
@@ -656,7 +726,11 @@ domready(function()
 
 	window.addEventListener("playerRespawn", function(e)
 	{
-		console.log('playerRespawn handler', e, player);
+		console.log('* playerRespawn handler', e, player);
+		console.log('* player totals', e.player.totals);
+
+		// store session totals
+		addItemToDB(e.player.totals);
 
 		player = e.player;
 
@@ -986,6 +1060,17 @@ domready(function()
 			localStorage.removeItem(item);
 		}
 	};
+
+	// if no user id then set it
+	if (!storage("get", "wingdom__userid"))
+	{
+		console.log("* we have no userid, attempting to set...");
+		var rnd = Math.floor((Math.random() * 10000) + 10000);
+		var uuid = parseInt(Date.now() + "" + rnd);
+		storage("set", "wingdom__userid", uuid);
+		console.log("* set userid to", uuid);
+	}
+	else console.log("* userid is", storage("get", "wingdom__userid"));
 
 	// tweet for skins
 	assets.skinUnlock = storage("get", "wingdom__skinUnlock");
