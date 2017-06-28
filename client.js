@@ -112,7 +112,7 @@ domready(function()
 	}
 	// 0 = score, 1 = kills, 2 = waves
 	getTop10(0);
-
+	*/
 	function addItemToDB(item)
 	{
 		// if no userid, don't save
@@ -138,7 +138,8 @@ domready(function()
 			if (err) console.log(err, err.stack); // an error occurred
 			else console.log("* got AWS item:", data); // successful response
 		});
-	}*/
+	}
+	//*/
 	// var rnd = Math.floor((Math.random() * 10000) + 10000);
 	// var uuid = parseInt(Date.now() + "" + rnd);
 

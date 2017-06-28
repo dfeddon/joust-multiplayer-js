@@ -37,8 +37,43 @@ domready(function()
 	// var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 	// docClient abstracts away the 'type-casting' requirement of the above dynamoDB
 	var docClient = new AWS.DynamoDB.DocumentClient();
+    var listData = [];
+    var boardIndex = 0;
+
+    var scoreButton = document.getElementById('scoreButton');
+    var killsButton = document.getElementById('killsButton');
+    var wavesButton = document.getElementById('wavesButton');
+
+    function clearTable()
+    {
+        var tb = document.getElementById('table');
+        while(tb.rows.length > 1) 
+        {
+            tb.deleteRow(1);
+        }
+    }
+
+    scoreButton.addEventListener('click', function()
+    {
+        clearTable();
+        getTop10(0);
+    });
+
+    killsButton.addEventListener('click', function()
+    {
+        clearTable();
+        getTop10(1);
+    });
+
+    wavesButton.addEventListener('click', function()
+    {
+        clearTable();
+        getTop10(2);
+    });
+    
 	function getTop10(index)
 	{
+        boardIndex = index;
 		var gIndicies = ["TopScoreIndex", "TopKillsIndex", "TopWavesIndex"];
 		var params = 
 		{
@@ -62,9 +97,61 @@ domready(function()
 		docClient.query(params, function (err, data) 
 		{
 			if (err) console.log(err, err.stack); // an error occurred
-			else console.log("* got AWS item:", data); // successful response
+			else
+            { 
+                console.log("* got AWS item:", data); // successful response
+                listData = data;
+                buildList();
+            }
 		});
+
+        function buildList()
+        {
+            var table = document.getElementById('table');
+            var valueText = document.getElementById('valueText');
+            var label;
+            switch(boardIndex)
+            {
+                case 0: label = "Score"; break;
+                case 1: label = "Kills"; break;
+                case 2: label = "Waves"; break;
+            }
+            valueText.innerHTML = label;
+            var row, cellRank, cellValue, cellPlayer;
+            var nsPre = "<span style='font-size:15px;text-align:left;display:block'>"
+            var nsPost = "</span>"
+            var vsPre = "<span style='font-size:15px;text-align:right;display:block'>"
+            var vsPost = "</span>"
+            for (var i = 0; i < listData.Count; i++)
+            {
+                console.log(listData.Items[i]);
+                row = table.insertRow();
+                cellRank = row.insertCell(0);
+                cellPlayer = row.insertCell(1);
+                cellValue = row.insertCell(2);
+                cellRank.innerHTML = i + 1;
+                switch(boardIndex)
+                {
+                    case 0: // score
+                        cellValue.innerHTML = vsPre + listData.Items[i].Score.toLocaleString() + vsPost;
+                    break;
+
+                    case 1: // kills
+                        cellValue.innerHTML = vsPre + listData.Items[i].Kills.toLocaleString() + vsPost;
+                    break;
+
+                    case 2: // waves
+                        cellValue.innerHTML = vsPre + listData.Items[i].Waves.toLocaleString() + vsPost;
+                    break;
+                }
+                if (listData.Items[i].Name)
+                    cellPlayer.innerHTML = nsPre + listData.Items[i].Name + nsPost;
+                else cellPlayer.innerHTML = nsPre + "Guest_" + (Math.floor(Math.random() * 999) + 1) + nsPost;
+            }
+
+        }
 	}
 	// 0 = score, 1 = kills, 2 = waves
-	getTop10(0);
+    if (listData.length === 0)
+	    getTop10(0);
 });

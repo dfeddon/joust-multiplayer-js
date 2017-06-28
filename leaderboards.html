@@ -1,6 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <style>
+            table, td 
+            {
+                /*border: 1px solid yellow;*/
+                text-align: center;
+            }
+            th
+            {
+                color: yellowgreen;
+                font-size: 17px;
+            }
+
+            /*.tableClass {
+            display: flex;
+            flex-flow: column nowrap;
+            font-size: .8rem;
+            margin: 0.5rem;
+            line-height: 1.5;
+            border-bottom: 1px solid #d0d0d0;
+            flex: 1 1 auto;
+            }
+
+            .th {
+            display: none;
+            font-weight: 700;
+            background-color: #f2f2f2;
+            }
+
+            .th > .td {
+            white-space: normal;
+            justify-content: center;
+            }
+
+            .tr {
+            width: 100%;
+            display: flex;
+            flex-flow: row nowrap;
+            }
+
+            .tr:nth-of-type(even) {
+            background-color: #f2f2f2;
+            }
+
+            .tr:nth-of-type(odd) {
+            background-color: #ffffff;
+            }
+
+            .td {
+            display: flex;
+            flex-flow: row nowrap;
+            flex-grow: 1;
+            flex-basis: 0;
+            padding: 0.5em;
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0px;
+            white-space: nowrap;
+            border-bottom: 1px solid #d0d0d0;
+            }*/
+            
+        </style>
         <center>
             <!--<h4>Controls</h4>
             <img src="https://s3.amazonaws.com/com.dfeddon.wingdom/controls-mini.png">-->
@@ -23,20 +85,25 @@
     <body style="margin:0px;padding:0px;overflow-y:scroll">
         <div class="container">
 
-            <h4><font color="yellow">== Leaderboards ==</font></h4>
+            <center><h4 style="padding-bottom:10px;"><font color="yellow">Leaderboards</font></h4></center>
+            <!--<br/>-->
             <p>
-                Coming Soon!
+                <center>
+                    <button id="scoreButton" style="background-color:black;font-size:0.75em">Top Score</button>
+                    <button id="killsButton" style="background-color:black;font-size:0.75em">Most Kills</button>
+                    <button id="wavesButton" style="background-color:black;font-size:0.75em">Most Waves</button>
+                </center>
             </p>
+            <!--<br/>-->
+
+            <table id="table" class="tableClass">
+                <tr>
+                    <th style="width:100px;text-align:center">#</th>
+                    <th style="width:300px;text-align:left">Player</th>
+                    <th id="valueText" style="width:300px;text-align:right">Score</th>
+                </tr>
+            </table>
             <br/>
-            <!--<h4>Privacy Policy</h4>
-            <p>
-                Your privacy is very important to us. Accordingly, we have developed this Policy in order for you to understand how we collect, use, communicate and disclose and make use of personal information. The following outlines our privacy policy.
-            </p>
-            <br/>
-            <h4>Privacy Policy</h4>
-            <p>
-                Your privacy is very important to us. Accordingly, we have developed this Policy in order for you to understand how we collect, use, communicate and disclose and make use of personal information. The following outlines our privacy policy.
-            </p>-->
             
         </div>
     </body>
