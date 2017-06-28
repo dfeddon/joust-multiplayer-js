@@ -612,6 +612,9 @@ domready(function()
 			// hide splash
 			splash.style.display = "none";
 
+			// hide tabs
+			document.getElementById('htmlLinks').style.display = "none";
+
 			// remove bg
 			document.body.style.backgroundImage = "none";
 
@@ -624,6 +627,9 @@ domready(function()
 			info.style.display = "block";
 			// infoBottom.style.display = "block";
 			scoreboard.style.display = "block";
+			document.getElementById('level-ui').style.display = "flex";
+			document.getElementById('score-text-container').style.display = "flex";
+			document.getElementById('uiTopBar').style.display = "flex";
 
 			// show controls
 			if (device.isMobile && device.isNative === false)

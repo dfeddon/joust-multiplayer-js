@@ -850,7 +850,7 @@ a:hover, a:visited, a:link, a:active
 #uiTopBar
 {
 	position: absolute;
-	display: flex;
+	display: none;
 	top: 0px;
 	height: 25px;
 	width: 100%;
@@ -1748,7 +1748,7 @@ h5
 	bottom: 5px;
 	height: 100px;
 	width: 100%;
-	display: flex;
+	display: none;/*flex;*/
 	flex-direction: column;
 	flex-wrap: nowrap;
 	justify-content: center;
@@ -2164,7 +2164,7 @@ h5
 	margin: auto;
 	/*right: 25%;
 	left: 25%;*/
-	display: flex;
+	display: none;
 	flex-direction: center;
 	flex-wrap: nowrap;
 	justify-content: space-between;
