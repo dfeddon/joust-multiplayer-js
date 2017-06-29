@@ -71,17 +71,39 @@ domready(function()
         getTop10(2);
     });
     
-	function getTop10(index)
+	function getTop10(index, range)
 	{
+        if (!range)
+        {
+            range = 1; // 1 = all time, 2 = month, 3 = week, 4 = today
+        }
+        var d = new Date();
+        switch(range)
+        {
+            case 1: // all time
+                break;
+            case 2: // month
+                d.setDate(d.getMonth() - 7); break;
+            case 3: // this week (from last week)
+                d.setDate(d.getDate() - 7); break;
+            case 4: // today (from yesterday)
+                d.setDate(d.getDate() - 1); break;
+        }
+        
+        // convert date to epoch
+        d.getTime() - d.getMilliseconds() / 1000;
+        var dateFrom = (Date.parse(d)/1000).toFixed(3);
+        console.log("* dateFrom", dateFrom);
+
         boardIndex = index;
 		var gIndicies = ["TopScoreIndex", "TopKillsIndex", "TopWavesIndex"];
 		var params = 
 		{
-			Key:
-			{
-				"Userid": 1, // Requried: Primary partition key
-				"Date": 1498568140 // Requried: Primary sort key
-			},
+			// Key:
+			// {
+			// 	"Userid": 1, // Requried: Primary partition key
+			// 	"Date": 1498568140 // Requried: Primary sort key
+			// },
 			TableName: "Session",
 			IndexName: gIndicies[index],//"TopScoresIndex",
 			ScanIndexForward: false,
