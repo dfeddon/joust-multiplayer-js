@@ -2544,6 +2544,7 @@ game_player.prototype.timeoutRespawn = function()
             // event.game = this.game;
             event.initEvent('playerRespawn', true, true);
             document.dispatchEvent(event);
+            this.config.respawning = true;
         // }
         // else // server
         // {

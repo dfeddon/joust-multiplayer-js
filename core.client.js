@@ -25,6 +25,7 @@ function core_client(core, config)
     this.core = core;
     this.config = config;
     this.config.server_time = 0; // <- init here
+    this.config.respawning = false;
 
     // last client_draw_info update time
     this.lastInfoUpdate = 0;
@@ -1940,6 +1941,7 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     var _this = this;
 
     // update client round total
+    if (!this.config.respawning)
     this.totalRounds++;
 
     // restore timer
@@ -1960,7 +1962,7 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     setTimeout(function()
     {
         go.style.display = "none";
-        if (_this.players.self.active && _this.players.self.landed > 0)
+        if (_this.players.self.active && _this.players.self.landed > 0 && !_this.config.respawning)
         {
             _this.players.self.landed = 0; // flying
             _this.players.self.doFlap();
@@ -1986,6 +1988,64 @@ core_client.prototype.client_onroundcomplete = function(winners)
     // stop game loop and inputs
     this.config.round.active = false;
 
+    if (this.config.respawning === true)
+    {
+        console.log("* respawning, suppress round complete view...");
+        // purge active wave buffs
+
+        // purge buffs and bonuses
+        var ply = this.core.getplayers.allplayers;
+        var c;
+        for (c = ply.length - 1; c >= 0; c--)
+        {
+            // purge client buffs and bonuses
+            ply[c].purgeBuffsAndBonuses();
+        }
+        // assign bonus buffs to winners (delay so that new buffs above aren't redacted)
+        setTimeout(function()
+        {
+            var p;
+            console.log('* winners', ply);
+            for (var w = 0; w < winners.length; w++)
+            {
+                if (winners[w][1])
+                {
+                    p = _this.config._.find(ply, {userid:winners[w][1]});
+                    if (!p) console.log('* Error: unable to find winning (disconnected) player!', winners[w]);
+                    else if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
+                    else // player found on client!
+                    {
+                        console.log(winners[w][2]);
+                        p.bonusSlot = winners[w][2] + 1;
+                        p.activateBuff(p.bonusSlot);
+                        console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
+                    }
+                }
+            }
+
+            // if player awarded bonus, show it
+            if (_this.players.self.bonusSlot)
+            {
+                console.log('* local player has buff!');
+                // var game_buffs = _this.game_buffs();
+                var buffImage = _this.game_buffs.getImageById(_this.players.self.bonusSlot);
+                var bonus = document.getElementById('bonusslot-container');
+                bonus.style.display = "flex";
+                bonus.style.backgroundImage = "url('" + buffImage + "')";
+            }
+            else
+            { 
+                console.log("* local player did NOT win a buff...");
+                document.getElementById('bonusslot-container').style.backgroundImage = "none";
+                document.getElementById('bonusslot-container').style.display = "none";
+            }
+            
+        }, 2000);
+
+        // now, get out!
+        return;
+    }
+
     // callout
     var callout = document.getElementById('roundCompleteCallout');
     callout.innerHTML = "Wave " + this.totalRounds.toString() + " Complete!";
@@ -1996,7 +2056,7 @@ core_client.prototype.client_onroundcomplete = function(winners)
     setTimeout(function()
     {
         callout.style.display = "none";
-        if (!_this.players.self.dead && !_this.players.self.dying)
+        if (!_this.players.self.dead && !_this.players.self.dying)// && !_this.config.respawning)
             _this.roundWinnersView(winners); 
     }, 5000);
 }
@@ -4513,9 +4573,10 @@ core_client.prototype.roundWinnersView = function(winners)
     document.getElementById('uiInfoBar').style.display = "none";
     document.getElementById('uiTopBar').style.display = "none";
     // document.getElementById('uiInfoBarBottom').style.display = "none";
-    document.getElementById('level-ui').style.display = "none";
+    // we can't remove this element, simply 'hide' it
+    document.getElementById('level-ui').style.opacity = 0;//display = "none";
     document.getElementById('scoreboard').style.display = "none";
-    document.getElementById('score-text-container').style.display = "none";
+    document.getElementById('score-text-container').style.opacity = 0;//display = "none";
 
     var mobilecontrols;
     var mcr = document.getElementById('mobile-controls-r');
@@ -4822,8 +4883,8 @@ core_client.prototype.roundWinnersView = function(winners)
             document.getElementById('uiTopBar').style.display = "flex";
             // document.getElementById('uiInfoBarBottom').style.display = "block";
             document.getElementById('scoreboard').style.display = "block";
-            document.getElementById('level-ui').style.display = "flex";
-            document.getElementById('score-text-container').style.display = "flex";
+            document.getElementById('level-ui').style.opacity = 1;//display = "flex";
+            document.getElementById('score-text-container').style.opacity = 1;//display = "flex";
             console.log('mobilecontrols', mobilecontrols);
             
             if (mobilecontrols)

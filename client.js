@@ -593,6 +593,22 @@ domready(function()
 				console.log('@ socket', game.core_client.socket);
 				game.core_client.socket.write({'n': game.core_client.players.self.userid + '.' + game.core_client.playerPort + '.' + assets.playerName + '|' + assets.playerSkin});
 
+				// reset respawning flag
+				game.core_client.config.respawning = false;
+
+				// reset rounds
+				game.core_client.totalRounds = 0;
+				console.log('room', game.core_client.playerPort);
+				// var round = game.getplayers.fromRoom(game.core_client.playerPort, 5);
+				console.log("* respawning on stage", game.core_client.config.round.active);
+				if (game.core_client.config.round.active === false)// === 2)
+				{
+					var callout = document.getElementById('roundCompleteCallout');
+					callout.innerHTML = "One moment.<br/> Wave 1 will begin shortly! ";// " + round.endtime - this.config.server_time + " seconds...";
+					callout.style.display = "block";
+					callout.style.animationPlayState = 'running';
+				}
+
 				// start the game loop
 				// game.update( new Date().getTime() );		
 			}
@@ -631,8 +647,8 @@ domready(function()
 			info.style.display = "block";
 			// infoBottom.style.display = "block";
 			scoreboard.style.display = "block";
-			document.getElementById('level-ui').style.display = "flex";
-			document.getElementById('score-text-container').style.display = "flex";
+			document.getElementById('level-ui').style.opacity = 1;//display = "flex";
+			document.getElementById('score-text-container').style.opacity = 1;//display = "flex";
 			document.getElementById('uiTopBar').style.display = "flex";
 
 			// show controls
@@ -793,8 +809,8 @@ domready(function()
 		// uiInfoBarBottom.style.display = "none";
 
 		// hide bottom ui
-		document.getElementById('level-ui').style.display = "none";
-		document.getElementById('score-text-container').style.display = "none";
+		document.getElementById('level-ui').style.opacity = 0;//display = "none";
+		document.getElementById('score-text-container').style.opacity = 0;//display = "none";
 		
 		// show splash
 		ui.style.display = "block";//inline-block";

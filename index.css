@@ -1748,7 +1748,8 @@ h5
 	bottom: 5px;
 	height: 100px;
 	width: 100%;
-	display: none;/*flex;*/
+	opacity: 0;
+	display: flex;/*flex;*/
 	flex-direction: column;
 	flex-wrap: nowrap;
 	justify-content: center;
@@ -2164,7 +2165,7 @@ h5
 	margin: auto;
 	/*right: 25%;
 	left: 25%;*/
-	display: none;
+	display: flex;
 	flex-direction: center;
 	flex-wrap: nowrap;
 	justify-content: space-between;
