@@ -92,8 +92,8 @@ domready(function()
         
         // convert date to epoch
         d.getTime() - d.getMilliseconds() / 1000;
-        var dateFrom = (Date.parse(d)/1000).toFixed(3);
-        console.log("* dateFrom", dateFrom);
+        var dateFrom = parseFloat((Date.parse(d)/1000).toFixed(3));
+        console.log("* dateFrom", dateFrom, typeof(dateFrom));
 
         boardIndex = index;
 		var gIndicies = ["TopScoreIndex", "TopKillsIndex", "TopWavesIndex"];
@@ -107,11 +107,11 @@ domready(function()
 			TableName: "Session",
 			IndexName: gIndicies[index],//"TopScoresIndex",
 			ScanIndexForward: false,
-			KeyConditionExpression: 'GameId = :v_title',// and Date > :rkey',
+			KeyConditionExpression: 'GameId = :gameid',// and CreatedAt > :rkey',
 			ExpressionAttributeValues: 
 			{
-				':v_title': 1//,
-				// ':rkey': 2015
+				':gameid': 1,
+				// ':rkey': dateFrom
 			},
 			Limit: 20//10
 		};
@@ -196,14 +196,13 @@ domready(function()
                         cellValue.innerHTML = vsPre + listData.Items[i].Waves.toLocaleString() + vsPost;
                     break;
                 }
-                if (listData.Items[i].Name)
-                    cellPlayer.innerHTML = nsPre + listData.Items[i].Name + nsPost;
+                if (listData.Items[i].Player)
+                    cellPlayer.innerHTML = nsPre + listData.Items[i].Player + nsPost;
                 else cellPlayer.innerHTML = nsPre + "Guest_" + (Math.floor(Math.random() * 999) + 1) + nsPost;
             }
-
         }
 	}
 	// 0 = score, 1 = kills, 2 = waves
     if (listData.length === 0)
-	    getTop10(0);
+        getTop10(0);
 });

@@ -563,7 +563,7 @@ game_flag.prototype.slotFlag = function(player)
     //player.removeFlag(true, this, this.config._.find(this.config.flagObjects, {'name':clientFlag.name}));
     //var slot = this.config._.find(this.config.flagObjects, {'name':clientFlag.name});
 
-    flg.x = this.x - (this.width/2);
+    flg.x = (flg.name == "midFlag") ? this.x - (this.width/2) : this.x + (this.width/2);
     flg.y = this.y - (this.height/2);
     console.log('flag x, y', flg.x, flg.y);
     
@@ -960,10 +960,12 @@ game_flag.prototype.draw = function()
   //console.log('dodraw', this.image, this.x, this.y);
   if (this.name == "redFlag")
   {
-    if (this.sourceSlot != "slotRed")
+    //if (this.sourceSlot != "slotRed")
       this.image = assets.flag_red_l;
-    else this.image = assets.flag_red_l;
+    //else this.image = assets.flag_red_l;
   }
+  else if (this.name == "blueFlag")
+    this.image = assets.flag_blue_l;
 
   if (this.image && this.visible)
     this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);

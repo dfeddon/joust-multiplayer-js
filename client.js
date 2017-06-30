@@ -125,8 +125,8 @@ domready(function()
 			{ 
 				"Userid": userid, // get this locally
 				"GameId": 1,
-				"Date": new Date() / 1000,
-				"Name": item.Name,
+				"CreatedAt": new Date() / 1000,
+				"Player": item.Name,
 				"Score": item.Score,
 				"Kills": item.Kills,
 				"Waves": item.Waves
@@ -143,14 +143,18 @@ domready(function()
 	// var rnd = Math.floor((Math.random() * 10000) + 10000);
 	// var uuid = parseInt(Date.now() + "" + rnd);
 
-	/*var putItem = {};
+	/*
+	setTimeout(function(){
+	var putItem = {};
 	putItem.Userid = uuid;
 	// putItem.GameId = 1;
 	// putItem.Date = new Date() / 1000;
 	putItem.Score = Math.floor((Math.random() * 10000) + 100);
 	putItem.Kills = Math.floor((Math.random() * 30) + 1);
 	putItem.Waves = Math.floor((Math.random() * 20) + 1);
-	addItemToDB(putItem);*/
+	addItemToDB(putItem);
+	},1000);
+	//*/
 
 	// s3
 	var appId = "app_id";
@@ -787,6 +791,10 @@ domready(function()
 		uiInfoBar.style.display = "none";
 		// var uiInfoBarBottom = document.getElementById('uiInfoBarBottom');
 		// uiInfoBarBottom.style.display = "none";
+
+		// hide bottom ui
+		document.getElementById('level-ui').style.display = "none";
+		document.getElementById('score-text-container').style.display = "none";
 		
 		// show splash
 		ui.style.display = "block";//inline-block";
