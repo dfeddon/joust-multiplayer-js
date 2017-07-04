@@ -101,6 +101,7 @@ function game_player(player_instance, isHost, pindex, config)
     this.protection = false;
     this.stunned = false;
     this.dazed = false;
+    this.bonusPenaltyCooldown = null; // cooldown after dazed crits!
     // this.roundSlotImage = null;
     // this.slot1Image = null;
     // this.slot2Image = null;
@@ -134,7 +135,7 @@ function game_player(player_instance, isHost, pindex, config)
 
     this.totalKills = 0;
 
-    this.textFloater = null;
+    this.textFloaters = [];// = null;
     this.drawAbility = 0; // 0 = none / 1 = blink (unseen yet exposed, or isLocal)
 
     this.hitData = {by:0, at:0};
@@ -965,11 +966,15 @@ game_player.prototype.miscBuff = function(id)
     switch(id)
     {
         case 300: // bubble broken
-            this.bubble = false;
+            // this.bubble = false;
+            this.setBubble(false);
+            var particles = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
+            this.config.client.particles.push(particles);
         break;
 
         case 301: // respawn bubble
-            this.bubble = true;
+            // this.bubble = true;
+            this.setBubble(true);
         break;
     }
 };
@@ -1181,6 +1186,8 @@ game_player.prototype.addToScore = function(val)
     if (val)
     this.score += val;
 
+    this.config.client
+
     if (this.level === 1 && this.score >= this.levels[1])
     {
         console.log('* LEVEL UP - 2!');
@@ -1309,6 +1316,9 @@ game_player.prototype.addToScore = function(val)
         }
     }
 
+    // update leaderboards
+    if (!this.config.server)
+        this.config.client.updateLeaderboard();
 };
 
 game_player.prototype.respawn = function()
@@ -1843,6 +1853,19 @@ game_player.prototype.update = function()
                 // notify client via socket.write
                 this.instance.write([35]);
             }
+
+            // bonus penalty cooldown
+            if (this.bonusPenaltyCooldown && this.bonusPenaltyCooldown >= this.config.server_time)
+            {
+                console.log("* bonus penalty cooldown expired!");
+                this.bonusPenaltyCooldown = null;
+                this.playerBonus += this.dazed;
+                this.dazed = 0;
+                this.updateBonuses();
+                // notify client
+                if (this.isLocal)
+                    this.instance.write([40]);
+            }
         //}
     } // end this.server
 
@@ -2135,6 +2158,7 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 console.log("* bubble!")
                 // remove bubble
                 this.setBubble(false);
+
                 // set bubble on 10 sec cooldown (if cd doesn't expire first)
                 // TODO: also check for round slot bubble buff
                 for (var i = this.slots.length - 1; i >= 0; i--)
@@ -2157,8 +2181,10 @@ game_player.prototype.doHitServer = function(victor, isHit)
             }
             
             // if flag-carrier, drop it
+            /*
             if (this.hasFlag > 0)
                 this.dropFlag();
+            */
             // set base damage (5 - 15) + victor bonus (victor.total) + victor buffs (victor.damageBonus) + (option for 5% + victor bonus to inflict double-damage) - victim.damageReduce bonus - victim bonus
             // base damage 5 - 15;
             var dmg = ~~(Math.random() * 11) + 5;
@@ -2192,10 +2218,14 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 // if (victor)
                 //     this.doKill(victor);
                 // else this.doKill();
+
+                // award points to victor
+                victor.addToScore(500);
             }
             else 
             {
-                // if victim *doesn't* has protection
+                // if victim *doesn't* have protection
+                console.log('* has protection', this.protection);
                 if (!this.protection)
                 {
                     // rng 1 - 100
@@ -2203,6 +2233,8 @@ game_player.prototype.doHitServer = function(victor, isHit)
                     var bonusDiff = victor.bonusTotal - this.bonusTotal;
                     // if (if rng <= (victor bonus - victim bonus)
                     console.log("* rng", rng, bonusDiff);
+                    /*bonusDiff = 100;
+                    rng = 5;*/
                     if (rng <= bonusDiff)
                     {
                         // victim inflicted with stun and rng debuff
@@ -2229,8 +2261,16 @@ game_player.prototype.doHitServer = function(victor, isHit)
                             // subtract bonusDiff from playerBonus
                             this.playerBonus -= this.dazed;
                             // update bonus
+                            if (this.config.server)
+                                this.updateBonuses();
+                            else this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
                             // set cooldown on bonus penalty
+                            this.bonusPenaltyCooldown = this.config.server_time + 60 + bonusDiff;
+                            console.log("* bonusPenaltyCooldown expires in", this.bonusPenaltyCooldown);
                         }
+
+                        // text floater
+                        this.setTextFloater(4, 0, 1);
                     }
                 }
 
@@ -2245,6 +2285,9 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 // this.target = victor;
                 // if victim is standing, set to walking so player "bumped" location will update
                 // if (this.landed === 1) this.landed = 2;
+
+                // awards points
+                victor.addToScore(150);
             }
             // notify client
             if (victor && victor.instance)
@@ -2320,7 +2363,7 @@ game_player.prototype.doKill = function(victor)
     // this.active = false;
 
     // avoid reduncancy
-    if (this.dying === true) return;
+    if (this.dying || this.dead) return;
     else this.dying = true;
 
     console.log('player dying', this.playerName);
@@ -2628,7 +2671,7 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
     console.log('== setTextFloater ==', c, v, bool, type);
 
     // params:
-    // 1. category: 1 (buff) / 2 (health) / 3 (bonus) / 100 damage
+    // 1. category: 1 (buff) / 2 (health) / 3 (bonus) / 4 (crit!) / 100 damage
     // 2. value: int
     // 3. active: bool
     // 4. type (buff)
@@ -2638,10 +2681,17 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
         text = "+" + v.toString();
     else text = v.toString();
 
-    if (c === 3)
+    if (c === 3) // bonus pot
     {
         text += " BONUS";
         color = "yellow";
+    }
+    else if (c === 4) // crit!
+    {
+        text = "CRIT!";
+        color = "#E0AA10";
+        // show to both victim and victor
+        localOnly = false;
     }
     else if (c == 100) // damage
     {
@@ -2650,12 +2700,12 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
         // show to both victim and victor
         localOnly = false;
     }
-    else if (c === 2)
+    else if (c === 2) // health pot
     {
         text += " HEALTH";
         color = "lime";
     }
-    else if (c === 1)
+    else if (c === 1) // buff
     {
         color = "white";
         localOnly = true;
@@ -2696,7 +2746,7 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
         }
     }
     // console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
-    this.textFloater = [text, color, bool, this.config.server_time + 1.5, localOnly, img];
+    this.textFloaters.push([text, color, bool, this.config.server_time + 1.5, localOnly, img]);
 };
 
 
@@ -2948,7 +2998,7 @@ game_player.prototype.isVuln = function(len)
     // if (this.config.server && this.hasFlag)
     console.log('* hasFlag', this.hasFlag);
     if (this.hasFlag > 0)
-        this.dropFlag();    
+        this.dropFlag();
 
     setTimeout(this.timeoutVuln.bind(this), len);
 };
@@ -3159,25 +3209,31 @@ game_player.prototype.draw = function()
     if (this.vuln) this.nameplateOffset = 10;
     //var abil;
 
-    if (this.textFloater)
+    if (this.textFloaters.length > 0)
     {
-        if ((this.isLocal && this.textFloater[4]) || (!this.textFloater[4]))
+        var y_padding;
+        for (var i = 0; i < this.textFloaters.length; i++)
         {
-            // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
-            this.config.ctx.save();
-            this.config.ctx.font = "30px Mirza";
-            this.config.ctx.textAlign = 'center';
-            this.config.ctx.fillStyle = this.textFloater[1];
-            // this.config.ctx.save();
-            // draw buff image
-            if (this.textFloater[5])
-                this.config.ctx.drawImage(this.textFloater[5], this.pos.x - 95, this.pos.y - 60 - this.textFloater[2], 50, 50);
-            this.config.ctx.fillText(this.textFloater[0], this.pos.x, this.pos.y - 30 - this.textFloater[2]);
-            this.textFloater[2] += 0.25;
-            // this.config.ctx.restore();
-            if (this.config.server_time >= this.textFloater[3])
-                this.textFloater = null;
-            this.config.ctx.restore();
+            if ((this.isLocal && this.textFloaters[i][4]) || (!this.textFloaters[i][4]))
+            {
+                // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
+                this.config.ctx.save();
+                this.config.ctx.font = "30px Mirza";
+                this.config.ctx.textAlign = 'center';
+                this.config.ctx.fillStyle = this.textFloaters[i][1];
+                // this.config.ctx.save();
+                // draw buff image
+                y_padding = (this.textFloaters.length - (i + 1)) * 30;
+                // console.log("* y_padding", y_padding, i);
+                if (this.textFloaters[i][5])
+                    this.config.ctx.drawImage(this.textFloaters[i][5], this.pos.x - 95, this.pos.y - 60 - this.textFloaters[i][2] + y_padding, 50, 50);
+                this.config.ctx.fillText(this.textFloaters[i][0], this.pos.x, this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
+                this.textFloaters[i][2] += 0.25;
+                // this.config.ctx.restore();
+                this.config.ctx.restore();
+            }
+            if (this.config.server_time >= this.textFloaters[i][3])
+                this.textFloaters.splice(i, 1);//this.textFloater = null;
         }
     }
 

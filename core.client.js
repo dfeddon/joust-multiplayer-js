@@ -1230,7 +1230,7 @@ core_client.prototype.client_connect_to_server = function(data)
     this.socket.on('incoming::ping', function(date)
     {
         // console.log("* client ping", date, Date.now());//Math.floor(new Date().getTime() / 1000));
-        _this.latency = (Date.now() - date) * 2;
+        _this.latency = Math.abs((Date.now() - date) * 2);
         // console.log(this.latency);
 
         // update round timer
@@ -1310,6 +1310,9 @@ core_client.prototype.client_connect_to_server = function(data)
 
             // protection ended
             case 35: _this.client_onprotectioncomplete(); break;
+
+            // bonus penalty expired
+            case 40: _this.client_onbonuspenaltyexpired(); break;
 
             // game is full
             case 50: _this.client_ongamefull(); break;
@@ -1405,6 +1408,55 @@ core_client.prototype.client_refresh_fps = function()
     } //reached 10 frames
 }; //game_core.client_refresh_fps
 
+core_client.prototype.updateLeaderboard = function()
+{
+    console.log("== updateLeaderboard ==");
+
+    var hscore = [];
+    // _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
+    // _.forEach(_this.core.getplayers.allplayers, function(p)
+    var p;
+    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
+    {
+        p = this.core.getplayers.allplayers[j];
+        if (p.active && p.score > 0)
+            hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
+        // if respawning, auto-set score to 0
+        if (!p.visible)// || !p.active)
+            p.score = 0;
+    }
+    // sort it
+    hscore = _.orderBy(hscore, ['score'], ['desc']);
+
+    // if more than 10 players, take the top 10
+    if (hscore.length > 10)
+    {
+        hscore = hscore.slice(hscore, 0, 10);
+    }
+    // don't update if redundant
+    if (hscore == this.last_hscore) return;
+    else this.last_hscore = hscore;
+    
+    // update DOM #scoreboard items
+    var tbl = document.getElementById('scoreslist');
+    var color;
+    // _.forEach(hscore, function(p, i)
+    //var p;
+    for (var i = hscore.length - 1; i >= 0; i--)
+    {
+        p = hscore[i];
+        tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
+        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
+        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
+        // set color
+        if (!p.visible)// || !p.active)
+            color = "lightgray";
+        else if (p.team == 1) color = "#FF6961";
+        else color = "#6ebee6";
+        tbl.rows[i].style.color = color;
+    }
+}
+
 core_client.prototype.client_draw_info = function() 
 {
     // if (glog) 
@@ -1457,52 +1509,52 @@ core_client.prototype.client_draw_info = function()
     //     roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
     // else roundTimerTxt.innerHTML = "--:--";
     
-    /////////////////////////////////
-    // leaderboard
-    /////////////////////////////////
-    var hscore = [];
-    // _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
-    // _.forEach(_this.core.getplayers.allplayers, function(p)
-    var p;
-    for (var j = _this.core.getplayers.allplayers.length - 1; j >= 0; j--)
-    {
-        p = _this.core.getplayers.allplayers[j];
-        if (p.active && p.score > 0)
-            hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
-        // if respawning, auto-set score to 0
-        if (!p.visible)// || !p.active)
-            p.score = 0;
-    }
-    // sort it
-    hscore = _.orderBy(hscore, ['score'], ['desc']);
+    // /////////////////////////////////
+    // // leaderboard
+    // /////////////////////////////////
+    // var hscore = [];
+    // // _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
+    // // _.forEach(_this.core.getplayers.allplayers, function(p)
+    // var p;
+    // for (var j = _this.core.getplayers.allplayers.length - 1; j >= 0; j--)
+    // {
+    //     p = _this.core.getplayers.allplayers[j];
+    //     if (p.active && p.score > 0)
+    //         hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
+    //     // if respawning, auto-set score to 0
+    //     if (!p.visible)// || !p.active)
+    //         p.score = 0;
+    // }
+    // // sort it
+    // hscore = _.orderBy(hscore, ['score'], ['desc']);
 
-    // if more than 10 players, take the top 10
-    if (hscore.length > 10)
-    {
-        hscore = hscore.slice(hscore, 0, 10);
-    }
-    // don't update if redundant
-    if (hscore == this.last_hscore) return;
-    else this.last_hscore = hscore;
+    // // if more than 10 players, take the top 10
+    // if (hscore.length > 10)
+    // {
+    //     hscore = hscore.slice(hscore, 0, 10);
+    // }
+    // // don't update if redundant
+    // if (hscore == this.last_hscore) return;
+    // else this.last_hscore = hscore;
     
-    // update DOM #scoreboard items
-    var tbl = document.getElementById('scoreslist');
-    var color;
-    // _.forEach(hscore, function(p, i)
-    //var p;
-    for (var i = hscore.length - 1; i >= 0; i--)
-    {
-        p = hscore[i];
-        tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
-        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
-        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
-        // set color
-        if (!p.visible)// || !p.active)
-            color = "lightgray";
-        else if (p.team == 1) color = "#FF6961";
-        else color = "#6ebee6";
-        tbl.rows[i].style.color = color;
-    }
+    // // update DOM #scoreboard items
+    // var tbl = document.getElementById('scoreslist');
+    // var color;
+    // // _.forEach(hscore, function(p, i)
+    // //var p;
+    // for (var i = hscore.length - 1; i >= 0; i--)
+    // {
+    //     p = hscore[i];
+    //     tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
+    //     tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
+    //     tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
+    //     // set color
+    //     if (!p.visible)// || !p.active)
+    //         color = "lightgray";
+    //     else if (p.team == 1) color = "#FF6961";
+    //     else color = "#6ebee6";
+    //     tbl.rows[i].style.color = color;
+    // }
     // console.log('score post: ', JSON.stringify(hscore));
 
     /*
@@ -1932,6 +1984,13 @@ core_client.prototype.client_onprotectioncomplete = function()
     console.log('== client_onprotectioncomplete ==');
     this.players.self.protection = false;
     document.getElementById('protection-badge').style.display = "none";
+}
+
+core_client.prototype.client_onbonuspenaltyexpired = function()
+{
+    console.log("== client_onbonuspenaltyexpired ==");
+    this.players.self.playerBonus += this.dazed;
+    this.players.self.updateBonusesClient([this.players.self.teamBonus, this.players.self.playerBonus, this.players.self.potionBonus]);
 }
 
 core_client.prototype.client_onbonusroundcomplete = function(round)

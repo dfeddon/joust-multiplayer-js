@@ -436,7 +436,7 @@ game_server.prototype.onInput = function(client, parts)
     //we can tell that game to handle the input
     if(client && client.game && client.game.gamecore)
     {
-        client.game.gamecore.handle_server_input(client, input_commands, input_time, input_seq);
+        client.game.gamecore.core_server.handle_server_input(client, input_commands, input_time, input_seq);
     }
 
 }; //game_server.onInput

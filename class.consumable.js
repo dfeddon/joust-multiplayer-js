@@ -285,7 +285,7 @@ game_consumable.prototype.doTake = function(player)//, chests)
 
   setTimeout(this.timeoutOpened.bind(this), 750);
 
-  player.addToScore(100);
+  player.addToScore(50);
 };
 
 game_consumable.prototype.timeoutOpened = function()
