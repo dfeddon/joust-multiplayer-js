@@ -986,6 +986,17 @@ domready(function()
 	assets.flag_slot_10 = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/flag-slot-10.png");
 	assets.carrier_arrow = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/carrier-arrow.png");
 
+	assets.rank_1_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-1-blue.png");
+	assets.rank_2_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-2-blue.png");
+	assets.rank_3_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-3-blue.png");
+	assets.rank_4_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-4-blue.png");
+	assets.rank_5_blue = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-5-blue.png");
+	assets.rank_1_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-1-red.png");
+	assets.rank_2_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-2-red.png");
+	assets.rank_3_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-3-red.png");
+	assets.rank_4_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-4-red.png");
+	assets.rank_5_red = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/rank-icons/rank-5-red.png");
+
 	// loader progress
 	loader.addProgressListener(function(e)
 	{

@@ -543,7 +543,7 @@ game_player.prototype.hasBuff = function()//buffType)
 
     for (var i = this.slots.length - 1; i >= 0; i--)
     {
-        if (this.slots[i].a === 1)//b === buffType)
+        if (this.slots[i].b > 0)// === 1)//b === buffType)
             return true;
     }
     return false;    
@@ -983,9 +983,15 @@ game_player.prototype.updateBonusesClient = function(array)
 {
     console.log('== player.updateBonusesClient ==', array);
 
-    this.teamBonus = array[0];
-    this.playerBonus = array[1];
-    this.potionBonus = array[2];
+    if (array)
+    {
+        if (array.length > 0)
+            this.teamBonus = array[0];
+        if (array.length > 1)
+            this.playerBonus = array[1];
+        if (array.length > 2)
+            this.potionBonus = array[2];
+    }
     this.bonusTotal = this.teamBonus + this.playerBonus + this.potionBonus;
 
     var bgRed = '#D0011B';
@@ -1073,7 +1079,8 @@ game_player.prototype.updateBonuses = function(teamBonus)
     console.log('* bonusTotal', this.bonusTotal);
     
     // update client? via write or livesocket
-    this.bonusDispatch = [this.teamBonus, this.playerBonus, this.potionBonus];
+    if (this.instance && this.isLocal)
+        this.instance.write([40, this.teamBonus, this.playerBonus, this.potionBonus]);
 };
 
 game_player.prototype.reset = function()
@@ -1145,13 +1152,19 @@ game_player.prototype.setPlayerName = function(name)
     var textCanvas = document.createElement('canvas');
     // textCanvas.width = 150;
     var ctx = textCanvas.getContext('2d');
-    ctx.font = "18px sans"; // set font *before* measuring
+    ctx.font = "16px Mirza"; // set font *before* measuring
     ctx.canvas.width = ctx.measureText(name).width + 10;
     // textCanvas.style.border = "1px solid #000000";
     if (this.team === 1)
+    {
+        this.teamName = "red";
         ctx.fillStyle = '#FF6961';
+    }
     else if (this.team === 2)
+    {
+        this.teamName = "blue";
         ctx.fillStyle = '#6ebee6';
+    }
     else ctx.fillStyle = 'white';
     ctx.font = "16px Mirza";
     // tCtx.textAlign = 'center';
@@ -1855,7 +1868,7 @@ game_player.prototype.update = function()
             }
 
             // bonus penalty cooldown
-            if (this.bonusPenaltyCooldown && this.bonusPenaltyCooldown >= this.config.server_time)
+            if (this.bonusPenaltyCooldown && this.bonusPenaltyCooldown <= this.config.server_time)
             {
                 console.log("* bonus penalty cooldown expired!");
                 this.bonusPenaltyCooldown = null;
@@ -1864,7 +1877,7 @@ game_player.prototype.update = function()
                 this.updateBonuses();
                 // notify client
                 if (this.isLocal)
-                    this.instance.write([40]);
+                    this.instance.write([40, this.teamBonus, this.playerBonus, this.potionBonus]);
             }
         //}
     } // end this.server
@@ -2176,6 +2189,11 @@ game_player.prototype.doHitServer = function(victor, isHit)
                         }
                     }
                 }
+                // set collision flags
+                victor.collision = true;
+                victor.hitFrom = 3;
+                victor.target = this;
+
                 // no damage taken, so get out
                 return;
             }
@@ -2202,6 +2220,28 @@ game_player.prototype.doHitServer = function(victor, isHit)
             // round it
             dmg = Math.round(dmg);
             console.log("+ final", dmg);
+            // check for crit!
+            var crit = false;
+            if (!this.protection)
+            {
+                // rng 1 - 100
+                var rng = this.getRandomRange(1, 100);
+                var bonusDiff = victor.bonusTotal - this.bonusTotal;
+                // if (if rng <= (victor bonus - victim bonus)
+                console.log("* rng", rng, bonusDiff);
+                //*
+                bonusDiff = 25;
+                rng = 5;
+                //*/
+                if (rng <= bonusDiff)
+                {
+                    // victim inflicted with stun and rng debuff
+                    console.log("* victim CRIT!");
+                    crit = true;
+                    // double damage!
+                    dmg *= 2;
+                }
+            }
             // damage cannot be negative
             if (dmg < 0) dmg = 0;
 
@@ -2226,52 +2266,58 @@ game_player.prototype.doHitServer = function(victor, isHit)
             {
                 // if victim *doesn't* have protection
                 console.log('* has protection', this.protection);
-                if (!this.protection)
+                if (crit)
                 {
                     // rng 1 - 100
-                    var rng = this.getRandomRange(1, 100);
+                    /*var rng = this.getRandomRange(1, 100);
                     var bonusDiff = victor.bonusTotal - this.bonusTotal;
                     // if (if rng <= (victor bonus - victim bonus)
                     console.log("* rng", rng, bonusDiff);
-                    /*bonusDiff = 100;
-                    rng = 5;*/
+                    bonusDiff = 25;
+                    rng = 5;
                     if (rng <= bonusDiff)
+                    {*/
+                    // victim inflicted with stun and rng debuff
+                    console.log("* apply crit...");
+                    // vulnerable for 1.5 seconds
+                    this.isVuln(1500);
+                    // rng 1 or 2
+                    var inflict = this.getRandomRange(1, 2);
+                    // if (rng == 1 && victim has at least 1 active buff)
+                    console.log("* inflict", inflict, "hasBuff", this.hasBuff())
+                    if (inflict === 1 && this.hasBuff() === true)
                     {
-                        // victim inflicted with stun and rng debuff
-                        console.log("* victim KNOCKOUT!");
-                        // vulnerable for 1.5 seconds
-                        this.isVuln(1500);
-                        // rng 1 or 2
-                        var inflict = this.getRandomRange(1, 2);
-                        // if (rng == 1 && victim has at least 1 active buff)
-                        if (inflict === 1 && this.hasBuff() === true)
+                        // inflict stun (vuln) and remove 1 buff
+                        console.log("* player stunned!");
+                        this.stunned = true;
+                        // TODO: remove the eldest buff?
+                        var rngBuff = this.getRandomBuffSlot();
+                        // remove/expire buff (and update buffs?)
+                        this.buffExpired(rngBuff);
+                    }
+                    else if (!this.dazed) // no dazed stacking!
+                    {
+                        // otherwise, inflict dazed (equal to bonus differential) for 60 seconds + bonus?
+                        console.log("* player dazed!", bonusDiff);
+                        if (this.config.server)
                         {
-                            // inflict stun (vuln) and remove 1 buff
-                            console.log("* player stunned!");
-                            this.stunned = true;
-                            var rngBuff = this.getRandomBuffSlot();
-                            // remove/expire buff (and update buffs?)
-                            this.buffExpired(rngBuff);
-                        }
-                        else
-                        {
-                            // otherwise, inflict dazed (equal to bonus differential) for 60 seconds + bonus?
-                            console.log("* player dazed!", bonusDiff);
                             this.dazed = bonusDiff; // store val in dazed
                             // subtract bonusDiff from playerBonus
                             this.playerBonus -= this.dazed;
                             // update bonus
-                            if (this.config.server)
+                            // if (this.config.server)
                                 this.updateBonuses();
-                            else this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
+                            // else this.updateBonusesClient([this.teamBonus, this.playerBonus, this.potionBonus]);
                             // set cooldown on bonus penalty
                             this.bonusPenaltyCooldown = this.config.server_time + 60 + bonusDiff;
-                            console.log("* bonusPenaltyCooldown expires in", this.bonusPenaltyCooldown);
+                            console.log("* bonusPenaltyCooldown expires at", this.bonusPenaltyCooldown);
                         }
-
-                        // text floater
-                        this.setTextFloater(4, 0, 1);
                     }
+                    console.log("* player is already dazed and buffless...");
+
+                    // text floater (client only)
+                    this.setTextFloater(4, 0, 1);
+                    //}
                 }
 
                 // if (this.vx === 0)
@@ -2986,7 +3032,7 @@ game_player.prototype.isVuln = function(len)
         this.isEngaged(len);
 
     // break bubble
-    if (this.bubble === true)
+    if (this.bubble)
     {
         // break bubble
         this.setBubble(false);
@@ -3299,8 +3345,13 @@ game_player.prototype.draw = function()
     //     this.setPlayerName(this.playerName);
     // if (this.playerNameImage)
     // if (!this.vuln)
+
+    // nameplate
     this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
 
+    // rank icon
+    if (!this.isLocal)
+        this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - 25, 20, 20);
     // draw rank circle
     /*
     game.ctx.fillStyle = "gray";

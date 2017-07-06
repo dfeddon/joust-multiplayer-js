@@ -1056,6 +1056,7 @@ game_core.prototype.check_collision = function( player, i )
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
+                        // if (this.config.server)
                         player.doHitServer(other, false);
                     }
                     else // we (might?) have a victim
@@ -1069,6 +1070,7 @@ game_core.prototype.check_collision = function( player, i )
                             if (!other.dead)
                             {
                                 // _this.pk(player, other, 15);
+                                // if (this.config.server)
                                 other.doHitServer(player, true);
                             }
                         }
@@ -1076,6 +1078,7 @@ game_core.prototype.check_collision = function( player, i )
                         {
                             if (!player.dead)
                             {
+                                // if (this.config.server)
                                 player.doHitServer(other, true);
                             }
                         }

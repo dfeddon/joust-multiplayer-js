@@ -520,6 +520,10 @@ return;
     {
         res.status(404).end();
     });
+    app.get('/core.server.js', function(req, res)
+    {
+        res.status(404).end();
+    });
     app.get('/game.server.js', function(req, res)
     {
         res.status(404).end();

@@ -1312,7 +1312,7 @@ core_client.prototype.client_connect_to_server = function(data)
             case 35: _this.client_onprotectioncomplete(); break;
 
             // bonus penalty expired
-            case 40: _this.client_onbonuspenaltyexpired(); break;
+            case 40: _this.client_onbonuspenaltyexpired(data); break;
 
             // game is full
             case 50: _this.client_ongamefull(); break;
@@ -1986,11 +1986,11 @@ core_client.prototype.client_onprotectioncomplete = function()
     document.getElementById('protection-badge').style.display = "none";
 }
 
-core_client.prototype.client_onbonuspenaltyexpired = function()
+core_client.prototype.client_onbonuspenaltyexpired = function(data)
 {
-    console.log("== client_onbonuspenaltyexpired ==");
-    this.players.self.playerBonus += this.dazed;
-    this.players.self.updateBonusesClient([this.players.self.teamBonus, this.players.self.playerBonus, this.players.self.potionBonus]);
+    console.log("== client_onbonuspenaltyexpired ==", data);
+    // this.players.self.playerBonus += this.dazed;
+    this.players.self.updateBonusesClient([data[1], data[2], data[3]]);
 }
 
 core_client.prototype.client_onbonusroundcomplete = function(round)
