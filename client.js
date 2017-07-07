@@ -476,6 +476,27 @@ domready(function()
 			htmlContainer = document.getElementById('htmlContainer');
 			feedbackLabel = document.getElementById('feedbackLabel');
 			//skins = document.getElementsByClassName("slides");
+
+			htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
+
+			latestnewsButton.addEventListener('click', function()
+			{
+				htmlContainer.innerHTML='<object id="latestnews" class="innerPages" type="text/html" data="headlines.html" style="width=100% height=400px;"></object>';
+			});
+			howtoplayButton.addEventListener('click', function()
+			{
+				htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
+			});
+			leaderboardsButton.addEventListener('click', function()
+			{
+				htmlContainer.innerHTML='<object id="leaderboards" class="innerPages" type="text/html" data="leaderboards.html" style="width=100% height=400px;"></object>';
+			});
+			// doorbellButton = document.getElementById('feedbackButton');
+			feedbackLabel.addEventListener('click', function()
+			{
+				console.log("click feedback");
+				window.doorbell.show();
+			});
 		}
 		splash.style.display = "block";
 		if (device.ipad) 
@@ -485,26 +506,6 @@ domready(function()
 			//adContainer.style.display = "none";
 		}
 		
-		htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
-
-		latestnewsButton.addEventListener('click', function()
-		{
-			htmlContainer.innerHTML='<object id="latestnews" class="innerPages" type="text/html" data="headlines.html" style="width=100% height=400px;"></object>';
-		});
-		howtoplayButton.addEventListener('click', function()
-		{
-			htmlContainer.innerHTML='<object id="howtoplay" class="innerPages" type="text/html" data="howtoplay.html" style="width=100% height=400px;"></object>';
-		});
-		leaderboardsButton.addEventListener('click', function()
-		{
-			htmlContainer.innerHTML='<object id="leaderboards" class="innerPages" type="text/html" data="leaderboards.html" style="width=100% height=400px;"></object>';
-		});
-		// doorbellButton = document.getElementById('feedbackButton');
-		feedbackLabel.addEventListener('click', function()
-		{
-			console.log("click feedback");
-			window.doorbell.show();
-		});
 		// feedbackButton.addEventListener('click', function(e)
 		// {
 		// 	console.log("feedback button!", e);
@@ -937,6 +938,11 @@ domready(function()
 	assets.buffs.bruise = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-bruise.png");
 	assets.buffs.plate = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/buffs/buff-plate.png");
 
+	// badges
+	assets.badges = {};
+	assets.badges.protection = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/badges/player-protection-image.png");
+	assets.badges.dazed = loader.addImage("https://s3.amazonaws.com/com.dfeddon.wingdom/badges/player-dazed-image.png");
+
 	// assets.callout_shield = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/callout-shield.png");
 	assets.ability_bubble = loader.addImage("http://s3.amazonaws.com/com.dfeddon.wingdom/ability-bubble.png");
 
@@ -1001,7 +1007,6 @@ domready(function()
 	loader.addProgressListener(function(e)
 	{
 		//console.log('progress', e.completedCount);
-		
 	});
 	// assets load complete handler
 	loader.addCompletionListener(function()

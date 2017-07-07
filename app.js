@@ -441,7 +441,7 @@ return;
         // res.status(200).json({port:2000});
         // res.redirect(200, '/index.html?port=' + req.socket.localPort);
 
-        // we're rending index.html via ebs module so that we can pass the
+        // we're rending index.html via ejs module so that we can pass the
         // proxied port number over to the client.
         res.render('index', 
         {

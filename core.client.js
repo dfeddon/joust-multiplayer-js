@@ -1991,6 +1991,8 @@ core_client.prototype.client_onbonuspenaltyexpired = function(data)
     console.log("== client_onbonuspenaltyexpired ==", data);
     // this.players.self.playerBonus += this.dazed;
     this.players.self.updateBonusesClient([data[1], data[2], data[3]]);
+    // remove dazed badge
+    document.getElementById('dazed-badge').style.display = "none";
 }
 
 core_client.prototype.client_onbonusroundcomplete = function(round)

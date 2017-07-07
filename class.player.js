@@ -1852,7 +1852,7 @@ game_player.prototype.update = function()
             // also check for bubble respawns
             if (this.bubbleRespawn > 0 && this.config.server_time >= this.bubbleRespawn)
             {
-                console.log("* bubble respawn!");
+                console.log("* bubble respawn!", this.bubbleRespawn);
                 this.bubbleRespawn = 0;
                 this.setBubble(true);
             }
@@ -2228,8 +2228,8 @@ game_player.prototype.doHitServer = function(victor, isHit)
                 var rng = this.getRandomRange(1, 100);
                 var bonusDiff = victor.bonusTotal - this.bonusTotal;
                 // if (if rng <= (victor bonus - victim bonus)
-                console.log("* rng", rng, bonusDiff);
-                //*
+                console.log("* rng", rng, bonusDiff, typeof(rng), typeof(bonusDiff));
+                /*
                 bonusDiff = 25;
                 rng = 5;
                 //*/
@@ -2311,6 +2311,14 @@ game_player.prototype.doHitServer = function(victor, isHit)
                             // set cooldown on bonus penalty
                             this.bonusPenaltyCooldown = this.config.server_time + 60 + bonusDiff;
                             console.log("* bonusPenaltyCooldown expires at", this.bonusPenaltyCooldown);
+                        }
+                        else
+                        {
+                            // if client player, show dazed badge
+                            if (this.isLocal)//userid === this.config.client.players.self.userid)
+                            {
+                                document.getElementById('dazed-badge').style.display = "block";
+                            }
                         }
                     }
                     console.log("* player is already dazed and buffless...");
@@ -2532,6 +2540,7 @@ game_player.prototype.doKill = function(victor)
             if (victor.userid === this.config.client.players.self.userid)
             {
                 document.getElementById('protection-badge').style.display = "block";
+                victor.setTextFloater(1, 0, 1, 101);
             }
             // else console.log("* not local");
         }
@@ -2746,12 +2755,16 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
         // show to both victim and victor
         localOnly = false;
     }
+    // else if (c == 101) // badge
+    // {
+
+    // }
     else if (c === 2) // health pot
     {
         text += " HEALTH";
         color = "lime";
     }
-    else if (c === 1) // buff
+    else if (c === 1) // buff or other
     {
         color = "white";
         localOnly = true;
@@ -2789,10 +2802,22 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
                 text = "Plate"; 
                 img = this.game_buffs.BUFFS_PLATE_IMAGE_ASSET;
             break;
+            case 101: // protection badge
+                text = "Protection";
+                img = assets.badges.protection;
+            break;
+            case 102: // dazed badge
+                text = "Dazed";
+                img = assets.badges.dazed;
+            break;
         }
     }
     // console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
-    this.textFloaters.push([text, color, bool, this.config.server_time + 1.5, localOnly, img]);
+    var len = 1.5; // one and one half second
+    len += this.textFloaters.length * 0.5; // add half second for every extant floater
+    console.log("* img", img);
+    this.textFloaters.push([text, color, bool, this.config.server_time + len, localOnly, img]);
+    // console.log(JSON.stringify(this.textFloaters));
 };
 
 
@@ -3260,6 +3285,7 @@ game_player.prototype.draw = function()
         var y_padding;
         for (var i = 0; i < this.textFloaters.length; i++)
         {
+            // console.log('* floats', this.textFloaters[i]);
             if ((this.isLocal && this.textFloaters[i][4]) || (!this.textFloaters[i][4]))
             {
                 // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
@@ -3271,9 +3297,11 @@ game_player.prototype.draw = function()
                 // draw buff image
                 y_padding = (this.textFloaters.length - (i + 1)) * 30;
                 // console.log("* y_padding", y_padding, i);
+                this.config.ctx.fillText(this.textFloaters[i][0], (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2) + (this.size.hx / 2), this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
+                this.config.ctx.textAlign = "end";
                 if (this.textFloaters[i][5])
-                    this.config.ctx.drawImage(this.textFloaters[i][5], this.pos.x - 95, this.pos.y - 60 - this.textFloaters[i][2] + y_padding, 50, 50);
-                this.config.ctx.fillText(this.textFloaters[i][0], this.pos.x, this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
+                    this.config.ctx.drawImage(this.textFloaters[i][5], (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2) + (this.size.hx / 2) - 95, this.pos.y - 60 - this.textFloaters[i][2] + y_padding, 50, 50);
+                // console.log("* txtLen", this.config.ctx.measureText(this.textFloaters[i][0].width), (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2));
                 this.textFloaters[i][2] += 0.25;
                 // this.config.ctx.restore();
                 this.config.ctx.restore();
