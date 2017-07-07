@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "binary-pack": "^1.0.2",
-    "bufferutil": "^3.0.1",
+    "bufferutil": "^3.0.2",
     "debug": "^2.6.8",
     "domready": "^1.0.8",
     "ejs": "^2.5.6",
@@ -34,8 +34,8 @@
     "primus-rooms-redis-adapter": "^2.1.1",
     "throng": "^4.0.0",
     "typedarray-pool": "^1.1.0",
-    "utf-8-validate": "^3.0.2",
-    "uws": "^0.14.5",
+    "utf-8-validate": "^3.0.3",
+    "uws": "^8.14.0",
     "vhost": "^3.0.2",
     "winston": "^2.3.0",
     "ws": "^3.0.0",
@@ -55,7 +55,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-uglify": "^3.0.1",
     "grunt-contrib-watch": "^1.0.0",
-    "grunt-git": "^1.0.3",
+    "grunt-git": "^1.0.4",
     "gulp-concat-util": "^0.5.5",
     "gulp-uglify": "^3.0.0"
   }

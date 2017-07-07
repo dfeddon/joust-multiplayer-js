@@ -3291,16 +3291,16 @@ game_player.prototype.draw = function()
                 // this.config.ctx.clearRect(this.pos.x - 95,this.pos.y,200,100);
                 this.config.ctx.save();
                 this.config.ctx.font = "30px Mirza";
-                this.config.ctx.textAlign = 'center';
+                this.config.ctx.textAlign = 'left';
                 this.config.ctx.fillStyle = this.textFloaters[i][1];
                 // this.config.ctx.save();
                 // draw buff image
                 y_padding = (this.textFloaters.length - (i + 1)) * 30;
                 // console.log("* y_padding", y_padding, i);
-                this.config.ctx.fillText(this.textFloaters[i][0], (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2) + (this.size.hx / 2), this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
-                this.config.ctx.textAlign = "end";
+                // this.config.ctx.fillText(this.textFloaters[i][0], (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2) + (this.size.hx / 2), this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
+                this.config.ctx.fillText(this.textFloaters[i][0], this.pos.x - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 3), this.pos.y - 30 - this.textFloaters[i][2] + y_padding);
                 if (this.textFloaters[i][5])
-                    this.config.ctx.drawImage(this.textFloaters[i][5], (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2) + (this.size.hx / 2) - 95, this.pos.y - 60 - this.textFloaters[i][2] + y_padding, 50, 50);
+                    this.config.ctx.drawImage(this.textFloaters[i][5], this.pos.x - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 3) - 55, this.pos.y - 60 - this.textFloaters[i][2] + y_padding, 50, 50);
                 // console.log("* txtLen", this.config.ctx.measureText(this.textFloaters[i][0].width), (this.pos.x + this.size.hx) - (this.config.ctx.measureText(this.textFloaters[i][0]).width / 2));
                 this.textFloaters[i][2] += 0.25;
                 // this.config.ctx.restore();
