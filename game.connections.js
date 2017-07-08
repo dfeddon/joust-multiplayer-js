@@ -114,8 +114,8 @@ game_connections.prototype.createConnection = function(svr, gamecore)
     {
         console.log('@ client connected');//, spark);
         // console.log('connection has the following headers', spark.headers);
-        console.log('@ connection was made from', spark.address);
-        console.log('@ connection id', spark.id);
+        console.log('@ connection was made from spark.address', spark.address);
+        console.log('@ connection spark.id', spark.id);
         primus.metroplex.spark(spark.id, function(err, server)
         {
             console.log('@spark server', server);   

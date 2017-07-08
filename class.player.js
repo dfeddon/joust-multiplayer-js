@@ -3276,11 +3276,12 @@ game_player.prototype.draw = function()
     // player nametags (temp)
     // mana bar bg
     this.nameplateOffset = 20;
-    if (this.isLocal) this.nameplateOffset += 10;
+    if (this.isLocal || this.team === this.config.client.players.self.team) 
+        this.nameplateOffset += 10;
     if (this.vuln) this.nameplateOffset = 10;
     //var abil;
 
-    if (this.textFloaters.length > 0)
+    if (this.isLocal && this.textFloaters.length > 0)
     {
         var y_padding;
         for (var i = 0; i < this.textFloaters.length; i++)
@@ -3312,7 +3313,7 @@ game_player.prototype.draw = function()
     }
 
     // player is ME
-    if (this.isLocal === true)
+    if (this.isLocal === true || this.team === this.config.client.players.self.team)
     {
         // console.log('blinking?', this.drawAbility);
         
@@ -3379,7 +3380,9 @@ game_player.prototype.draw = function()
 
     // rank icon
     if (!this.isLocal)
-        this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - 25, 20, 20);
+    {
+        this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - this.nameplateOffset - 5, 20, 20);
+    }
     // draw rank circle
     /*
     game.ctx.fillStyle = "gray";

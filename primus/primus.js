@@ -2095,7 +2095,7 @@ function Primus(url, options) {
   options.reconnect = 'reconnect' in options ? options.reconnect : {};
 
   // Heartbeat ping interval.
-  options.pingTimeout = 'pingTimeout' in options ? options.pingTimeout : 45000;
+  options.pingTimeout = 'pingTimeout' in options ? options.pingTimeout : 1500;
 
   // Reconnect strategies.
   options.strategy = 'strategy' in options ? options.strategy : [];
