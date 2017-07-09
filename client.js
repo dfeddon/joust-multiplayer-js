@@ -498,6 +498,7 @@ domready(function()
 				window.doorbell.show();
 			});
 		}
+		// document.getElementById('donations').style.display = "none";
 		splash.style.display = "block";
 		if (device.ipad) 
 		{

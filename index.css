@@ -2304,89 +2304,134 @@ h5
 	align-items: flex-start;
 	/*overflow-y: auto;*/
 }
-
-#donations
+#donations-wrapper
+{
+	display: none;
+}
+.donations
 {
 	display: block;
 	position: absolute;
 	bottom: 25%;/*175px;*/
 	right: 0px;
-	width: 150px;/*270px;*/
-	height: 85px;
+	width: 175px;/*150px;*/
+	height: 85px;/*85px;*/
 	background-color: rgba(0, 0, 0, 0.35);
 	border-radius: 25px;
 	z-index: 800;
 }
-#donation-container
+.donation-container
 {
 	display: flex;
 	width: 100%;
 	height: 100%;
-	flex-flow: row nowrap;
+	flex-direction: row;
+	flex-wrap: nowrap;
 	flex-direction: center;
-	justify-content: space-between;
+	justify-content: space-around;
 	align-items: center;
-	align-content: center;
+	/*align-content: center;*/
 	/*border:solid 2px yellow;*/
 	/*right: 0px;*/
 	/*background-color: rgba(0, 0, 0, 0.65);*/
 }
-#donation-player-container
+.donation-player-container
 {
 	display: flex;
 	width: 120px;
-	flex-flow: column nowrap;
-	flex-direction: center;
-	justify-content: space-between;
+	flex-direction: column;
+	flex-wrap: nowrap;
 	align-items: center;
 	align-content: center;
+	justify-content: space-around;
 	/*border:solid 2px white;*/
 }
-#donation-player-name
+.donation-player-name
+{
+	/*display: flex;
+	order: 1;*/
+	font-family: 'Mirza', serif;
+	font-size: 12px;
+}
+/*.donation-player-name-class
 {
 	order: 1;
 	font-family: 'Mirza', serif;
 	font-size: 12px;
-}
-#donation-player-skin
+}*/
+.donation-player-image-container
 {
+	display: flex;
 	order: 2;
+	width: 85%;
+	/*width: 120px;*/
+	flex-direction: row;
+	flex-wrap: nowrap;
+	flex-direction: center;
+	justify-content: space-around;
+	align-items: center;
+	/*align-content: center;*/
+	/*border:solid 2px white;*/
 }
-#donation-player-health
+.donation-player-flag
 {
+	display: flex;
+	order: 1;
+	/*align-self: center;*/
+	/*flex-grow: 1;*/
+}
+.donation-player-skin
+{
+	display: flex;
+	order: 2;
+	/*align-self: center;*/
+	/*flex-grow: 1;*/
+}
+.donation-player-plaque
+{
+	display: flex;
 	order: 3;
-	padding-top: 5px;
+	/*align-self: center;*/
+	/*flex-grow: 1;*/
+}
+.donation-player-health
+{
+	display: flex;
+	order: 3;
+	/*flex-grow: 1;*/
+	/*padding-top: 5px;*/
 	color: #7ED321;
 	font-family: 'Mirza', serif;
-	font-size: 15px;
+	font-size: 17px;
 }
-#donations-ui
+.donations-ui
 {
-	padding-right: 20px;
 	display: flex;
-	flex-flow: column nowrap;
+	padding-right: 20px;
+	flex-direction: column;
+	flex-wrap: nowrap;
 	flex-direction: center;
-	justify-content: space-between;
+	/*justify-content: space-between;*/
 	align-items: center;
 	align-content: center;
 	/*width: 150px;*/
 	/*padding-left: 30px;*/
 	/*border:solid 2px red;*/
 }
-#donations-ui-label
+.donations-ui-label
 {
 	color: #7ED321;
 	font-family: 'Mirza', serif;
 	font-size: 15px;
 }
-#donations-button-container
+.donations-button-container
 {
-	/*display: flex;
+	display: flex;
 	flex-flow: row nowrap;
 	flex-direction: center;
 	justify-content: space-between;
 	align-items: center;
-	align-content: center;*/
+	align-content: center;
 }
 .donations-button
 {
