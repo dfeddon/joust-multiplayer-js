@@ -754,9 +754,11 @@ core_client.prototype.client_onhostgame = function(data, callback)
                     p[i].visible = true;
                     // if (other.playerName != 'undefined')
                     p[i].team = other.team;
+                    p[i].score = other.score;
                     p[i].setPlayerName(other.playerName);
                     p[i].setSkin(other.skin);
                     p[i].buffIdsToSlots(other.buffs); // buffs? do I mean slots?
+                    // add score?
                     // add bonuses?
                     // add roundBuff?
                 }
@@ -790,6 +792,7 @@ core_client.prototype.client_onhostgame = function(data, callback)
     });
 
     this.updateTerritory();
+    this.updateLeaderboard();
 
     // if round complete (stage === 2) show callout
     if (round.stage === 2)

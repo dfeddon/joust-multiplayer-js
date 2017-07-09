@@ -775,7 +775,8 @@ game_server.prototype.startGame = function(game, newplayer)
                         skin: players[a].skin, 
                         playerName: players[a].playerName, 
                         team: players[a].team,
-                        buffs: players[a].game_buffs.getBuffsAsArray(players[a].slots)
+                        buffs: players[a].game_buffs.getBuffsAsArray(players[a].slots),
+                        score: players[a].score
                     });
                 }
             }
