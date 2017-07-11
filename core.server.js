@@ -6,6 +6,7 @@ function core_server(core, config)
 
     // server update vars (optimized!)
     this.laststate = {};
+    this.tickstate = {};
     this.bufView = new Array(10);//this.MAX_GAMES_PER_SERVER); // where 20 is the max number of games per server
     for (var i = 0; i < this.bufView.length; i++)
     {
@@ -15,7 +16,7 @@ function core_server(core, config)
             this.bufView[i][j] = new Array(11); // create a bufView for each 
         }
     }
-    this.suRoom, this.suPlayer, this.suEvt;
+    this.suRoom, this.suPlayer, this.suEvt, this.allrooms;
 }
 
 //Updated at 15ms , simulates the world state
@@ -162,14 +163,15 @@ core_server.prototype.server_update = function()
     //var bufArr = new ArrayBuffer(768);
     // _.forEach(_this.core.getplayers.allplayers, function(player, index)
     // var room, player;
-    var allrooms = Object.keys(this.core.getplayers.fromAllRooms());
+    this.allrooms = Object.keys(this.core.getplayers.fromAllRooms());
+    // this.allrooms = this.allrooms;
     // var bufView;
     // var roomsArray = [];
-    for (var h = allrooms.length - 1; h >= 0; h--)
+    for (var h = this.allrooms.length - 1; h >= 0; h--)
     {
-        this.suRoom = this.core.getplayers.fromRoom(allrooms[h]);
+        this.suRoom = this.core.getplayers.fromRoom(this.allrooms[h]);
         // create object for *each* room to hold players
-        this.laststate[allrooms[h]] = {};
+        this.laststate[this.allrooms[h]] = {};
         
         for (var i = this.suRoom.length - 1; i >= 0; i--)
         {
@@ -274,8 +276,8 @@ core_server.prototype.server_update = function()
 
             // store old data, to avoid redundancy
             // this.suPlayer.old_state = this.suPlayer.pos;
-            this.laststate[allrooms[h]][this.suPlayer.instance.userid] = this.bufView[h][i];
-            this.laststate[allrooms[h]][this.suPlayer.mis] = this.suPlayer.last_input_seq;
+            this.laststate[this.allrooms[h]][this.suPlayer.instance.userid] = this.bufView[h][i];
+            this.laststate[this.allrooms[h]][this.suPlayer.mis] = this.suPlayer.last_input_seq;
             // console.log('buffer', this.laststate);
             
             //pool.free(buffer);
@@ -325,24 +327,25 @@ core_server.prototype.server_update = function()
     // _.forEach(this.events, function(evt)
 //*
     // check events *only* on tick
+    /*
     if (this.config.server_time.toFixed(1) % 1 === 0)
     {
         // console.log(this.config.server_time.toFixed(1));
-        for (var m = allrooms.length - 1; m >= 0; m--)
+        for (var m = this.allrooms.length - 1; m >= 0; m--)
         {
             // fromRoom: param 1: port number, param2: retreive events array
-            this.suRoom = this.core.getplayers.fromRoom(allrooms[m], 1);
+            this.suRoom = this.core.getplayers.fromRoom(this.allrooms[m], 1);
             // create object for *each* room to hold players
-            // laststate[allrooms[m]] = {};
+            // laststate[this.allrooms[m]] = {};
             for (var n = this.suRoom.length - 1; n >= 0; n--)
             {
                 this.suEvt = this.suRoom[n];
                 // evt = this.events[j];
-                // console.log('* evt:', allrooms[m], this.suEvt.type, this.suEvt.state, this.suEvt.uid);
+                // console.log('* evt:', this.allrooms[m], this.suEvt.type, this.suEvt.state, this.suEvt.uid);
                 
                 if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
                 {
-                    if (this.suEvt.update(allrooms[m]) === true)
+                    if (this.suEvt.update(this.allrooms[m]) === true)
                     {
                         console.log('add event to socket!', this.suEvt.type);
                         switch(this.suEvt.type)
@@ -350,14 +353,8 @@ core_server.prototype.server_update = function()
                             case this.suEvt.TYPE_CHEST:
                                 // var id = getUid();//_this.getUID();
                                 // console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
-                                /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
-                                    x: '1152',
-                                    y: '576',
-                                    t: 1,
-                                    d: 60,
-                                    m: 50 }*/
                                 if (this.suEvt.id == 'ec') // chest event
-                                    // this.addChest(evt.consumable, allrooms[m]);
+                                    // this.addChest(evt.consumable, this.allrooms[m]);
                                         // {
                                         //     i:id,
                                         //     x:evt.spawn.x,
@@ -366,11 +363,11 @@ core_server.prototype.server_update = function()
                                         //     c:evt.passive.buff,
                                         //     d:evt.passive.focus,
                                         //     h:evt.passive.health
-                                        // }, allrooms[m]);
+                                        // }, this.allrooms[m]);
                                 // var room = this.core.getplayers.getRoomNameByUserId(player.userid);
                                 // console.log('room:', room);
                                 // console.log('ls:', laststate);
-                                this.laststate[allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
+                                this.laststate[this.allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
                                 // {
                                 //     i: id,
                                 //     x: evt.spawn.x,
@@ -391,7 +388,7 @@ core_server.prototype.server_update = function()
                                     // store evt.id in fromRoomByUserId
                                     // var room = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
                                     // laststate[room][evt.id] =
-                                    this.laststate[allrooms[m]][this.suEvt.id] =
+                                    this.laststate[this.allrooms[m]][this.suEvt.id] =
                                     {
                                         t: this.suEvt.timer,
                                         f: this.suEvt.flag.name,
@@ -409,7 +406,7 @@ core_server.prototype.server_update = function()
                                 {
                                     // var room1 = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
                                     // laststate[room1][evt.id] =
-                                    this.laststate[allrooms[m]][this.suEvt.id] =
+                                    this.laststate[this.allrooms[m]][this.suEvt.id] =
                                     {
                                         t: this.suEvt.timer,
                                         f: this.suEvt.flag.name
@@ -420,8 +417,9 @@ core_server.prototype.server_update = function()
                     } // end update() === true
                 } // end !== STATE_STOPPED
             } // end room length
-        } // end allrooms length
+        } // end this.allrooms length
     } // end tick
+    //*/
     // process flags
     /*
     _.forEach(this.config.flagObjects, function(flag)
@@ -520,19 +518,19 @@ core_server.prototype.server_update = function()
     //*/
 
     // check round timer
-    var roomRound;
-    for (m = allrooms.length - 1; m >= 0; m--)
-    {
-        // fromRoom: get round objects
-        roomRound = this.core.getplayers.fromRoom(allrooms[m], 5);
-        // console.log(roomRound.endtime, this.config.server_time);
-        if (roomRound.active && this.config.server_time >= roomRound.endtime)
-        {
-            roomRound.active = false;
-            console.log('ROUND HAS COMPLETED', roomRound);
-            this.core.roundComplete(allrooms[m], roomRound);
-        }
-    }
+    // var roomRound;
+    // for (var m = this.allrooms.length - 1; m >= 0; m--)
+    // {
+    //     // fromRoom: get round objects
+    //     roomRound = this.core.getplayers.fromRoom(this.allrooms[m], 5);
+    //     // console.log(roomRound.endtime, this.config.server_time);
+    //     if (roomRound.active && this.config.server_time >= roomRound.endtime)
+    //     {
+    //         roomRound.active = false;
+    //         console.log('ROUND HAS COMPLETED', roomRound);
+    //         this.core.roundComplete(this.allrooms[m], roomRound);
+    //     }
+    // }
             
         // for (var n = room.length - 1; n >= 0; n--)
     
@@ -577,5 +575,147 @@ core_server.prototype.server_update = function()
     */
 }; //game_core.server_update
 
+core_server.prototype.ticker = function(spark)
+{
+    // console.log("tick... tick....");
+
+    // this.allrooms = Object.keys(this.core.getplayers.fromthis.allrooms());
+    // if (!this.allrooms) return;
+    // console.log(this.allrooms.length);
+
+    for (var m = this.allrooms.length - 1; m >= 0; m--)
+    {
+        this.tickstate[this.allrooms[m]] = {};
+        // fromRoom: param 1: port number, param2: retreive events array
+        this.suRoom = this.core.getplayers.fromRoom(this.allrooms[m], 1);
+        // create object for *each* room to hold players
+        // laststate[this.allrooms[m]] = {};
+        for (var n = this.suRoom.length - 1; n >= 0; n--)
+        {
+            this.suEvt = this.suRoom[n];
+            // evt = this.events[j];
+            // console.log('* evt:', this.allrooms[m], this.suEvt.type, this.suEvt.state, this.suEvt.uid);
+            
+            if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
+            {
+                if (this.suEvt.update(this.allrooms[m]) === true)
+                {
+                    console.log('* add event to socket!', this.suEvt.type);
+                    switch(this.suEvt.type)
+                    {
+                        case this.suEvt.TYPE_CHEST:
+                            // var id = getUid();//_this.getUID();
+                            // console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
+                            /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
+                                x: '1152',
+                                y: '576',
+                                t: 1,
+                                d: 60,
+                                m: 50 }*/
+                            if (this.suEvt.id == 'ec') // chest event
+                                // this.addChest(evt.consumable, this.allrooms[m]);
+                                    // {
+                                    //     i:id,
+                                    //     x:evt.spawn.x,
+                                    //     y:evt.spawn.y,
+                                    //     t:evt.passive.type,
+                                    //     c:evt.passive.buff,
+                                    //     d:evt.passive.focus,
+                                    //     h:evt.passive.health
+                                    // }, this.allrooms[m]);
+                            // var room = this.core.getplayers.getRoomNameByUserId(player.userid);
+                            // console.log('room:', room);
+                            // console.log('ls:', laststate);
+                            // console.log('a', this.tickstate);
+                            // console.log('b', this.allrooms[m]);
+                            // console.log('c', this.tickstate[this.allrooms[m]]);
+                            this.tickstate[this.allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
+                            // {
+                            //     i: id,
+                            //     x: evt.spawn.x,
+                            //     y: evt.spawn.y,
+                            //     t: evt.passive.type,
+                            //     d: evt.passive.duration,
+                            //     m: evt.passive.modifier
+                            // };
+                        break;
+
+                        case this.suEvt.TYPE_FLAG_CARRIED_COOLDOWN:
+
+                            console.log('evt active carried cooldown...', this.suEvt.id, this.suEvt.timer, this.suEvt.flag.name, this.suEvt.flag.heldBy);
+                            // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
+    
+                            if (this.suEvt.flag.heldBy)
+                            {
+                                // store evt.id in fromRoomByUserId
+                                // var room = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                // laststate[room][evt.id] =
+                                this.tickstate[this.allrooms[m]][this.suEvt.id] =
+                                {
+                                    t: this.suEvt.timer,
+                                    f: this.suEvt.flag.name,
+                                    p: this.suEvt.flag.heldBy
+                                };
+                            }
+                        break;
+
+                        case this.suEvt.TYPE_FLAG_SLOTTED_COOLDOWN:
+
+                            console.log('evt active slotted cooldown', this.suEvt.id, this.suEvt.timer);//, evt);
+                            // fc: { t: 6, f: 'midFlag' } }
+
+                            if (this.suEvt.flag.heldBy)
+                            {
+                                // var room1 = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
+                                // laststate[room1][evt.id] =
+                                this.tickstate[this.allrooms[m]][this.suEvt.id] =
+                                {
+                                    t: this.suEvt.timer,
+                                    f: this.suEvt.flag.name
+                                };
+                            }
+                            break;
+                    } // end switch
+                } // end update() === true
+            } // end !== STATE_STOPPED
+        } // end room length
+
+        // check round timer
+        var roomRound;
+        for (m = this.allrooms.length - 1; m >= 0; m--)
+        {
+            // fromRoom: get round objects
+            roomRound = this.core.getplayers.fromRoom(this.allrooms[m], 5);
+            // console.log(roomRound.endtime, this.config.server_time);
+            if (roomRound.active && this.config.server_time >= roomRound.endtime)
+            {
+                roomRound.active = false;
+                console.log('ROUND HAS COMPLETED', roomRound);
+                this.core.roundComplete(this.allrooms[m], roomRound);
+            }
+        }
+
+    } // end this.allrooms length
+    // console.log("* state", this.tickstate);
+    for (var x in this.tickstate)
+    {
+        // console.log('* tickstate', x, this.tickstate[x]);
+        // this.tickstate[x].t = this.config.server_time;
+        if (Object.keys(this.tickstate[x]).length > 0)
+        {
+            console.log('* tickstate', x, this.tickstate[x]);
+            spark.room(x).write([100, this.tickstate[x]]);
+        }
+    }
+    for (var k in this.tickstate) 
+    {
+        delete this.tickstate[k];
+    }
+
+}
+// Object.prototype.getLength = function()
+// {
+    // return Object.keys(this.length);
+// }
 
 module.exports = core_server;

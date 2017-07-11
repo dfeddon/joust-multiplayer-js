@@ -1266,9 +1266,9 @@ core_client.prototype.client_connect_to_server = function(data)
 
     this.socket.on('incoming::ping', function(date)
     {
-        // console.log("* client ping", date, Date.now());//Math.floor(new Date().getTime() / 1000));
+        // console.log("* client ping", date);//, Date.now());//Math.floor(new Date().getTime() / 1000));
         _this.latency = Math.abs((Date.now() - date) * 2);
-        // console.log(this.latency);
+        // console.log("* client ping", _this.latency, date);
 
         // update round timer
         _this.rt = _this.config.round.endtime - ~~(_this.config.server_time);
@@ -1286,9 +1286,9 @@ core_client.prototype.client_connect_to_server = function(data)
             _this.lastInfoUpdate = _this.config.server_time.toFixed(1);
         }
     });
-    this.socket.on('outgoing::pong', function(date)
+    this.socket.on('outgoing::pong', function(time)
     {
-        // console.log("* client pong", date);
+        // console.log("* client pong", time);
     });
 
     // this.socket.on('heartbeat', function()
@@ -1353,6 +1353,9 @@ core_client.prototype.client_connect_to_server = function(data)
 
             // game is full
             case 50: _this.client_ongamefull(); break;
+
+            // events
+            case 100: _this.client_onevents(data[1]); break;
 
             // onserverupdate (streaming)
             default: _this.client_onserverupdate_recieved(data); break;
@@ -1718,6 +1721,8 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     console.log('source player', playerSource);
     playerSource.hasFlag = 0;
 
+    this.removeDonation(playerSource.userid);
+
     /////////////////////////////////////
     // show flag in slot
     /////////////////////////////////////
@@ -1850,64 +1855,65 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     {
         console.log("* show FlagCarrier Donation UI");
 
-        // add carrier to global donations array (userid, index)
-        var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
-        console.log("* len", len, this.donations);
+        this.addDonation(playerSource, flagTaken);
+        // // add carrier to global donations array (userid, index)
+        // var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
+        // console.log("* len", len, this.donations);
 
-        // clone donations UI
-        var src = document.getElementById('donations');
-        var donation = src.cloneNode(true);
-        document.body.appendChild(donation);
+        // // clone donations UI
+        // var src = document.getElementById('donations');
+        // var donation = src.cloneNode(true);
+        // document.body.appendChild(donation);
 
-        // rename node and its children
-        donation.id = "donation_item_" + len;
-        this.renameDescendantsOfNode(donation, len);
+        // // rename node and its children
+        // donation.id = "donation_item_" + len;
+        // this.renameDescendantsOfNode(donation, len);
 
-        // update nodes player name, skin, health, flag carried, flag target
-        console.log("!!!!!!", document.getElementById("donation_item_" + len));
-        // apply css classes
-        document.getElementById("donation_item_" + len).className = "donations";
-        document.getElementById("donation-container_" + len).className = "donation-container";
-        document.getElementById("donation-player-container_" + len).className = "donation-player-container";
-        document.getElementById("donation-player-name_" + len).className = "donation-player-name";
-        document.getElementById("donation-player-image-container_" + len).className = "donation-player-image-container";
-        document.getElementById("donation-player-flag_" + len).className = "donation-player-flag";
-        document.getElementById("donation-player-skin_" + len).className = "donation-player-skin";
-        document.getElementById("donation-player-plaque_" + len).className = "donation-player-plaque";
-        document.getElementById("donation-player-health_" + len).className = "donation-player-health";
-        // document.getElementById("donations-ui_" + len).className = "donation-ui";
-        // document.getElementById("donations-button-container_" + len).className = "donations-button-container";
+        // // update nodes player name, skin, health, flag carried, flag target
+        // console.log("!!!!!!", document.getElementById("donation_item_" + len));
+        // // apply css classes
+        // document.getElementById("donation_item_" + len).className = "donations";
+        // document.getElementById("donation-container_" + len).className = "donation-container";
+        // document.getElementById("donation-player-container_" + len).className = "donation-player-container";
+        // document.getElementById("donation-player-name_" + len).className = "donation-player-name";
+        // document.getElementById("donation-player-image-container_" + len).className = "donation-player-image-container";
+        // document.getElementById("donation-player-flag_" + len).className = "donation-player-flag";
+        // document.getElementById("donation-player-skin_" + len).className = "donation-player-skin";
+        // document.getElementById("donation-player-plaque_" + len).className = "donation-player-plaque";
+        // document.getElementById("donation-player-health_" + len).className = "donation-player-health";
+        // // document.getElementById("donations-ui_" + len).className = "donation-ui";
+        // // document.getElementById("donations-button-container_" + len).className = "donations-button-container";
 
-        // document.getElementById("donations-ui-label_" + len).className = "donation-ui-label";
+        // // document.getElementById("donations-ui-label_" + len).className = "donation-ui-label";
 
-        // player name
-        document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
-        // flag taken
-        var flagName;
-        switch(flagTaken.name)
-        {
-            case "midFlag": flagName = "flag-mid-r"; break;
-            case "redFlag": flagName = "flag-red-r"; break;
-            case "blueFlag": flagName = "flag-blue-r"; break;
-            // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
-        }
-        document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
-        // player skin
-        document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
-        // plaque
-        var slotName
-        switch(flagTaken.targetSlot)
-        {
-            case "midSlot": slotName = "flag-slot-mid"; break;
-            case "slotRed": slotName = "flag-slot-red"; break;
-            case "slotBlue": slotName = "flag-slot-blue"; break;
-            default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
-        }
-        document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
-        // player health
-        document.getElementById("donation-player-health_" + len).innerHTML = playerSource.health;
+        // // player name
+        // document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
+        // // flag taken
+        // var flagName;
+        // switch(flagTaken.name)
+        // {
+        //     case "midFlag": flagName = "flag-mid-r"; break;
+        //     case "redFlag": flagName = "flag-red-r"; break;
+        //     case "blueFlag": flagName = "flag-blue-r"; break;
+        //     // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
+        // }
+        // document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
+        // // player skin
+        // document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
+        // // plaque
+        // var slotName
+        // switch(flagTaken.targetSlot)
+        // {
+        //     case "midSlot": slotName = "flag-slot-mid"; break;
+        //     case "slotRed": slotName = "flag-slot-red"; break;
+        //     case "slotBlue": slotName = "flag-slot-blue"; break;
+        //     default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
+        // }
+        // document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
+        // // player health
+        // document.getElementById("donation-player-health_" + len).innerHTML = playerSource.health;
 
-        console.log("* clone", donation);
+        // console.log("* clone", donation);
     }
 
     // activate topbar UI
@@ -2080,6 +2086,67 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
     }
 };
 
+core_client.prototype.addDonation = function(playerSource, flagTaken)
+{
+    // add carrier to global donations array (userid, index)
+    var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
+    console.log("* len", len, this.donations);
+
+    // clone donations UI
+    var src = document.getElementById('donations');
+    var donation = src.cloneNode(true);
+    document.body.appendChild(donation);
+
+    // rename node and its children
+    donation.id = "donation_item_" + len;
+    this.renameDescendantsOfNode(donation, len);
+
+    // update nodes player name, skin, health, flag carried, flag target
+    console.log("!!!!!!", document.getElementById("donation_item_" + len));
+    // apply css classes
+    document.getElementById("donation_item_" + len).className = "donations";
+    document.getElementById("donation-container_" + len).className = "donation-container";
+    document.getElementById("donation-player-container_" + len).className = "donation-player-container";
+    document.getElementById("donation-player-name_" + len).className = "donation-player-name";
+    document.getElementById("donation-player-image-container_" + len).className = "donation-player-image-container";
+    document.getElementById("donation-player-flag_" + len).className = "donation-player-flag";
+    document.getElementById("donation-player-skin_" + len).className = "donation-player-skin";
+    document.getElementById("donation-player-plaque_" + len).className = "donation-player-plaque";
+    document.getElementById("donation-player-health_" + len).className = "donation-player-health";
+    // document.getElementById("donations-ui_" + len).className = "donation-ui";
+    // document.getElementById("donations-button-container_" + len).className = "donations-button-container";
+
+    // document.getElementById("donations-ui-label_" + len).className = "donation-ui-label";
+
+    // player name
+    document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
+    // flag taken
+    var flagName;
+    switch(flagTaken.name)
+    {
+        case "midFlag": flagName = "flag-mid-r"; break;
+        case "redFlag": flagName = "flag-red-r"; break;
+        case "blueFlag": flagName = "flag-blue-r"; break;
+        // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
+    }
+    document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
+    // player skin
+    document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
+    // plaque
+    var slotName
+    switch(flagTaken.targetSlot)
+    {
+        case "midSlot": slotName = "flag-slot-mid"; break;
+        case "slotRed": slotName = "flag-slot-red"; break;
+        case "slotBlue": slotName = "flag-slot-blue"; break;
+        default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
+    }
+    document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
+    // player health
+    document.getElementById("donation-player-health_" + len).innerHTML = playerSource.health;
+
+    console.log("* clone", donation);
+}
 core_client.prototype.removeDonation = function(userid)
 {
     console.log("=== removeDonation ==", userid);
@@ -2976,84 +3043,84 @@ core_client.prototype.client_process_net_updates = function()
         });
         //*/
 
-        // process events
-        // console.log(target);
-        // console.log('got evt flag', _.has(target, 'fc'), this.events.length);
-        // first, check for chest events (dynamic)
-        if (_.has(this.nu_target, 'ec'))
-        {
-            // avoid reduncancy
-            if (!this.nu_target.ec) return false; // break
+        // // process events
+        // // console.log(target);
+        // // console.log('got evt flag', _.has(target, 'fc'), this.events.length);
+        // // first, check for chest events (dynamic)
+        // if (_.has(this.nu_target, 'ec'))
+        // {
+        //     // avoid reduncancy
+        //     if (!this.nu_target.ec) return false; // break
 
-            console.log('got chest event', this.nu_target.ec.i);
-            _this.core.addChest(this.nu_target.ec, this.xport);
-            // clear it to avoid duplicate reads
-            this.nu_target.ec = null;
-        }
-        if (_.has(this.nu_target, 'fc'))
-        {
-            console.log('* fc evt', this.nu_target.fc);
+        //     console.log('got chest event', this.nu_target.ec.i);
+        //     _this.core.addChest(this.nu_target.ec, this.xport);
+        //     // clear it to avoid duplicate reads
+        //     this.nu_target.ec = null;
+        // }
+        // if (_.has(this.nu_target, 'fc'))
+        // {
+        //     console.log('* fc evt', this.nu_target.fc);
 
-            // get client flag (clientCooldown)
-            var cflag = _.find(_this.core.clientCooldowns, {'name':this.nu_target.fc.f});
-            cflag.heldBy = this.nu_target.fc.p;
-            cflag.timer = this.nu_target.fc.t;
+        //     // get client flag (clientCooldown)
+        //     var cflag = _.find(_this.core.clientCooldowns, {'name':this.nu_target.fc.f});
+        //     cflag.heldBy = this.nu_target.fc.p;
+        //     cflag.timer = this.nu_target.fc.t;
 
-            // get flag obj
-            var flag = _.find(_this.core.config.flagObjects, {'name':this.nu_target.fc.f});
+        //     // get flag obj
+        //     var flag = _.find(_this.core.config.flagObjects, {'name':this.nu_target.fc.f});
 
-            // set client flag target slot
-            cflag.target = flag.targetSlot;
-            cflag.src = flag.sourceSlot;
-            // console.log(":::", cflag);
-            //console.log('flag', flag);
+        //     // set client flag target slot
+        //     cflag.target = flag.targetSlot;
+        //     cflag.src = flag.sourceSlot;
+        //     // console.log(":::", cflag);
+        //     //console.log('flag', flag);
 
-            // get player
-            var ply = _.find(this.core.getplayers.allplayers, {"userid":this.nu_target.fc.p});
-            // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
-            if (ply)
-            {
-                if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
-                else if (cflag.name == "redFlag") ply.hasFlag = 2; // red
-                else if (cflag.name == "blueFlag") ply.hasFlag = 3; // blue
+        //     // get player
+        //     var ply = _.find(this.core.getplayers.allplayers, {"userid":this.nu_target.fc.p});
+        //     // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
+        //     if (ply)
+        //     {
+        //         if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
+        //         else if (cflag.name == "redFlag") ply.hasFlag = 2; // red
+        //         else if (cflag.name == "blueFlag") ply.hasFlag = 3; // blue
 
-                //console.log('ply hasFlag', ply.hasFlag);
+        //         //console.log('ply hasFlag', ply.hasFlag);
 
-                //console.log('* flg', flag);
-                //console.log('* player', ply);
-            }
-            else console.warn("unable to retrieve player by flag held", this.nu_target.fc);
-            //if (player)
-            //player.carryingFlag.timer = target.fc.t;
-        }
-        if (_.has(this.nu_target, 'fs'))
-        {
-            //console.log('has flagslotted cd evt');
-            console.log('* fs evt', this.nu_target.fs);
-            // get client flag (clientCooldown)
-            /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
-            cflag.timer = target.fs.t;
-            console.log('cflag', cflag);*/
-            var flg = _.find(this.core.config.flagObjects, {'name':this.nu_target.fs.f});
-            flg.timer = this.nu_target.fs.t;//cflag.timer;
+        //         //console.log('* flg', flag);
+        //         //console.log('* player', ply);
+        //     }
+        //     else console.warn("unable to retrieve player by flag held", this.nu_target.fc);
+        //     //if (player)
+        //     //player.carryingFlag.timer = target.fc.t;
+        // }
+        // if (_.has(this.nu_target, 'fs'))
+        // {
+        //     //console.log('has flagslotted cd evt');
+        //     console.log('* fs evt', this.nu_target.fs);
+        //     // get client flag (clientCooldown)
+        //     /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
+        //     cflag.timer = target.fs.t;
+        //     console.log('cflag', cflag);*/
+        //     var flg = _.find(this.core.config.flagObjects, {'name':this.nu_target.fs.f});
+        //     flg.timer = this.nu_target.fs.t;//cflag.timer;
 
-            // add flg.isActive check to ensure it runs only once
-            if (this.nu_target.fs.t === 0 && flg.isActive === false)
-            {
-                console.log('* fs evt = 0!');
+        //     // add flg.isActive check to ensure it runs only once
+        //     if (this.nu_target.fs.t === 0 && flg.isActive === false)
+        //     {
+        //         console.log('* fs evt = 0!');
 
-                flg.isActive = true;
-                flg.onCooldown = false;
-                //this.isHeld = false;
-            }
-            //console.log('flag', flg);
-            //cflag.heldBy = target.fc.p;
+        //         flg.isActive = true;
+        //         flg.onCooldown = false;
+        //         //this.isHeld = false;
+        //     }
+        //     //console.log('flag', flg);
+        //     //cflag.heldBy = target.fc.p;
 
-            // if (flag.timer === 0)
-            // {
-            //     flag.timer = NaN
-            // }
-        }
+        //     // if (flag.timer === 0)
+        //     // {
+        //     //     flag.timer = NaN
+        //     // }
+        // }
         /*_.forEach(this.events, function(evt)
         {
             console.log('targ', target[evt.id]);
@@ -3163,6 +3230,91 @@ core_client.prototype.client_process_net_updates = function()
     
 // this.nu_target[player.userid] = undefined
 }; //game_core.client_process_net_updates
+
+core_client.prototype.client_onevents = function(data)
+{
+    console.log('== client_onevents ==', data);
+    var _this = this;
+
+        // process events
+        // console.log(target);
+        // console.log('got evt flag', _.has(target, 'fc'), this.events.length);
+        // first, check for chest events (dynamic)
+        if (_.has(data, 'ec'))
+        {
+            // avoid reduncancy
+            if (!data.ec) return false; // break
+
+            console.log('got chest event', data.ec.i);
+            _this.core.addChest(data.ec, this.xport);
+            // clear it to avoid duplicate reads
+            data.ec = null;
+        }
+        if (_.has(data, 'fc'))
+        {
+            console.log('* fc evt', data.fc);
+
+            // get client flag (clientCooldown)
+            var cflag = _.find(_this.core.clientCooldowns, {'name':data.fc.f});
+            cflag.heldBy = data.fc.p;
+            cflag.timer = data.fc.t;
+
+            // get flag obj
+            var flag = _.find(_this.core.config.flagObjects, {'name':data.fc.f});
+
+            // set client flag target slot
+            cflag.target = flag.targetSlot;
+            cflag.src = flag.sourceSlot;
+            // console.log(":::", cflag);
+            //console.log('flag', flag);
+
+            // get player
+            var ply = _.find(this.core.getplayers.allplayers, {"userid":data.fc.p});
+            // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
+            if (ply)
+            {
+                if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
+                else if (cflag.name == "redFlag") ply.hasFlag = 2; // red
+                else if (cflag.name == "blueFlag") ply.hasFlag = 3; // blue
+
+                //console.log('ply hasFlag', ply.hasFlag);
+
+                //console.log('* flg', flag);
+                //console.log('* player', ply);
+            }
+            else console.warn("unable to retrieve player by flag held", data.fc);
+            //if (player)
+            //player.carryingFlag.timer = target.fc.t;
+        }
+        if (_.has(data, 'fs'))
+        {
+            //console.log('has flagslotted cd evt');
+            console.log('* fs evt', data.fs);
+            // get client flag (clientCooldown)
+            /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
+            cflag.timer = target.fs.t;
+            console.log('cflag', cflag);*/
+            var flg = _.find(this.core.config.flagObjects, {'name':data.fs.f});
+            flg.timer = data.fs.t;//cflag.timer;
+
+            // add flg.isActive check to ensure it runs only once
+            if (data.fs.t === 0 && flg.isActive === false)
+            {
+                console.log('* fs evt = 0!');
+
+                flg.isActive = true;
+                flg.onCooldown = false;
+                //this.isHeld = false;
+            }
+            //console.log('flag', flg);
+            //cflag.heldBy = target.fc.p;
+
+            // if (flag.timer === 0)
+            // {
+            //     flag.timer = NaN
+            // }
+        }
+}
 
 core_client.prototype.client_onserverupdate_recieved = function(data)
 {

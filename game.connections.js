@@ -149,7 +149,8 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         });
         spark.on('incoming::pong', function(time)
         {
-            // console.log('@ pong', time);
+            // console.log('@ pong', Math.abs((Date.now() - time)), time);
+            gameserver.game_core.core_server.ticker(spark);
         });
         spark.on('data', function(data)
         {

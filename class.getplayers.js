@@ -368,9 +368,10 @@ getplayers.prototype.totalRooms = function()
 };
 getplayers.prototype.fromAllRooms = function()
 {
-    if (this.game_instance)
+    // console.log('* fromAllRooms', this.game_instance.inRoom);
+    // if (this.game_instance)
         return this.game_instance.inRoom;
-    else return this.inRoom;
+    // else return this.inRoom;
 };
 
 getplayers.prototype.roomExists = function(port)
