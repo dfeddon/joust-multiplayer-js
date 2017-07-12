@@ -3379,10 +3379,10 @@ game_player.prototype.draw = function()
     this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
 
     // rank icon
-    if (!this.isLocal)
-    {
-        this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - this.nameplateOffset - 5, 20, 20);
-    }
+    // if (!this.isLocal)
+    // {
+    this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - this.nameplateOffset - 5, 20, 20);
+    // }
     // draw rank circle
     /*
     game.ctx.fillStyle = "gray";

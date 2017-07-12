@@ -593,7 +593,6 @@ core_server.prototype.ticker = function(spark)
         for (var n = this.suRoom.length - 1; n >= 0; n--)
         {
             this.suEvt = this.suRoom[n];
-            // evt = this.events[j];
             // console.log('* evt:', this.allrooms[m], this.suEvt.type, this.suEvt.state, this.suEvt.uid);
             
             if (this.suEvt.state !== this.suEvt.STATE_STOPPED)
@@ -604,52 +603,14 @@ core_server.prototype.ticker = function(spark)
                     switch(this.suEvt.type)
                     {
                         case this.suEvt.TYPE_CHEST:
-                            // var id = getUid();//_this.getUID();
-                            // console.log('* event:adding chest', this.suEvt.consumableData.i);//, id);//, evt);//, evt.spawn, 'with passive', evt.passive);
-                            /*{ i: '3148931d-c911-814d-9f2d-03b53537d658',
-                                x: '1152',
-                                y: '576',
-                                t: 1,
-                                d: 60,
-                                m: 50 }*/
                             if (this.suEvt.id == 'ec') // chest event
-                                // this.addChest(evt.consumable, this.allrooms[m]);
-                                    // {
-                                    //     i:id,
-                                    //     x:evt.spawn.x,
-                                    //     y:evt.spawn.y,
-                                    //     t:evt.passive.type,
-                                    //     c:evt.passive.buff,
-                                    //     d:evt.passive.focus,
-                                    //     h:evt.passive.health
-                                    // }, this.allrooms[m]);
-                            // var room = this.core.getplayers.getRoomNameByUserId(player.userid);
-                            // console.log('room:', room);
-                            // console.log('ls:', laststate);
-                            // console.log('a', this.tickstate);
-                            // console.log('b', this.allrooms[m]);
-                            // console.log('c', this.tickstate[this.allrooms[m]]);
                             this.tickstate[this.allrooms[m]][this.suEvt.id] = this.suEvt.consumableData;
-                            // {
-                            //     i: id,
-                            //     x: evt.spawn.x,
-                            //     y: evt.spawn.y,
-                            //     t: evt.passive.type,
-                            //     d: evt.passive.duration,
-                            //     m: evt.passive.modifier
-                            // };
                         break;
 
                         case this.suEvt.TYPE_FLAG_CARRIED_COOLDOWN:
-
-                            console.log('evt active carried cooldown...', this.suEvt.id, this.suEvt.timer, this.suEvt.flag.name, this.suEvt.flag.heldBy);
-                            // fc: { t: 6, f: 'midFlag', p: 'cp1' } }
-    
+                            // console.log('evt active carried cooldown...', this.suEvt.id, this.suEvt.timer, this.suEvt.flag.name, this.suEvt.flag.heldBy);
                             if (this.suEvt.flag.heldBy)
                             {
-                                // store evt.id in fromRoomByUserId
-                                // var room = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                // laststate[room][evt.id] =
                                 this.tickstate[this.allrooms[m]][this.suEvt.id] =
                                 {
                                     t: this.suEvt.timer,
@@ -660,14 +621,9 @@ core_server.prototype.ticker = function(spark)
                         break;
 
                         case this.suEvt.TYPE_FLAG_SLOTTED_COOLDOWN:
-
-                            console.log('evt active slotted cooldown', this.suEvt.id, this.suEvt.timer);//, evt);
-                            // fc: { t: 6, f: 'midFlag' } }
-
+                            console.log('evt active slotted cooldown', this.suEvt.id, this.suEvt.timer);
                             if (this.suEvt.flag.heldBy)
                             {
-                                // var room1 = this.core.getplayers.getRoomNameByUserId(evt.flag.heldBy);
-                                // laststate[room1][evt.id] =
                                 this.tickstate[this.allrooms[m]][this.suEvt.id] =
                                 {
                                     t: this.suEvt.timer,

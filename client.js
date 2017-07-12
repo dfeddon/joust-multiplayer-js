@@ -17,6 +17,7 @@ var game_core = require('./game.core');
 //var localStorage = require('bower_components/simple-webstorage/extendStorage');
 var device = {};
 var _ = require('./node_modules/lodash/lodash.min');
+
 /*
 var egyptian_set = require('./egyptian_set');
 var game_spritesheet = require('./class.spritesheet');
@@ -175,6 +176,29 @@ domready(function()
 	var game = {};
 	var player = {};
 	//device = {};
+
+	/////////////////////////////////////////
+	// localStorage
+	/////////////////////////////////////////
+	var storage = function(action, item, val)
+	{
+		if (action == "set")
+		{
+			localStorage[item] = val;
+			return localStorage[item];
+		}
+		else if (action == "get")
+		{
+			console.log('localStorage', localStorage);
+			
+			return localStorage[item];   // --> true
+			//localStorage.get('myKey');   // --> {a:[1,2,5], b: 'ok'}
+		}
+		else if (action == "del")
+		{
+			localStorage.removeItem(item);
+		}
+	};
 
 	//When loading, we store references to our
 	//drawing canvases, and initiate a game instance.
@@ -513,17 +537,34 @@ domready(function()
 		// 	window.doorbell.show();
 		// 	// document.getElementById('doorbell-button').show();
 		// })
+		var PROFANITY = /(shit|fuck|ass|pussy|nigger|cunt|fag|faggot|bitch|dick|cock|asshole|crap|slut)/gi
+		var clearProfanity = function(s)
+		{
+			return s.replace(PROFANITY, function(match)
+			{
+				return match.replace(/./g, '@');
+			});
+		}
+
 		nickname.addEventListener("change", function(e)
 		{
 			console.log('nickname changed', e.target.value, e);
-			//game.players.self.playerName = e.target.value;
 			// ensure string has at least 3 text chars (excluding whitespace)
 			var myString = e.target.value;
 			var noWhiteSpace = myString.replace(/\s/g, "");
 			var strLength = noWhiteSpace.length;
 			if (strLength > 2)
-				assets.playerName = e.target.value;
+			{
+				// filter profanity
+				var cleaned = clearProfanity(e.target.value);
+				// console.log("* cleaned", cleaned);
+				e.target.value = cleaned;
+				assets.playerName = cleaned;//e.target.value;
+			}
 			else assets.playerName = undefined;
+
+			if (assets.playerName)
+				storage("set", "wingdom__nickname", assets.playerName);
 		});
 
 		// document.body.onkeydown = function(e)
@@ -545,7 +586,9 @@ domready(function()
 			//if (!assets.playerSkin)
 			assets.playerSkin = skins[assets.skinIndex - 1].id;
 			console.log('* playerSkin', assets.playerSkin, assets.skinIndex);
-			
+
+			// store selected skin
+			storage("set", "wingdom__skin", assets.skinIndex);
 
 			// get player name
 			var myString = nickname.value;
@@ -692,6 +735,12 @@ domready(function()
 			//_this.players.self.visible = true;
 		});
 
+		// tweet for skins
+		// reset stub
+		//*
+		storage("set", "wingdom__skinUnlock", false);
+		//*/
+
 		// skins
 		//*
 		var plusSlides = function(n)
@@ -701,17 +750,40 @@ domready(function()
 		var showSlides = function(n)
 		{
 			var i;
-			var x;
+			var x1;
 			if (device.isPhone)
-				x = document.getElementsByClassName("slides-phone");
-			else x = document.getElementsByClassName("slides");
+				x1 = document.getElementsByClassName("slides-phone");
+			else x1 = document.getElementsByClassName("slides");
+			console.log(typeof(x1), x1);
+			
+			var unlocked = storage("get", "wingdom__skinUnlock");
+			if (unlocked == 'false')
+			{
+				// display more skins image
+				document.getElementById('moreskins').style.display = "inline-block";
+
+				var x = [];
+				console.log("* skins LOCKED!");
+				for (i = 0; i < x1.length; i++)
+				{
+					console.log(x1[i]);
+					// hide *all* skins
+					x1[i].style.display = "none";
+					// only allow the first 5
+					if (i < 5)
+						x.push(x1[i]);
+				}
+			}
+			else x = x1;//console.log("* unlocked", unlocked);
+			console.log("* skins x", x);
+			
 			if (n > x.length) {assets.skinIndex = 1}    
 			else if (n < 1) {assets.skinIndex = x.length}
 			for (i = 0; i < x.length; i++) 
 			{
 				x[i].style.display = "none";
 			}
-			x[assets.skinIndex-1].style.display = "block";			
+			x[assets.skinIndex-1].style.display = "block";
 		};
 		//*/
 		var leftArrow, rightArrow;
@@ -735,10 +807,43 @@ domready(function()
 			plusSlides(1);
 		});
 		
+		// default skin
 		assets.skinIndex = 1;
+
 		showSlides(assets.skinIndex);
 	}
-
+	var modal = document.getElementById('myModal');
+	document.getElementById('moreskins').addEventListener('click', function()
+	{
+		console.log("click!", document.getElementsByClassName('closeSkinModal'));
+		modal.style.display = "block";
+	});
+	document.getElementById('closeSkinModal').addEventListener('click', function()
+	{
+		console.log('close!');
+		modal.style.display = "none";
+	});
+	window.onclick = function(event) 
+	{
+		console.log("* window click", event.target);
+		if (event.target == modal) 
+		{
+        	modal.style.display = "none";
+    	}
+	}
+	window.twttr.events.bind(
+	'click',
+	function (ev) 
+	{
+		console.log("twit hit", ev);
+		// unlock skins
+		storage("set", "wingdom__skinUnlock", true);
+		// remove more skins button
+		document.getElementById('moreskins').style.display = "none";
+		// hide modal
+		modal.style.display = "none";
+	}
+	);
 	assets.device = device;
 	//localStorage.debug = '*';
 
@@ -1086,29 +1191,6 @@ domready(function()
 	console.log('device:', device);
 	loader.start();
 
-	/////////////////////////////////////////
-	// localStorage
-	/////////////////////////////////////////
-	var storage = function(action, item, val)
-	{
-		if (action == "set")
-		{
-			localStorage[item] = val;
-			return localStorage[item];
-		}
-		else if (action == "get")
-		{
-			console.log('localStorage', localStorage);
-			
-			return localStorage[item];   // --> true
-			//localStorage.get('myKey');   // --> {a:[1,2,5], b: 'ok'}
-		}
-		else if (action == "del")
-		{
-			localStorage.removeItem(item);
-		}
-	};
-
 	// if no user id then set it
 	if (!storage("get", "wingdom__userid"))
 	{
@@ -1120,17 +1202,28 @@ domready(function()
 	}
 	else console.log("* userid is", storage("get", "wingdom__userid"));
 
-	// tweet for skins
-	assets.skinUnlock = storage("get", "wingdom__skinUnlock");
-	console.log('skinUnlock', assets.skinUnlock);
-	if (assets.skinUnlock === undefined)	
-		console.log(storage("set", "wingdom__skinUnlock", false));
-	if (!assets.skinUnlock)
+	// nickname
+	if (storage("get", "wingdom__nickname"))
+		nickname.value = storage("get", "wingdom__nickname");
+
+	// skin
+	if (storage("get", "wingdom__skin"))
 	{
-		// show unlock skin callout
-		console.log('show skin unlock media callout!');
-		
+		assets.skinIndex = storage("get", "wingdom__skin");
+		showSlides(assets.skinIndex);
 	}
+	// else assets.skinIndex = 1;
+
+	// assets.skinUnlock = storage("get", "wingdom__skinUnlock");
+	// console.log('skinUnlock', assets.skinUnlock);
+	// if (assets.skinUnlock === undefined)	
+	// 	console.log(storage("set", "wingdom__skinUnlock", false));
+	// if (!assets.skinUnlock)
+	// {
+	// 	// show unlock skin callout
+	// 	console.log('show skin unlock media callout!');
+		
+	// }
 	// highscore
 	assets.myHighscore = storage("get", "wingdom__myHighscore");
 	if (!assets.myHighscore === undefined)

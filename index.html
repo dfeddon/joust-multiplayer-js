@@ -499,6 +499,26 @@
 		</div>
 
 		<!--
+		########################### SKINS UNLOCK MODAL ##########################
+		-->
+		<div id="myModal" class="modal">
+
+			<!-- Modal content -->
+			<div class="modal-content">
+				<span id="closeSkinModal">&times;</span>
+				<div id="moreskinsContainer">
+					<label id="moreskinsHeader">Enlighten your friends...</label>
+					<div id="sharebuttons">
+						<div class="fb-share-button" data-href="http://www.wingdom.io/" data-layout="button" data-size="large" data-mobile-iframe="false"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&amp;src=sdkpreparse">Share</a></div>					
+						<a href="http://twitter.com/share" class="twitter-share-button" data-size="large" data-text="Play the multiplayer Joust-like game" data-url="http://www.wingdom.io/" data-hashtags="wingdomio,iogames" data-show-count="false">Tweet</a>
+						<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+					</div>
+					<label id="moreskinsHeader2">Unlock Skins!</label>
+				</div>
+			</div>
+
+		</div>
+		<!--
 		########################### BUFF INFO ##########################
 		-->
 		<div id="buffInfo">
@@ -807,10 +827,12 @@
 						<input id="nickname" type="text" placeholder="Your Nickname..." maxLength="18" minLength="3" pattern="[a-zA-Z0-9]{3,18}" autofocus/>
 
 						<button id="btnStart">One sec...</button>
+
+						<img id="moreskins" src="https://s3.amazonaws.com/com.dfeddon.wingdom/unlock-skins.png">
+
 						<label id="holderStatus"></label>
 						<!--<img src="https://s3.amazonaws.com/com.dfeddon.wingdom/controls-mini.png">-->
-						<center><label id="feedbackLabel" style="color:gray;cursor:pointer;" id="feedback2">Found a bug?<br/>Have a suggestion?<br/>Click <i>here</i> to let us know!</label></center>
-
+						<center><label id="feedbackLabel" style="color:gray;cursor:pointer;" >Found a bug?<br/>Have a suggestion?<br/>Click <i>here</i> to let us know!</label></center>
 
 					</div>
 
