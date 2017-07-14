@@ -411,6 +411,34 @@ game_server.prototype._onMessage = function(spark,message)
         //this.log(source);
         //source.send('s.n' + JSON.stringify(arr));
     }
+    else if(message.donate)
+    {
+        console.log('@ donate', message.donate);
+        // update player's health
+        game = this.games[Object.keys(this.games)[0]];
+        room = game.gamecore.getplayers.fromRoom(message.donate[2]);
+        // var room = game.gamecore.getplayers.game_instance.inRoom[port];//fromRoom(port);
+        for (i = 0; i < room.length; i++)
+        {
+            // add health to donee
+            if (room[i].userid === message.donate[0])
+            {
+                console.log("@ donating health to player!", room[i].health);
+                room[i].updateHealth(5);
+                // room[i].healthChanged = true;
+                // if (room[i].health > room[i].healthMax)
+                //     room[i].health = room[i].healthMax;
+                // console.log("* new health", room[i].health);
+            }
+            // remove health from donor
+            else if (room[i].userid === message.donate[1])
+            {
+                room[i].updateHealth(-5);
+            }
+        }
+        // send donation to all players in room
+        spark.room(message.donate[2]).write([55, message.donate[0], message.donate[1]]);
+    }
 
 }; //game_server.onMessage
 

@@ -842,8 +842,32 @@ domready(function()
 		document.getElementById('moreskins').style.display = "none";
 		// hide modal
 		modal.style.display = "none";
+	});
+	console.log(window);
+	//window.fb_share.events;
+
+	// var fbShare = document.getElementsByClassName('fb-share-button');
+	// console.log('fbShare', fbShare);
+	// fbShare.onclick();
+	// var fbShare = document.getElementsByClassName('fb-share-button').addEventListener('click', function()
+	// {
+	// 	console.log('facebook click!');
+	// });
+	document.getElementById('fbShareBtn').onclick = function() 
+	{
+		window.FB.ui(
+		{
+			method: 'share',
+			app_id: '126125874658489',
+			appId: '126125874658489',
+			display: 'popup',
+			href: 'http://www.wingdom.io/',
+		}, function(response)
+		{
+			console.log("facebook shared!", response);
+		});
 	}
-	);
+
 	assets.device = device;
 	//localStorage.debug = '*';
 
@@ -1280,6 +1304,9 @@ domready(function()
 			game.getKeyboard()._onKeyChange({keyCode:38}, false);
 			game.getKeyboard()._onKeyChange({keyCode:88}, true);
 			break;
+
+			// case "1": game.getKeyboard()._onKeyChange({keyCode:49}, true);console.log("111111111");
+			// break;
 			}
 		};
 	}

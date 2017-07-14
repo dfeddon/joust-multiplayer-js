@@ -3067,9 +3067,9 @@ game_player.prototype.isVuln = function(len)
 
     // if carrying flag, drop it
     // if (this.config.server && this.hasFlag)
-    console.log('* hasFlag', this.hasFlag);
-    if (this.hasFlag > 0)
-        this.dropFlag();
+    // console.log('* hasFlag', this.hasFlag);
+    // if (this.hasFlag > 0)
+    //     this.dropFlag();
 
     setTimeout(this.timeoutVuln.bind(this), len);
 };

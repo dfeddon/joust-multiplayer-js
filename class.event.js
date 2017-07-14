@@ -96,12 +96,12 @@ game_event.prototype.update = function(port)
     switch(this.type)
     {
       case this.TYPE_FLAG_CARRIED_COOLDOWN:
-        console.log('* cooldown complete!', this.flag.name);//flag_carried_cooldown_event_update');
+        console.log('* cooldown complete!', this.flag.name, this.flag.heldBy);//flag_carried_cooldown_event_update');
         var userid = this.flag.heldBy;
         // server reset vars
-        this.flag.isHeld = false;
-        this.flag.isActive = true;
-        this.flag.heldBy = null;
+        // this.flag.isHeld = false;
+        // this.flag.isActive = true;
+        // this.flag.heldBy = null;
         // reset players vars (flag.heldBy)
         // console.log('getplayers', this.config.getplayers);
         var room = this.getplayers.fromRoomByUserId(userid);
@@ -119,6 +119,7 @@ game_event.prototype.update = function(port)
         // var player = this.config._.filter(room, ["instance.userid", userid]);
         // console.log('player', player.instance.userid);
         player.hasFlag = 0;
+        this.flag.reset(false);
 
         // change state to complete
         this.state = this.STATE_STOPPED;

@@ -107,7 +107,7 @@ function game_core(from)
     console.log('# game_core constructor', from);
     if (from === 1) console.log('* from server');
     else if (from === 2) console.log("* from client");
-};
+}
 
 game_core.prototype.init = function(game_instance)//, io)
 {
@@ -459,7 +459,6 @@ Date.prototype.dateToEpoch = function(date)
     return Math.floor(date.getTime() / 1000);
 }
 
-
 game_core.prototype.getKeyboard = function() { return this.core_client.keyboard; };
 
 game_core.prototype.nameGenerator = function()
@@ -497,121 +496,121 @@ game_core.prototype.buildPlatforms = function()
     }*/
 };
 
-game_core.prototype.addTouchHandlers = function()
-{
-    console.log('== addTouchHandlers ==');
+// game_core.prototype.addTouchHandlers = function()
+// {
+//     console.log('== addTouchHandlers ==');
 
-    var cv = document.getElementById('viewport');
-    var dirL = document.getElementById('dirL');
-    var dirR = document.getElementById('dirR');
-    var dirF = document.getElementById('flap');
+//     var cv = document.getElementById('viewport');
+//     var dirL = document.getElementById('dirL');
+//     var dirR = document.getElementById('dirR');
+//     var dirF = document.getElementById('flap');
 
-    //*
-    function handleClick(e)
-    {
-        e.preventDefault();
+//     //*
+//     function handleClick(e)
+//     {
+//         e.preventDefault();
 
-        console.log('click', e);
-        //alert('click');
+//         console.log('click', e);
+//         //alert('click');
 
-        switch(e.srcElement.id)
-        {
-            case "dirL":
-                //document.externalControlAction("A");
-            break;
+//         switch(e.srcElement.id)
+//         {
+//             case "dirL":
+//                 //document.externalControlAction("A");
+//             break;
 
-            case "dirR":
-            break;
+//             case "dirR":
+//             break;
 
-            case "flap":
-            break;
-        }
-    }
-    function handleStart(e)
-    {
-        console.log('start', e);//.srcElement.id);
+//             case "flap":
+//             break;
+//         }
+//     }
+//     function handleStart(e)
+//     {
+//         console.log('start', e);//.srcElement.id);
 
-       // e.preventDefault();
-        //alert(e.srcElement.id);
-        //console.log(e.touches[0].clientX, dirL);
-        //*
-        switch(e)
-        {
-            case "dirL":
-                document.externalControlAction("A");
-            break;
+//        // e.preventDefault();
+//         //alert(e.srcElement.id);
+//         //console.log(e.touches[0].clientX, dirL);
+//         //*
+//         switch(e)
+//         {
+//             case "dirL":
+//                 document.externalControlAction("A");
+//             break;
 
-            case "dirR":
-                document.externalControlAction("D");
-            break;
+//             case "dirR":
+//                 document.externalControlAction("D");
+//             break;
 
-            case "flap":
-                document.externalControlAction("u");
-            break;
-        }
+//             case "flap":
+//                 document.externalControlAction("u");
+//             break;
+//         }
         
-        //*/
+//         //*/
 
-        //e.preventDefault();
-    }
-    function handleEnd(e)
-    {
-        console.log('end', e);//.srcElement.id);
+//         //e.preventDefault();
+//     }
+//     function handleEnd(e)
+//     {
+//         console.log('end', e);//.srcElement.id);
 
-        //e.preventDefault();
-        switch(e)
-        {
-            case "dirL":
-                document.externalControlAction("B");
-            break;
+//         //e.preventDefault();
+//         switch(e)
+//         {
+//             case "dirL":
+//                 document.externalControlAction("B");
+//             break;
 
-            case "dirR":
-                document.externalControlAction("E");
-            break;
+//             case "dirR":
+//                 document.externalControlAction("E");
+//             break;
 
-            case "flap":
-                document.externalControlAction("x");
-            break;
-        }
-    }
-    function handleCancel(e)
-    {
-        console.log('cancel', e);
+//             case "flap":
+//                 document.externalControlAction("x");
+//             break;
+//         }
+//     }
+//     function handleCancel(e)
+//     {
+//         console.log('cancel', e);
 
-        e.preventDefault();
-    }
-    function handleMove(e)
-    {
-        console.log('move', e.changedTouches[0]);
-        //alert('move');
-        e.preventDefault();
-    }
+//         e.preventDefault();
+//     }
+//     function handleMove(e)
+//     {
+//         console.log('move', e.changedTouches[0]);
+//         //alert('move');
+//         e.preventDefault();
+//     }
 
-    dl.on('press', function(e)
-    {
-        handleStart('dirL');
-    });
-    dl.on('pressup', function(e)
-    {
-        handleEnd('dirL');
-    });
-    dr.on('press', function(e)
-    {
-        handleStart('dirR');
-    });
-    dr.on('pressup', function(e)
-    {
-        handleEnd('dirR');
-    });
-    flap.on('press', function(e)
-    {
-        handleStart('flap');
-    });
-    flap.on('pressup', function(e)
-    {
-        handleEnd('flap');
-    });
-}
+//     dl.on('press', function(e)
+//     {
+//         handleStart('dirL');
+//     });
+//     dl.on('pressup', function(e)
+//     {
+//         handleEnd('dirL');
+//     });
+//     dr.on('press', function(e)
+//     {
+//         handleStart('dirR');
+//     });
+//     dr.on('pressup', function(e)
+//     {
+//         handleEnd('dirR');
+//     });
+//     flap.on('press', function(e)
+//     {
+//         handleStart('flap');
+//     });
+//     flap.on('pressup', function(e)
+//     {
+//         handleEnd('flap');
+//     });
+// }
 
 game_core.prototype.apiNodePost = function(flags)
 {
@@ -1605,6 +1604,10 @@ game_core.prototype.process_input = function( player )
                     
                     player.flap = false;
                 }
+                if (key == '1')
+                    {
+                        console.log("* key 1 pressed");
+                    }
                 //     y_dir -= 10;
                 // }
             } //for all input values
@@ -1915,6 +1918,16 @@ game_core.prototype.roundComplete = function(port, round)
         round.stage = 2;
         round.endtime = ~~(this.config.server_time + round.bonusDuration);//(round.duration * 60);
 
+        // clear flag events
+        /*var evts = this.getplayers.fromRoom(port, 1);
+        for (var e = evts.length - 1; e >= 0; e--)
+        {
+            // if flag carried events, clear cooldown event (evt.state = 5)
+            console.log("* events", evts[e].type);
+            if (evts[e].type === evts[e].TYPE_FLAG_CARRIED_COOLDOWN)// || evts[e].type === evts[e].TYPE_FLAG_SLOTTED_COOLDOWN)
+                evts[e].doStop(); // stop it
+        }*/
+ 
         // pick winners (player.score - player.lastscore = round score)
         var p = this.getplayers.fromRoom(port, 0);
         for (var z = p.length - 1; z >= 0; z--)
@@ -1929,7 +1942,21 @@ game_core.prototype.roundComplete = function(port, round)
             p[z].purgeBuffsAndBonuses();
             // remove flags from flagholders
             if (p[z].hasFlag > 0)
+            {
+                console.log("* removing flag from player");
+                // p[z].hasFlag = 0;
                 p[z].dropFlag();
+                /*var flags = this.getplayers.fromRoom(p[z].playerPort, 3);
+                for (var a = flags.length -1; a >= 0; a--)
+                {
+                    if (flags[a].heldBy === p[z].userid)
+                    {
+                        console.log("* resetting flag");
+                        flags[a].reset(false);
+                    }
+                }*/
+            }
+
             // p[z].deactivateBuff(p[z].bonusSlot);
             // p[z].bonusSlot = 0;
             // reset instanced players position to team base

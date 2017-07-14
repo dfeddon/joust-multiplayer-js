@@ -44,7 +44,7 @@ img
     display: block; /* Hidden by default */
     position: fixed; /* Stay in place */
     z-index: 2000; /* Sit on top */
-    padding-top: 25%; /* Location of the box */
+    padding-top: 150px; /* Location of the box */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
@@ -333,6 +333,7 @@ h2
 }
 #socialmedia
 {
+	display: flex;
 	margin-top: 15px;
 	margin-right: 15px;
 	float: right;

@@ -16,6 +16,9 @@ function core_client(core, config)
 {
     console.log('core_client constructor');
 
+    // window.onkeydown = function(e)
+    window.addEventListener('keydown', this.handleKeyEvent.bind(this), false);
+
     this.game_buffs = new game_buffs();
 
     this.viewport = document.getElementById("viewport");
@@ -1277,6 +1280,25 @@ core_client.prototype.client_connect_to_server = function(data)
             roundTimerTxt.innerHTML = (_this.rt-(_this.rt%=60))/60+(9<_this.rt?':':':0')+_this.rt;
         else roundTimerTxt.innerHTML = "--:--";
 
+        // update donation health values
+        // console.log("* donations", _this.donations.length, _this.core.getplayers.allplayers.length);
+        for (var i = 0; i < _this.donations.length; i++)
+        {
+            for (var j = 0; j < _this.core.getplayers.allplayers.length; j++)
+            {
+                // console.log("* this.players.id", _this.core.getplayers.allplayers[j].userid,_this.core.getplayers.allplayers[j].id);
+                if (_this.core.getplayers.allplayers[j].userid === _this.donations[i].user)
+                {
+                    if (_this.donations[i].health !== _this.core.getplayers.allplayers[j].health)
+                    {
+                        // update flag-carrier's health
+                        // console.log("Health update!!!!", _this.donations[i].index);
+                        document.getElementById("donation-player-health_" + _this.donations[i].index).innerHTML = _this.core.getplayers.allplayers[j].health;
+                    }
+                }
+            }
+        }
+
         // update leaderboard every 10 sec
         // console.log(!!_this.config.server_time%10);
         if (~~_this.config.server_time % 10 === 0)// && _this.config.server_time.toFixed(1) !== _this.lastInfoUpdate)
@@ -1286,6 +1308,7 @@ core_client.prototype.client_connect_to_server = function(data)
             _this.lastInfoUpdate = _this.config.server_time.toFixed(1);
         }
     });
+
     this.socket.on('outgoing::pong', function(time)
     {
         // console.log("* client pong", time);
@@ -1353,6 +1376,9 @@ core_client.prototype.client_connect_to_server = function(data)
 
             // game is full
             case 50: _this.client_ongamefull(); break;
+
+            // donation
+            case 55: _this.client_ondonation(data[1], data[2]); break;
 
             // events
             case 100: _this.client_onevents(data[1]); break;
@@ -2089,7 +2115,7 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
 core_client.prototype.addDonation = function(playerSource, flagTaken)
 {
     // add carrier to global donations array (userid, index)
-    var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
+    var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1, health:playerSource.health });
     console.log("* len", len, this.donations);
 
     // clone donations UI
@@ -2225,6 +2251,27 @@ core_client.prototype.client_onroundcomplete = function(winners)
     // update timer text
     document.getElementById('txtRoundTimer').innerHTML = "--:--";
 
+    // clear flag-carriers
+    // console.log(ply[c].hasFlag);
+    // var ply = this.core.getplayers.allplayers;
+    // var c;
+    /*for (var c = ply.length - 1; c >= 0; c--)
+    {
+        ply[c].hasFlag = 0;
+        if (ply[c].isLocal)
+        {
+            console.log("* removing flag from local player");
+            ply[c].hasFlag = 0;
+            // stop the event
+            this.players.self.hasFlag = 0;
+            this.players.self.dropFlag();//hasFlag = false;
+        }
+        // var roomFlags = this.config.flagObjects;
+        // var flag = this.config._.find(_this.config.flagObjects, {"heldBy":ply[c].userid});
+        // flag.reset(false);
+        // console.log("* flag dropped", flag);
+    }*/
+
     // disable player(s)
     this.players.self.active = false;
 
@@ -2358,6 +2405,74 @@ core_client.prototype.client_on_orbremoval = function(data)
     //else console.log('orb id', id, 'not found!');
 };
 
+core_client.prototype.submitDonationByNum = function(num)
+{
+    console.log("#### donation submitted to", num);
+        for (var i = 0; i < this.donations.length; i++)
+        {
+            if (this.donations[i].index === num)
+            {
+                console.log("* found donation", this.donations[i]);
+                // for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
+                // {
+                //     // console.log("* this.players.id", _this.core.getplayers.allplayers[j].userid,_this.core.getplayers.allplayers[j].id);
+                //     if (this.core.getplayers.allplayers[j].index === this.donations[i].user)
+                //     {
+                        console.log('* writing donation to socket');
+                        this.socket.write({donate:[this.donations[i].user, this.players.self.userid, this.xport]});
+                    // }
+                // }
+            }
+        }
+}
+core_client.prototype.handleKeyEvent = function(e)
+{
+    // console.log("client handling key events!", e);
+    if (e.keyCode === 49)
+    {
+        console.log("key 1");
+        for (var i = 0; i < this.donations.length; i++)
+        {
+            console.log(this.donations[i]);
+            if (this.donations[i].index === 1)
+            {
+                console.log("DONATION 1!");
+                this.submitDonationByNum(1);
+            }
+        }
+    }
+}
+// core_client.prototype.view = window;
+/*core_client.prototype.view = window;
+core_client.handle_keydown = function(args)
+{
+    console.log("handle_keydown", args);
+}
+core_client.prototype.listen = function()
+{
+    this.view.addEventListener('keydown', function(e)
+    {
+       this.view.handle_keydown(e);
+    }.bind(this), false);
+}
+document.onkeydown(this.submitDonationByNum(this));*/
+// window.onkeydown = function(e)
+// {
+//     console.log("keydown", e);
+//     console.log(e.view.game_core.prototype.donationProxy('1'));
+//     if (e.keyCode === 49)
+//     {
+//         console.log("key 1");
+//         for (var i = 0; i < this.donations.length; i++)
+//         {
+//             console.log(this.donations[i]);
+//             if (this.donations[i].index === 1)
+//             {
+//                 console.log("DONATION 1!");
+//             }
+//         }
+//     }
+// }
 core_client.prototype.client_handle_input = function(key)
 {
     //if (glog)
@@ -2381,6 +2496,10 @@ core_client.prototype.client_handle_input = function(key)
 
     this.client_has_input = false;
 
+    /*if (this.keyboard.pressed('1')) 
+    { 
+        input.push('1');
+    }*/
     if( this.keyboard.pressed('A') ||
         this.keyboard.pressed('left') || key=='A') {
 
@@ -3317,6 +3436,11 @@ core_client.prototype.client_onevents = function(data)
         //     flag.timer = NaN
         // }
     }
+}
+
+core_client.prototype.client_ondonation = function(to, from)
+{
+    console.log("== client_ondonation ==", to, from);
 }
 
 core_client.prototype.client_onserverupdate_recieved = function(data)

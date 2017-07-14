@@ -798,7 +798,7 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
         // TODO: omit self if self was failed carrier
         // if (Boolean(ply.instance))// && !ply.isLocal)
         // {
-          console.log('* fc to player', playerSource.userid, playerSource.playerPort, _this.heldBy);
+          console.log('* fc to player', playerSource.userid, playerSource.playerPort);//, _this.heldBy);
           
           // disconnected flag-carriers have no instance
           if (playerSource.instance)
@@ -821,7 +821,7 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
     }
   }
   this.timer = 60; // reset timer
-  console.log('flag slotted and reset', this);
+  console.log('flag slotted? and reset');//, this);
 };
 
 game_flag.prototype.timeoutCooldown = function()
