@@ -2748,6 +2748,20 @@ game_player.prototype.setTextFloater = function(c, v, bool, type)
         // show to both victim and victor
         localOnly = false;
     }
+    else if (c === 5) // donation
+    {
+        if (type === 1) // donee
+        {
+            color = "lime";
+            text = v; // value is donor's name
+        }
+        else
+        {
+            color = "lime"; //"red";
+            text = v; // value is donor's name
+        }
+        localOnly = true;
+    }
     else if (c == 100) // damage
     {
         text += " HEALTH";
