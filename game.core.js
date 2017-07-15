@@ -1919,14 +1919,21 @@ game_core.prototype.roundComplete = function(port, round)
         round.endtime = ~~(this.config.server_time + round.bonusDuration);//(round.duration * 60);
 
         // clear flag events
-        /*var evts = this.getplayers.fromRoom(port, 1);
+        //*
+        var evts = this.getplayers.fromRoom(port, 1);
         for (var e = evts.length - 1; e >= 0; e--)
         {
             // if flag carried events, clear cooldown event (evt.state = 5)
-            console.log("* events", evts[e].type);
+            // console.log("* events", evts[e].type);
             if (evts[e].type === evts[e].TYPE_FLAG_CARRIED_COOLDOWN)// || evts[e].type === evts[e].TYPE_FLAG_SLOTTED_COOLDOWN)
-                evts[e].doStop(); // stop it
-        }*/
+            {
+                // console.log("* stopping event", evts[e]);
+                // set triggered on to one second from now to auto clear the carrier
+                evts[e].triggerOn = this.config.server_time + 1;
+                // evts[e].suppressToast = true;
+            }
+        }
+        //*/
  
         // pick winners (player.score - player.lastscore = round score)
         var p = this.getplayers.fromRoom(port, 0);
@@ -1941,12 +1948,12 @@ game_core.prototype.roundComplete = function(port, round)
             // clear all server buffs and bonuses
             p[z].purgeBuffsAndBonuses();
             // remove flags from flagholders
-            if (p[z].hasFlag > 0)
+            /*if (p[z].hasFlag > 0)
             {
-                console.log("* removing flag from player");
-                // p[z].hasFlag = 0;
+                console.log("* removing flag from player", p[z].playerName);
+                p[z].hasFlag = 0;
                 p[z].dropFlag();
-                /*var flags = this.getplayers.fromRoom(p[z].playerPort, 3);
+                var flags = this.getplayers.fromRoom(p[z].playerPort, 3);
                 for (var a = flags.length -1; a >= 0; a--)
                 {
                     if (flags[a].heldBy === p[z].userid)
@@ -1954,8 +1961,8 @@ game_core.prototype.roundComplete = function(port, round)
                         console.log("* resetting flag");
                         flags[a].reset(false);
                     }
-                }*/
-            }
+                }
+            }*/
 
             // p[z].deactivateBuff(p[z].bonusSlot);
             // p[z].bonusSlot = 0;

@@ -1715,7 +1715,8 @@ h5
     -o-animation: cssAnimation 4.5s forwards;
     /* Opera */
     animation: cssAnimation 4.5s forwards;
-    -webkit-animation-fill-mode: forwards;	
+	-webkit-animation-fill-mode: forwards;
+	pointer-events: none;
 }
 @keyframes cssAnimation {
     0%   {opacity: 1;}
@@ -2412,7 +2413,7 @@ h5
 {
 	display: block;
 	position: absolute;
-	bottom: 25%;/*175px;*/
+	bottom: 0px;/*175px;*/
 	right: 0px;
 	width: 175px;/*150px;*/
 	height: 85px;/*85px;*/

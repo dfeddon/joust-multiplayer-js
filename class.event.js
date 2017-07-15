@@ -66,6 +66,7 @@ function game_event(getplayers, config)//game_instance)
   this.triggeredAt = null;//= new Date();
   this.triggerOn = null;
   this.triggerer = null;
+  this.suppressToast = false;
 
   this.dif = undefined;
 

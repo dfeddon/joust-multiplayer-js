@@ -1783,7 +1783,7 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
-    if (playerSource.userid != this.players.self.userid)
+    if (playerSource.userid != this.players.self.userid && this.config.round.active === true)
     {
         var msg =
         {
@@ -1793,6 +1793,7 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
             flagName: flagSlotted.name,//"Mid Flag",
             targetSlot: flagSlotted.targetSlot//"Placque #3"
         };
+        // if (this.config.round.active === true)
         new game_toast().show(msg);
     }
     /////////////////////////////////////
@@ -2003,7 +2004,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
             this.style.display = "none";
         }, false);
     }
-    else
+    else if (this.config.round.active === true)
     {
         var msg =
         {
@@ -2013,6 +2014,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
             flagName: flagTaken.name,//"Mid Flag",
             targetSlot: flagTaken.targetSlot//"Placque #3"
         };
+        // if (this.config.round.active != true)
         new game_toast().show(msg);
     }
 };
@@ -2103,11 +2105,11 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
     }
 
     // display toast msg
-    console.log('toastMsg', toastMsg);    
-    if (toastMsg)
+    console.log('toastMsg', toastMsg, this.config.round.active);    
+    if (toastMsg && this.config.round.active === true)
     {
         // suppress message if round complete
-        if (this.config.round.active != true)
+        // if (!this.config.round.active)
             new game_toast().show(toastMsg);
     }
 };
@@ -2131,8 +2133,11 @@ core_client.prototype.addDonation = function(playerSource, flagTaken)
 
     // update nodes player name, skin, health, flag carried, flag target
     console.log("!!!!!!", document.getElementById("donation_item_" + len));
+
     // apply css classes
     document.getElementById("donation_item_" + len).className = "donations";
+    document.getElementById("donation_item_" + len).style.position = "absolute";
+    document.getElementById("donation_item_" + len).style.bottom = (150 + (85 * (len - 1))).toString() + "px";
     document.getElementById("donation-container_" + len).className = "donation-container";
     document.getElementById("donation-player-container_" + len).className = "donation-player-container";
     document.getElementById("donation-player-name_" + len).className = "donation-player-name";
@@ -2235,6 +2240,7 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     // restore local round and player
     this.config.round.active = true;
     this.players.self.active = true;
+    // if (this.players.self.hasFlag > 0) this.players.self.hasFlag = 0;
     // this.players.vy = -2;
 
     // remove callout (if present)
@@ -2271,11 +2277,20 @@ core_client.prototype.client_onroundcomplete = function(winners)
     // update timer text
     document.getElementById('txtRoundTimer').innerHTML = "--:--";
 
+    // remove donations
+    var i = this.donations.length;
+    while(i--)
+    {
+        this.removeDonation(this.donations[i].user);
+    }
+
     // clear flag-carriers
     // console.log(ply[c].hasFlag);
     // var ply = this.core.getplayers.allplayers;
     // var c;
-    /*for (var c = ply.length - 1; c >= 0; c--)
+    // flag carrier is being clear via server!
+    /*
+    for (var c = ply.length - 1; c >= 0; c--)
     {
         ply[c].hasFlag = 0;
         if (ply[c].isLocal)
@@ -2290,7 +2305,8 @@ core_client.prototype.client_onroundcomplete = function(winners)
         // var flag = this.config._.find(_this.config.flagObjects, {"heldBy":ply[c].userid});
         // flag.reset(false);
         // console.log("* flag dropped", flag);
-    }*/
+    }
+    //*/
 
     // disable player(s)
     this.players.self.active = false;

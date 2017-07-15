@@ -3090,7 +3090,7 @@ game_player.prototype.isVuln = function(len)
 
 game_player.prototype.dropFlag = function(disconnectedGamecore)
 {
-    console.log("== player.dropFlag ==", this.hasFlag);
+    console.log("== player.dropFlag ==", this.hasFlag, this.playerName);
     if (this.hasFlag > 0)
     {
         // 1 = midFlag, 2 = redBase, 3 = blueBase
@@ -3545,7 +3545,7 @@ game_player.prototype.draw = function()
     }
 
     // draw flag?
-    // console.log('this.hasFlag', this.hasFlag);
+    // console.log('* this.hasFlag', this.hasFlag, this.playerName);
     if (this.hasFlag > 0)// && this.carryingFlag && this.carryingFlag.name)
     {
         // var roomCooldowns = this.instance.game.gamecore.getplayers.fromRoom(this.playerPort, 4);
@@ -3586,9 +3586,10 @@ game_player.prototype.draw = function()
         }
         //*/
         // var flagImg;
-        //console.log('* this.hasFlag', this.hasFlag);
+        // console.log('* this.hasFlag', this.hasFlag);
         switch(this.hasFlag)
         {
+            case 0: this.drwFlagImg = ""; break;
             case 1: // mid
                 if (this.dir === 0)
                     this.drwFlagImg = assets.flag_mid_r;//document.getElementById('flag-mid-r');

@@ -416,6 +416,7 @@ game_flag.prototype.doTake = function(player)
   this.heldBy = player.userid;//mp;
 
   // set player states
+  console.log("* player", player.playerName, "has taken a flag");
   player.hasFlag = flagType;
 
   // if (player.bubble) player.bubble = false;

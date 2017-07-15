@@ -599,7 +599,7 @@ core_server.prototype.ticker = function(spark)
             {
                 if (this.suEvt.update(this.allrooms[m]) === true)
                 {
-                    console.log('* add event to socket!', this.suEvt.type);
+                    // console.log('* add event to socket!', this.suEvt.type);
                     switch(this.suEvt.type)
                     {
                         case this.suEvt.TYPE_CHEST:
@@ -659,7 +659,7 @@ core_server.prototype.ticker = function(spark)
         // this.tickstate[x].t = this.config.server_time;
         if (Object.keys(this.tickstate[x]).length > 0)
         {
-            console.log('* tickstate', x, this.tickstate[x]);
+            // console.log('* tickstate', x, this.tickstate[x]);
             spark.room(x).write([100, this.tickstate[x]]);
         }
     }
