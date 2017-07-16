@@ -1,19 +1,16 @@
-
-
-var _                   = require('lodash'),
-    assets              = require('./singleton.assets'),
+var _ = require('lodash'),
+    assets = require('./singleton.assets'),
     // game_player         = require('./class.player'),
-    game_flag           = require('./class.flag'),
-    game_chest          = require('./class.consumable'),
-    game_toast          = require('./class.toast'),
-    game_round          = require('./class.round'),
-    game_buffs          = require('./class.buffs');
-    // getplayers          = require('./class.getplayers'),
-    // pool                = require('typedarray-pool');
+    game_flag = require('./class.flag'),
+    game_chest = require('./class.consumable'),
+    game_toast = require('./class.toast'),
+    game_round = require('./class.round'),
+    game_buffs = require('./class.buffs');
+// getplayers          = require('./class.getplayers'),
+// pool                = require('typedarray-pool');
 
 
-function core_client(core, config)
-{
+function core_client(core, config) {
     console.log('core_client constructor');
 
     // window.onkeydown = function(e)
@@ -23,7 +20,7 @@ function core_client(core, config)
 
     this.viewport = document.getElementById("viewport");
     this.ctx = this.viewport.getContext('2d');
-    this.cam = {x:0,y:0};
+    this.cam = { x: 0, y: 0 };
 
     this.core = core;
     this.config = config;
@@ -40,7 +37,7 @@ function core_client(core, config)
     this.donations = [];
 
     // client net_updates vars
-    this.nu_current_time,this.nu_target,this.nu_previous,this.nu_point,this.nu_next_point,this.nu_difference,this.nu_max_difference,this.nu_time_point,this.nu_ghostStub,this.nu_vt,this.nu_vp,this.nu_lerp_t,this.nu_lerp_p,this.nu_self_pp,this.nu_self_tp,this.nu_self_vt,this.nu_self_vp;
+    this.nu_current_time, this.nu_target, this.nu_previous, this.nu_point, this.nu_next_point, this.nu_difference, this.nu_max_difference, this.nu_time_point, this.nu_ghostStub, this.nu_vt, this.nu_vp, this.nu_lerp_t, this.nu_lerp_p, this.nu_self_pp, this.nu_self_tp, this.nu_self_vt, this.nu_self_vp;
 
     // this.clientCooldowns = [
     //     {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
@@ -55,16 +52,16 @@ function core_client(core, config)
     }
     else this.clientWorker_tileCollision = null;
     */
-    
+
     //var assets = 
     //this._ = _;
     this.players = {};
     this.players.self = {};
-    this.players.self.pos = {x:0,y:0};
+    this.players.self.pos = { x: 0, y: 0 };
     this.players.self.old_state = {};
-    this.players.self.old_state.pos = {x:0,y:0};
+    this.players.self.old_state.pos = { x: 0, y: 0 };
     this.players.self.cur_state = {};
-    this.players.self.cur_state.pos = {x:0,y:0};
+    this.players.self.cur_state.pos = { x: 0, y: 0 };
     this.players.self.inputs = [];
     // this.players.self.last
     this.players.self.mp = "hp";
@@ -75,7 +72,7 @@ function core_client(core, config)
     this.core.config.players = this.players;
     this.config.players = this.players;
     console.log('setself2:', this.core.config);
-    
+
     //this.canvasPlatforms = null;
     this.flashBang = 0;
     this.rt = 0;
@@ -99,7 +96,7 @@ function core_client(core, config)
         this.core.getplayers.allplayers.push(p);//,null,false));
         // this.entities.push(p);
     }*/
-    
+
     /*this.clientPool = pool.malloc(16, "int16");
     console.log('pool', this.clientPool);*/
 
@@ -142,7 +139,7 @@ function core_client(core, config)
     var v = document.getElementById("viewport");
     this.config.ctx = v.getContext('2d');
 
-    this.config.round = new game_round();//{};
+    this.config.round = new game_round(); //{};
     this.config.round.active = true;
 
 
@@ -153,30 +150,31 @@ Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixe
 
 // TODO: we could call the below helper methods via 'this.core' ref
 //copies a 2d vector like object from one to another
-core_client.prototype.pos = function(a) { return {x:a.x,y:a.y}; };
+core_client.prototype.pos = function(a) { return { x: a.x, y: a.y }; };
 //Add a 2d vector with another one and return the resulting vector
-core_client.prototype.v_add = function(a,b) { return { x:(a.x+b.x).fixed(), y:(a.y+b.y).fixed() }; };
+core_client.prototype.v_add = function(a, b) { return { x: (a.x + b.x).fixed(), y: (a.y + b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
-core_client.prototype.v_sub = function(a,b) { return { x:(a.x-b.x).fixed(),y:(a.y-b.y).fixed() }; };
+core_client.prototype.v_sub = function(a, b) { return { x: (a.x - b.x).fixed(), y: (a.y - b.y).fixed() }; };
 //Multiply a 2d vector with a scalar value and return the resulting vector
-core_client.prototype.v_mul_scalar = function(a,b) { return {x: (a.x*b).fixed() , y:(a.y*b).fixed() }; };
+core_client.prototype.v_mul_scalar = function(a, b) { return { x: (a.x * b).fixed(), y: (a.y * b).fixed() }; };
 //For the server, we need to cancel the setTimeout that the polyfill creates
-core_client.prototype.stop_update = function() {  window.cancelAnimationFrame( this.updateid );  };
+core_client.prototype.stop_update = function() { window.cancelAnimationFrame(this.updateid); };
 //Simple linear interpolation
-core_client.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.max(0, Math.min(1, _t))).fixed(); return (p + _t * (n - p)).fixed(); };
+core_client.prototype.lerp = function(p, n, t) {
+    var _t = Number(t);
+    _t = (Math.max(0, Math.min(1, _t))).fixed();
+    return (p + _t * (n - p)).fixed();
+};
 //Simple linear interpolation between 2 vectors
-core_client.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
+core_client.prototype.v_lerp = function(v, tv, t) { return { x: this.lerp(v.x, tv.x, t), y: this.lerp(v.y, tv.y, t), d: tv.d }; };
 
-core_client.prototype.getChildOfParent = function(parent, childId)
-{
+core_client.prototype.getChildOfParent = function(parent, childId) {
     console.log("== getChildOfParent ==", parent, childId);
 }
 
-core_client.prototype.renameDescendantsOfNode = function(node, suffix) 
-{
+core_client.prototype.renameDescendantsOfNode = function(node, suffix) {
     // var oldid;
-    for (var i = 0; i < node.childNodes.length; i++) 
-    {
+    for (var i = 0; i < node.childNodes.length; i++) {
         var child = node.childNodes[i];
         if (child.id) // require id?
         {
@@ -215,25 +213,22 @@ core_client.prototype.renameDescendantsOfNode = function(node, suffix)
 // }
 
 // core_client.prototype.doorbell = function()
-core_client.prototype.api = function()
-{
+core_client.prototype.api = function() {
     var _this = this;
 
-    console.log('## api call');//, this.players.self.instance);//.instance.game);
+    console.log('## api call'); //, this.players.self.instance);//.instance.game);
     var xmlhttp = new XMLHttpRequest();
     //var url = "http://localhost:4004/api/orbs/";
     var url = "./assets/tilemaps/joust-alpha-1.tmx";
     xmlhttp.open("GET", url, true);
     xmlhttp.setRequestHeader("Content-type", "application/json");
     xmlhttp.setRequestHeader("X-Parse-Application-Id", "VnxVYV8ndyp6hE7FlPxBdXdhxTCmxX1111111");
-    xmlhttp.setRequestHeader("X-Parse-REST-API-Key","6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
+    xmlhttp.setRequestHeader("X-Parse-REST-API-Key", "6QzJ0FRSPIhXbEziFFPs7JvH1l11111111");
 
-    xmlhttp.send('');//{gameId:this.players.self.});
+    xmlhttp.send(''); //{gameId:this.players.self.});
 
-    xmlhttp.onreadystatechange = function ()
-    { //Call a function when the state changes.
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-        {
+    xmlhttp.onreadystatechange = function() { //Call a function when the state changes.
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //alert(xmlhttp.responseText);
             //console.log('data', xmlhttp.responseText);
             //return xmlhttp.responseText;
@@ -245,58 +240,57 @@ core_client.prototype.api = function()
     };
 };
 
-core_client.prototype.pingFnc = function()
-{
+core_client.prototype.pingFnc = function() {
     console.log("pingFnc");
     this.last_ping_time = new Date().getTime() - this.fake_lag;
-    this.socket.write({pp: + (this.last_ping_time) });
+    this.socket.write({ pp: +(this.last_ping_time) });
 }
 
 core_client.prototype.client_create_ping_timer = function() {
     // var _this = this;
-        //Set a ping timer to 1 second, to maintain the ping/latency between
-        //client and server and calculated roughly how our connection is doing
+    //Set a ping timer to 1 second, to maintain the ping/latency between
+    //client and server and calculated roughly how our connection is doing
 
     setInterval(
-    //     function(){
-    //     this.last_ping_time = new Date().getTime() - this.fake_lag;
-    //     this.socket.send('p.' + (this.last_ping_time) );
+        //     function(){
+        //     this.last_ping_time = new Date().getTime() - this.fake_lag;
+        //     this.socket.send('p.' + (this.last_ping_time) );
 
-    // }
-    this.pingFnc
-    .bind(this), 1000);
+        // }
+        this.pingFnc
+        .bind(this), 1000);
 }; //game_core.client_create_ping_timer
 
 core_client.prototype.client_create_configuration = function() {
 
-    this.show_help = false;             //Whether or not to draw the help text
-    this.naive_approach = false;        //Whether or not to use the naive approach
-    this.show_server_pos = false;       //Whether or not to show the server position
-    this.show_dest_pos = false;         //Whether or not to show the interpolation goal
-    this.client_predict = true;         //Whether or not the client is predicting input
-    this.input_seq = 0;                 //When predicting client inputs, we store the last input as a sequence number
-    this.client_smoothing = true;       //Whether or not the client side prediction tries to smooth things out
-    this.client_smooth = 25;            //amount of smoothing to apply to client update dest
+    this.show_help = false; //Whether or not to draw the help text
+    this.naive_approach = false; //Whether or not to use the naive approach
+    this.show_server_pos = false; //Whether or not to show the server position
+    this.show_dest_pos = false; //Whether or not to show the interpolation goal
+    this.client_predict = true; //Whether or not the client is predicting input
+    this.input_seq = 0; //When predicting client inputs, we store the last input as a sequence number
+    this.client_smoothing = true; //Whether or not the client side prediction tries to smooth things out
+    this.client_smooth = 25; //amount of smoothing to apply to client update dest
 
-    this.net_latency = 0.001;           //the latency between the client and the server (ping/2)
-    this.net_ping = 0.001;              //The round trip time from here to the server,and back
-    this.last_ping_time = 0.001;        //The time we last sent a ping
-    this.fake_lag = 0;                //If we are simulating lag, this applies only to the input client (not others)
+    this.net_latency = 0.001; //the latency between the client and the server (ping/2)
+    this.net_ping = 0.001; //The round trip time from here to the server,and back
+    this.last_ping_time = 0.001; //The time we last sent a ping
+    this.fake_lag = 0; //If we are simulating lag, this applies only to the input client (not others)
     this.fake_lag_time = 0;
 
-    this.net_offset = 100;              //100 ms latency between server and client interpolation for other clients
-    this.buffer_size = 2;               //The size of the server history to keep for rewinding/interpolating.
-    this.target_time = 0.01;            //the time where we want to be in the server timeline
-    this.oldest_tick = 0.01;            //the last time tick we have available in the buffer
+    this.net_offset = 100; //100 ms latency between server and client interpolation for other clients
+    this.buffer_size = 2; //The size of the server history to keep for rewinding/interpolating.
+    this.target_time = 0.01; //the time where we want to be in the server timeline
+    this.oldest_tick = 0.01; //the last time tick we have available in the buffer
 
-    this.client_time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
-    this.config.server_time = 0.01;            //The time the server reported it was at, last we heard from it
+    this.client_time = 0.01; //Our local 'clock' based on server time - client interpolation(net_offset).
+    this.config.server_time = 0.01; //The time the server reported it was at, last we heard from it
 
-    this.dt = 0.016;                    //The time that the last frame took to run
-    this.fps = 0;                       //The current instantaneous fps (1/this.dt)
-    this.fps_avg_count = 0;             //The number of samples we have taken for fps_avg
-    this.fps_avg = 0;                   //The current average fps displayed in the debug UI
-    this.fps_avg_acc = 0;               //The accumulation of the last avgcount fps samples
+    this.dt = 0.016; //The time that the last frame took to run
+    this.fps = 0; //The current instantaneous fps (1/this.dt)
+    this.fps_avg_count = 0; //The number of samples we have taken for fps_avg
+    this.fps_avg = 0; //The current average fps displayed in the debug UI
+    this.fps_avg_acc = 0; //The accumulation of the last avgcount fps samples
 
     this.ping_avg = 0;
     this.ping_avg_acc = 0;
@@ -305,77 +299,74 @@ core_client.prototype.client_create_configuration = function() {
     this.lit = 0;
     this.llt = new Date().getTime();
 
-};//game_core.client_create_configuration
+}; //game_core.client_create_configuration
 
-core_client.prototype.client_create_debug_gui = function() 
-{
+core_client.prototype.client_create_debug_gui = function() {
 
     this.gui = new dat.GUI();
 
     var _playersettings = this.gui.addFolder('Your settings');
 
-        this.colorcontrol = _playersettings.addColor(this, 'color');
+    this.colorcontrol = _playersettings.addColor(this, 'color');
 
-            //We want to know when we change our color so we can tell
-            //the server to tell the other clients for us
-        this.colorcontrol.onChange(function(value) {
-            this.players.self.color = value;
-            localStorage.setItem('color', value);
-            this.socket.send('c.' + value);
-        }.bind(this));
+    //We want to know when we change our color so we can tell
+    //the server to tell the other clients for us
+    this.colorcontrol.onChange(function(value) {
+        this.players.self.color = value;
+        localStorage.setItem('color', value);
+        this.socket.send('c.' + value);
+    }.bind(this));
 
-        _playersettings.open();
+    _playersettings.open();
 
     var _othersettings = this.gui.addFolder('Methods');
 
-        _othersettings.add(this, 'naive_approach').listen();
-        _othersettings.add(this, 'client_smoothing').listen();
-        _othersettings.add(this, 'client_smooth').listen();
-        _othersettings.add(this, 'client_predict').listen();
+    _othersettings.add(this, 'naive_approach').listen();
+    _othersettings.add(this, 'client_smoothing').listen();
+    _othersettings.add(this, 'client_smooth').listen();
+    _othersettings.add(this, 'client_predict').listen();
 
     var _debugsettings = this.gui.addFolder('Debug view');
 
-        _debugsettings.add(this, 'show_help').listen();
-        _debugsettings.add(this, 'fps_avg').listen();
-        _debugsettings.add(this, 'show_server_pos').listen();
-        _debugsettings.add(this, 'show_dest_pos').listen();
-        _debugsettings.add(this, 'local_time').listen();
+    _debugsettings.add(this, 'show_help').listen();
+    _debugsettings.add(this, 'fps_avg').listen();
+    _debugsettings.add(this, 'show_server_pos').listen();
+    _debugsettings.add(this, 'show_dest_pos').listen();
+    _debugsettings.add(this, 'local_time').listen();
 
-        _debugsettings.open();
+    _debugsettings.open();
 
     var _consettings = this.gui.addFolder('Connection');
-        _consettings.add(this, 'net_latency').step(0.001).listen();
-        _consettings.add(this, 'net_ping').step(0.001).listen();
+    _consettings.add(this, 'net_latency').step(0.001).listen();
+    _consettings.add(this, 'net_ping').step(0.001).listen();
 
-            //When adding fake lag, we need to tell the server about it.
-        var lag_control = _consettings.add(this, 'fake_lag').step(0.001).listen();
-        lag_control.onChange(function(value){
-            this.socket.send('l.' + value);
-        }.bind(this));
+    //When adding fake lag, we need to tell the server about it.
+    var lag_control = _consettings.add(this, 'fake_lag').step(0.001).listen();
+    lag_control.onChange(function(value) {
+        this.socket.send('l.' + value);
+    }.bind(this));
 
-        _consettings.open();
+    _consettings.open();
 
     var _netsettings = this.gui.addFolder('Networking');
 
-        _netsettings.add(this, 'net_offset').min(0.01).step(0.001).listen();
-        _netsettings.add(this, 'server_time').step(0.001).listen();
-        _netsettings.add(this, 'client_time').step(0.001).listen();
-        //_netsettings.add(this, 'oldest_tick').step(0.001).listen();
+    _netsettings.add(this, 'net_offset').min(0.01).step(0.001).listen();
+    _netsettings.add(this, 'server_time').step(0.001).listen();
+    _netsettings.add(this, 'client_time').step(0.001).listen();
+    //_netsettings.add(this, 'oldest_tick').step(0.001).listen();
 
-        _netsettings.open();
+    _netsettings.open();
 
 }; //game_core.client_create_debug_gui
 
-core_client.prototype.client_reset_positions = function()
-{
+core_client.prototype.client_reset_positions = function() {
     console.log('## client_reset_positions');
 
     // console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.core.getplayers.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
     //*
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = room.length - 1; i >= 0 ; i--)
-    {
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    for (var i = room.length - 1; i >= 0; i--) {
         //console.log('pos:', room[i].pos, room[i].instance);
         // room[i].pos = room[i].pos;
 
@@ -412,16 +403,16 @@ core_client.prototype.client_reset_positions = function()
     }
     else
     {*/
-        console.log('pre', this.players.self.pos);
-        //Make sure the local player physics is updated
-        this.players.self.old_state.pos = this.pos(this.players.self.pos);
-        this.players.self.pos = this.pos(this.players.self.pos);
-        this.players.self.cur_state.pos = this.pos(this.players.self.pos);
-        this.players.self.draw();
+    console.log('pre', this.players.self.pos);
+    //Make sure the local player physics is updated
+    this.players.self.old_state.pos = this.pos(this.players.self.pos);
+    this.players.self.pos = this.pos(this.players.self.pos);
+    this.players.self.cur_state.pos = this.pos(this.players.self.pos);
+    this.players.self.draw();
     /*}
     console.log(this.players.self.pos);*/
     console.log('post', this.players.self.pos);
-    
+
 
     //Position all debug view items to their owners position
     /*this.ghosts.server_pos_self.pos = this.pos(this.players.self.pos);
@@ -435,13 +426,13 @@ core_client.prototype.client_onreadygame = function(data) {
     //if (glog)
     console.log('## client_onreadygame', data);
 
-    var server_time = parseFloat(data.replace('-','.'));
+    var server_time = parseFloat(data.replace('-', '.'));
 
     // TODO: Resolve the lines below
     /*var player_host = this.players.self.host ?  this.players.self : this.players.other;
     var player_client = this.players.self.host ?  this.players.other : this.players.self;
     */
-    this.core.local_time = server_time + this.latency;//this.net_latency;
+    this.core.local_time = server_time + this.latency; //this.net_latency;
     console.log('## server time is about ' + this.core.local_time);
     /*
     //Store their info colors for clarity. server is always blue
@@ -458,16 +449,15 @@ core_client.prototype.client_onreadygame = function(data) {
     //console.log(this.players.self.game.orbs);
 
     //Make sure colors are synced up
-     //this.socket.send('c.' + this.players.self.color);
+    //this.socket.send('c.' + this.players.self.color);
 
 }; //client_onreadygame
 
-core_client.prototype.resizeCanvas = function()
-{
+core_client.prototype.resizeCanvas = function() {
     // http://stackoverflow.com/questions/33515707/scaling-a-javascript-canvas-game-properly
     // https://jsfiddle.net/blindman67/fdjqoj04/
     // console.log('vp:', this.viewport);
-    
+
     if (this.viewport == undefined) return;
     console.log('resizeCanvas', this.viewport.width, this.viewport.height, window.innerWidth, window.innerHeight);
 
@@ -502,38 +492,33 @@ core_client.prototype.resizeCanvas = function()
     else winHeight = winWidth / widthToHeight;
     //*/
 
-    this.viewport.width = winWidth;// * ratio;
-    this.viewport.height = winHeight;// * ratio;
+    this.viewport.width = winWidth; // * ratio;
+    this.viewport.height = winHeight; // * ratio;
     this.viewport.style.width = this.viewport.width;
     this.viewport.style.height = this.viewport.height;
 };
 
-core_client.prototype.client_onplayernames = function(data)
-{
+core_client.prototype.client_onplayernames = function(data) {
     var data = JSON.parse(data);
     console.log("== client_onplayernames", data, "==");
     // console.log('len', data.length);
 
     var p;
     // if object, we are updating other clients of new player
-    if (!Array.isArray(data))
-    {
+    if (!Array.isArray(data)) {
         console.log('updating extant clients...', data.name, data.skin);
-        
-        p = _.find(this.core.getplayers.allplayers, {'mp':data.mp});
+
+        p = _.find(this.core.getplayers.allplayers, { 'mp': data.mp });
         if (data.name && data.name !== "undefined")
             p.setPlayerName(data.name);
         if (data.skin)
             p.setSkin(data.skin);
-    }
-    else // otherwise, array will update new client about *all* existing players
+    } else // otherwise, array will update new client about *all* existing players
     {
 
-        for (var i = data.length - 1; i >= 0; i--)
-        {
-            p = _.find(this.core.getplayers.allplayers, {'mp':data[i].mp});
-            if (p)
-            {
+        for (var i = data.length - 1; i >= 0; i--) {
+            p = _.find(this.core.getplayers.allplayers, { 'mp': data[i].mp });
+            if (p) {
                 console.log('* settings player', data[i].name, data[i].team, data[i].skin);
                 if (data[i].name != undefined)
                     p.setPlayerName(data[i].name);
@@ -541,7 +526,7 @@ core_client.prototype.client_onplayernames = function(data)
                     p.team = parseInt(data[i].team);
                 if (data[i].skin != "")
                     p.setSkin(data[i].skin);
-                
+
                 // activate player
                 p.active = true;
                 p.visible = true;
@@ -563,10 +548,9 @@ core_client.prototype.client_onplayernames = function(data)
     }
 };
 
-core_client.prototype.client_onjoingame = function(data)
-{
+core_client.prototype.client_onjoingame = function(data) {
     //if (glog)
-    console.log('## client_onjoingame', data);// (player joined is not host: self.host=false)');
+    console.log('## client_onjoingame', data); // (player joined is not host: self.host=false)');
 
     var _this = this;
 
@@ -612,14 +596,13 @@ core_client.prototype.client_onjoingame = function(data)
     // //Update the local state
     // this.players.self.state = 'connected.joined.waiting';
     // this.players.self.info_color = '#00bb00';
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = room.length - 1; i >= 0; i--)
-    {
-        console.log("----->", room[i].id, playerId);//room[i].team);//.instance);
-        if (room[i].mp == playerMp)//alldata[0])//'cp1')
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    for (var i = room.length - 1; i >= 0; i--) {
+        console.log("----->", room[i].id, playerId); //room[i].team);//.instance);
+        if (room[i].mp == playerMp) //alldata[0])//'cp1')
         {
             console.log('## found player', room[i], room[i].playerName);
-            
+
             room[i].team = team;
             room[i].userid = playerId;
             room[i].id = playerId;
@@ -634,7 +617,7 @@ core_client.prototype.client_onjoingame = function(data)
     // _.forEach(chests, function(chest)
     // {
     //     console.log('adding chest to game!');
-        
+
     //     _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     // });
 
@@ -672,12 +655,10 @@ core_client.prototype.client_onjoingame = function(data)
     //this.client_reset_positions();
 }; //client_onjoingame
 
-core_client.prototype.client_onhostgame = function(data)//, callback)
-{
-    console.log('## client_onhostgame', data);// (player joined is not host: self.host=false)');
-    var _this = this;
+core_client.prototype.client_onhostgame = function(data) {
+    console.log('## client_onhostgame', data); // (player joined is not host: self.host=false)');
 
-    // console.log('derek', data);
+    var _this = this;
 
     var playerMp = data[0];
     var gameId = data[1];
@@ -692,36 +673,7 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
 
     this.config.round = round;
 
-    console.log('round', round, this.config.server_time);//, (roundEndTime - now));
-    
-    /*
-    var alldata = data;//.split("|");
-
-    this.mp = alldata[0];
-    this.gameid = alldata[1];
-    console.log('* game id', this.gameid);
-    
-    //console.log('1',alldata[0]);
-    //console.log('2',alldata[1]);
-    console.log(alldata[2]);
-    //this.orbs = JSON.parse(alldata[2]);
-    var chests = alldata[2];
-    //console.log('chestz',this.core.chests);
-
-    var team = parseInt(alldata[3]);
-    var playerName = alldata[4];
-    var flags = alldata[5];
-    var userid = alldata[6];
-    var others = alldata[7];
-    console.log('others', others);
-    */
-    
-    //console.log('# startpos', startpos);
-
-    //console.log('3',alldata[2]);
-
-    console.log('len', this.core.getplayers.allplayers);//fromRoom(this.xport).length);
-    //console.log('vp', this.viewport);
+    console.log('round', round, this.config.server_time); //, (roundEndTime - now));
 
     //We are not the host
     this.players.self.host = false;
@@ -729,16 +681,19 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
     this.players.self.state = 'connected.joined.waiting';
     this.players.self.info_color = '#00bb00';
 
-    var p = this.core.getplayers.allplayers;//fromRoom(this.playerPort);
-    for (var i = p.length - 1; i >= 0; i--)
-    {
-        console.log("----->", p[i].mp, p[i].team);//.instance);
-        console.log( (p[i].instance) ? p[i].instance.userid : 'no instance');
+    var p = this.core.getplayers.allplayers; //fromRoom(this.playerPort);
+    var nameMatch = false;
+    for (var i = p.length - 1; i >= 0; i--) {
+        console.log("----->", p[i].mp, p[i].team); //.instance);
+        console.log((p[i].instance) ? p[i].instance.userid : 'no instance');
         //, room[i].instance.userid);//, data);
         //if (room[i].mp == data.mp && data.me)//.instance && room[i].instance.userid == data)
-        if (p[i].mp == playerMp)//'cp1')
+        if (p[i].mp == playerMp) //'cp1')
         {
             console.log('## found "self" player', p[i]);
+            // a fresh start
+            p[i].reset();
+
             //console.log(room[i].instance.userid);
             //console.log(room[i].instance.hosting);
             //this.players.self.md = room[i].md;
@@ -767,14 +722,14 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
             p[i].isLocal = true;
             //this.players.self = null;
             this.players.self = p[i];
-            
+
             this.players.self.active = true;
             this.players.self.visible = true;
             this.players.self.dead = false;
             this.players.self.vuln = false;
             this.players.self.landed = 1;
-            this.players.self.pos = {x:0,y:0};
-            this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
+            this.players.self.pos = { x: 0, y: 0 };
+            this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
 
             // update bonus stats
             var teamBonus;
@@ -786,18 +741,15 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
             this.players.self.playerBonus = 0;
             this.players.self.potionBonus = 0;
             this.players.self.updateBonusesClient([this.players.self.teamBonus, 0, 0]);
-        }
-        else if (!p[i].userid)
-        {
-            console.log('* found "other" player instance', p[i]);
-            
-            _.forEach(others, function(other)
-            {
+        } else if (!p[i].userid) {
+            // console.log('* found "other" player instance', p[i]);
+
+            _.forEach(others, function(other) {
                 console.log('->', other.mp, p[i].mp);
-                if (other.mp == p[i].mp)
-                {
+                if (other.mp == p[i].mp) {
                     console.log('* assigning userid to other player...', other);
-                    
+
+                    p[i].isLocal = false;
                     p[i].userid = other.userid;
                     p[i].id = other.userid;
                     p[i].userid = other.userid;
@@ -809,50 +761,57 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
                     p[i].setPlayerName(other.playerName);
                     p[i].setSkin(other.skin);
                     p[i].buffIdsToSlots(other.buffs); // buffs? do I mean slots?
-                    // add score?
                     // add bonuses?
                     // add roundBuff?
+
+                    if (other.playerName === playerName)
+                        nameMatch = true;
                 }
             });
         }
     }
 
-    _.forEach(chests, function(chest)
-    {
+    // if name match, append rng
+    if (nameMatch)
+        _this.players.self.setPlayerName(playerName + "_" + Math.floor((Math.random() * 98) + 1));
+
+
+    // populate existing consumables
+    _.forEach(chests, function(chest) {
         // { c: 2, v: 5, t: 1, i: 1192407040, x: '1904', y: '1408' }
         // console.log("* consumable:", chest);
         _this.core.chests.push(new game_chest(chest, true, _this.core.getplayers, _this.config));
     });
 
+    // populate flags in their current state
     var cflag;
-    console.log('* flags', flags);//, this.core.config.flagObjects);
+    console.log('* flags', flags); //, this.core.config.flagObjects);
+    if (!this.core.config.flagObjects) console.warn("* onhost -- NO FLAGS!!!!");
     this.config.preflags = [];
-    _.forEach(flags, function(flag)
-    {
-        cflag = _.find(_this.core.config.flagObjects, {'name': flag.name});
+    _.forEach(flags, function(flag) {
+        cflag = _.find(_this.core.config.flagObjects, { 'name': flag.name });
         console.log('* cflag', cflag);
-        if (cflag)
-        {
+        if (cflag) {
             cflag.visible = flag.visible;
             cflag.x = flag.x;
             cflag.y = flag.y;
             cflag.sourceSlot = flag.sourceSlot;
             cflag.isActive = flag.isActive;
+        } else {
+            _this.config.preflags.push(flag);
         }
-        else _this.config.preflags.push(flag);
     });
 
     this.updateTerritory();
     this.updateLeaderboard();
 
     // if round complete (stage === 2) show callout
-    if (round.stage === 2)
-    {
+    if (round.stage === 2) {
         // ensure we don't begin on round 2
         if (this.totalRounds === 1)
             this.totalRounds = 0;
         var callout = document.getElementById('roundCompleteCallout');
-        callout.innerHTML = "One moment.<br/> Wave 1 will begin shortly! ";// " + round.endtime - this.config.server_time + " seconds...";
+        callout.innerHTML = "One moment.<br/> Wave 1 will begin shortly! "; // " + round.endtime - this.config.server_time + " seconds...";
         callout.style.display = "block";
         callout.style.animationPlayState = 'running';
 
@@ -864,10 +823,9 @@ core_client.prototype.client_onhostgame = function(data)//, callback)
     }
     // nudge player
     //*
-    setTimeout(function()
-    {
-        if (_this.players.self.active)
-        {
+    setTimeout(function() {
+        if (_this.players.self.active) {
+            _this.players.self.startInBase(); // start afk timer
             _this.players.self.landed = 0; // flying
             _this.players.self.doFlap();
             console.log("nudging", _this.players.self.playerName);
@@ -882,10 +840,10 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 
     //The server sends the time when asking us to host, but it should be a new game.
     //so the value will be really small anyway (15 or 16ms)
-    var server_time = parseFloat(data.replace('-','.'));
+    var server_time = parseFloat(data.replace('-', '.'));
 
     //Get an estimate of the current time on the server
-    this.core.local_time = server_time + this.latency;//this.net_latency;
+    this.core.local_time = server_time + this.latency; //this.net_latency;
 
     //Set the flag that we are hosting, this helps us position respawns correctly
     this.players.self.host = true;
@@ -896,12 +854,11 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 
     this.players.self.mp = "hp";
     this.players.self.mis = "his";
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = room.length - 1; i >= 0; i--)
-    {
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    for (var i = room.length - 1; i >= 0; i--) {
         //console.log("##", room[i]);//.mp, room[i].id);
         //if (room[i].instance) console.log(room[i].instance.userid);
-        if (room[i].mp == 'hp')// == data)
+        if (room[i].mp == 'hp') // == data)
         {
             console.log('## found host player', i);
             this.players.self = room[i];
@@ -919,13 +876,12 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 
 }; //client_onhostgame
 
-core_client.prototype.client_onconnected = function(userid, playerName, skinNumber, playerPort) 
-{
+core_client.prototype.client_onconnected = function(userid, playerName, skinNumber, playerPort) {
     console.log('== client_onconnected ==', userid, playerName, skinNumber, playerPort);
 
     // userid
-    this.players.self.id = userid;//data[0];
-    this.players.self.userid = userid;//data[0];
+    this.players.self.id = userid; //data[0];
+    this.players.self.userid = userid; //data[0];
 
     // player name
     /*
@@ -939,7 +895,7 @@ core_client.prototype.client_onconnected = function(userid, playerName, skinNumb
     // player port
     this.xport = playerPort;
     this.playerPort = playerPort;
-    
+
     /*var playerdata = data.playerdata.split("|");
 
     this.players.self.id = data.id;
@@ -947,13 +903,13 @@ core_client.prototype.client_onconnected = function(userid, playerName, skinNumb
     if (playerdata[0] !== "undefined" && playerdata[0].length > 2)
         this.players.self.playerName = playerdata[0];
     this.players.self.skin = playerdata[1];*/
-    
+
     //this.players.self.playerName = client
     this.players.self.info_color = '#cc0000';
     this.players.self.state = 'connected';
     this.players.self.online = true;
     console.log('self:', this.players.self);
-    
+
 
     // for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
     // {
@@ -989,8 +945,8 @@ core_client.prototype.client_on_otherclientcolorchange = function(data) {
 
 core_client.prototype.client_onping = function(data) {
 
-    this.net_ping = new Date().getTime() - parseFloat( data );
-    this.net_latency = this.net_ping/2;
+    this.net_ping = new Date().getTime() - parseFloat(data);
+    this.net_latency = this.net_ping / 2;
     console.log('onping!');
 }; //client_onping
 
@@ -1003,12 +959,10 @@ core_client.prototype.client_onnetmessage = function(data) {
     var subcommand = commands[1] || null;
     var commanddata = commands[2] || null;
 
-    switch(command)
-    {
+    switch (command) {
         case 's': //server message
 
-            switch(subcommand)
-            {
+            switch (subcommand) {
                 // case 'h' : //host a game requested
                 //     this.client_onhostgame(commanddata); break;
 
@@ -1021,80 +975,86 @@ core_client.prototype.client_onnetmessage = function(data) {
                 // case 'e' : //end game requested
                 //     this.client_ondisconnect(commanddata); break;
 
-                case 'p' : //server ping
-                    this.client_onping(commanddata); break;
+                case 'p': //server ping
+                    this.client_onping(commanddata);
+                    break;
 
-                // case 'n' : // get player names
-                //     this.client_onplayernames(commanddata); break;
+                    // case 'n' : // get player names
+                    //     this.client_onplayernames(commanddata); break;
 
-                // case 'c' : //other player changed colors
-                //     //console.log('got color', commanddata);
-                //     this.client_on_otherclientcolorchange(commanddata); break;
+                    // case 'c' : //other player changed colors
+                    //     //console.log('got color', commanddata);
+                    //     this.client_on_otherclientcolorchange(commanddata); break;
             }
 
             break;
 
-            case 'o': // orbs
+        case 'o': // orbs
 
-                switch(subcommand)
-                {
-                    // remove orb
-                    case 'r' : this.client_on_orbremoval(commanddata); break;
+            switch (subcommand) {
+                // remove orb
+                case 'r':
+                    this.client_on_orbremoval(commanddata);
+                    break;
                     // get orbs
-                    case 'g' : this.client_on_getorbs(commanddata); break;
-                }
+                case 'g':
+                    this.client_on_getorbs(commanddata);
+                    break;
+            }
 
             break;
 
             // case 'c': // chests
 
-                // switch(subcommand)
-                // {
-                    // take
-                    // case 't' : this.client_on_chesttake(commanddata); break;
-                    // remove
-                    // case 'r' : this.client_on_chestremove(commanddata); break;
-                // }
+            // switch(subcommand)
+            // {
+            // take
+            // case 't' : this.client_on_chesttake(commanddata); break;
+            // remove
+            // case 'r' : this.client_on_chestremove(commanddata); break;
+            // }
 
             // break;
 
-            case 'f': // flags
+        case 'f': // flags
 
-                switch(subcommand)
-                {
-                    // add
-                    case 'a' : this.client_onflagadd(commanddata); break;
+            switch (subcommand) {
+                // add
+                case 'a':
+                    this.client_onflagadd(commanddata);
+                    break;
                     // remove
-                    case 'r' : this.client_onflagremove(commanddata); break;
+                case 'r':
+                    this.client_onflagremove(commanddata);
+                    break;
                     // change
-                    case 'c' : this.client_onflagchange(commanddata); break;
-                }
+                case 'c':
+                    this.client_onflagchange(commanddata);
+                    break;
+            }
 
             break;
 
-            case 'p': // players
+        case 'p': // players
 
-                switch(subcommand)
-                {
-                    // killed
-                    // case 'k' : this.client_onplayerkilled(commanddata); break;
-                }
+            switch (subcommand) {
+                // killed
+                // case 'k' : this.client_onplayerkilled(commanddata); break;
+            }
 
-        } //command
+    } //command
 
-        //break; //'s'
+    //break; //'s'
     //} //command
 
 }; //client_onnetmessage
 
-core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, health)
-{
+core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, health) {
     console.log('* client player hit', victim_id, victor_id, dmg, health);
 
     var victim, victor;
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = room.length - 1; i >= 0; i--)
-    {
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    for (var i = room.length - 1; i >= 0; i--) {
         // console.log('id', room[i].id);
         if (room[i].id == victim_id)
             victim = room[i];
@@ -1105,9 +1065,9 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, h
     console.log('victim', victim.playerName);
     if (victor) console.log('was hit by', victor.playerName);
     console.log('for', dmg, 'damage');
-    
+
     // reduce health
-    if (health <= 0)//victim.health - dmg <= 0)
+    if (health <= 0) //victim.health - dmg <= 0)
     {
         console.log("* player", victim, "is DEAD!");
 
@@ -1115,9 +1075,7 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, h
         victim.health = 0;
         // victor.doHitClientVictor(victim, dmg);
         //victim.doKill(victor);//, dmg);
-    }
-    else
-    { 
+    } else {
         // victim.health -= dmg;
         // victim.isHit = 1; // flags hit asset/animation
         // victor.doHitClientVictor(victim, dmg);
@@ -1132,43 +1090,37 @@ core_client.prototype.client_onplayerhit = function(victim_id, victor_id, dmg, h
     // }        
 };
 
-core_client.prototype.client_onplayerkilled = function(victim_id, victor_id)//, dmg, health)//victim_id, victor_id)
-{
-    console.log('== client_onplayerkilled ==', victim_id, victor_id);
-
-    var victim, victor;
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = 0; i < room.length; i++)
+core_client.prototype.client_onplayerkilled = function(victim_id, victor_id) //, dmg, health)//victim_id, victor_id)
     {
-        console.log('id', room[i].id);
-        if (room[i].id == victim_id)
-            victim = room[i];
-        else if (room[i].id == victor_id)
-            victor = room[i];
+        console.log('== client_onplayerkilled ==', victim_id, victor_id);
+
+        var victim, victor;
+        var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+        for (var i = 0; i < room.length; i++) {
+            console.log('id', room[i].id);
+            if (room[i].id == victim_id)
+                victim = room[i];
+            else if (room[i].id == victor_id)
+                victor = room[i];
+        }
+
+        // var _this = this;
+        // var split = data.split("|");
+        // var victim = _.find(_this.core.getplayers.allplayers, 'id', victim);
+        // var victor = _.find(_this.core.getplayers.allplayers, {'id':victor});
+        console.log('victim', victim.mp, victim.playerName);
+        if (victor) {
+            console.log('victor', victor.mp, victor.playerName);
+            victim.doKill(victor);
+        } else victim.doKill();
     }
 
-    // var _this = this;
-    // var split = data.split("|");
-    // var victim = _.find(_this.core.getplayers.allplayers, 'id', victim);
-    // var victor = _.find(_this.core.getplayers.allplayers, {'id':victor});
-    console.log('victim', victim.mp, victim.playerName);
-    if (victor)
-    {
-        console.log('victor', victor.mp, victor.playerName);
-        victim.doKill(victor);
-    }
-    else victim.doKill();
-}
-
-core_client.prototype.client_onplayerreturned = function(userid)
-{
+core_client.prototype.client_onplayerreturned = function(userid) {
     console.log("== client_onplayerreturned ==", userid, this.core.getplayers.allplayers.length);
 
-    for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--)
-    {
+    for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--) {
         console.log("*", this.core.getplayers.allplayers[i].userid);
-        if (this.core.getplayers.allplayers[i].userid == userid)
-        {
+        if (this.core.getplayers.allplayers[i].userid == userid) {
             console.log("* found returned player", userid, this.players.self.userid);
             this.core.getplayers.allplayers[i].active = true;
             this.core.getplayers.allplayers[i].visible = true;
@@ -1180,8 +1132,7 @@ core_client.prototype.client_onplayerreturned = function(userid)
         }
     }
     //*
-    if (this.players.self.active)
-    {
+    if (this.players.self.active) {
         this.players.self.landed = 0; // flying
         this.players.self.doFlap();
         console.log("nudging", this.players.self.playerName);
@@ -1194,15 +1145,13 @@ core_client.prototype.client_ondisconnect = function(userid) {
     console.log('client_ondisconnect', userid);
 
     // remove player from client (data is disconnected player.mp)
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    for (var i = room.length - 1; i >= 0; i--)
-    {
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    for (var i = room.length - 1; i >= 0; i--) {
         // console.log(room[i]);
-        if (room[i].userid == userid)
-        {
-            console.log('* removing player', room[i].mp);//, data);
+        if (room[i].userid == userid) {
+            console.log('* removing player', room[i].mp); //, data);
             room[i].disconnected = true;
-            room[i].doKill();//active = false;
+            room[i].doKill(); //active = false;
             if (room[i].hasFlag > 0)
                 room[i].dropFlag();
             //room[i].visible = false;
@@ -1226,8 +1175,7 @@ core_client.prototype.client_ondisconnect = function(userid) {
 
 }; //client_ondisconnect
 
-core_client.prototype.client_connect_to_server = function(data)
-{
+core_client.prototype.client_connect_to_server = function(data) {
     console.log('== client_connect_to_server ==', data);
 
     var _this = this;
@@ -1235,15 +1183,15 @@ core_client.prototype.client_connect_to_server = function(data)
     console.log('xport', xport);
     this.xport = xport.toString();
     this.core.getplayers.addRoom(this.xport.toString());
-    
+
     console.log('server port', location.port, location.hostname, location.host);
     console.log('request header', navigator.userAgent, document.referer);
     console.log('cookie', document.cookie);
     console.log('header', location);
     console.log('nav', navigator);
     console.log('doc', document);
-    
-    
+
+
     var socketPort = "3000";
     var hostname = location.hostname;
     // dynamic, server/port-based endpoint
@@ -1255,34 +1203,30 @@ core_client.prototype.client_connect_to_server = function(data)
 
     var url = staticEndpoint;
 
-    console.log("socket url:", url);//, location.port, location);
-    this.socket = Primus.connect(url, 
-    {
+    console.log("socket url:", url); //, location.port, location);
+    this.socket = Primus.connect(url, {
         parser: 'binary',
-        reconnect: 
-        {
+        reconnect: {
             max: Infinity, // Number: The max delay before we try to reconnect.
             min: 500, // Number: The minimum delay before we try reconnect.
             retries: 3 // Number: How many times we should try to reconnect.
         }
     });
-    this.socket.write({cc: assets.playerName + "|" + assets.playerSkin + "|" + this.xport});
+    this.socket.write({ cc: assets.playerName + "|" + assets.playerSkin + "|" + this.xport });
 
     console.log('primus', this.socket);
 
     //When we connect, we are not 'connected' until we have a server id
     //and are placed in a game by the server. The server sends us a message for that.
-    this.socket.on('open', function open()
-    {
+    this.socket.on('open', function open() {
         console.log('* socket open');
-        
+
         this.players.self.state = 'connecting';
         // console.log(this.socket.primus.latency);
 
     }.bind(this));
 
-    this.socket.on('incoming::ping', function(date)
-    {
+    this.socket.on('incoming::ping', function(date) {
         // console.log("* client ping", date);//, Date.now());//Math.floor(new Date().getTime() / 1000));
         _this.latency = Math.abs((Date.now() - date) * 2);
         // console.log("* client ping", _this.latency, date);
@@ -1291,20 +1235,16 @@ core_client.prototype.client_connect_to_server = function(data)
         _this.rt = _this.config.round.endtime - ~~(_this.config.server_time);
         var roundTimerTxt = document.getElementById('txtRoundTimer');
         if (_this.rt > 0)
-            roundTimerTxt.innerHTML = (_this.rt-(_this.rt%=60))/60+(9<_this.rt?':':':0')+_this.rt;
+            roundTimerTxt.innerHTML = (_this.rt - (_this.rt %= 60)) / 60 + (9 < _this.rt ? ':' : ':0') + _this.rt;
         else roundTimerTxt.innerHTML = "--:--";
 
         // update donation health values
         // console.log("* donations", _this.donations.length, _this.core.getplayers.allplayers.length);
-        for (var i = 0; i < _this.donations.length; i++)
-        {
-            for (var j = 0; j < _this.core.getplayers.allplayers.length; j++)
-            {
+        for (var i = 0; i < _this.donations.length; i++) {
+            for (var j = 0; j < _this.core.getplayers.allplayers.length; j++) {
                 // console.log("* this.players.id", _this.core.getplayers.allplayers[j].userid,_this.core.getplayers.allplayers[j].id);
-                if (_this.core.getplayers.allplayers[j].userid === _this.donations[i].user)
-                {
-                    if (_this.donations[i].health !== _this.core.getplayers.allplayers[j].health)
-                    {
+                if (_this.core.getplayers.allplayers[j].userid === _this.donations[i].user) {
+                    if (_this.donations[i].health !== _this.core.getplayers.allplayers[j].health) {
                         // update flag-carrier's health
                         // console.log("Health update!!!!", _this.donations[i].index);
                         document.getElementById("donation-player-health_" + _this.donations[i].index).innerHTML = _this.core.getplayers.allplayers[j].health;
@@ -1315,7 +1255,7 @@ core_client.prototype.client_connect_to_server = function(data)
 
         // update leaderboard every 10 sec
         // console.log(!!_this.config.server_time%10);
-        if (~~_this.config.server_time % 10 === 0)// && _this.config.server_time.toFixed(1) !== _this.lastInfoUpdate)
+        if (~~_this.config.server_time % 10 === 0) // && _this.config.server_time.toFixed(1) !== _this.lastInfoUpdate)
         {
             _this.client_draw_info();
             // store this tick to avoid redundancy
@@ -1323,8 +1263,7 @@ core_client.prototype.client_connect_to_server = function(data)
         }
     });
 
-    this.socket.on('outgoing::pong', function(time)
-    {
+    this.socket.on('outgoing::pong', function(time) {
         // console.log("* client pong", time);
     });
 
@@ -1333,111 +1272,144 @@ core_client.prototype.client_connect_to_server = function(data)
     //     console.log("incomingheartbeat");
     // });
 
-    this.socket.on('data', function message(data)
-    {
+    this.socket.on('data', function message(data) {
         // console.log('* Received @data message from server', this.latency, data);
 
-        switch(data[0])
-        {
+        switch (data[0]) {
             // 1: userid, 2: playerName, 3: skinNum, 4: playerPort
-            case 1: _this.client_onconnected(data[1], data[2], data[3], data[4]); break;
-            // break;
-            
-            // player hit
-            // 1: victim id, 2: victor id, 3: dmg, 4: total health
-            case 5: _this.client_onplayerhit(data[1], data[2], data[3], data[4]); break;
+            case 1:
+                _this.client_onconnected(data[1], data[2], data[3], data[4]);
+                break;
+                // break;
 
-            // player killed
-            // 1: victim id, 2: victor id, 3: dmg, 4: total health
-            case 6: _this.client_onplayerkilled(data[1], data[2]); break;//, data[3], data[4]); break;
-            
-            // player re-joining game after death
-            // 1: returned player id
-            case 7: _this.client_onplayerreturned(data[1]); break;
+                // player hit
+                // 1: victim id, 2: victor id, 3: dmg, 4: total health
+            case 5:
+                _this.client_onplayerhit(data[1], data[2], data[3], data[4]);
+                break;
 
-            // join game
-            case 10: _this.client_onjoingame(data); break;
+                // player killed
+                // 1: victim id, 2: victor id, 3: dmg, 4: total health
+            case 6:
+                _this.client_onplayerkilled(data[1], data[2]);
+                break; //, data[3], data[4]); break;
 
-            // take chest
-            case 15: _this.client_on_chesttake(data[1], data[2], data[3]); break;
+                // player re-joining game after death
+                // 1: returned player id
+            case 7:
+                _this.client_onplayerreturned(data[1]);
+                break;
 
-            // chest removed
-            case 16: _this.client_on_chestremove(data[1], data[2]); break;
+                // join game
+            case 10:
+                _this.client_onjoingame(data);
+                break;
 
-            // flag slotted in plaque (player)
-            case 20: _this.client_onflagadd(data[1], data[2], data[3]); break;
+                // take chest
+            case 15:
+                _this.client_on_chesttake(data[1], data[2], data[3]);
+                break;
 
-            // flag taken from plaque (player)
-            case 21: _this.client_onflagremove(data[1], data[2], data[3]); break;
+                // chest removed
+            case 16:
+                _this.client_on_chestremove(data[1], data[2]);
+                break;
 
-            // flag visibility changed (map)
-            case 22: _this.client_onflagchange(data[1], data[2], data[3], data[4]); break;
+                // flag slotted in plaque (player)
+            case 20:
+                _this.client_onflagadd(data[1], data[2], data[3]);
+                break;
 
-            // disconnect
-            case 25: _this.client_ondisconnect(data[1]); break;
+                // flag taken from plaque (player)
+            case 21:
+                _this.client_onflagremove(data[1], data[2], data[3]);
+                break;
 
-            // game round complete
-            case 30: _this.client_onroundcomplete(data[1]); break;
+                // flag visibility changed (map)
+            case 22:
+                _this.client_onflagchange(data[1], data[2], data[3], data[4]);
+                break;
 
-            // bonus round complete
-            case 31: _this.client_onbonusroundcomplete(data[1]); break;
+                // disconnect
+            case 25:
+                _this.client_ondisconnect(data[1]);
+                break;
 
-            // protection ended
-            case 35: _this.client_onprotectioncomplete(); break;
+                // game round complete
+            case 30:
+                _this.client_onroundcomplete(data[1]);
+                break;
 
-            // update player bonuses
-            case 40: _this.client_onbonusupdate(data[1], data[2], data[3]); break;
+                // bonus round complete
+            case 31:
+                _this.client_onbonusroundcomplete(data[1]);
+                break;
 
-            // bonus penalty expired
-            case 41: _this.client_onbonuspenaltyexpired(data); break;
+                // protection ended
+            case 35:
+                _this.client_onprotectioncomplete();
+                break;
 
-            // game is full
-            case 50: _this.client_ongamefull(); break;
+                // update player bonuses
+            case 40:
+                _this.client_onbonusupdate(data[1], data[2], data[3]);
+                break;
 
-            // donation
-            case 55: _this.client_ondonation(data[1], data[2], data[3], data[4]); break;
+                // bonus penalty expired
+            case 41:
+                _this.client_onbonuspenaltyexpired(data);
+                break;
 
-            // events
-            case 100: _this.client_onevents(data[1]); break;
+                // game is full
+            case 50:
+                _this.client_ongamefull();
+                break;
 
-            // onserverupdate (streaming)
-            default: _this.client_onserverupdate_recieved(data); break;
-            
+                // donation
+            case 55:
+                _this.client_ondonation(data[1], data[2], data[3], data[4]);
+                break;
+
+                // events
+            case 100:
+                _this.client_onevents(data[1]);
+                break;
+
+                // onserverupdate (streaming)
+            default:
+                _this.client_onserverupdate_recieved(data);
+                break;
+
         }
     });
 
-    this.socket.on('error', function error(err)
-    {
+    this.socket.on('error', function error(err) {
         console.log('* primus error', err.stack);
     });
 
-    this.socket.on('reconnect', function error(opts)
-    {
+    this.socket.on('reconnect', function error(opts) {
         console.log('* primus attempting reconnect...', opts);
     });
 
-    this.socket.on('end', function end()
-    {
+    this.socket.on('end', function end() {
         console.log('* Connection closed!');
     });
 
-    this.socket.emits('event', function parser(next, structure) 
-    {
+    this.socket.emits('event', function parser(next, structure) {
         console.log('socket.emits');
-        
+
         next(undefined, structure.data);
     });
     //There are cases where it is necessary to retrieve the spark.id 
     // from the client. To make this easier, we added a primus.id() method 
     // that takes a callback function to which the id will be passed.
-    this.socket.id(function (id) 
-    {
+    this.socket.id(function(id) {
         console.log('* requesting socket id', id);
     });
     // this.socket.on('onconnected', function(data)
     // {
     //     console.log('ONconnected!', data);
-        
+
     // })
     //Sent when we are disconnected (network, server down, etc)
     this.socket.on('disconnect', this.client_ondisconnect.bind(this));
@@ -1474,65 +1446,60 @@ core_client.prototype.client_connect_to_server = function(data)
 }; //game_core.client_connect_to_server
 
 
-core_client.prototype.client_refresh_fps = function() 
-{
+core_client.prototype.client_refresh_fps = function() {
     //We store the fps for 10 frames, by adding it to this accumulator
     this.fps = 1 / this.core.dt;
     this.fps_avg_acc += this.fps;
     this.fps_avg_count++;
 
     //When we reach 10 frames we work out the average fps
-    if(this.fps_avg_count >= 10) {
+    if (this.fps_avg_count >= 10) {
 
-        this.fps_avg = this.fps_avg_acc/10;
+        this.fps_avg = this.fps_avg_acc / 10;
         this.fps_avg_count = 1;
         this.fps_avg_acc = this.fps;
 
     } //reached 10 frames
 }; //game_core.client_refresh_fps
 
-core_client.prototype.updateLeaderboard = function()
-{
+core_client.prototype.updateLeaderboard = function() {
     console.log("== updateLeaderboard ==");
 
     var hscore = [];
     // _.forEach(_this.core.getplayers.fromRoom(this.xport), function(p)
     // _.forEach(_this.core.getplayers.allplayers, function(p)
     var p;
-    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
-    {
+    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--) {
         p = this.core.getplayers.allplayers[j];
         if (p.active && p.score > 0)
             hscore.push({ name: p.playerName, score: p.score, team: p.team, visible: p.visible });
         // if respawning, auto-set score to 0
-        if (!p.visible)// || !p.active)
+        if (!p.visible) // || !p.active)
             p.score = 0;
     }
     // sort it
     hscore = _.orderBy(hscore, ['score'], ['desc']);
 
     // if more than 10 players, take the top 10
-    if (hscore.length > 10)
-    {
+    if (hscore.length > 10) {
         hscore = hscore.slice(hscore, 0, 10);
     }
     // don't update if redundant
     if (hscore == this.last_hscore) return;
     else this.last_hscore = hscore;
-    
+
     // update DOM #scoreboard items
     var tbl = document.getElementById('scoreslist');
     var color;
     // _.forEach(hscore, function(p, i)
     //var p;
-    for (var i = hscore.length - 1; i >= 0; i--)
-    {
+    for (var i = hscore.length - 1; i >= 0; i--) {
         p = hscore[i];
-        tbl.rows[i].cells.namedItem("index_" + (i+1).toString()).innerHTML = (i + 1).toString() + ". ";
-        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_name").innerHTML = p.name;
-        tbl.rows[i].cells.namedItem("p" + (i+1).toString() + "_score").innerHTML = p.score;
+        tbl.rows[i].cells.namedItem("index_" + (i + 1).toString()).innerHTML = (i + 1).toString() + ". ";
+        tbl.rows[i].cells.namedItem("p" + (i + 1).toString() + "_name").innerHTML = p.name;
+        tbl.rows[i].cells.namedItem("p" + (i + 1).toString() + "_score").innerHTML = p.score;
         // set color
-        if (!p.visible)// || !p.active)
+        if (!p.visible) // || !p.active)
             color = "lightgray";
         else if (p.team == 1) color = "#FF6961";
         else color = "#6ebee6";
@@ -1540,8 +1507,7 @@ core_client.prototype.updateLeaderboard = function()
     }
 }
 
-core_client.prototype.client_draw_info = function() 
-{
+core_client.prototype.client_draw_info = function() {
     // if (glog) 
     // console.log('client_draw_info');
     var _this = this;
@@ -1563,15 +1529,13 @@ core_client.prototype.client_draw_info = function()
     // console.log('* latency', this.latency);//, this.last_ping_time, this.socket);//.timers.timers.heartbeat);
     // TODO: move html ui out of this fnc. Text should be updated via event...
     //*
-    if (this.socket && document.getElementById('txtPing').innerHTML != this.latency)
-    {
-        document.getElementById('txtPing').innerHTML = this.latency;//net_ping;// + "/" + this.last_ping_time;
+    if (this.socket && document.getElementById('txtPing').innerHTML != this.latency) {
+        document.getElementById('txtPing').innerHTML = this.latency; //net_ping;// + "/" + this.last_ping_time;
     }
     /////////////////////////////////
     // fps
     /////////////////////////////////
-    if (document.getElementById('txtFPS').innHTML != this.fps_avg)
-    {
+    if (document.getElementById('txtFPS').innHTML != this.fps_avg) {
         document.getElementById('txtFPS').innerHTML = Math.ceil(this.fps_avg);
     }
     //*/
@@ -1591,7 +1555,7 @@ core_client.prototype.client_draw_info = function()
     // if (s > 0)
     //     roundTimerTxt.innerHTML = (s-(s%=60))/60+(9<s?':':':0')+s;
     // else roundTimerTxt.innerHTML = "--:--";
-    
+
     // /////////////////////////////////
     // // leaderboard
     // /////////////////////////////////
@@ -1619,7 +1583,7 @@ core_client.prototype.client_draw_info = function()
     // // don't update if redundant
     // if (hscore == this.last_hscore) return;
     // else this.last_hscore = hscore;
-    
+
     // // update DOM #scoreboard items
     // var tbl = document.getElementById('scoreslist');
     // var color;
@@ -1678,32 +1642,28 @@ core_client.prototype.client_draw_info = function()
 
 // };
 
-core_client.prototype.client_on_chesttake = function(id, player, bonus)
-{
+core_client.prototype.client_on_chesttake = function(id, player, bonus) {
     console.log('client_on_chesttake', 'id', id, 'player', player);
     // var split = data.split("|");
     // var id = split[0];
     // var player = split[1];
     // _.forEach(this.core.chests, function(chest)
     var chest;
-    for (var i = this.core.chests.length - 1; i >= 0; i--)
-    {
+    for (var i = this.core.chests.length - 1; i >= 0; i--) {
         chest = this.core.chests[i];
         // console.log('chest id', chest.id, id);
-        if (chest.id == id)
-        {
+        if (chest.id == id) {
             // chest is opened
             // console.log('* consume', chest);
-            
+
             chest.opening = true;
 
             // if self is player, notify player
-            if (player == this.players.self.userid)
-            {
+            if (player == this.players.self.userid) {
                 // add bonus value to consumable v param (value)
                 if (bonus)
                     chest.data.v += bonus;
-                
+
                 this.players.self.addConsumable(chest.data);
             }
             break;
@@ -1711,8 +1671,7 @@ core_client.prototype.client_on_chesttake = function(id, player, bonus)
     }
 };
 
-core_client.prototype.client_on_chestremove = function(id, player)
-{
+core_client.prototype.client_on_chestremove = function(id, player) {
     console.log('=== client_on_chestremove ===');
     var _this = this;
 
@@ -1720,13 +1679,11 @@ core_client.prototype.client_on_chestremove = function(id, player)
     // var id = split[0];
     // var player = split[1];
 
-    _.forEach(this.core.chests, function(chest)
-    {
+    _.forEach(this.core.chests, function(chest) {
         //console.log('chest id', chest.id);
-        if (chest.id == id)
-        {
+        if (chest.id == id) {
             // chest is opened
-            _.remove(_this.core.chests, {id: chest.id});
+            _.remove(_this.core.chests, { id: chest.id });
             console.log('* chest removed', id, _this.core.chests);
             return false; // break
         }
@@ -1734,8 +1691,7 @@ core_client.prototype.client_on_chestremove = function(id, player)
 };
 
 // slot flag in placque
-core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
-{
+core_client.prototype.client_onflagadd = function(userid, slotName, flagName) {
     console.log('client_onflagadd', userid, slotName, flagName);
 
     // var _this = this;
@@ -1753,10 +1709,8 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     /////////////////////////////////////
     // var room = this.core.getplayers.getRoomNameByUserId(userid);
     // _.forEach(this.core.getplayers.fromRoom(room), function(ply)
-    _.forEach(this.core.getplayers.allplayers, function(ply)
-    {
-        if (ply.userid == userid)
-        {
+    _.forEach(this.core.getplayers.allplayers, function(ply) {
+        if (ply.userid == userid) {
             playerSource = ply;
             return false; // break
         }
@@ -1770,26 +1724,22 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     // show flag in slot
     /////////////////////////////////////
     var targetSlot, flagSlotted;
-    _.forEach(this.core.config.flagObjects, function(fo)
-    {
+    _.forEach(this.core.config.flagObjects, function(fo) {
         console.log('*', fo.name, slotName, flagName);
-        if (fo.name == slotName)
-        {
+        if (fo.name == slotName) {
             targetSlot = fo;
             //targetSlot.targetSlot = flag.getTargetSlot(parseInt(playerSource.team), fo.sourceSlot);
-            console.log('tslot', fo);//flagTaken.targetSlot);
+            console.log('tslot', fo); //flagTaken.targetSlot);
             //return false; // break
-        }
-        else if (fo.name == flagName)
-        {
+        } else if (fo.name == flagName) {
             flagSlotted = fo;
             console.log('tflag', fo);
         }
     });
     if (flagSlotted.name == "redFlag" || flagSlotted.name == "blueFlag")
         flagSlotted.x = targetSlot.x + (targetSlot.width / 2);
-    else flagSlotted.x = targetSlot.x - (targetSlot.width/2);
-    flagSlotted.y = targetSlot.y - (targetSlot.height/2);
+    else flagSlotted.x = targetSlot.x - (targetSlot.width / 2);
+    flagSlotted.y = targetSlot.y - (targetSlot.height / 2);
     flagSlotted.sourceSlot = targetSlot.name;
     flagSlotted.visible = true;
     flagSlotted.isActive = false;
@@ -1800,15 +1750,13 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
-    if (playerSource.userid != this.players.self.userid && this.config.round.active === true)
-    {
-        var msg =
-        {
+    if (playerSource.userid != this.players.self.userid && this.config.round.active === true) {
+        var msg = {
             action: "slotFlag",
-            playerName: playerSource.playerName,//"Jouster",
-            playerTeam: playerSource.team,//0,
-            flagName: flagSlotted.name,//"Mid Flag",
-            targetSlot: flagSlotted.targetSlot//"Placque #3"
+            playerName: playerSource.playerName, //"Jouster",
+            playerTeam: playerSource.team, //0,
+            flagName: flagSlotted.name, //"Mid Flag",
+            targetSlot: flagSlotted.targetSlot //"Placque #3"
         };
         // if (this.config.round.active === true)
         new game_toast().show(msg);
@@ -1820,8 +1768,7 @@ core_client.prototype.client_onflagadd = function(userid, slotName, flagName)
 };
 
 // take flag from placque
-core_client.prototype.client_onflagremove = function(player_id, flagName, flagTakenAt)
-{
+core_client.prototype.client_onflagremove = function(player_id, flagName, flagTakenAt) {
     console.log('client_onflagremove', player_id, flagName, flagTakenAt);
 
     // var _this = this;
@@ -1838,11 +1785,9 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     /////////////////////////////////////
     // get source player
     /////////////////////////////////////
-    var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
-    _.forEach(room, function(ply)
-    {
-        if (ply.id == player_id)
-        {
+    var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
+    _.forEach(room, function(ply) {
+        if (ply.id == player_id) {
             playerSource = ply;
             return false; // break
         }
@@ -1853,11 +1798,9 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     // hide flag taken
     /////////////////////////////////////
     // var targetSlot;
-    _.forEach(this.core.config.flagObjects, function(flag)
-    {
+    _.forEach(this.core.config.flagObjects, function(flag) {
         console.log(flag.name, flagName);
-        if (flag.name == flagName)
-        {
+        if (flag.name == flagName) {
             flagTaken = flag;
             flagTaken.targetSlot = flag.getTargetSlot(parseInt(playerSource.team), flag.sourceSlot);
             console.log('* tslot', flagTaken.targetSlot);
@@ -1870,7 +1813,7 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     flagTaken.isHeld = true;
     flagTaken.timer = -1; // if 0, flag will auto-reset
     flagTaken.isActive = false;
-    flagTaken.heldBy = playerSource.userid;//mp;
+    flagTaken.heldBy = playerSource.userid; //mp;
     console.log('* flag taken post', flagTaken.name, flagTaken.visible, flagTaken.image);
 
     // set player's has flag attribute // 0 = none, 1 = midflag, 2 = redflag, 3 = blueflag
@@ -1887,32 +1830,29 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
     console.log("* by team", playerSource.team); // 1=red, 2=blue
 
     // set player navigation notifers
-    if (playerSource.isLocal)
-    {
-        var flagTarget = this.config._.find(this.core.config.flagObjects, {"name":flagTaken.targetSlot});
+    if (playerSource.isLocal) {
+        var flagTarget = this.config._.find(this.core.config.flagObjects, { "name": flagTaken.targetSlot });
         console.log("* setting flagTargetPos", flagTarget.x, flagTarget.y);
 
         playerSource.flagTargetPos.x = flagTarget.x;
         playerSource.flagTargetPos.y = flagTarget.y;
-    }
-    else if (playerSource.team === this.players.self.team) // if carrier on same team, show donation UI
+    } else if (playerSource.team === this.players.self.team) // if carrier on same team, show donation UI
     {
         console.log("* show FlagCarrier Donation UI");
 
         this.addDonation(playerSource, flagTaken);
         // stub data
-        // if (this.donations.length < 2)
-        // {
-        // var playerSource2 = {};
-        // playerSource2.userid = "2222222";
-        // playerSource2.health = 52;
-        // playerSource2.playerName = "Player 2";
-        // this.addDonation(playerSource2, flagTaken);
-        // var playerSource3 = {};
-        // playerSource3.userid = "33333333";
-        // playerSource3.health = 53;
-        // playerSource3.playerName = "Player 3";
-        // this.addDonation(playerSource3, flagTaken);
+        // if (this.donations.length < 2) {
+        //     var playerSource2 = {};
+        //     playerSource2.userid = "2222222";
+        //     playerSource2.health = 52;
+        //     playerSource2.playerName = "Player 2";
+        //     this.addDonation(playerSource2, flagTaken);
+        //     var playerSource3 = {};
+        //     playerSource3.userid = "33333333";
+        //     playerSource3.health = 53;
+        //     playerSource3.playerName = "Player 3";
+        //     this.addDonation(playerSource3, flagTaken);
         // }
         // // add carrier to global donations array (userid, index)
         // var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
@@ -1976,74 +1916,67 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 
     // activate topbar UI
     // source slot becomes color of team
-    switch(flagTaken.sourceSlot)
-    {
+    switch (flagTaken.sourceSlot) {
         case "midSlot": // flagMid
             // document.getElementById("flagMid").style.border = (playerSource.team === 1) ? "1px solid red" : "1px solid blue";
-        break;
+            break;
 
         case "slotRed": // flagRedBase
             // document.getElementById("flagRedBase").style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
-        break;
+            break;
 
         case "slotBlue": // flagBlueBase
             // document.getElementById("flagBlueBase").style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
-        break;
+            break;
 
-        default: 
+        default:
             var num = flagTaken.sourceSlot.split("slot")[1];
             // document.getElementById("flag" + num).style.backgroundColor = (playerSource.team === 1) ? "red" : "blue";
-        break;
+            break;
     }
 
     // target slot blinks
-    switch(flagTaken.targetSlot)
-    {
+    switch (flagTaken.targetSlot) {
         case "slotRed": // flagRedBase
             document.getElementById("flagRedtxt").style.animationPlayState = "running";
-        break;
+            break;
 
         case "slotBlue": // flagBlueBase
             document.getElementById("flagBluetxt").style.animationPlayState = "running";
-        break;
+            break;
 
         case "midSlot": // flagBlueBase
             document.getElementById("flagMidtxt").style.animationPlayState = "running";
-        break;
+            break;
 
-        default: 
+        default:
             var num2 = flagTaken.targetSlot.split("slot")[1];
             // console.log("* num", num2, flagTaken.targetSlot, flagTaken.targetSlot.split("slot"));
             document.getElementById("flag" + num2 + "txt").style.animationPlayState = "running";
-        break;
+            break;
     }
 
     /////////////////////////////////////
     // show toast
     /////////////////////////////////////
-    if (playerSource.isLocal)
-    {
+    if (playerSource.isLocal) {
         // flagTaken.targetSlot
         var url = flagTaken.getUrlBySlotName(flagTaken.targetSlot);
         // use buff UI, pic of target slot and text
         document.getElementById('buffInfoImage').style.backgroundImage = "url('" + url + "')";
         document.getElementById('buffInfoLabel').innerHTML = "Plant the " + flagTaken.name + " into " + flagTaken.getSlotName(flagTaken.targetSlot) + "!";
         document.getElementById('buffInfo').style.display = "flex";
-        document.getElementById('buffInfo').addEventListener('webkitAnimationEnd', function()
-        {
+        document.getElementById('buffInfo').addEventListener('webkitAnimationEnd', function() {
             console.log("* animation end");
             this.style.display = "none";
         }, false);
-    }
-    else if (this.config.round.active === true)
-    {
-        var msg =
-        {
+    } else if (this.config.round.active === true) {
+        var msg = {
             action: "takeFlag",
-            playerName: playerSource.playerName,//"Jouster",
-            playerTeam: playerSource.team,//0,
-            flagName: flagTaken.name,//"Mid Flag",
-            targetSlot: flagTaken.targetSlot//"Placque #3"
+            playerName: playerSource.playerName, //"Jouster",
+            playerTeam: playerSource.team, //0,
+            flagName: flagTaken.name, //"Mid Flag",
+            targetSlot: flagTaken.targetSlot //"Placque #3"
         };
         // if (this.config.round.active != true)
         new game_toast().show(msg);
@@ -2054,117 +1987,108 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
 // TODO: Remove flag if toastMsg.action=="carrierStunned" from toastMsg.flagholder
 // toastMsg params: action, flagName, userid, ame, flagVisible, toastMsg
 // remove playerName, playerTeam and otherTeam, get these vals from userid
-core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsg, carrierId)//Raw)
-{
-    console.log('client_onflagchange', flagName, flagVisible, toastMsg, carrierId);
-    // var split = data.split("|");
-    // var flagName = split[0];
-    // var flagVisible = (split[1] == 'true');
-    // var toastMsg = JSON.parse(toastMsgRaw);
-
-    // remove flag from carrier
-
-    // restore flag to slot of origin
-    var flagObj = this.config._.find(this.core.config.flagObjects, {"name":flagName});
-    console.log('* flagObj', flagObj);
-    flagObj.visible = flagVisible;
-    //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
-
-    // stop blinking on target slot
-    var slot;
-    switch(flagObj.targetSlot)
+core_client.prototype.client_onflagchange = function(flagName, flagVisible, toastMsg, carrierId) //Raw)
     {
-        case "slotRed":
-            slot = 'flagRedtxt';
-        break;
-        case "slot1":
-            slot = 'flag1txt';
-        break;
-        case "slot2":
-            slot = 'flag2txt';
-        break;
-        case "slot3":
-            slot = 'flag3txt';
-        break;
-        case "slot4":
-            slot = 'flag4txt';
-        break;
-        case "slot5":
-            slot = 'flag5txt';
-        break;
-        case "midSlot":
-            slot = 'flagMidtxt';
-        break;
-        case "slot6":
-            slot = 'flag6txt';
-        break;
-        case "slot7":
-            slot = 'flag7txt';
-        break;
-        case "slot8":
-            slot = 'flag8txt';
-        break;
-        case "slot9":
-            slot = 'flag9txt';
-        break;
-        case "slot10":
-            slot = 'flag10txt';
-        break;
-        case "slotBlue":
-            slot = 'flagBluetxt';
-        break;
-    }
-    console.log('* slot', slot, document.getElementById(slot));
-    document.getElementById(slot).style.animationPlayState = "paused";
-    // document.getElementById(slot).animation = 'blinking 1s linear infinte';
-    // document.getElementById(slot).classList.remove('blinking');
-    // document.getElementById(slot).classList.add('blinking');
+        console.log('client_onflagchange', flagName, flagVisible, toastMsg, carrierId);
+        // var split = data.split("|");
+        // var flagName = split[0];
+        // var flagVisible = (split[1] == 'true');
+        // var toastMsg = JSON.parse(toastMsgRaw);
 
-    // remove flag from carrier
-    console.log('* flagCarrier', carrierId);
-    if (carrierId)
-    {
-        for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--)
-        {
-            if (this.core.getplayers.allplayers[i].id === carrierId)
-            {
-                this.core.getplayers.allplayers[i].hasFlag = 0;
+        // remove flag from carrier
+
+        // restore flag to slot of origin
+        var flagObj = this.config._.find(this.core.config.flagObjects, { "name": flagName });
+        console.log('* flagObj', flagObj);
+        flagObj.visible = flagVisible;
+        //console.log('flagName', flagName, flagVisible, flagVisible, flagObj);
+
+        // stop blinking on target slot
+        var slot;
+        switch (flagObj.targetSlot) {
+            case "slotRed":
+                slot = 'flagRedtxt';
                 break;
-            }
+            case "slot1":
+                slot = 'flag1txt';
+                break;
+            case "slot2":
+                slot = 'flag2txt';
+                break;
+            case "slot3":
+                slot = 'flag3txt';
+                break;
+            case "slot4":
+                slot = 'flag4txt';
+                break;
+            case "slot5":
+                slot = 'flag5txt';
+                break;
+            case "midSlot":
+                slot = 'flagMidtxt';
+                break;
+            case "slot6":
+                slot = 'flag6txt';
+                break;
+            case "slot7":
+                slot = 'flag7txt';
+                break;
+            case "slot8":
+                slot = 'flag8txt';
+                break;
+            case "slot9":
+                slot = 'flag9txt';
+                break;
+            case "slot10":
+                slot = 'flag10txt';
+                break;
+            case "slotBlue":
+                slot = 'flagBluetxt';
+                break;
         }
-        this.removeDonation(carrierId);
-    }
+        console.log('* slot', slot, document.getElementById(slot));
+        document.getElementById(slot).style.animationPlayState = "paused";
+        // document.getElementById(slot).animation = 'blinking 1s linear infinte';
+        // document.getElementById(slot).classList.remove('blinking');
+        // document.getElementById(slot).classList.add('blinking');
 
-    // display toast msg
-    console.log('toastMsg', toastMsg, this.config.round.active);    
-    if (toastMsg && this.config.round.active === true)
-    {
-        // suppress message if round complete
-        // if (!this.config.round.active)
+        // remove flag from carrier
+        console.log('* flagCarrier', carrierId);
+        if (carrierId) {
+            for (var i = this.core.getplayers.allplayers.length - 1; i >= 0; i--) {
+                if (this.core.getplayers.allplayers[i].id === carrierId) {
+                    this.core.getplayers.allplayers[i].hasFlag = 0;
+                    break;
+                }
+            }
+            this.removeDonation(carrierId);
+        }
+
+        // display toast msg
+        console.log('toastMsg', toastMsg, this.config.round.active);
+        if (toastMsg && this.config.round.active === true) {
+            // suppress message if round complete
+            // if (!this.config.round.active)
             new game_toast().show(toastMsg);
-    }
-};
+        }
+    };
 
-core_client.prototype.addDonation = function(playerSource, flagTaken)
-{
+core_client.prototype.addDonation = function(playerSource, flagTaken) {
     console.log("== addDonation ==", playerSource.playerName, flagTaken.name);
 
-    this.donations.push({ user:playerSource.userid, index:this.donations.length + 1, health:playerSource.health, p:playerSource, f:flagTaken });
+    this.donations.push({ user: playerSource.userid, index: this.donations.length + 1, health: playerSource.health, p: playerSource, f: flagTaken });
     this.updateDonations();
 }
-core_client.prototype.removeDonation = function(userid)
-{
+core_client.prototype.removeDonation = function(userid) {
     console.log("=== removeDonation ==", userid);
 
     var indexRemoved = 0;
     var newNode, newContainer;
 
-    for (var i = 0; i < this.donations.length; i++)
-    {
-        if (this.donations[i].user === userid)
-        {
+    for (var i = 0; i < this.donations.length; i++) {
+        if (this.donations[i].user === userid) {
             console.log("* found donation!", userid);
-            
+
             indexRemoved = this.donations[i].index;
             this.donations.splice(i, 1);
             this.updateDonations();
@@ -2175,28 +2099,23 @@ core_client.prototype.removeDonation = function(userid)
     // this.donations.splice(indexRemoved - 1, 1);
 }
 
-core_client.prototype.updateDonations = function()
-{
+core_client.prototype.updateDonations = function() {
     console.log("== updateDonations ==");
 
     // first, let's sort the array by donation.index
-    this.donations.sort(function(a, b)
-    {
+    this.donations.sort(function(a, b) {
         return a.index - b.index;
     });
     console.log("* donations array", this.donations);
 
     var node;
     // remove nodes
-    for (var i = 1; i <= 3; i++)
-    {
+    for (var i = 1; i <= 3; i++) {
         // first, remove donation buttons
         node = document.getElementById('donation_item_' + i);
-        if (node)
-        {
+        if (node) {
             // delete children
-            while(node.firstChild)
-            {
+            while (node.firstChild) {
                 // console.log('* removing child', node, node.firstChild);                
                 node.removeChild(node.firstChild);
             }
@@ -2207,8 +2126,7 @@ core_client.prototype.updateDonations = function()
     }
     // add nodes
     var playerSource, flagTaken, len;
-    for (i = 0; i < this.donations.length; i++)
-    {
+    for (i = 0; i < this.donations.length; i++) {
         // set vars
         len = i + 1;
         playerSource = this.donations[i].p;
@@ -2219,15 +2137,14 @@ core_client.prototype.updateDonations = function()
         var src = document.getElementById('donations');
         var donation = src.cloneNode(true);
         document.body.appendChild(donation);
-        
+
         // rename node and its children
         donation.id = "donation_item_" + len;
         this.renameDescendantsOfNode(donation, len);
 
         // determine donation UI location based on device
         var bottom = 20; // browser
-        if (assets.device.isMobile)
-        {
+        if (assets.device.isMobile) {
             if (assets.device.isPhone)
                 bottom = 100; // phone
             else bottom = 150; // tablet
@@ -2251,9 +2168,11 @@ core_client.prototype.updateDonations = function()
         document.getElementById("donations-ui_" + len).className = "donation-ui";
         document.getElementById("donations-button-container_" + len).className = "donations-button-container";
 
+        console.log("* donate index", this.donations[i].index);
+        document.getElementById("donations-button-image").src = "https://s3.amazonaws.com/com.dfeddon.wingdom/donation-" + this.donations[i].index + ".png";
+
         // touch/click handler this.submitDonationByNum(1);
-        item.addEventListener('click', function(e)
-        {
+        item.addEventListener('click', function(e) {
             console.log("* donation submit", e.srcElement.id, e.srcElement.id.charAt(e.srcElement.id.length - 1));
             // webkit.messageHandlers.callbackHandler.postMessage("donation");
             _this.submitDonationByNum(parseInt(e.srcElement.id.charAt(e.srcElement.id.length - 1)));
@@ -2265,24 +2184,35 @@ core_client.prototype.updateDonations = function()
         document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
         // flag taken
         var flagName;
-        switch(flagTaken.name)
-        {
-            case "midFlag": flagName = "flag-mid-r"; break;
-            case "redFlag": flagName = "flag-red-r"; break;
-            case "blueFlag": flagName = "flag-blue-r"; break;
-            // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
+        switch (flagTaken.name) {
+            case "midFlag":
+                flagName = "flag-mid-r";
+                break;
+            case "redFlag":
+                flagName = "flag-red-r";
+                break;
+            case "blueFlag":
+                flagName = "flag-blue-r";
+                break;
+                // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
         }
         document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
         // player skin
         document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
         // plaque
         var slotName
-        switch(flagTaken.targetSlot)
-        {
-            case "midSlot": slotName = "flag-slot-mid"; break;
-            case "slotRed": slotName = "flag-slot-red"; break;
-            case "slotBlue": slotName = "flag-slot-blue"; break;
-            default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
+        switch (flagTaken.targetSlot) {
+            case "midSlot":
+                slotName = "flag-slot-mid";
+                break;
+            case "slotRed":
+                slotName = "flag-slot-red";
+                break;
+            case "slotBlue":
+                slotName = "flag-slot-blue";
+                break;
+            default:
+                slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
         }
         document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
         // player health
@@ -2292,24 +2222,21 @@ core_client.prototype.updateDonations = function()
 
 }
 
-core_client.prototype.client_onprotectioncomplete = function()
-{
+core_client.prototype.client_onprotectioncomplete = function() {
     console.log('== client_onprotectioncomplete ==');
     this.players.self.protection = false;
     document.getElementById('protection-badge').style.display = "none";
 }
 
-core_client.prototype.client_onbonusupdate = function(team, player, potions)
-{
+core_client.prototype.client_onbonusupdate = function(team, player, potions) {
     console.log("== client_onbonusupdate ==", team, player, potions);
     // this.players.self.playerBonus += this.dazed;
     // if (data.length === 3)
-        this.players.self.updateBonusesClient([team, player, potions]);
+    this.players.self.updateBonusesClient([team, player, potions]);
     // else console.warn("* client_onbonusupdate: data length mismatch!", data.length);
 }
 
-core_client.prototype.client_onbonuspenaltyexpired = function(data)
-{
+core_client.prototype.client_onbonuspenaltyexpired = function(data) {
     console.log("== client_onbonuspenaltyexpired ==", data);
     // this.players.self.playerBonus += this.dazed;
     this.players.self.updateBonusesClient([data[1], data[2], data[3]]);
@@ -2317,20 +2244,18 @@ core_client.prototype.client_onbonuspenaltyexpired = function(data)
     document.getElementById('dazed-badge').style.display = "none";
 }
 
-core_client.prototype.client_onbonusroundcomplete = function(round)
-{
+core_client.prototype.client_onbonusroundcomplete = function(round) {
     console.log('== client_onbonusroundcomplete ==');
 
     var _this = this;
 
-    if (assets.device.ios && assets.device.isNative)
-    {
+    if (assets.device.ios && assets.device.isNative) {
         window.webkit.messageHandlers.callbackHandler.postMessage("controlsShow")
     }
 
     // update client round total
     if (!this.config.respawning)
-    this.totalRounds++;
+        this.totalRounds++;
 
     // restore timer
     this.config.round = round;
@@ -2347,12 +2272,15 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     go.innerHTML = "Wave " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
     go.style.display = "block";
     go.style.animationPlayState = 'running';
+
+    // update wave number
+    document.getElementById("lblRoundTimer").innerHTML = "Wave " + this.totalRounds.toString();
+
     //*
-    setTimeout(function()
-    {
+    setTimeout(function() {
         go.style.display = "none";
-        if (_this.players.self.active && _this.players.self.landed > 0 && !_this.config.respawning)
-        {
+        if (_this.players.self.active && _this.players.self.landed > 0 && !_this.config.respawning) {
+            _this.players.self.startInBase(); // start afk timer
             _this.players.self.landed = 0; // flying
             _this.players.self.doFlap();
             console.log("nudging", _this.players.self.playerName);
@@ -2362,14 +2290,12 @@ core_client.prototype.client_onbonusroundcomplete = function(round)
     // go.style.display = "none";
 };
 
-core_client.prototype.client_onroundcomplete = function(winners)
-{
+core_client.prototype.client_onroundcomplete = function(winners) {
     console.log('== client_onroundcomplete ==');
 
     var _this = this;
 
-    if (assets.device.ios && assets.device.isNative)
-    {
+    if (assets.device.ios && assets.device.isNative) {
         window.webkit.messageHandlers.callbackHandler.postMessage("controlsHide");
     }
 
@@ -2378,8 +2304,7 @@ core_client.prototype.client_onroundcomplete = function(winners)
 
     // remove donations
     var i = this.donations.length;
-    while(i--)
-    {
+    while (i--) {
         this.removeDonation(this.donations[i].user);
     }
 
@@ -2413,29 +2338,24 @@ core_client.prototype.client_onroundcomplete = function(winners)
     // stop game loop and inputs
     this.config.round.active = false;
 
-    if (this.config.respawning === true)
-    {
+    if (this.config.respawning === true) {
         console.log("* respawning, suppress round complete view...");
         // purge active wave buffs
 
         // purge buffs and bonuses
         var ply = this.core.getplayers.allplayers;
         var c;
-        for (c = ply.length - 1; c >= 0; c--)
-        {
+        for (c = ply.length - 1; c >= 0; c--) {
             // purge client buffs and bonuses
             ply[c].purgeBuffsAndBonuses();
         }
         // assign bonus buffs to winners (delay so that new buffs above aren't redacted)
-        setTimeout(function()
-        {
+        setTimeout(function() {
             var p;
             console.log('* winners', ply);
-            for (var w = 0; w < winners.length; w++)
-            {
-                if (winners[w][1])
-                {
-                    p = _this.config._.find(ply, {userid:winners[w][1]});
+            for (var w = 0; w < winners.length; w++) {
+                if (winners[w][1]) {
+                    p = _this.config._.find(ply, { userid: winners[w][1] });
                     if (!p) console.log('* Error: unable to find winning (disconnected) player!', winners[w]);
                     else if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
                     else // player found on client!
@@ -2449,22 +2369,19 @@ core_client.prototype.client_onroundcomplete = function(winners)
             }
 
             // if player awarded bonus, show it
-            if (_this.players.self.bonusSlot)
-            {
+            if (_this.players.self.bonusSlot) {
                 console.log('* local player has buff!');
                 // var game_buffs = _this.game_buffs();
                 var buffImage = _this.game_buffs.getImageById(_this.players.self.bonusSlot);
                 var bonus = document.getElementById('bonusslot-container');
                 bonus.style.display = "flex";
                 bonus.style.backgroundImage = "url('" + buffImage + "')";
-            }
-            else
-            { 
+            } else {
                 console.log("* local player did NOT win a buff...");
                 document.getElementById('bonusslot-container').style.backgroundImage = "none";
                 document.getElementById('bonusslot-container').style.display = "none";
             }
-            
+
         }, 2000);
 
         // now, get out!
@@ -2478,16 +2395,14 @@ core_client.prototype.client_onroundcomplete = function(winners)
     callout.style.animationPlayState = 'running';
 
     // delay round winners UI
-    setTimeout(function()
-    {
+    setTimeout(function() {
         callout.style.display = "none";
-        if (!_this.players.self.dead && !_this.players.self.dying)// && !_this.config.respawning)
-            _this.roundWinnersView(winners); 
+        if (!_this.players.self.dead && !_this.players.self.dying) // && !_this.config.respawning)
+            _this.roundWinnersView(winners);
     }, 5000);
 }
 
-core_client.prototype.client_ongamefull = function()
-{
+core_client.prototype.client_ongamefull = function() {
     console.log('== client_ongamefull ==');
     var currentPort = parseInt(this.xport);
     console.log('current port', currentPort);
@@ -2499,8 +2414,7 @@ core_client.prototype.client_ongamefull = function()
     document.getElementById('holderStatus').innerHTML = "Game is full!";
 }
 
-core_client.prototype.client_on_orbremoval = function(data)
-{
+core_client.prototype.client_on_orbremoval = function(data) {
     // data = orb id | player mp
     var split = data.split("|");
     var id = split[0];
@@ -2508,7 +2422,7 @@ core_client.prototype.client_on_orbremoval = function(data)
     var isLocal = false;
     var orbFound = false;
     //if (this.players.self.mp == mp)
-        //isLocal = true;
+    //isLocal = true;
     //console.log('## orbRemoval', id, mp);//, isLocal);//, this.orbs[index]);
 
     // if player got orb, already removed
@@ -2518,10 +2432,8 @@ core_client.prototype.client_on_orbremoval = function(data)
         return;
     }*/
     //this.orbs.splice(index, 1);
-    for (var i = 0; i < this.orbs.length; i++)
-    {
-        if (this.orbs[i].id == id)
-        {
+    for (var i = 0; i < this.orbs.length; i++) {
+        if (this.orbs[i].id == id) {
             orbFound = true;
             this.orbs[i].x = -100;
             this.orbs[i].y = -100;
@@ -2531,7 +2443,7 @@ core_client.prototype.client_on_orbremoval = function(data)
 
             // local player got orb
             //if (this.players.self.isLocal === true)
-                //this.players.self.updateMana(this.orbs[i].w);
+            //this.players.self.updateMana(this.orbs[i].w);
             break;
         }
     }
@@ -2540,89 +2452,85 @@ core_client.prototype.client_on_orbremoval = function(data)
     //else console.log('orb id', id, 'not found!');
 };
 
-core_client.prototype.submitDonationByNum = function(num)
-{
+core_client.prototype.submitDonationByNum = function(num) {
     console.log("#### donation submitted to", num);
-        for (var i = 0; i < this.donations.length; i++)
-        {
-            console.log("* index", typeof(this.donations[i].index), typeof(num));
-            if (this.donations[i].index === num)
-            {
-                console.log("* found donation", this.donations[i]);
-                // for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
-                // {
-                //     // console.log("* this.players.id", _this.core.getplayers.allplayers[j].userid,_this.core.getplayers.allplayers[j].id);
-                //     if (this.core.getplayers.allplayers[j].index === this.donations[i].user)
-                //     {
-                        console.log('* writing donation to socket');
-                        this.socket.write({donate:[this.donations[i].user, this.players.self.userid, this.xport]});
-                    // }
-                // }
-            }
-        }
-}
-core_client.prototype.handleKeyEvent = function(e)
-{
-    // console.log("client handling key events!", e);
-    var key = 0;
-    switch(e.keyCode)
-    {
-        case 49: key = 1; break;
-        case 50: key = 2; break;
-        case 51: key = 3; break;
-    }
-    if (key > 0)
-    {
-        console.log("key", key);
-        for (var i = 0; i < this.donations.length; i++)
-        {
-            console.log(this.donations[i]);
-            if (this.donations[i].index === key)
-            {
-                console.log("DONATION", key);
-                this.submitDonationByNum(key);
-            }
+    for (var i = 0; i < this.donations.length; i++) {
+        console.log("* index", typeof(this.donations[i].index), typeof(num));
+        if (this.donations[i].index === num) {
+            console.log("* found donation", this.donations[i]);
+            // for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
+            // {
+            //     // console.log("* this.players.id", _this.core.getplayers.allplayers[j].userid,_this.core.getplayers.allplayers[j].id);
+            //     if (this.core.getplayers.allplayers[j].index === this.donations[i].user)
+            //     {
+            console.log('* writing donation to socket');
+            this.socket.write({ donate: [this.donations[i].user, this.players.self.userid, this.xport] });
+            // }
+            // }
         }
     }
 }
-// core_client.prototype.view = window;
-/*core_client.prototype.view = window;
-core_client.handle_keydown = function(args)
-{
-    console.log("handle_keydown", args);
-}
-core_client.prototype.listen = function()
-{
-    this.view.addEventListener('keydown', function(e)
+core_client.prototype.handleKeyEvent = function(e) {
+        // console.log("client handling key events!", e);
+        var key = 0;
+        switch (e.keyCode) {
+            case 49:
+                key = 1;
+                break;
+            case 50:
+                key = 2;
+                break;
+            case 51:
+                key = 3;
+                break;
+        }
+        if (key > 0) {
+            console.log("key", key);
+            for (var i = 0; i < this.donations.length; i++) {
+                console.log(this.donations[i]);
+                if (this.donations[i].index === key) {
+                    console.log("DONATION", key);
+                    this.submitDonationByNum(key);
+                }
+            }
+        }
+    }
+    // core_client.prototype.view = window;
+    /*core_client.prototype.view = window;
+    core_client.handle_keydown = function(args)
     {
-       this.view.handle_keydown(e);
-    }.bind(this), false);
-}
-document.onkeydown(this.submitDonationByNum(this));*/
-// window.onkeydown = function(e)
-// {
-//     console.log("keydown", e);
-//     console.log(e.view.game_core.prototype.donationProxy('1'));
-//     if (e.keyCode === 49)
-//     {
-//         console.log("key 1");
-//         for (var i = 0; i < this.donations.length; i++)
-//         {
-//             console.log(this.donations[i]);
-//             if (this.donations[i].index === 1)
-//             {
-//                 console.log("DONATION 1!");
-//             }
-//         }
-//     }
-// }
-core_client.prototype.client_handle_input = function(key)
-{
+        console.log("handle_keydown", args);
+    }
+    core_client.prototype.listen = function()
+    {
+        this.view.addEventListener('keydown', function(e)
+        {
+           this.view.handle_keydown(e);
+        }.bind(this), false);
+    }
+    document.onkeydown(this.submitDonationByNum(this));*/
+    // window.onkeydown = function(e)
+    // {
+    //     console.log("keydown", e);
+    //     console.log(e.view.game_core.prototype.donationProxy('1'));
+    //     if (e.keyCode === 49)
+    //     {
+    //         console.log("key 1");
+    //         for (var i = 0; i < this.donations.length; i++)
+    //         {
+    //             console.log(this.donations[i]);
+    //             if (this.donations[i].index === 1)
+    //             {
+    //                 console.log("DONATION 1!");
+    //             }
+    //         }
+    //     }
+    // }
+core_client.prototype.client_handle_input = function(key) {
     //if (glog)
     // console.log('## client_handle_input', this.players.self.active);//this.keyboard);//this.keyboard.pressed('up'));
 
-    if (this.players.self.active === false)
-    {
+    if (this.players.self.active === false) {
         // console.log('input disabled', key);
         return;
     }
@@ -2643,47 +2551,47 @@ core_client.prototype.client_handle_input = function(key)
     { 
         input.push('1');
     }*/
-    if( this.keyboard.pressed('A') ||
-        this.keyboard.pressed('left') || key=='A') {
+    if (this.keyboard.pressed('A') ||
+        this.keyboard.pressed('left') || key == 'A') {
 
-            //x_dir = -1;
-            // y_dir = this.players.self.vy;//0.5;//1;
-            // x_dir = this.players.self.vx;
-            input.push('l');
-                //alert('dirl start');
+        //x_dir = -1;
+        // y_dir = this.players.self.vy;//0.5;//1;
+        // x_dir = this.players.self.vx;
+        input.push('l');
+        //alert('dirl start');
 
-        } //left
+    } //left
 
-    if( this.keyboard.pressed('D') ||
-        this.keyboard.pressed('right') || key=='D') {
+    if (this.keyboard.pressed('D') ||
+        this.keyboard.pressed('right') || key == 'D') {
 
-            //x_dir = 1;
-            // y_dir = this.players.self.vy;//0.5;//1;
-            // x_dir = this.players.self.vx;
-            input.push('r');
+        //x_dir = 1;
+        // y_dir = this.players.self.vy;//0.5;//1;
+        // x_dir = this.players.self.vx;
+        input.push('r');
 
-        } //right
+    } //right
 
-    if( this.keyboard.pressed('S') ||
+    if (this.keyboard.pressed('S') ||
         this.keyboard.pressed('down')) {
 
-            //y_dir = 1;
-            input.push('d');
+        //y_dir = 1;
+        input.push('d');
 
-        } //down
+    } //down
 
-    if( this.keyboard.pressed('W') ||
-        this.keyboard.pressed('up') || key=='u') {
+    if (this.keyboard.pressed('W') ||
+        this.keyboard.pressed('up') || key == 'u') {
 
-            //y_dir = -1;
-            // console.log('pressed u');
-            // y_dir = this.players.self.vy;//0.5;//1;
-            // x_dir = this.players.self.vx;
-            input.push('u');
-            // this.flapUp = true;
+        //y_dir = -1;
+        // console.log('pressed u');
+        // y_dir = this.players.self.vy;//0.5;//1;
+        // x_dir = this.players.self.vx;
+        input.push('u');
+        // this.flapUp = true;
 
-        } //up
-    
+    } //up
+
     // TODO: Forcing input every milisecond HACK
     // if (this.keyboard.pressed('x'))// || (!this.keyboard.pressed('up')))
     // {
@@ -2692,71 +2600,69 @@ core_client.prototype.client_handle_input = function(key)
     //     // this.flapUp = false;
     // }
 
-    if( this.keyboard.pressed('space')) {
+    if (this.keyboard.pressed('space')) {
 
-            //y_dir = -1;
-            input.push('sp');
+        //y_dir = -1;
+        input.push('sp');
 
-        } //up
-    
+    } //up
+
     // TODO: we are 'faking' input to ensure player is *always* updated
     // if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
     if (this.players.self.vuln) input.length = 0;
     if (input.length === 0) input.push('0');
 
-    if(input.length) 
-    {
+    if (input.length) {
         // this.core.server_control = false;
-        
-            //Update what sequence we are on now
+
+        //Update what sequence we are on now
         this.input_seq += 1;
 
-            //Store the input state as a snapshot of what happened.
+        //Store the input state as a snapshot of what happened.
         this.players.self.inputs.push({
-            inputs : input,
-            time : this.core.local_time.fixed(3),
-            seq : this.input_seq
+            inputs: input,
+            time: this.core.local_time.fixed(3),
+            seq: this.input_seq
         });
 
-            //Send the packet of information to the server.
-            //The input packets are labelled with an 'i' in front.
+        //Send the packet of information to the server.
+        //The input packets are labelled with an 'i' in front.
         var server_packet = 'i.';
         // var server_packet = '';
-            server_packet += input.join('-') + '.';
-            server_packet += this.core.local_time.toFixed(3).replace('.','-') + '.';
-            server_packet += this.input_seq;
+        server_packet += input.join('-') + '.';
+        server_packet += this.core.local_time.toFixed(3).replace('.', '-') + '.';
+        server_packet += this.input_seq;
 
-            //Go
-            // console.log('socket.server_packet', server_packet);
-            
-        this.socket.write({is: server_packet});
+        //Go
+        // console.log('socket.server_packet', server_packet);
+
+        this.socket.write({ is: server_packet });
 
         // release
         server_packet = null;
 
-            //Return the direction if needed
-            y_dir = this.players.self.vy;//0.5;//1;
-            x_dir = this.players.self.vx;
-        return this.core.physics_movement_vector_from_direction( x_dir, y_dir );
+        //Return the direction if needed
+        y_dir = this.players.self.vy; //0.5;//1;
+        x_dir = this.players.self.vx;
+        return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
 
     } else {
         // this.core.server_control = true;
         //return {x:0,y:0};
-        return this.core.physics_movement_vector_from_direction( x_dir, y_dir );
+        return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
 
     }
 
 }; //game_core.client_handle_input
 
-core_client.prototype.client_process_net_prediction_correction = function()
-{
+core_client.prototype.client_process_net_prediction_correction = function() {
     //if (glog)
     // console.log('## client_process_net_prediction_correction', this.server_updates);
     //No updates...
-    if(!this.server_updates.length) return;
+    if (!this.server_updates.length) return;
 
     //The most recent server update
-    var latest_server_data = this.server_updates[this.server_updates.length-1];
+    var latest_server_data = this.server_updates[this.server_updates.length - 1];
 
     //Our latest server position
     //var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
@@ -2764,18 +2670,18 @@ core_client.prototype.client_process_net_prediction_correction = function()
     // console.log('*', this.clientPool, latest_server_data[this.players.self.mp], this.players.self.bufferIndex);
 
     // console.log('userid', this.players.self.userid, latest_server_data);
-    
+
     if (Object.keys(latest_server_data).length === 0) return;
-    
-    var self_sp = latest_server_data[this.players.self.userid];  
+
+    var self_sp = latest_server_data[this.players.self.userid];
     // var self_sp = new Int16Array(latest_server_data[this.players.self.userid], (this.players.self.bufferIndex * 16), 16);
 
     // if (this.players.self.bufferIndex)
     // var self_sp = this.clientPool.set(latest_server_data[this.players.self.mp], (this.players.self.bufferIndex * 16), 16);
     if (self_sp === undefined) return;
     // console.log('len:', self_sp);
-    
-    var my_server_pos = {x:self_sp[0], y:self_sp[1]};
+
+    var my_server_pos = { x: self_sp[0], y: self_sp[1] };
     //var my_server_pos = latest_server_data[this.players.self.mp];
 
     //Update the debug server position block TODO: removed line below
@@ -2785,40 +2691,36 @@ core_client.prototype.client_process_net_prediction_correction = function()
     //by correcting it with the server and reconciling its differences
     //var my_last_input_on_server = this.players.self.host ? latest_server_data.his : latest_server_data.cis;
     var my_last_input_on_server = latest_server_data[this.players.self.mis];
-    if(my_last_input_on_server)
-    {
+    if (my_last_input_on_server) {
         //console.log('mylastinputonserver');
-        
+
         //The last input sequence index in my local input list
         var lastinputseq_index = -1;
         //Find this input in the list, and store the index
-        for(var i = this.players.self.inputs.length - 1; i >= 0; --i)
-        {
-            if(this.players.self.inputs[i].seq == my_last_input_on_server)
-            {
+        for (var i = this.players.self.inputs.length - 1; i >= 0; --i) {
+            if (this.players.self.inputs[i].seq == my_last_input_on_server) {
                 lastinputseq_index = i;
                 //console.log('lastinputseq_index', lastinputseq_index);
-                
+
                 break;
             }
         }
 
         //Now we can crop the list of any updates we have already processed
-        if(lastinputseq_index != -1)
-        {
+        if (lastinputseq_index != -1) {
             // console.log("##############");
             //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
             //and that we can predict from this known position instead
 
             //remove the rest of the inputs we have confirmed on the server
             // var number_to_clear = Math.abs(lastinputseq_index - (-1));
-            this.players.self.inputs.splice(0, Math.abs(lastinputseq_index - (-1)));//number_to_clear);
+            this.players.self.inputs.splice(0, Math.abs(lastinputseq_index - (-1))); //number_to_clear);
             //The player is now located at the new server position, authoritive server
             // this.players.self.cur_state.pos = this.pos(my_server_pos);
             //*
             // interpolate local player (smooth!)
-            this.players.self.cur_state.pos = 
-                        this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
+            this.players.self.cur_state.pos =
+                this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
             //*/
             this.players.self.last_input_seq = lastinputseq_index;
             //Now we reapply all the inputs that we have locally that
@@ -2830,33 +2732,31 @@ core_client.prototype.client_process_net_prediction_correction = function()
         } // if(lastinputseq_index != -1)
 
         //*
-        else
-        {
-            if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true)
-            {
-            // console.log('kkkk');
-            
-            //if (my_server_pos == this.players.self.cur_state.pos) return;
-            //if (this.players.self.landed === 1) return;
+        else {
+            if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true) {
+                // console.log('kkkk');
+
+                //if (my_server_pos == this.players.self.cur_state.pos) return;
+                //if (this.players.self.landed === 1) return;
                 //if (this.players.self.landed===2)
                 //{
-                    //console.log('landed...');
-                    //console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
-                    
-                    
-                    //this.players.self.cur_state.pos = this.pos(my_server_pos);
+                //console.log('landed...');
+                //console.log('dif', this.players.self.cur_state.pos.x - my_server_pos.x, this.players.self.cur_state.pos.y - my_server_pos.y);
 
-                    this.players.self.cur_state.pos = 
-                        this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
-                    //this.players.self.last_input_seq = lastinputseq_index;
-                    //Now we reapply all the inputs that we have locally that
-                    //the server hasn't yet confirmed. This will 'keep' our position the same,
-                    //but also confirm the server position at the same time.
-                    this.client_update_physics();
-                    this.client_update_local_position();
+
+                //this.players.self.cur_state.pos = this.pos(my_server_pos);
+
+                this.players.self.cur_state.pos =
+                    this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
+                //this.players.self.last_input_seq = lastinputseq_index;
+                //Now we reapply all the inputs that we have locally that
+                //the server hasn't yet confirmed. This will 'keep' our position the same,
+                //but also confirm the server position at the same time.
+                this.client_update_physics();
+                this.client_update_local_position();
                 //}
             }
-            
+
         }
         //*/
 
@@ -2866,8 +2766,7 @@ core_client.prototype.client_process_net_prediction_correction = function()
 
 }; //game_core.client_process_net_prediction_correction
 
-core_client.prototype.client_process_net_updates = function()
-{
+core_client.prototype.client_process_net_updates = function() {
     //if (glog)
     //console.log('## client_process_net_updates');//, this.client_predict);
     // for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
@@ -2877,8 +2776,8 @@ core_client.prototype.client_process_net_updates = function()
 
     //No updates...
     // console.log('server_updates', this.server_updates.length);
-    
-    if(!this.server_updates.length) return;
+
+    if (!this.server_updates.length) return;
 
     var _this = this;
 
@@ -2897,69 +2796,65 @@ core_client.prototype.client_process_net_updates = function()
     //are at the end (list.length-1 for example). This will be expensive
     //only when our time is not found on the timeline, since it will run all
     //samples. Usually this iterates very little before breaking out with a target.
-    for(var i = this.server_updates.length - 1; i >= 0; --i)
-    {
+    for (var i = this.server_updates.length - 1; i >= 0; --i) {
         var point = this.server_updates[i];
-        var next_point = this.server_updates[i+1];
+        var next_point = this.server_updates[i + 1];
 
         //Compare our point in time with the server times we have
-        if(this.nu_current_time > point.t && this.nu_current_time < next_point.t)
-        {
+        if (this.nu_current_time > point.t && this.nu_current_time < next_point.t) {
             this.nu_target = next_point;
             this.nu_previous = point;
             break;
         }
     }
     //console.log(':', this.server_updates);
-    
+
 
     //With no target we store the last known
     //server position and move to that instead
     //console.log('sup', this.server_updates.length);
     //console.log('targ', target);
-    
-    
-    if(!this.nu_target)
-    {
+
+
+    if (!this.nu_target) {
         this.nu_target = this.server_updates[0];
         this.nu_previous = this.server_updates[0];
     }
     //console.log('target', target, 'previous', previous);
-    
+
     //console.log('target', typeof(target), target);
     //console.log('previous', previous);
     //Now that we have a target and a previous destination,
     //We can interpolate between then based on 'how far in between' we are.
     //This is simple percentage maths, value/target = [0,1] range of numbers.
     //lerp requires the 0,1 value to lerp to? thats the one.
-     //console.log(target);
-      //if (target.cp2.f == 1)
-      //var test = new Int16Array(target.cp1, 0, Math.floor(target.cp1.byteLength/2));
+    //console.log(target);
+    //if (target.cp2.f == 1)
+    //var test = new Int16Array(target.cp1, 0, Math.floor(target.cp1.byteLength/2));
     //   var len = target.cp1.byteLength;
     //   console.log('len',len);
-      
-      //console.log(target.cp1, 24, 1);
-      //console.log('len', target.cp1.byteLength);
+
+    //console.log(target.cp1, 24, 1);
+    //console.log('len', target.cp1.byteLength);
     //   for (var x=0; x < target.cp1.byteLength; x++)
     //     console.log(':', target.cp1[x]);
-        
-      
+
+
     //   var view = new Int16Array(target.cp1, 0, 12);//target.cp1.byteLength);//, len);//, Math.floor(target.cp1.byteLength/2));
     //   console.log(view);
-      //console.log(view.getInt16(1, false));
+    //console.log(view.getInt16(1, false));
     //   console.log('* target', target);
     //   console.log('* previous', previous);
-      
+
     //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
-     if(this.nu_target && this.nu_previous)
-     {
+    if (this.nu_target && this.nu_previous) {
 
         this.target_time = this.nu_target.t;
 
         /*var difference = this.target_time - this.nu_current_time;
         var max_difference = (this.nu_target.t - this.nu_previous.t).fixed(3);
         var time_point = (difference/max_difference).fixed(3);*/
-        this.nu_time_point = ( (this.target_time - this.nu_current_time) / (this.nu_target.t - this.nu_previous.t).fixed(3) ).fixed(3);
+        this.nu_time_point = ((this.target_time - this.nu_current_time) / (this.nu_target.t - this.nu_previous.t).fixed(3)).fixed(3);
 
         //Because we use the same target and previous in extreme cases
         //It is possible to get incorrect values due to division by 0 difference
@@ -2979,7 +2874,7 @@ core_client.prototype.client_process_net_updates = function()
         //The most recent server update
         // var latest_server_data = this.server_updates[ this.server_updates.length-1 ];
         // console.log('lsd', latest_server_data);
-        
+
 
         //These are the exact server positions from this tick, but only for the ghost
         // var other_server_pos = this.players.self.host ? latest_server_data.cp : latest_server_data.hp;
@@ -2990,51 +2885,47 @@ core_client.prototype.client_process_net_updates = function()
         //*
 
         // var ghostStub;
-        
+
         //console.log('->:', target.cp1[0], this.players.self.x);
-        
+
         //console.log('len', this.core.getplayers.allplayers.length, this.players.self.mp);
         //for (var j = 0; j < this.core.getplayers.allplayers.length; j++)
         // var vt; // view target
         // var vp; // view previous
-        this.nu_lerp_t={x:NaN,y:NaN};// = {x:0, y:0};
-        this.nu_lerp_p={x:NaN,y:NaN};// = {x:0, y:0};
+        this.nu_lerp_t = { x: NaN, y: NaN }; // = {x:0, y:0};
+        this.nu_lerp_p = { x: NaN, y: NaN }; // = {x:0, y:0};
         // var self_pp;
         // var self_tp;
         //console.log('len', this.core.getplayers.allplayers[0]);//.length);
-        
+
         // _.forEach(_this.core.getplayers.allplayers, function(player, index)
         var player;
-        var room = this.core.getplayers.allplayers;//fromRoom(this.xport);
+        var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
         // console.log('room', room);
-        for (var j = room.length - 1; j >= 0; j--)
-        {
-            player = room[j];//this.core.getplayers.allplayers[j];
+        for (var j = room.length - 1; j >= 0; j--) {
+            player = room[j]; //this.core.getplayers.allplayers[j];
             //console.log('=', player.mp, _this.players.self.mp);
             // console.log('i', player.name, player.userid, player.isLocal);
-            
-            if (!player.userid) continue;//return;
+
+            if (!player.userid) continue; //return;
             // else console.log('#', player.userid, _this.players.self.userid);
-            
+
             // "other" player, not local player "self"
             // if (!player.isLocal)//userid != _this.players.self.userid)// && previous[player.mp])
-            if (!player.isLocal)//player.userid != _this.players.self.userid)
+            if (!player.isLocal) //player.userid != _this.players.self.userid)
             {
                 // console.log('**');//, target[player.mp]);
                 // check for bad objects
-                if (this.nu_target[player.userid] === undefined)
-                {
+                if (this.nu_target[player.userid] === undefined) {
                     console.log('** bad target', this.nu_previous[player.mp]);
-                    if (this.nu_previous[player.userid])// || previous[player.mp] === undefined) 
+                    if (this.nu_previous[player.userid]) // || previous[player.mp] === undefined) 
                         this.nu_target[player.userid] = this.nu_previous[player.userid];
-                    else break;//return;
-                }
-                else if (this.nu_previous[player.userid] === undefined)
-                {
+                    else break; //return;
+                } else if (this.nu_previous[player.userid] === undefined) {
                     console.log('** bad previous', this.nu_target[player.userid]);
-                    if (this.nu_target[player.userid]) 
+                    if (this.nu_target[player.userid])
                         this.nu_previous[player.userid] = this.nu_target[player.userid];
-                    else break;//return;
+                    else break; //return;
                 }
                 this.nu_vt = this.nu_target[player.userid];
                 this.nu_vp = this.nu_previous[player.userid];
@@ -3044,16 +2935,16 @@ core_client.prototype.client_process_net_updates = function()
                 // console.log('vt', vt);
                 // console.log('vp', vp);
 
-                  // check for invalid values (bad socket?)
-                  //if (!(vt[0]>0)) return;
-                  
+                // check for invalid values (bad socket?)
+                //if (!(vt[0]>0)) return;
+
                 //   console.log(view.getUint16(1));//.getInt16(1));//typeof(target.cp1), target.cp1.length);//.getInt16(1));
 
                 // other_server_pos2=latest_server_data[player.mp];
                 // other_target_pos2=latest_server_data[player.mp];
                 // other_past_pos2=latest_server_data[player.mp];
                 // console.log('*', previous[player.mp]);
-                
+
                 var p = {}; // temp player obj
                 // for (var prop in p)
                 // {
@@ -3061,11 +2952,11 @@ core_client.prototype.client_process_net_updates = function()
                 //         delete p[prop];
                 // }
                 p.pos = {}; // temp pos
-                
+
                 // console.log(vt[0]);//vt[0] = this.players.self.cur_state.x;
-                p.pos.x = parseInt(this.nu_vt[0]);//target[player.mp].x;
+                p.pos.x = parseInt(this.nu_vt[0]); //target[player.mp].x;
                 // if (!vt[1]) vt[1] = this.players.self.cur_state.y;
-                p.pos.y = parseInt(this.nu_vt[1]);//target[player.mp].y;
+                p.pos.y = parseInt(this.nu_vt[1]); //target[player.mp].y;
 
                 this.nu_lerp_t.x = parseInt(this.nu_vt[0]);
                 this.nu_lerp_t.y = parseInt(this.nu_vt[1]);
@@ -3079,36 +2970,36 @@ core_client.prototype.client_process_net_updates = function()
                     this.nu_time_point
                 );*/
                 //console.log(player.mp, player.pos);
-                
+
                 /*ghostStub = _this.v_lerp(
                     previous[player.mp],
                     target[player.mp],
                     time_point
                 );*/
                 //console.log('pos', player.pos);
-                
+
                 //console.log(previous[player.mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this.core._pdt*this.client_smooth);
                 //console.log(p.pos);
 
                 //if (ghostStub.x > 0 && ghostStub.y > 0)
                 //if (p.pos.x > 0 && p.pos.y > 0)
-                    //player.pos = p.pos;
+                //player.pos = p.pos;
 
                 // client-server interpolation (if decent fps avg)
                 // console.log("**", p.pos, this.nu_ghostStub);
                 // if (this.fps_avg > 50)
-                    // player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
-                    player.pos = _this.v_lerp(p.pos, this.pos({x:this.nu_lerp_t.x,y:this.nu_lerp_t.y}), _this.core._pdt * _this.client_smooth);
+                // player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
+                player.pos = _this.v_lerp(p.pos, this.pos({ x: this.nu_lerp_t.x, y: this.nu_lerp_t.y }), _this.core._pdt * _this.client_smooth);
                 // console.log('==', player.pos);
                 //else
                 //{ 
-                    //window.alert(p.pos);
-                    //return;
+                //window.alert(p.pos);
+                //return;
                 //}
                 //player.pos = _this.v_lerp(p.pos, ghostStub, _this.core._pdt * _this.client_smooth);
                 // console.log('vt', vt);
-                
+
                 player.setFromBuffer(this.nu_vt);
                 // this.nu_vt = undefined;
                 /*
@@ -3129,12 +3020,12 @@ core_client.prototype.client_process_net_updates = function()
                 //player.dead = (vt[13] == 1) ? true : false;
                 // console.log(player.mp, player.active, player.visible);
                 //if (player.mp == "cp1")
-                    // console.log('#', player.mp, vt);
+                // console.log('#', player.mp, vt);
 
                 // if (player.killedBy > 0)
                 // {
                 //     console.log('**** killing player', vt[11]);
-                    
+
                 //     //player.doKill();
                 // }
 
@@ -3152,13 +3043,12 @@ core_client.prototype.client_process_net_updates = function()
                 player.bubble = target[player.mp].b;
                 //*/
                 // console.log('* p', player.pos);
-                
+
                 // console.log(this.core.getplayers.allplayers[j]);
-            }
-            else // local player
+            } else // local player
             {
                 // console.log('local player');
-                
+
                 // var self_vt = this.nu_target[player.userid];
                 // var self_vp = this.nu_previous[player.userid];
 
@@ -3166,14 +3056,14 @@ core_client.prototype.client_process_net_updates = function()
 
                 /*var self_vt = new Int16Array(target[player.userid], (j * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 var self_vp = new Int16Array(previous[player.userid], (j * 16), 16);*/
-                
+
                 // var self_vt = _this.clientPool(target[player.mp], (index * 16), 16);//, len);//, Math.floor(target.cp1.byteLength/2));
                 // var self_vp = _this.clientPool(previous[player.mp], (index * 16), 16);
                 // console.log('vt', target[player.userid]);
                 // console.log('vp', self_vp);
 
-                this.nu_self_tp = {x:parseInt(this.nu_target[player.userid][0]), y:parseInt(this.nu_target[player.userid][1])};
-                this.nu_self_pp = {x:parseInt(this.nu_previous[player.userid][0]), y:parseInt(this.nu_previous[player.userid][1])};
+                this.nu_self_tp = { x: parseInt(this.nu_target[player.userid][0]), y: parseInt(this.nu_target[player.userid][1]) };
+                this.nu_self_pp = { x: parseInt(this.nu_previous[player.userid][0]), y: parseInt(this.nu_previous[player.userid][1]) };
                 player.bufferIndex = j;
                 // console.log('vt', self_vt);
                 // console.log("*");
@@ -3186,7 +3076,7 @@ core_client.prototype.client_process_net_updates = function()
 
                 this.players.self.setFromBuffer(this.nu_target[player.userid]);
                 // console.log('svrtime', this.config.server_time);
-                
+
                 /*
                 //player.dir = vt[2];
                 //player.flap = (vt[3] === 1) ? true : false;
@@ -3206,7 +3096,7 @@ core_client.prototype.client_process_net_updates = function()
                 //}
                 //*/
                 // console.log('@', _this.players.self.mp, _this.players.self.active, _this.players.self.visible);
-                
+
 
                 // check for invalid values (bad socket?)
                 // if (!(self_vt[0] > 0)) 
@@ -3221,7 +3111,7 @@ core_client.prototype.client_process_net_updates = function()
                 //player.pos.y = self_vt[1];//target[player.mp].y;
                 // console.log('Me', _this.players.self.pos, self_vt);
             }
-            
+
             // for (var k in vt) 
             // {
             //     vt[k] = null;
@@ -3290,20 +3180,21 @@ core_client.prototype.client_process_net_updates = function()
                 //console.log(previous[this.core.getplayers.allplayers[j].mp]);
                 //this.players.other.pos = this.v_lerp( this.players.other.pos2, ghostStub, this.core._pdt*this.client_smooth);
                 pos = _this.v_lerp({x:flag.x,y:flag.y}, ghostStub, _this.core._pdt * _this.client_smooth);
-                *//*
-                console.log(target[flag.id]);
-                flag.x = pos.x;// target[flag.id].x;
-                flag.y = pos.y;//target[flag.id].y;
-                flag.type = target[flag.id].t;
-                flag.isHeld = target[flag.id].h;
-                flag.isPlanted = target[flag.id].p;
-                flag.heldBy = target[flag.id].b;
-                flag.visible = target[flag.id].v;
-                //flag.carryingFlag = JSON.parse(target[flag.id].c);
-                console.log('::', flag.type, flag.x);//, flag.y);
-            }
-        });
-        //*/
+                */
+        /*
+                        console.log(target[flag.id]);
+                        flag.x = pos.x;// target[flag.id].x;
+                        flag.y = pos.y;//target[flag.id].y;
+                        flag.type = target[flag.id].t;
+                        flag.isHeld = target[flag.id].h;
+                        flag.isPlanted = target[flag.id].p;
+                        flag.heldBy = target[flag.id].b;
+                        flag.visible = target[flag.id].v;
+                        //flag.carryingFlag = JSON.parse(target[flag.id].c);
+                        console.log('::', flag.type, flag.x);//, flag.y);
+                    }
+                });
+                //*/
 
         // // process events
         // // console.log(target);
@@ -3394,32 +3285,32 @@ core_client.prototype.client_process_net_updates = function()
 
         // smoothly follow client's destination position
         //console.log('self', this.players.self.pos);
-        
+
         // check for invalid values (bad socket?)
         // if (!(self_tp.x > 0))
         //     this.players.self.playerName = "x: " + self_tp.x;
         // else if (!(self_tp.y > 0))
         //     this.players.self.playerName = "y: " + self_tp.y;
         //console.log(self_tp);
-        
+
         //if (self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)//!= undefined && self_pp[0] != undefined) 
         //{
-            // TODO: bug below - "self_pp" is undefined
-            //* player interpolation
-            if (this.nu_self_pp && this.nu_self_tp)// && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
-            {
-                this.players.self.pos =
-                    this.v_lerp(this.players.self.pos,
-                    this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point),//this.core._pdt*this.client_smooth),
+        // TODO: bug below - "self_pp" is undefined
+        //* player interpolation
+        if (this.nu_self_pp && this.nu_self_tp) // && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
+        {
+            this.players.self.pos =
+                this.v_lerp(this.players.self.pos,
+                    this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), //this.core._pdt*this.client_smooth),
                     this.core._pdt * this.client_smooth
                 );
-            }
-            //*/
+        }
+        //*/
 
-            
+
         //}
         //else this.players.self.pos = this.players.self.old_state;
-        
+
         /*
         this.players.self.pos =
             this.v_lerp(this.players.self.pos,
@@ -3439,72 +3330,70 @@ core_client.prototype.client_process_net_updates = function()
         // if (other_server_pos)
         //if (other_past_pos)
         // {
-            //console.log('a', other_past_pos);
-            //console.log('b', other_target_pos);
-            //console.log('c', time_point);
-            // var ghostStub = this.v_lerp(other_past_pos, other_target_pos, time_point);
-            //this.ghosts.server_pos_other.pos = this.pos(other_server_pos);
-            //this.ghosts.pos_other.pos = this.v_lerp(other_past_pos, other_target_pos, time_point);
+        //console.log('a', other_past_pos);
+        //console.log('b', other_target_pos);
+        //console.log('c', time_point);
+        // var ghostStub = this.v_lerp(other_past_pos, other_target_pos, time_point);
+        //this.ghosts.server_pos_other.pos = this.pos(other_server_pos);
+        //this.ghosts.pos_other.pos = this.v_lerp(other_past_pos, other_target_pos, time_point);
 
-            //if(this.client_smoothing)
-            //{
-                //this.players.other.pos = this.v_lerp( this.players.other.pos, this.ghosts.pos_other.pos, this.core._pdt*this.client_smooth);
-                // TODO: remove check below
-                //if (other_server_pos)
-                // this.players.other.pos = this.v_lerp( this.players.other.pos, ghostStub, this.core._pdt*this.client_smooth);
-            /*}
+        //if(this.client_smoothing)
+        //{
+        //this.players.other.pos = this.v_lerp( this.players.other.pos, this.ghosts.pos_other.pos, this.core._pdt*this.client_smooth);
+        // TODO: remove check below
+        //if (other_server_pos)
+        // this.players.other.pos = this.v_lerp( this.players.other.pos, ghostStub, this.core._pdt*this.client_smooth);
+        /*}
+        else
+        {
+            this.players.other.pos = this.pos(this.ghosts.pos_other.pos);
+        }*/
+        //}
+
+        //Now, if not predicting client movement , we will maintain the local player position
+        //using the same method, smoothing the players information from the past.
+
+        /*if(!this.client_predict && !this.naive_approach)
+        {
+            //These are the exact server positions from this tick, but only for the ghost
+            var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
+
+            //The other players positions in this timeline, behind us and in front of us
+            var my_target_pos = this.players.self.host ? target.hp : target.cp;
+            var my_past_pos = this.players.self.host ? previous.hp : previous.cp;
+
+            //Snap the ghost to the new server position
+            this.ghosts.server_pos_self.pos = this.pos(my_server_pos);
+            var local_target = this.v_lerp(my_past_pos, my_target_pos, time_point);
+
+            //Smoothly follow the destination position
+            if(this.client_smoothing)
+            {
+                this.players.self.pos = this.v_lerp( this.players.self.pos, local_target, this.core._pdt*this.client_smooth);
+            }
             else
             {
-                this.players.other.pos = this.pos(this.ghosts.pos_other.pos);
-            }*/
-            //}
-
-            //Now, if not predicting client movement , we will maintain the local player position
-            //using the same method, smoothing the players information from the past.
-
-            /*if(!this.client_predict && !this.naive_approach)
-            {
-                //These are the exact server positions from this tick, but only for the ghost
-                var my_server_pos = this.players.self.host ? latest_server_data.hp : latest_server_data.cp;
-
-                //The other players positions in this timeline, behind us and in front of us
-                var my_target_pos = this.players.self.host ? target.hp : target.cp;
-                var my_past_pos = this.players.self.host ? previous.hp : previous.cp;
-
-                //Snap the ghost to the new server position
-                this.ghosts.server_pos_self.pos = this.pos(my_server_pos);
-                var local_target = this.v_lerp(my_past_pos, my_target_pos, time_point);
-
-                //Smoothly follow the destination position
-                if(this.client_smoothing)
-                {
-                    this.players.self.pos = this.v_lerp( this.players.self.pos, local_target, this.core._pdt*this.client_smooth);
-                }
-                else
-                {
-                    this.players.self.pos = this.pos( local_target );
-                }
-            }*/
+                this.players.self.pos = this.pos( local_target );
+            }
+        }*/
         //} // if other_server_pos
 
     } //if target && previous
     //else console.log('target/previoius', target, previous);
-    
-// this.nu_target[player.userid] = undefined
+
+    // this.nu_target[player.userid] = undefined
 }; //game_core.client_process_net_updates
 
 ////////////////////////////////
 // process events
 ////////////////////////////////
-core_client.prototype.client_onevents = function(data)
-{
+core_client.prototype.client_onevents = function(data) {
     // console.log('== client_onevents ==', data);
 
     var _this = this;
 
     // first, check for chest events (dynamic)
-    if (_.has(data, 'ec'))
-    {
+    if (_.has(data, 'ec')) {
         // avoid reduncancy
         if (!data.ec) return false; // break
 
@@ -3514,17 +3403,16 @@ core_client.prototype.client_onevents = function(data)
         data.ec = null;
     }
     // flag cooldown
-    if (_.has(data, 'fc'))
-    {
+    if (_.has(data, 'fc')) {
         // console.log('* fc evt', data.fc);
 
         // get client flag (clientCooldown)
-        var cflag = _.find(_this.core.clientCooldowns, {'name':data.fc.f});
+        var cflag = _.find(_this.core.clientCooldowns, { 'name': data.fc.f });
         cflag.heldBy = data.fc.p;
         cflag.timer = data.fc.t;
 
         // get flag obj
-        var flag = _.find(_this.core.config.flagObjects, {'name':data.fc.f});
+        var flag = _.find(_this.core.config.flagObjects, { 'name': data.fc.f });
 
         // set client flag target slot
         cflag.target = flag.targetSlot;
@@ -3533,10 +3421,9 @@ core_client.prototype.client_onevents = function(data)
         //console.log('flag', flag);
 
         // get player
-        var ply = _.find(this.core.getplayers.allplayers, {"userid":data.fc.p});
+        var ply = _.find(this.core.getplayers.allplayers, { "userid": data.fc.p });
         // var ply = this.core.getplayers.getPlayerByUserId(target.fc.p);
-        if (ply)
-        {
+        if (ply) {
             if (cflag.name == "midFlag") ply.hasFlag = 1; // mid
             else if (cflag.name == "redFlag") ply.hasFlag = 2; // red
             else if (cflag.name == "blueFlag") ply.hasFlag = 3; // blue
@@ -3545,26 +3432,23 @@ core_client.prototype.client_onevents = function(data)
 
             //console.log('* flg', flag);
             //console.log('* player', ply);
-        }
-        else console.warn("unable to retrieve player by flag held", data.fc);
+        } else console.warn("unable to retrieve player by flag held", data.fc);
         //if (player)
         //player.carryingFlag.timer = target.fc.t;
     }
     // flag slotted cooldown
-    if (_.has(data, 'fs'))
-    {
+    if (_.has(data, 'fs')) {
         //console.log('has flagslotted cd evt');
         console.log('* fs evt', data.fs);
         // get client flag (clientCooldown)
         /*var cflag = _.find(_this.clientCooldowns, {'name':target.fs.f});
         cflag.timer = target.fs.t;
         console.log('cflag', cflag);*/
-        var flg = _.find(this.core.config.flagObjects, {'name':data.fs.f});
-        flg.timer = data.fs.t;//cflag.timer;
+        var flg = _.find(this.core.config.flagObjects, { 'name': data.fs.f });
+        flg.timer = data.fs.t; //cflag.timer;
 
         // add flg.isActive check to ensure it runs only once
-        if (data.fs.t === 0 && flg.isActive === false)
-        {
+        if (data.fs.t === 0 && flg.isActive === false) {
             console.log('* fs evt = 0!');
 
             flg.isActive = true;
@@ -3581,24 +3465,19 @@ core_client.prototype.client_onevents = function(data)
     }
 }
 
-core_client.prototype.client_ondonation = function(donee, donor, donation, donorName)
-{
+core_client.prototype.client_ondonation = function(donee, donor, donation, donorName) {
     console.log("== client_ondonation ==", donee, donor, donation, donorName);
     // textfloater: show donors name to donee
-    if (this.players.self.userid === donee)
-    {
-        this.players.self.setTextFloater(5,donorName + " +" + donation.toString(),true,1);
-    }
-    else if (this.players.self.userid === donor)
-    {
-        this.players.self.setTextFloater(5,"Donation -" + donation.toString(),true,2);
+    if (this.players.self.userid === donee) {
+        this.players.self.setTextFloater(5, donorName + " +" + donation.toString(), true, 1);
+    } else if (this.players.self.userid === donor) {
+        this.players.self.setTextFloater(5, "Donation -" + donation.toString(), true, 2);
     }
     // textfloater: show donor's health reduction
     // if avail <= 0, remove donation button
 }
 
-core_client.prototype.client_onserverupdate_recieved = function(data)
-{
+core_client.prototype.client_onserverupdate_recieved = function(data) {
     // if (glog)
     // console.log('## client_onserverupdate_recieved', data);
     //console.log(data);
@@ -3615,7 +3494,7 @@ core_client.prototype.client_onserverupdate_recieved = function(data)
     //Store the server time (this is offset by the latency in the network, by the time we get it)
     this.config.server_time = data.t;
     //Update our local offset time from the last server update
-    this.client_time = this.config.server_time - (this.net_offset/1000);
+    this.client_time = this.config.server_time - (this.net_offset / 1000);
 
     //One approach is to set the position directly as the server tells you.
     //This is a common mistake and causes somewhat playable results on a local LAN, for example,
@@ -3626,7 +3505,7 @@ core_client.prototype.client_onserverupdate_recieved = function(data)
     // if (data[this.players.self.mp])
     // {
     //     console.log('me:', data[this.players.self.mp]);
-        
+
     // }
     /*
     if(this.naive_approach)
@@ -3653,9 +3532,8 @@ core_client.prototype.client_onserverupdate_recieved = function(data)
 
     //we limit the buffer in seconds worth of updates
     //60fps*buffer seconds = number of samples
-    if(this.server_updates.length >= ( 60 * this.buffer_size ))
-    {
-        this.server_updates.splice(0,1);
+    if (this.server_updates.length >= (60 * this.buffer_size)) {
+        this.server_updates.splice(0, 1);
     }
 
     //We can see when the last tick we know of happened.
@@ -3672,56 +3550,54 @@ core_client.prototype.client_onserverupdate_recieved = function(data)
 
 }; //game_core.client_onserverupdate_recieved
 
-core_client.prototype.client_update_local_position = function()
-{
+core_client.prototype.client_update_local_position = function() {
 
- //if(this.client_predict)
- //{
-     //if (glog)
-     //console.log('## client_update_local_position');
+    //if(this.client_predict)
+    //{
+    //if (glog)
+    //console.log('## client_update_local_position');
 
-        //Work out the time we have since we updated the state
-        // var t = (this.core.local_time - this.players.self.state_time) / this.core._pdt;
+    //Work out the time we have since we updated the state
+    // var t = (this.core.local_time - this.players.self.state_time) / this.core._pdt;
 
-        //Then store the states for clarity,
-        // var old_state = this.players.self.old_state.pos;
-        //if ()
-        // var current_state = this.players.self.cur_state.pos;
-        //console.log("old", old_state, "current", current_state);
-        //Make sure the visual position matches the states we have stored
-        //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
-        //console.log(current_state.d);
+    //Then store the states for clarity,
+    // var old_state = this.players.self.old_state.pos;
+    //if ()
+    // var current_state = this.players.self.cur_state.pos;
+    //console.log("old", old_state, "current", current_state);
+    //Make sure the visual position matches the states we have stored
+    //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
+    //console.log(current_state.d);
 
-        // TODO: !!! Uncomment below if client pos mismatch !!!
-        //*
-        // console.log(this.core.server_control);
-        
-        // if (!this.core.server_control)
-            this.players.self.pos = this.players.self.cur_state.pos;//current_state;
-        //*/
+    // TODO: !!! Uncomment below if client pos mismatch !!!
+    //*
+    // console.log(this.core.server_control);
 
-        //We handle collision on client if predicting.
-        //if (this.players.self.landed === 1)
-        //this.check_collision( this.players.self );
-        /*
-        if (this.clientWorker_tileCollision)
+    // if (!this.core.server_control)
+    this.players.self.pos = this.players.self.cur_state.pos; //current_state;
+    //*/
+
+    //We handle collision on client if predicting.
+    //if (this.players.self.landed === 1)
+    //this.check_collision( this.players.self );
+    /*
+    if (this.clientWorker_tileCollision)
+    {
+        var message = {player: this.players.self};
+        this.clientWorker_tileCollision.postMessage(message, [message.player]);
+        this.clientWorker_tileCollision.onmessage = evt => 
         {
-            var message = {player: this.players.self};
-            this.clientWorker_tileCollision.postMessage(message, [message.player]);
-            this.clientWorker_tileCollision.onmessage = evt => 
-            {
-                console.log('* got message from worker!', evt);    
-            }
+            console.log('* got message from worker!', evt);    
         }
-        else//*/
-        this.core.check_collision(this.players.self);
+    }
+    else//*/
+    this.core.check_collision(this.players.self);
 
     //}  //if(this.client_predict)
 
 }; //core_client.prototype.client_update_local_position
 
-core_client.prototype.client_update_physics = function()
-{
+core_client.prototype.client_update_physics = function() {
     //if (glog)
     // console.log('## client_update_physics');
     //Fetch the new direction from the input buffer,
@@ -3729,25 +3605,25 @@ core_client.prototype.client_update_physics = function()
 
     //if(this.client_predict)
     //{
-        //if (!this.players.self.old_state) return;
-        this.players.self.old_state.pos = this.pos( this.players.self.cur_state.pos );
-        //if (this.players.self.mp != "hp")
-        //{
-        // var nd = this.core.process_input(this.players.self);
-        // if (nd.x==0&&nd.y==0) this.core.server_control=true;
-        // else this.core.server_control = false;
-        // console.log('nd:', nd);
-        
-        //if (nd.x === 0 && nd.y == 0)
-            // this.players.self.update();
-        //else 
-        this.players.self.cur_state.pos = this.v_add( this.players.self.old_state.pos, this.core.process_input(this.players.self));
-        this.players.self.state_time = this.core.local_time;
-        //}
-        
-        //console.log('nd', nd);
-        
-        //this.players.self.update();
+    //if (!this.players.self.old_state) return;
+    this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
+    //if (this.players.self.mp != "hp")
+    //{
+    // var nd = this.core.process_input(this.players.self);
+    // if (nd.x==0&&nd.y==0) this.core.server_control=true;
+    // else this.core.server_control = false;
+    // console.log('nd:', nd);
+
+    //if (nd.x === 0 && nd.y == 0)
+    // this.players.self.update();
+    //else 
+    this.players.self.cur_state.pos = this.v_add(this.players.self.old_state.pos, this.core.process_input(this.players.self));
+    this.players.self.state_time = this.core.local_time;
+    //}
+
+    //console.log('nd', nd);
+
+    //this.players.self.update();
 
     //}
 
@@ -3762,8 +3638,7 @@ core_client.prototype.client_update_physics = function()
     });*/
 }; //game_core.client_update_physics
 
-core_client.prototype.client_update = function()
-{
+core_client.prototype.client_update = function() {
     //if (glog)
     //console.log('## client_update');
     //console.log(this.viewport);
@@ -3771,9 +3646,9 @@ core_client.prototype.client_update = function()
     // console.log('2', this.players.self);
     // console.log('self::', this.players.self.mp, this.viewport.width);
     // console.log('**', this.players.self.active, this.players.self.landed, this.players.self.pos);
-    
-    
-    
+
+
+
     if (this.players.self.mp == "hp" || !this.config.round.active) return;
 
     // var _this = this;
@@ -3871,11 +3746,10 @@ core_client.prototype.client_update = function()
     // Draw Players
     //////////////////////////////////////////
     // Only draw 'onscreen' players
-    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--)
-    {
+    for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--) {
         // console.log('ply', ply);
         // ply = this.core.getplayers.allplayers[j];
-        if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal)//ply != _this.players.self)// && room[i].active===true)
+        if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal) //ply != _this.players.self)// && room[i].active===true)
         {
             // console.log('#p', ply.pos);
             //ply.draw();
@@ -3898,11 +3772,11 @@ core_client.prototype.client_update = function()
             //*/
             // console.log(window.innerWidth, this.viewport.width);
             //*
-            if (Math.sqrt(  (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * 
-                            (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + 
-                            (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * 
-                            (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) 
-                        ) < (window.innerWidth))// + 64) / 2)
+            if (Math.sqrt((this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) *
+                    (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) +
+                    (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) *
+                    (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y)
+                ) < (window.innerWidth)) // + 64) / 2)
             {
                 // console.log('draw', this.core.getplayers.allplayers[j].playerName, window.innerWidth, window.innerHeight, screen.width, screen.height);
                 this.core.getplayers.allplayers[j].draw();
@@ -3930,8 +3804,7 @@ core_client.prototype.client_update = function()
     // spritesheets
     //for (var k = 0; k < this.spritesheets.length; k++)
     // _.forEach(this.spritesheets, function(ss)
-    for (j = this.spritesheets.length - 1; j >= 0; j--)
-    {
+    for (j = this.spritesheets.length - 1; j >= 0; j--) {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
         this.spritesheets[j].update();
     }
@@ -3939,29 +3812,25 @@ core_client.prototype.client_update = function()
     // chests
     // _.forEach(this.core.getplayers.fromRoom(this.xport, 2), function(chest)
     // _.forEach(_this.core.chests, function(chest)
-    for (j = this.core.chests.length - 1; j >= 0; j--)
-    {
+    for (j = this.core.chests.length - 1; j >= 0; j--) {
         // console.log("chest.draw()", chest);
         this.core.chests[j].draw();
     }
 
     // flags
     // _.forEach(this.core.config.flagObjects, function(flagObj)
-    for (j = this.core.config.flagObjects.length - 1; j >= 0; j--)
-    {
+    for (j = this.core.config.flagObjects.length - 1; j >= 0; j--) {
         //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
         if (this.core.config.flagObjects[j].type == "flag")
             this.core.config.flagObjects[j].draw();
     }
 
     // particles
-    for(j = this.particles.length - 1; j >= 0; j--)
-    {
+    for (j = this.particles.length - 1; j >= 0; j--) {
         // console.log('* particles', this.particles[j].f);
         if (this.particles[j].f < 90)
             this.particles[j].draw();
-        else 
-        {
+        else {
             // console.log("** removing particle!");
             // TODO: cleanup particles release
             // this.particles[j].doRelease();
@@ -3975,7 +3844,7 @@ core_client.prototype.client_update = function()
     // Clear the screen area (just client's viewport, not world)
     // if player stopped, use last camera pos
     // TODO: lerp camera movement for extra smoothness
-    if (this.players.self.landed !== 1)// && this.players.self.pos.x > 0)
+    if (this.players.self.landed !== 1) // && this.players.self.pos.x > 0)
     {
         // var pad = 0;
         // clamp(value, min, max)
@@ -3984,8 +3853,8 @@ core_client.prototype.client_update = function()
         // console.log(this.core._pdt, this.client_smooth);
         this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
-        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
-        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height * 0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0); //this.this.config.world.width);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height * 0.5, -(this.config.world.height - this.viewport.height) - 0, 0); //this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
 
@@ -3994,14 +3863,14 @@ core_client.prototype.client_update = function()
 
 
     //this.ctx.save();
-    this.ctx.setTransform(1,0,0,1,0,0);//reset the transform matrix as it is cumulative
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0); //reset the transform matrix as it is cumulative
     //this.ctx.clearRect(0, 0, this.this.viewport.width, this.this.viewport.height);//clear the viewport AFTER the matrix is reset
 
     //Clamp the camera position to the world bounds while centering the camera around the player
     //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - 50, 50);//this.this.config.world.width);
     //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
     //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
-    this.ctx.translate( this.cam.x, this.cam.y );
+    this.ctx.translate(this.cam.x, this.cam.y);
     //console.log(camX,camY);
     //this.ctx.restore();
 
@@ -4023,20 +3892,19 @@ core_client.prototype.client_update = function()
 
 }; //game_core.update_client
 
-core_client.prototype.tilemapper = function()
-{
+core_client.prototype.tilemapper = function() {
     console.log('tilemapper');
     var canvas3 = document.createElement('canvas');
     canvas3.id = "canvas3";
     canvas3.x = 0;
     canvas3.y = 0;
-    canvas3.width = this.config.world.width;//v.width;
-    canvas3.height = this.config.world.height;//v.height;
+    canvas3.width = this.config.world.width; //v.width;
+    canvas3.height = this.config.world.height; //v.height;
     var context3 = canvas3.getContext('2d');
     /////////////////////////////////////////
     // Tilemap
     /////////////////////////////////////////
-    if (this.tilemap)// && this.tmCanvas == undefined)
+    if (this.tilemap) // && this.tmCanvas == undefined)
     {
         var _this = this;
         // parse xml
@@ -4075,20 +3943,19 @@ core_client.prototype.tilemapper = function()
         var flagObjectsObj;
         //console.log('objectgroups', objectgroupNode.length);
         //for (var og = 0; og < objectgroupNode.length; og++)
-        _.forEach(objectgroupNode, function(ogn)
-        {
+        _.forEach(objectgroupNode, function(ogn) {
             var ogName = ogn.getAttribute('name');
-            console.log('group name', ogName);//, ogn);
+            console.log('group name', ogName); //, ogn);
             var ogInner = ogn.innerHTML;
             var ogRows = ogInner.split("\n");
-            ogRows.shift(); ogRows.pop();
+            ogRows.shift();
+            ogRows.pop();
             //console.log(ogRows);
             var parser = new DOMParser();
             var xml, atts, s;
             var nodes = [];
             //for (var d = 0; d < ogRows.length; d++)
-            _.forEach(ogRows, function(ogr)
-            {
+            _.forEach(ogRows, function(ogr) {
                 // parse to xml
                 xml = parser.parseFromString(ogr, "text/xml");
                 // get attributes (via NamedNodeMap)
@@ -4096,8 +3963,7 @@ core_client.prototype.tilemapper = function()
                 nodes.push(atts);
                 //console.log('atts', atts);
             });
-            switch(ogName)
-            {
+            switch (ogName) {
                 case "chestSpawn":
                     // assign attribues to chest obj
                     /*for (var e = 0; e < nodes.length; e++)
@@ -4110,49 +3976,47 @@ core_client.prototype.tilemapper = function()
                         //console.log('chestSpawn', chestSpawnObj);
                         _this.core.chestspawnPoints.push(chestSpawnObj);
                     }*/
-                break;
+                    break;
 
                 case "flagObjects":
-                // assign attribues to chest obj
-                var flg;
-                //for (var e = 0; e < nodes.length; e++)
-                //var flagObjectsObj;
-                //var objsArray = [];
-                _.forEach(nodes, function(e)
-                {
-                    flagObjectsObj = {};
-                    Array.prototype.slice.call(e).forEach(function(item)
-                    {
-                        flagObjectsObj[item.name] = item.value;
-                    });
-                    console.log('flag obj', flagObjectsObj);
-                    flagArray.push(flagObjectsObj);
-                    //clone = _.cloneDeep(flagObjectsObj);
-                    // note, we set all flag objects to viewport context,
-                    // however, further down we'll reassociate slot flag objects
-                    // with _this.fg canvas context
-                    //if (flagObjectsObj.type == "flag")
-                    //{
+                    // assign attribues to chest obj
+                    var flg;
+                    //for (var e = 0; e < nodes.length; e++)
+                    //var flagObjectsObj;
+                    //var objsArray = [];
+                    _.forEach(nodes, function(e) {
+                        flagObjectsObj = {};
+                        Array.prototype.slice.call(e).forEach(function(item) {
+                            flagObjectsObj[item.name] = item.value;
+                        });
+                        console.log('flag obj', flagObjectsObj);
+                        flagArray.push(flagObjectsObj);
+                        //clone = _.cloneDeep(flagObjectsObj);
+                        // note, we set all flag objects to viewport context,
+                        // however, further down we'll reassociate slot flag objects
+                        // with _this.fg canvas context
+                        //if (flagObjectsObj.type == "flag")
+                        //{
                         //flg = new game_flag(flagObjectsObj.type, _this.viewport.getContext('2d'));
                         //this.core.config.flagObjects.push(new game_flag(flagObjectsObj, _this.viewport.getContext('2d')));
                         //flg.setter(flagObjectsObj);
-                    //}
-                    //else {
-                    //    flg = new game_flag(flagObjectsObj.type, null);
+                        //}
+                        //else {
+                        //    flg = new game_flag(flagObjectsObj.type, null);
                         //flg.setter(flagObjectsObj);
-                    //}
-                    //this.core.config.flagObjects.push(flg);
-                });
-                // for (var k in flagObjectsObj)
-                //     delete flagObjectsObj[k];
+                        //}
+                        //this.core.config.flagObjects.push(flg);
+                    });
+                    // for (var k in flagObjectsObj)
+                    //     delete flagObjectsObj[k];
 
-                /*
-                _.forEach(objsArray, function(i)
-                {
-                    //console.log(i);
-                    this.core.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
-                });*/
-                break;
+                    /*
+                    _.forEach(objsArray, function(i)
+                    {
+                        //console.log(i);
+                        this.core.config.flagObjects.push(new game_flag(i, _this.viewport.getContext('2d')));
+                    });*/
+                    break;
             } // switch
         }); // forEach
 
@@ -4176,13 +4040,11 @@ core_client.prototype.tilemapper = function()
         // iterate layers
         ///////////////////////////////////
         var layersStored = [];
-        for (var x = 0; x < layerNode.length; x++)
-        {
+        for (var x = 0; x < layerNode.length; x++) {
             // is visible?
             var vis = layerNode[x].getAttribute('visible');
             console.log('is visible', vis);
-            if (vis == 0)
-            {
+            if (vis == 0) {
                 console.log('skipping layer...', layerNode[x].getAttribute('name'));
                 continue;
             }
@@ -4215,8 +4077,7 @@ core_client.prototype.tilemapper = function()
             rows.shift(); // first item is newline
             rows.pop(); // last item is newline
             //console.log(rows);
-            for (var i = 0; i < rows.length; i++)
-            {
+            for (var i = 0; i < rows.length; i++) {
                 rows[i] = rows[i].split(",");
                 if (i !== rows.length - 1)
                     rows[i].pop(); // last item of each row is newline (except last line)
@@ -4224,8 +4085,7 @@ core_client.prototype.tilemapper = function()
             }
             // tilemapData tracks on the 'barrier' layer (for collision detection)
             console.log('layerName', layerName);
-            if (layerName == "barriers")
-            {
+            if (layerName == "barriers") {
                 this.config.tilemapData = base;
                 //this.config.tilemapData = base;
             }
@@ -4252,159 +4112,150 @@ core_client.prototype.tilemapper = function()
         //var image = new Image();
         //image.onload = function(e)
         //{
-            // image loaded
-            var sheet = image;//e.target;
-            //context2.drawImage(e.target, 0, 0);
+        // image loaded
+        var sheet = image; //e.target;
+        //context2.drawImage(e.target, 0, 0);
 
-            // first, create canvas the exact size of the tilemap
-            //n = layerNode[y].getAttribute('name')
-            //console.log(n);
-            var tilemap = document.createElement('canvas');//('canvas_' + y.toString());
+        // first, create canvas the exact size of the tilemap
+        //n = layerNode[y].getAttribute('name')
+        //console.log(n);
+        var tilemap = document.createElement('canvas'); //('canvas_' + y.toString());
+        self.tmCanvas = tilemap;
+        tilemap.id = "tilemap";
+        tilemap.width = width * tileWidth;
+        tilemap.height = height * tileHeight; //v.height;
+        console.log('tilemap w h', tilemap.width, tilemap.height); //, this.config.world.width, this.config.world.height);
+        var tmContext = tilemap.getContext('2d');
+
+        ///////////////////////////////////
+        // add tilemap to tile canvas context
+        ///////////////////////////////////
+        tmContext.drawImage(image, 0, 0);
+
+
+        ///////////////////////////////////
+        // iterate layers
+        ///////////////////////////////////
+        var n, c, cContext; //, layerCanvas;
+        //var canvases = [];
+        //var div = document.getElementById('canvases');
+        console.log('layerData len', layerData.length);
+        for (var y = 0; y < layerData.length; y++) {
+
+            // first, create layer canvas
+            n = layersStored[y]; //layerNode[y].getAttribute('name')
+            console.log(n);
+            c = document.createElement('canvas'); //('canvas_' + y.toString());
+            c.style.cssText = "position:absolute;display:block;top:0;left:0";
+            c.zIndex = y + 1;
             self.tmCanvas = tilemap;
-            tilemap.id = "tilemap";
-            tilemap.width = width * tileWidth;
-            tilemap.height = height * tileHeight;//v.height;
-            console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
-            var tmContext = tilemap.getContext('2d');
+            c.id = n;
+            c.width = width * tileWidth;
+            c.height = height * tileHeight; //v.height;
+            //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
+            cContext = c.getContext('2d');
 
-            ///////////////////////////////////
             // add tilemap to tile canvas context
-            ///////////////////////////////////
-            tmContext.drawImage(image, 0, 0);
+            //tmContext.drawImage(e.target, 0, 0);
 
-
-            ///////////////////////////////////
-            // iterate layers
-            ///////////////////////////////////
-            var n, c, cContext;//, layerCanvas;
-            //var canvases = [];
-            //var div = document.getElementById('canvases');
-            console.log('layerData len', layerData.length);
-            for (var y = 0; y < layerData.length; y++)
-            {
-
-                // first, create layer canvas
-                n = layersStored[y];//layerNode[y].getAttribute('name')
-                console.log(n);
-                c = document.createElement('canvas');//('canvas_' + y.toString());
-                c.style.cssText = "position:absolute;display:block;top:0;left:0";
-                c.zIndex = y + 1;
-                self.tmCanvas = tilemap;
-                c.id = n;
-                c.width = width * tileWidth;
-                c.height = height * tileHeight;//v.height;
-                //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
-                cContext = c.getContext('2d');
-
-                // add tilemap to tile canvas context
-                //tmContext.drawImage(e.target, 0, 0);
-
-                // now, let's add tiles
-                var tile, t;
-                var count = 0;
-                var colMax = (imageWidth / tileWidth);
-                //var rowMax = (imageHeight / tileHeight);
-                //console.log(rowMax,colMax);
-                //console.log('layerData H', layerData[y].length);
-                //console.log('layerData W', layerData[y][0].length);
-                var col;//, row;
-                for (var j = 0; j < layerData[y].length; j++)
-                {
-                    //console.log(layerData[y][j].length);
-                    for (var k = 0; k < layerData[y][j].length; k++)
+            // now, let's add tiles
+            var tile, t;
+            var count = 0;
+            var colMax = (imageWidth / tileWidth);
+            //var rowMax = (imageHeight / tileHeight);
+            //console.log(rowMax,colMax);
+            //console.log('layerData H', layerData[y].length);
+            //console.log('layerData W', layerData[y][0].length);
+            var col; //, row;
+            for (var j = 0; j < layerData[y].length; j++) {
+                //console.log(layerData[y][j].length);
+                for (var k = 0; k < layerData[y][j].length; k++) {
+                    t = parseInt(layerData[y][j][k] - 1);
+                    if (t > -1) // ignore 0 tiles
                     {
-                        t = parseInt(layerData[y][j][k] - 1);
-                        if (t > -1) // ignore 0 tiles
-                        {
-                            //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
-                            //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
-                            //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
-                            col = (t % colMax) | 0;
-                            tile = tmContext.getImageData(
-                                col * tileWidth,// tileHeight, // x
-                                (~~(t / colMax)) * tileWidth, // y
-                                tileWidth, // w
-                                tileHeight // h
-                            );
-                            //context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
-                            cContext.putImageData(tile, (count % width) * tileHeight, ~~(count / width) * tileWidth);
-                        }
-                        count++;
+                        //console.log(':',count, t, Math.floor(t / rowMax), t % colMax);
+                        //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
+                        //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
+                        col = (t % colMax) | 0;
+                        tile = tmContext.getImageData(
+                            col * tileWidth, // tileHeight, // x
+                            (~~(t / colMax)) * tileWidth, // y
+                            tileWidth, // w
+                            tileHeight // h
+                        );
+                        //context3.putImageData(tile, (count % height) * tileHeight, Math.floor(count / width) * tileWidth);
+                        cContext.putImageData(tile, (count % width) * tileHeight, ~~(count / width) * tileWidth);
                     }
-                }
-                //canvases.push(c);
-                //console.log(c.id);
-                //if (c.id == 'barriers')
-                _this[c.id] = c;
-                //console.log('cid',this[c.id]);
-                //div.appendChild(c);
-
-                // _this.canvas3 = canvas3;
-                //document.body.appendChild(tilemap);
-            }
-            /*console.log('canvases', canvases);
-            var div = document.getElementById('canvases');
-            console.log(div.children.length);
-            for (var z = canvases.length - 1; z >= 0; z--)
-                div.appendChild(canvases[z]);
-            console.log(div.children.length);
-            if (canvases[0].canvas == canvases[1].canvas) console.log('HIDEREK');*/
-
-            //_this.canvas3 = canvas3;
-            tilemap = null;
-            self.tmCanvas = null;
-
-            _this.addSpriteSheets();
-
-            // reassign ctx for slot objects
-            //console.log("_", _.forEach());
-            //console.log('flagArray', flagArray);
-            var pre = {midFlag: undefined, redFlag: undefined, blueFlag: undefined};
-            if (_this.config.preflags)
-            {
-                console.log("* running preflags! check onhostgame...");
-                for (x = 0; x < _this.config.preflags.length; x++)
-                {
-                    pre[_this.config.preflags[x].name] = _this.config.preflags[x];//.visible;
+                    count++;
                 }
             }
-            //console.log('preflags', pre);
-            console.log('flagArray', flagArray);
-            
-            _.forEach(flagArray, function(fo)
-            {
-                //console.log('fog', fo);
-                if (fo.type == "flag")
-                {
-                    var flag = new game_flag(fo, _this.config.ctx, _this.core.getplayers, _this.config);
-                    //console.log('vis name', vis[fo.name]);
-                    if (_this.config.preflags)
-                    {
-                        flag.visible = pre[fo.name].visible; // set default visibility
-                        flag.x = pre[fo.name].x;
-                        flag.y = pre[fo.name].y;
-                        flag.sourceSlot = pre[fo.name].sourceSlot;
-                        flag.isActive = pre[fo.name].isActive
-                    }
-                    _this.core.config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
-                }
-                else if (fo.type == "slot")
-                {
-                    var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.core.getplayers, _this.config);
-                    //slot.setter(fo);
-                    _this.core.config.flagObjects.push(slot);
-                    slot.draw();
+            //canvases.push(c);
+            //console.log(c.id);
+            //if (c.id == 'barriers')
+            _this[c.id] = c;
+            //console.log('cid',this[c.id]);
+            //div.appendChild(c);
 
-                    /*console.log('revising ctx');
-                    //fo.setCtx(_this.fg.getContext('2d'));
-                    this.core.config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
-                    //fo.draw();
+            // _this.canvas3 = canvas3;
+            //document.body.appendChild(tilemap);
+        }
+        /*console.log('canvases', canvases);
+        var div = document.getElementById('canvases');
+        console.log(div.children.length);
+        for (var z = canvases.length - 1; z >= 0; z--)
+            div.appendChild(canvases[z]);
+        console.log(div.children.length);
+        if (canvases[0].canvas == canvases[1].canvas) console.log('HIDEREK');*/
+
+        //_this.canvas3 = canvas3;
+        tilemap = null;
+        self.tmCanvas = null;
+
+        _this.addSpriteSheets();
+
+        // reassign ctx for slot objects
+        //console.log('flagArray', flagArray);
+        var pre = { midFlag: undefined, redFlag: undefined, blueFlag: undefined };
+
+        // if player started game before this fnc has completed
+        if (_this.config.preflags) {
+            console.log("* running preflags! check onhostgame...");
+            for (x = 0; x < _this.config.preflags.length; x++) {
+                pre[_this.config.preflags[x].name] = _this.config.preflags[x]; //.visible;
+            }
+        }
+        console.log('* preflags', pre);
+        console.log('* flagArray', flagArray);
+
+        _.forEach(flagArray, function(fo) {
+            //console.log('fog', fo);
+            if (fo.type == "flag") {
+                var flag = new game_flag(fo, _this.config.ctx, _this.core.getplayers, _this.config);
+                //console.log('vis name', vis[fo.name]);
+                if (_this.config.preflags) {
+                    flag.visible = pre[fo.name].visible; // set default visibility
+                    flag.x = pre[fo.name].x;
+                    flag.y = pre[fo.name].y;
+                    flag.sourceSlot = pre[fo.name].sourceSlot;
+                    flag.isActive = pre[fo.name].isActive
                 }
-                //else fo.draw();
-            });
-            console.log('flagObjects:', _this.core.config.flagObjects);
-            // declare territory
-            _this.updateTerritory();
+                _this.core.config.flagObjects.push(flag); //new game_flag(fo, _this.viewport.getContext('2d')));
+            } else if (fo.type == "slot") {
+                var slot = new game_flag(fo, _this.fg.getContext('2d'), _this.core.getplayers, _this.config);
+                //slot.setter(fo);
+                _this.core.config.flagObjects.push(slot);
+                slot.draw();
+
+                /*console.log('revising ctx');
+                //fo.setCtx(_this.fg.getContext('2d'));
+                this.core.config.flagObjects.push(new game_flag(fo, _this.fg.getContext('2d')));*/
+                //fo.draw();
+            }
+            //else fo.draw();
+        });
+        console.log('flagObjects:', _this.core.config.flagObjects);
+        // declare territory
+        _this.updateTerritory();
         //}; // end tilemap image loaded
 
         // path: ../tilesets/skin1-tileset.png
@@ -4420,62 +4271,55 @@ core_client.prototype.tilemapper = function()
 
     }
     // TODO: housecleaning
-    if (flagObjectsObj)
-    {
+    if (flagObjectsObj) {
         console.log('* removing flag objects...');
-        
+
         for (k in flagObjectsObj)
             delete flagObjectsObj[k];
     }
+    console.log("* tilemapper complete");
 };
-core_client.prototype.addSpriteSheets = function()
-{
+core_client.prototype.addSpriteSheets = function() {
     console.log('adding spritesheets');
     // build animations
     var csprite;
-    for (var p = 0; p < this.spritesheetsData.length; p++)
-    {
+    for (var p = 0; p < this.spritesheetsData.length; p++) {
         csprite = new game_spritesheet(this.ctx);
         csprite.id = this.spritesheetsData[p].id;
 
-        csprite.setter(
-        {
+        csprite.setter({
             //id:this.platformsData[n].id,
-            type:this.spritesheetsData[p].type,
-            x:this.spritesheetsData[p].x,
-            y:this.spritesheetsData[p].y,
-            w:this.spritesheetsData[p].w,
-            h:this.spritesheetsData[p].h,
-            frames:this.spritesheetsData[p].frames
+            type: this.spritesheetsData[p].type,
+            x: this.spritesheetsData[p].x,
+            y: this.spritesheetsData[p].y,
+            w: this.spritesheetsData[p].w,
+            h: this.spritesheetsData[p].h,
+            frames: this.spritesheetsData[p].frames
         });
 
         this.spritesheets.push(csprite);
     }
 }
 
-core_client.prototype.prerenderer = function()
-{
+core_client.prototype.prerenderer = function() {
     console.log('## preprenderer', this.orbs.length);
     var self = this;
     var context2, max, canvas2;
     //*
-    if (!this.canvas2)
-    {
+    if (!this.canvas2) {
         console.log('creating canvas2');
         //var v = document.getElementById("viewport");
         canvas2 = document.createElement('canvas');
         canvas2.id = "canvas2";
-        canvas2.width = this.config.world.width;//v.width;
-        canvas2.height = this.config.world.height;//v.height;
+        canvas2.width = this.config.world.width; //v.width;
+        canvas2.height = this.config.world.height; //v.height;
         context2 = canvas2.getContext('2d');
         //max = this.config.world.maxOrbs;
-    }
-    else
-    {
+    } else {
         //max = this.orbs.length;
         context2 = this.canvas2.getContext('2d');
         // clear existing canvas
-        context2.clearRect(0,0, this.config.world.width, this.config.world.height);
+        context2.clearRect(0, 0, this.config.world.width, this.config.world.height);
     }
     //*/
     //console.log(context2);
@@ -4493,13 +4337,12 @@ core_client.prototype.prerenderer = function()
 
     // so we do not apply styles to all contexts!
     // context2.save();
-    context2.translate(x,y);
+    context2.translate(x, y);
 
     //for (var k = 0; k < max; k++)
     var orbs = this.orbs;
     //console.log('orbz',orbs.length);//, this.orbs);
-    for (var k = 0; k < this.orbs.length; k++)
-    {
+    for (var k = 0; k < this.orbs.length; k++) {
         size = ~~(Math.random() * 4) + 2;
         c = colors[~~(Math.random() * colors.length)];
         // TODO: Avoid foreground tiles
@@ -4527,7 +4370,7 @@ core_client.prototype.prerenderer = function()
         gradient = context2.createRadialGradient(this.orbs[k].x, this.orbs[k].y, 0, this.orbs[k].x, this.orbs[k].y, this.orbs[k].w);
         gradient.addColorStop(0, 'white');
         gradient.addColorStop(1, orbs[k].c);
-        context2.fillStyle = gradient;//c;
+        context2.fillStyle = gradient; //c;
         context2.arc(
             orbs[k].x,
             orbs[k].y,
@@ -4622,8 +4465,7 @@ core_client.prototype.prerenderer = function()
     //*/
 };
 
-function clamp(value, min, max)
-{
+function clamp(value, min, max) {
     // console.log(Math.max(min, Math.min(value, max)));
     return Math.max(min, Math.min(value, max));
     //console.log(value);//, min, max);
@@ -4637,57 +4479,53 @@ function clamp(value, min, max)
 }
 //*/
 
-core_client.prototype.updateTerritory = function()
-{
+core_client.prototype.updateTerritory = function() {
     console.log('== game_core.updateTerritroy', this.bg, this.core.config.flagObjects.length, "==");
 
     if (this.config.bg == null)
     //if (this.bg == null)
     {
         console.log('bg is null, creating...', this);
-        
+
         this.bg = document.createElement('canvas');
         this.bg.id = "bg";
         this.bg.x = 0;
         this.bg.y = 0;
-        this.bg.width = this.config.world.width;//v.width;
-        this.bg.height = this.config.world.height;//v.height;
+        this.bg.width = this.config.world.width; //v.width;
+        this.bg.height = this.config.world.height; //v.height;
         //context3 = this.bg.getContext('2d');
         this.config.bg = this.bg;
     }
     //console.log('pre', this.config.ctx);
-    
+
     //if (!this.config.ctx) this.config.ctx = this.config.bg.getContext('2d');
     console.log('ctx', this.config.ctx);
     console.log('bg', this.config.bg);
 
     var ctx = this.bg.getContext('2d');
-    
-    
+
+
     //var ctx = this.bg.getContext('2d');
 
     // build bricks
     var brickWidth = 30;
     var brickHeight = 15;
-    var brickPadding = 0;//1;
-    var brickOffsetTop = 0;//30;
-    var brickOffsetLeft = 0;//30;
+    var brickPadding = 0; //1;
+    var brickOffsetTop = 0; //30;
+    var brickOffsetLeft = 0; //30;
 
     var brickColumnCount = this.config.world.width / (brickWidth + brickPadding);
     var brickRowCount = this.config.world.height / (brickHeight + brickPadding);
 
     var bricks = [];
-    for(var c = 0; c<brickColumnCount; c++)
-    {
+    for (var c = 0; c < brickColumnCount; c++) {
         bricks[c] = [];
-        for(r=0; r<brickRowCount; r++)
-        {
+        for (r = 0; r < brickRowCount; r++) {
             bricks[c][r] = { x: 0, y: 0 };
         }
     }
 
-    function pixelToBrick(x)
-    {
+    function pixelToBrick(x) {
         return ~~(x / (brickWidth + brickPadding));
     }
     /*function brickToPixel(col)
@@ -4697,32 +4535,28 @@ core_client.prototype.updateTerritory = function()
 
     // flags
     console.log('flagobjects', this.core.config.flagObjects);
-    
-    var red = _.find(this.core.config.flagObjects, {'name':'redFlag'});
-    var mid = _.find(this.core.config.flagObjects, {'name':'midFlag'});
-    var blue = _.find(this.core.config.flagObjects, {'name':'blueFlag'});
+
+    var red = _.find(this.core.config.flagObjects, { 'name': 'redFlag' });
+    var mid = _.find(this.core.config.flagObjects, { 'name': 'midFlag' });
+    var blue = _.find(this.core.config.flagObjects, { 'name': 'blueFlag' });
     // all slots *behind* red are blue
-    function slotToIndex(s)
-    {
+    function slotToIndex(s) {
         console.log("== slotToIndex ==", s);
         if (s == "slotRed")
             return 0;
         else if (s == "slotBlue")
             return 12;
-        else if (s == "midSlot")
-        {
+        else if (s == "midSlot") {
             return 6;
-        }
-        else
-        {
+        } else {
             var num = parseInt(s.split("slot")[1]);
             console.log("* num", num, typeof(num));
             if (num >= 6) num++;
             return num;
         }
     }
-    function slotToColor(s)
-    {
+
+    function slotToColor(s) {
         if (s == 'red')
             return ['red', 'white'];
         if (s == 'blue')
@@ -4738,7 +4572,7 @@ core_client.prototype.updateTerritory = function()
     // slots behind mid are red, before mid are blue
     // add red and mid to index 0
     // all slots *after* mid are index + 1 (to account for +mid)
-    var slots = Array(13).fill(0);//["redBase", "slot1", "slot2", "slot3", "slot4", "slot5", "midSlot", "slot6", "slot7", "slot8", "slot9", "slot10", "blueBase"];
+    var slots = Array(13).fill(0); //["redBase", "slot1", "slot2", "slot3", "slot4", "slot5", "midSlot", "slot6", "slot7", "slot8", "slot9", "slot10", "blueBase"];
 
     // process mid first (we need it in the fnc)
     var midIndex = slotToIndex(mid.sourceSlot);
@@ -4749,13 +4583,11 @@ core_client.prototype.updateTerritory = function()
         slots[i] = 1; // red
     for (i = midIndex; i < blueIndex; i++)
         slots[i + 1] = 2; // blue
-    if (redIndex > 0)
-    {
+    if (redIndex > 0) {
         for (i = 0; i < redIndex; i++)
             slots[i] = 2; // blue
     }
-    if (blueIndex < 12)
-    {
+    if (blueIndex < 12) {
         for (i = 12; i > blueIndex; i--)
             slots[i] = 1; // red
     }
@@ -4815,21 +4647,19 @@ core_client.prototype.updateTerritory = function()
     // adjust top terrotory UI
 
     //console.log('territory', red, mid.x, blue.x);
-    var redflagX = pixelToBrick( (red.x + (red.width/2)) );
-    var midflagX = pixelToBrick( (mid.x + (mid.width/2)) );
-    var blueflagX = pixelToBrick( (blue.x + (blue.width/2)) );
+    var redflagX = pixelToBrick((red.x + (red.width / 2)));
+    var midflagX = pixelToBrick((mid.x + (mid.width / 2)));
+    var blueflagX = pixelToBrick((blue.x + (blue.width / 2)));
     console.log('xs2', redflagX, midflagX, blueflagX);
     console.log('brickColumns', brickColumnCount, "rows", brickRowCount);
 
     // draw bricks
     var brickX, brickY;
-    for(c=0; c<brickColumnCount; c++)
-    {
+    for (c = 0; c < brickColumnCount; c++) {
         ctx.beginPath();
-        for(var r=0; r<brickRowCount; r++)
-        {
-            brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-            brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+        for (var r = 0; r < brickRowCount; r++) {
+            brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+            brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
             bricks[c][r].x = brickX;
             bricks[c][r].y = brickY;
 
@@ -4837,16 +4667,13 @@ core_client.prototype.updateTerritory = function()
             if (
                 (redflagX > 0 && c <= redflagX) ||
                 (c > midflagX && c < blueflagX)
-            )
-            {
+            ) {
                 //ctx.beginPath();
                 ctx.fillStyle = "#04293c";
                 ctx.fillRect(brickX, brickY, brickWidth, brickHeight);
                 //ctx.fill();
                 //ctx.closePath();
-            }
-            else
-            {
+            } else {
                 //ctx.beginPath();
                 ctx.fillStyle = "#340404";
                 ctx.fillRect(brickX, brickY, brickWidth, brickHeight);
@@ -4863,7 +4690,7 @@ core_client.prototype.updateTerritory = function()
     var midSrc = mid.sourceSlot;
     var blueSrc = blue.sourceSlot;
     // now, adjust scores based on flag type
-    var score = {red:0, blue:0};
+    var score = { red: 0, blue: 0 };
 
     var score2 = this.flagToScore(red.name, redSrc);
     var score3 = this.flagToScore(mid.name, midSrc);
@@ -4873,7 +4700,7 @@ core_client.prototype.updateTerritory = function()
     var redRaw = score2.red + score3.red + score4.red;
     var blueRaw = score2.blue + score3.blue + score4.blue;
     console.log('raw score', redRaw, blueRaw);
-    
+
     /*
     var redTotal = Math.abs(score2.red) + Math.abs(score3.red) + Math.abs(score4.red);
     var blueTotal = Math.abs(score2.blue) + Math.abs(score3.blue) + Math.abs(score4.blue);
@@ -4907,282 +4734,217 @@ core_client.prototype.updateTerritory = function()
 };
 
 
-core_client.prototype.flagToScore = function(flag, slot)
-{
+core_client.prototype.flagToScore = function(flag, slot) {
     var red = 0;
     var blue = 0;
 
-    switch(slot)
-    {
+    switch (slot) {
         case "slotRed":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = 0;
                 blue = 0;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 // not possible
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 // not possible
             }
 
-        break;
+            break;
 
         case "slotBlue":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 // not possible
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 0;
                 blue = 0;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 // not possible
             }
 
-        break;
-        
+            break;
+
         case "midSlot":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -5;
                 blue = 5;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 5;
                 blue = -5;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 0;
                 blue = 0;
             }
 
-        break;
-        
+            break;
+
         case "slot1":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -1;
                 blue = 1;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 // not possible
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = -4;
                 blue = 4;
             }
 
-        break;
-        
+            break;
+
         case "slot2":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -2;
                 blue = 2;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 11;
                 blue = -11;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = -4;
                 blue = 4;
             }
 
-        break;
-        
+            break;
+
         case "slot3":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -3;
                 blue = 3;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 10;
                 blue = -10;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = -3;
                 blue = 3;
             }
 
-        break;
-        
+            break;
+
         case "slot4":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -3;
                 blue = 3;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 9;
                 blue = -9;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = -2;
                 blue = 2;
             }
 
-        break;
-        
+            break;
+
         case "slot5":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -3;
                 blue = 3;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 8;
                 blue = -8;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = -1;
                 blue = 1;
             }
 
-        break;
-        
+            break;
+
         case "slot6":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -7;
                 blue = 7;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 5;
                 blue = -5;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 1;
                 blue = -1;
             }
 
-        break;
-        
+            break;
+
         case "slot7":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -8;
                 blue = 8;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 4;
                 blue = -4;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 2;
                 blue = -2;
             }
 
-        break;
-        
+            break;
+
         case "slot8":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -9;
                 blue = 9;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 3;
                 blue = -3;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 3;
                 blue = -3;
             }
 
-        break;
-        
+            break;
+
         case "slot9":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 red = -10;
                 blue = 10;
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 2;
                 blue = -2;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 4;
                 blue = -4;
             }
 
-        break;
-        
+            break;
+
         case "slot10":
 
-            if (flag == "redFlag")
-            {
+            if (flag == "redFlag") {
                 // not possible
-            }
-            else if (flag == "blueFlag")
-            {
+            } else if (flag == "blueFlag") {
                 red = 1;
                 blue = -1;
-            }
-            else if (flag == "midFlag")
-            {
+            } else if (flag == "midFlag") {
                 red = 5;
                 blue = -5;
             }
 
-        break;
-        
+            break;
+
     }
 
-    return {red: red, blue:blue};
+    return { red: red, blue: blue };
 };
 
-core_client.prototype.roundWinnersView = function(winners)
-{
+core_client.prototype.roundWinnersView = function(winners) {
     console.log('== roundWinnersView ==', winners);
 
     var _this = this;
 
+    // disable AFK systems
+    this.players.self.exitBase();
+
     var isWinner = false;
 
     // sort winners (ascending)
-    winners.sort(function(a, b){return a[0]-b[0];});
+    winners.sort(function(a, b) { return a[0] - b[0]; });
 
     // show winners ui
     document.getElementById('roundWinnersView').style.display = "flex";
@@ -5193,26 +4955,22 @@ core_client.prototype.roundWinnersView = function(winners)
     document.getElementById('uiTopBar').style.display = "none";
     // document.getElementById('uiInfoBarBottom').style.display = "none";
     // we can't remove this element, simply 'hide' it
-    document.getElementById('level-ui').style.opacity = 0;//display = "none";
+    document.getElementById('level-ui').style.opacity = 0; //display = "none";
     document.getElementById('scoreboard').style.display = "none";
-    document.getElementById('score-text-container').style.opacity = 0;//display = "none";
+    document.getElementById('score-text-container').style.opacity = 0; //display = "none";
 
     var mobilecontrols;
     var mcr = document.getElementById('mobile-controls-r');
     var mcl = document.getElementById('mobile-controls-l');
     console.log('*r', window.getComputedStyle(mcr, null).getPropertyValue("display"));
     console.log('*l', window.getComputedStyle(mcl, null).getPropertyValue("display"));
-    if (mcr.offsetWidth < 0 || mcr.offsetHeight < 0)
-    {
+    if (mcr.offsetWidth < 0 || mcr.offsetHeight < 0) {
         document.getElementById('mobile-controls-r').style.display = "none";
-        mobilecontrols = mcr;//document.getElementById('mobile-controls-r');
-    }
-    else if (mcl.offsetWidth < 0 || mcl.offsetHeight < 0)
-    {
+        mobilecontrols = mcr; //document.getElementById('mobile-controls-r');
+    } else if (mcl.offsetWidth < 0 || mcl.offsetHeight < 0) {
         document.getElementById('mobile-controls-l').style.display = "none";
-        mobilecontrols = mcl;//document.getElementById('mobile-controls-l');
-    }
-    else mobilecontrols = null;
+        mobilecontrols = mcl; //document.getElementById('mobile-controls-l');
+    } else mobilecontrols = null;
 
     // TODO: send command to hide native UI on iOS/Android
 
@@ -5221,20 +4979,17 @@ core_client.prototype.roundWinnersView = function(winners)
     // first, clear existing bonusSlots on all users
     var ply = this.core.getplayers.allplayers;
     var c;
-    for (c = ply.length - 1; c >= 0; c--)
-    {
+    for (c = ply.length - 1; c >= 0; c--) {
         // purge client buffs and bonuses
         ply[c].purgeBuffsAndBonuses();
     }
-    
+
     // assign bonusSlots to winners
     var p;
     console.log('* winners', ply);
-    for (var w = 0; w < winners.length; w++)
-    {
-        if (winners[w][1])
-        {
-            p = this.config._.find(ply, {userid:winners[w][1]});
+    for (var w = 0; w < winners.length; w++) {
+        if (winners[w][1]) {
+            p = this.config._.find(ply, { userid: winners[w][1] });
             if (!p) console.log('* Error: unable to find winning (disconnected) player!', winners[w]);
             else if (!winners[w][2]) console.log("* Error: invalid bonus slot!");
             else // player found on client!
@@ -5248,12 +5003,11 @@ core_client.prototype.roundWinnersView = function(winners)
     }
 
     // assign card face to winners cards
-    var cardsArray = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"]; // ordered abilities
-    
+    var cardsArray = ["bubble", "alacrity", "precision", "recover", "blink", "reveal", "bruise", "plate"]; // ordered abilities
+
     // show bonus round text
-    var bonusText = function()
-    {
-        document.getElementById('winnerTopTextRound').innerHTML = "WAVE " + _this.totalRounds.toString() + " BONUS";// + ": TOP 3 SCORERS";
+    var bonusText = function() {
+        document.getElementById('winnerTopTextRound').innerHTML = "WAVE " + _this.totalRounds.toString() + " BONUS"; // + ": TOP 3 SCORERS";
         document.getElementById('winnerTopTextScorers').innerHTML = "Top 3 Scorers";
 
         var callout = document.getElementById('roundCompleteCallout');
@@ -5261,16 +5015,14 @@ core_client.prototype.roundWinnersView = function(winners)
         callout.style.display = "block";
         callout.style.animationPlayState = 'running';
 
-        setTimeout(function()
-        {
+        setTimeout(function() {
             showWinners(false);
         }, 2000);
     };
     bonusText();
 
     // show players
-    var showWinners = function(isTop10)
-    {
+    var showWinners = function(isTop10) {
         var start = 0;
         var max = 3;
         // if (isTop10)
@@ -5278,44 +5030,38 @@ core_client.prototype.roundWinnersView = function(winners)
         //     start = 3;
         //     max = 6;
         // }
-        var ele, url, winner,pname,pskin,player,playerName,playerSkin;
-        for (var i = 0; i < 3; i++)
-        {
+        var ele, url, winner, pname, pskin, player, playerName, playerSkin;
+        for (var i = 0; i < 3; i++) {
             if (isTop10)
                 winner = winners[i + 3];
             else winner = winners[i];
             console.log('winner', winner);
-            
+
             ele = "front" + (i + 1).toString();
             url = 'https://s3.amazonaws.com/com.dfeddon.wingdom/cards/card_' + cardsArray[winner[2]] + '.png';
             pname = "winner" + (i + 1).toString() + "label";
             pskin = "winner" + (i + 1).toString() + "image";
-            player = _this.core.config._.find(_this.core.getplayers.allplayers, {userid:winner[1]});
-            if (!Boolean(player))
-            {
+            player = _this.core.config._.find(_this.core.getplayers.allplayers, { userid: winner[1] });
+            if (!Boolean(player)) {
                 playerName = "*";
                 playerSkin = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-skin1.png";
-            }
-            else
-            { 
+            } else {
                 playerName = player.playerName;
                 playerSkin = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + player.skin + ".png";
             }
-            
+
             document.getElementById(ele).style.backgroundImage = "url('" + url + "')";
             document.getElementById(pname).innerHTML = playerName.toString();
             document.getElementById(pskin).src = playerSkin;
         }
         document.getElementById("winner1").style.opacity = "1";
         var pcount = 1;
-        var showPlayers = setInterval(function()
-        {
+        var showPlayers = setInterval(function() {
             console.log('pcount', pcount);
-            
+
             if (pcount < 4)
                 document.getElementById("winner" + pcount.toString()).style.opacity = "1";
-            else 
-            {
+            else {
                 clearInterval(showPlayers);
                 if (isTop10)
                     flipper(true);
@@ -5333,10 +5079,9 @@ core_client.prototype.roundWinnersView = function(winners)
     var card1 = document.getElementById('card1');
     var card2 = document.getElementById('card2');
     var card3 = document.getElementById('card3');
-    
+
     // card drop
-    var dropper = function()
-    {
+    var dropper = function() {
         document.getElementById('roundCompleteCallout').style.display = "none";
 
         // var container1 = document.getElementById('card1Container');
@@ -5344,51 +5089,45 @@ core_client.prototype.roundWinnersView = function(winners)
         // var container3 = document.getElementById('card3Container');
         var ccard = container1;
         var ccount = 1;
-        var carddrop = setInterval(function()
-        {
+        var carddrop = setInterval(function() {
             // console.log('dropping card', ccount);
-            if (ccount===2) ccard = container2;
-            else if (ccount===3) ccard = container3;
+            if (ccount === 2) ccard = container2;
+            else if (ccount === 3) ccard = container3;
             // console.log('cardContainer:', ccard);
-            
+
             // card.className = 'flipped';
             ccard.style.visibility = 'visible';
             ccard.style.animationPlayState = 'running';
             // card.classList.add('flipped');
             ccount++;
-            if (ccount > 3)
-            {
+            if (ccount > 3) {
                 clearInterval(carddrop);
                 flipper(false);
             }
         }, 1000);
     };
 
-    var flipper = function(isTop10)
-    {
+    var flipper = function(isTop10) {
         // var card1 = document.getElementById('card1');
         // var card2 = document.getElementById('card2');
         // var card3 = document.getElementById('card3');
         var count = 1;
         var card = card1;
-        var cardflipper = setInterval(function()
-        {
+        var cardflipper = setInterval(function() {
             console.log('flipping card', count);
-            if (count===2) card = card2;
-            else if (count===3) card = card3;
+            if (count === 2) card = card2;
+            else if (count === 3) card = card3;
             else if (count > 3) // we're done
             {
-                if (isTop10)
-                {
+                if (isTop10) {
                     if (isWinner)
                         back2game();
-                    else back2game();//bonusOptional();
-                }
-                else cardsReset();
+                    else back2game(); //bonusOptional();
+                } else cardsReset();
                 clearInterval(cardflipper);
             }
             // console.log('card:', card);
-            
+
             // card.className = 'flipped';
             card.classList.remove('cardContainer');
             card.classList.add('flipped');
@@ -5396,10 +5135,8 @@ core_client.prototype.roundWinnersView = function(winners)
         }, 1500);
     }
 
-    var cardsReset = function()
-    {
-        setTimeout(function()
-        {
+    var cardsReset = function() {
+        setTimeout(function() {
             document.getElementById('winner1').style.opacity = 0;
             document.getElementById('winner2').style.opacity = 0;
             document.getElementById('winner3').style.opacity = 0;
@@ -5410,23 +5147,21 @@ core_client.prototype.roundWinnersView = function(winners)
             card2.classList.remove('flipped');
             card3.classList.add('flippedBack');
             card3.classList.remove('flipped');
-            
+
             document.getElementById('winnerTopTextScorers').innerHTML = "Top 10 Scorers";
             var callout = document.getElementById('roundCompleteCallout');
             callout.innerHTML = "Top 4 - 10<br/><i>(Selected at Random)</i>";
             callout.style.display = "block";
             // callout.style.animationPlayState = 'running';
 
-            setTimeout(function()
-            {
+            setTimeout(function() {
                 callout.style.display = "none";
                 showWinners(true);
             }, 3000);
         }, 2000);
     };
 
-    var bonusOptional = function()
-    {
+    var bonusOptional = function() {
         // rng for last chance boon?
         document.getElementById('winner1').style.display = "none";
         document.getElementById('winner3').style.display = "none";
@@ -5443,12 +5178,10 @@ core_client.prototype.roundWinnersView = function(winners)
         // two buttons, and a countdown timer
     };
 
-    var back2game = function()
-    {
+    var back2game = function() {
         console.log('== back2game ==');
 
-        var backer = setTimeout(function()
-        {
+        var backer = setTimeout(function() {
             // reset cards ui
             card1.classList.add('flippedBack');
             card1.classList.remove('flipped');
@@ -5461,8 +5194,7 @@ core_client.prototype.roundWinnersView = function(winners)
             container1.style.webkitAnimation = "none";
             container2.style.webkitAnimation = "none";
             container3.style.webkitAnimation = "none";
-            setTimeout(function()
-            {
+            setTimeout(function() {
                 container1.style.webkitAnimation = '';
                 container2.style.webkitAnimation = '';
                 container3.style.webkitAnimation = '';
@@ -5480,17 +5212,14 @@ core_client.prototype.roundWinnersView = function(winners)
             document.getElementById('roundWinnersView').style.display = "none";
 
             // if player awarded bonus, show it
-            if (_this.players.self.bonusSlot)
-            {
+            if (_this.players.self.bonusSlot) {
                 console.log('* local player has buff!');
                 // var game_buffs = _this.game_buffs();
                 var buffImage = _this.game_buffs.getImageById(_this.players.self.bonusSlot);
                 var bonus = document.getElementById('bonusslot-container');
                 bonus.style.display = "flex";
                 bonus.style.backgroundImage = "url('" + buffImage + "')";
-            }
-            else
-            { 
+            } else {
                 console.log("* local player did NOT win a buff...");
                 document.getElementById('bonusslot-container').style.backgroundImage = "none";
                 document.getElementById('bonusslot-container').style.display = "none";
@@ -5502,13 +5231,13 @@ core_client.prototype.roundWinnersView = function(winners)
             document.getElementById('uiTopBar').style.display = "flex";
             // document.getElementById('uiInfoBarBottom').style.display = "block";
             document.getElementById('scoreboard').style.display = "block";
-            document.getElementById('level-ui').style.opacity = 1;//display = "flex";
-            document.getElementById('score-text-container').style.opacity = 1;//display = "flex";
+            document.getElementById('level-ui').style.opacity = 1; //display = "flex";
+            document.getElementById('score-text-container').style.opacity = 1; //display = "flex";
             console.log('mobilecontrols', mobilecontrols);
-            
+
             if (mobilecontrols)
                 mobilecontrols.style.display = "flex";
-            
+
             // nudge player with a single flap
             // document.externalControlAction("x");
             // this.client_handle_input();

@@ -1,33 +1,28 @@
-module.exports = function(grunt)
-{
+module.exports = function(grunt) {
     // grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.initConfig(
-    {
+    grunt.initConfig({
         // package.json
         pkg: grunt.file.readJSON('package.json'),
 
         // grunt watch
-        // watch:
-        // {
-        //     scripts: {
-        //         files: '**/*.js',
-        //         tasks: ['jshint'],
-        //     }
-        // },
+        watch: {
+            scripts: {
+                files: ['*.js', '!bundle.client.min.js', '!leaderboards.min.js'],
+                tasks: ['browserify'],
+            }
+        },
 
         // clean
         clean: ['../wingdom-server-dist/*', '!../wingdom-server-dist/.git'],
 
         // broserify
-        browserify:
-        {
+        browserify: {
             'bundle.client.min.js': ['client.js'],
             'leaderboards.min.js': ['leaderboards.js']
         },
-        
+
         // uglify client
-        uglify: 
-        {
+        uglify: {
             // my_target_server:
             // {
             //     options:
@@ -58,19 +53,15 @@ module.exports = function(grunt)
             //         ]
             //     }
             // },
-            dist:
-            {
-                options:
-                {
-                    compress: 
-                    {
+            dist: {
+                options: {
+                    compress: {
                         drop_console: true
                     },
                     mangle: true,
                     beautify: false
                 },
-                files: 
-                {
+                files: {
                     'bundle.client.min.js': ['bundle.client.min.js'],
                     'leaderboards.min.js': ['leaderboards.min.js'],
                     '../wingdom-server-dist/app.js': ['app.js'],
@@ -97,16 +88,13 @@ module.exports = function(grunt)
                     '../wingdom-server-dist/class.particleShrink.js': ['class.particleShrink.js'],
                 }
             },
-            dev:
-            {
-                options:
-                {
+            dev: {
+                options: {
                     compress: false,
                     mangle: false,
                     beautify: true
                 },
-                files: 
-                {
+                files: {
                     'bundle.client.min.js': ['bundle.client.min.js'],
                     'leaderboards.min.js': ['leaderboards.min.js']
                 }
@@ -114,17 +102,14 @@ module.exports = function(grunt)
         },
 
         // copy
-        copy:
-        {
-            main:
-            {
-                files:
-                [
+        copy: {
+            main: {
+                files: [
                     // client files (files uploaded to S3)
-                    { src: ['./bundle.client.min.js'], dest: './dist/client/'},
-                    { src: ['./leaderboards.min.js'], dest: './dist/client/'},
+                    { src: ['./bundle.client.min.js'], dest: './dist/client/' },
+                    { src: ['./leaderboards.min.js'], dest: './dist/client/' },
                     // { src: ['./assets/tilesets/skin1-tileset.png'], dest: './dist/client/'},
-                    { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/'},
+                    { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: './dist/client/' },
                     // server files
                     // { src: ['./bundle.server.min.js'], dest: '../wingdom-server-dist/'},
                     { src: ['./package.json'], dest: '../wingdom-server-dist/' },
@@ -143,38 +128,35 @@ module.exports = function(grunt)
                     { src: ['./favicon.ico'], dest: '../wingdom-server-dist/' },
                     { src: ['./egyptian_set.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./assets/tilemaps/joust-alpha-1.tmx'], dest: '../wingdom-server-dist/' },
-                    { src: ['./assets/apple-touch-icon-114x114.png'], dest: '../wingdom-server-dist/'},
-                    { src: ['./assets/apple-touch-icon-72x72.png'], dest: '../wingdom-server-dist/'},
-                    { src: ['./assets/apple-touch-icon-57x57.png'], dest: '../wingdom-server-dist/'},
-                    { src: ['./assets/launcher-icon-4x.png'], dest: '../wingdom-server-dist/'},
-                    { src: ['./assets/launcher-icon-3x.png'], dest: '../wingdom-server-dist/'},
-                    { src: ['./assets/launcher-icon-2x.png'], dest: '../wingdom-server-dist/'},
+                    { src: ['./assets/apple-touch-icon-114x114.png'], dest: '../wingdom-server-dist/' },
+                    { src: ['./assets/apple-touch-icon-72x72.png'], dest: '../wingdom-server-dist/' },
+                    { src: ['./assets/apple-touch-icon-57x57.png'], dest: '../wingdom-server-dist/' },
+                    { src: ['./assets/launcher-icon-4x.png'], dest: '../wingdom-server-dist/' },
+                    { src: ['./assets/launcher-icon-3x.png'], dest: '../wingdom-server-dist/' },
+                    { src: ['./assets/launcher-icon-2x.png'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/keyboard.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/pxloader-images.min.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./lib/aws-sdk-2.72.0.min.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./robots.txt'], dest: '../wingdom-server-dist/' },
-                    {expand: true, src: ['./theme/*'], dest: '../wingdom-server-dist/', filter: 'isFile'},
-                    {expand: true, src: ['./bootstrap/*'], dest: '../wingdom-server-dist/', filter: 'isFile'},
+                    { expand: true, src: ['./theme/*'], dest: '../wingdom-server-dist/', filter: 'isFile' },
+                    { expand: true, src: ['./bootstrap/*'], dest: '../wingdom-server-dist/', filter: 'isFile' },
                 ],
             },
         },
 
         // aws (s3)
-        aws: grunt.file.readJSON( 'aws-keys.json' ),
+        aws: grunt.file.readJSON('aws-keys.json'),
         aws_s3: {
             options: {
                 accessKeyId: '<%= aws.AWSAccessKeyId %>',
                 secretAccessKey: '<%= aws.AWSSecretKey %>'
             },
-            dist: 
-            {
-                options: 
-                {
+            dist: {
+                options: {
                     bucket: 'com.dfeddon.wingdom'
                 },
-                files:
-                [
-                    {expand: true, cwd: 'dist/client', src: ['**'], dest: './', action: 'upload'}
+                files: [
+                    { expand: true, cwd: 'dist/client', src: ['**'], dest: './', action: 'upload' }
                 ],
             },
             // dev:
@@ -223,8 +205,9 @@ module.exports = function(grunt)
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-aws-s3');
     grunt.loadNpmTasks('grunt-git');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     // Default task(s).
-    grunt.registerTask('default', ['browserify']);//, 'uglify:dev']);//, 'grunt_git']);
-    grunt.registerTask('dist', ['clean', 'browserify', 'uglify:dist', 'copy', 'aws_s3']);//, 'grunt_git']);
+    grunt.registerTask('default', ['browserify']); //, 'uglify:dev']);//, 'grunt_git']);
+    grunt.registerTask('dist', ['clean', 'browserify', 'uglify:dist', 'copy', 'aws_s3']); //, 'grunt_git']);
 };

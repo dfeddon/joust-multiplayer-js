@@ -22,66 +22,67 @@ var MAX_GAMES_PER_SERVER = 10;
 // var WebSocket         = require('ws');
 // var Primus            = require('primus');
 
-var 
-    _                   = require('./node_modules/lodash/lodash.min'),
+var
+    _ = require('./node_modules/lodash/lodash.min'),
     // moment              = require('moment'),
     // UUID                = require('node-uuid'),
-    core_client         = require('./core.client'),
-    core_server         = require('./core.server'),
+    core_client = require('./core.client'),
+    core_server = require('./core.server'),
     // getUid              = require('get-uid'),
     // assert              = require('assert'),
     // duplex              = require('duplex'),
-    config              = require('./class.globals'),
-    getplayers          = require('./class.getplayers'),
-    egyptian_set        = require('./egyptian_set'),
+    config = require('./class.globals'),
+    getplayers = require('./class.getplayers'),
+    egyptian_set = require('./egyptian_set'),
     // game_player         = require('./class.player'),
-    game_flag           = require('./class.flag'),
+    game_flag = require('./class.flag'),
     // platformClass       = require('./class.platform'),
     //transformClass      = require('./class.transform'),
     // game_event_server   = require('./class.event'),
-    game_consumable     = require('./class.consumable');
-    // assets              = require('./singleton.assets'),
-    // pool                = require('typedarray-pool'),
-    // game_toast          = require('./class.toast');
-    /*collisionObject     = require('./class.collision'),
-    PhysicsEntity       = require('./class.physicsEntity'),
-    CollisionDetector   = require('./class.collisionDetector'),
-    CollisionSolver     = require('./class.collisionSolver');*/
-    // this._                   = require('./node_modules/lodash/lodash.min');
+    game_consumable = require('./class.consumable');
+// assets              = require('./singleton.assets'),
+// pool                = require('typedarray-pool'),
+// game_toast          = require('./class.toast');
+/*collisionObject     = require('./class.collision'),
+PhysicsEntity       = require('./class.physicsEntity'),
+CollisionDetector   = require('./class.collisionDetector'),
+CollisionSolver     = require('./class.collisionSolver');*/
+// this._                   = require('./node_modules/lodash/lodash.min');
 
 
 console.log('game.core loaded');
 
 var glog = false; // global console logging
 
-var frame_time = 60/1000; // run the local game at 16ms/ 60hz
+var frame_time = 60 / 1000; // run the local game at 16ms/ 60hz
 
-if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
+if ('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 22hz
 
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
-( function () {
+(function() {
 
     var lastTime = 0;
-    var vendors = [ 'ms', 'moz', 'webkit', 'o' ];
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
     //var canvas = document.getElementById('viewport');
 
-    for ( var x = 0; x < vendors.length && !window.requestAnimationFrame; ++ x ) {
-        window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
-        window.cancelAnimationFrame = window[ vendors[ x ] + 'CancelAnimationFrame' ] || window[ vendors[ x ] + 'CancelRequestAnimationFrame' ];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
     }
 
-    if ( !window.requestAnimationFrame ) {
-        window.requestAnimationFrame = function ( callback, element ) {
-            var currTime = Date.now(), timeToCall = Math.max( 0, frame_time - ( currTime - lastTime ) );
-            var id = window.setTimeout( function() { callback( currTime + timeToCall ); }, timeToCall );
+    if (!window.requestAnimationFrame) {
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = Date.now(),
+                timeToCall = Math.max(0, frame_time - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
     }
 
-    if ( !window.cancelAnimationFrame ) {
-        window.cancelAnimationFrame = function ( id ) { clearTimeout( id ); };
+    if (!window.cancelAnimationFrame) {
+        window.cancelAnimationFrame = function(id) { clearTimeout(id); };
     }
 
     /* derek add */
@@ -94,7 +95,7 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
     // }
     // resizeCanvas();
 
-}() );
+}());
 
 //Now the main game class. This gets created on
 //both server and client. Server creates one for
@@ -102,371 +103,360 @@ if('undefined' != typeof(global)) frame_time = 45; //on server we run at 45ms, 2
 //for itself to play the game.
 
 /* The game_core class */
-function game_core(from)
-{
+function game_core(from) {
     console.log('# game_core constructor', from);
     if (from === 1) console.log('* from server');
     else if (from === 2) console.log("* from client");
 }
 
-game_core.prototype.init = function(game_instance)//, io)
-{
-    console.log('== game_core.init()');//, game_instance);
-    //Store the instance, if any
-    this.instance = game_instance;
-    // this.io = io;
-    //Store a flag if we are the server
-    this.server = this.instance !== undefined;
-    
-    this.config = new config();
-    this.config.server = (this.server) ? true : false;
-
-    // init moment.js
-    // moment().format();
-    // moment().locale('en');
-
-    //if (this.server)
-    this.getplayers = new getplayers(game_instance, MAX_PLAYERS_PER_GAME, null, this.config);
-
-    var worldWidth = 50 * 64; // 50 tiles 3200;//420;
-    var worldHeight = 37 * 64;// 37 tiles 3200;//720;
-
-    //Used in collision etc.
-    this.config.world = {
-        width : worldWidth,//720,
-        height : worldHeight//480
-    };
-
-    this.config.world.gravity = 0.05;//.25;//2;//3.5;
-
-    this.config.world.totalplayers = MAX_PLAYERS_PER_GAME;//30;
-
-    this.config.world.maxOrbs = 0;//150;
-
-    if (!game_instance)
+game_core.prototype.init = function(game_instance) //, io)
     {
-        // is server controlling client?
-        this.server_control = false;
+        console.log('== game_core.init()'); //, game_instance);
+        //Store the instance, if any
+        this.instance = game_instance;
+        // this.io = io;
+        //Store a flag if we are the server
+        this.server = this.instance !== undefined;
 
-        // load core code
-        this.core_client = new core_client(this, this.config);
-        this.config.client = this.core_client;
-        // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
-        this.chests = [];
-    }
-    else
-    {
-        this.core_server = new core_server(this, this.config);
-    }
-    //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
+        this.config = new config();
+        this.config.server = (this.server) ? true : false;
 
-    // this.bufArr = new ArrayBuffer(768);//480);
-    
-    // var _this = this;
+        // init moment.js
+        // moment().format();
+        // moment().locale('en');
 
-    this.bg = null;
-    this.fg = null;
-    this.barriers = null;
+        //if (this.server)
+        this.getplayers = new getplayers(game_instance, MAX_PLAYERS_PER_GAME, null, this.config);
 
-    // global delay flag for change ability input
-    this.inputDelay = false;
+        var worldWidth = 50 * 64; // 50 tiles 3200;//420;
+        var worldHeight = 37 * 64; // 37 tiles 3200;//720;
 
-    // orbs
-    this.orbs = [];
+        //Used in collision etc.
+        this.config.world = {
+            width: worldWidth, //720,
+            height: worldHeight //480
+        };
 
-    // tilemap
-    this.tilemap = null;
-    this.config.tilemapData = null;
+        this.config.world.gravity = 0.05; //.25;//2;//3.5;
 
-    // chests
-    this.chestSpawnPoints = [];
-    // chest rewards
-    // this.passives = [
-    //     {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
-    //     {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
-    //     //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
-    // ];
+        this.config.world.totalplayers = MAX_PLAYERS_PER_GAME; //30;
 
-    // flags
-    this.config.flagObjects = [];
+        this.config.world.maxOrbs = 0; //150;
 
-    if (game_instance)
-    {
-        // this.getplayers
-    }
-    else // client
-    {
-        this.clientCooldowns = [
-            {name:"redFlag", heldBy:null, timer:NaN, src:null, target:null},
-            {name:"blueFlag", heldBy:null, timer:NaN, src:null, target:null},
-            {name:"midFlag", heldBy:null, timer:NaN, src:null, target:null}
-        ];
-    }
+        if (!game_instance) {
+            // is server controlling client?
+            this.server_control = false;
 
-    // events (includes chests [spawn] and flags [cooldowns])
-    this.events = [];
-
-    this.gameid = null;
-    this.last_hscore = []; // last high score
-
-    this.player_abilities_enabled = false;
-
-    //this.platforms = [];
-    //this.platformsData = [];
-    /*
-    this.platformsData.push(
-        {
-            id:'plat1',
-            x:(this.config.world.width/2) + (64 * 4),
-            y:(this.config.world.height/2) - (64 * 4),
-            w:256,
-            h:64,
-            t:1,
-            s:0
+            // load core code
+            this.core_client = new core_client(this, this.config);
+            this.config.client = this.core_client;
+            // this.core_client.getplayers = new getplayers(null, this.config.world.totalplayers, core, config);
+            this.chests = [];
+        } else {
+            this.core_server = new core_server(this, this.config);
         }
-    );/*
-    this.platformsData.push(
-        {
-            id:'plat2',
-            x:(this.config.world.width/2) + (5 * 64),
-            y:15 * 64,
-            w:256,
-            h:64,
-            t:1,
-            s:0
-        }
-    );
-    this.platformsData.push(
-        {
-            id:'plat3',
-            x:(this.config.world.width/2) + (12 * 64),
-            y:8 * 64,
-            w:64*6,
-            h:64,
-            t:1,
-            s:0//4 = rotating
-        }
-    );
-    //*/
-    // this.platforms.push({x:this.config.world.width/4,y:300,w:256,h:64});
-    // this.platforms.push({x:this.config.world.width -100,y:500,w:128,h:64});
-    // this.platforms.push({x:0,y:800,w:256,h:64});*/
+        //console.log('getplayers', this.getplayers, this.getplayers.allplayers);
 
-    this.phyPlayer, this.phyRoom, this.phyAllRooms;
-    //We create a player set, passing them
-    //the game that is running them, as well
-    console.log('##-@@ is server?', this.server);
+        // this.bufArr = new ArrayBuffer(768);//480);
 
-    if(this.server) // only for server, not clients (browsers)
-    {
-        this.gameid = game_instance.id;
+        // var _this = this;
 
-        this.config.server_time = 0;
+        this.bg = null;
+        this.fg = null;
+        this.barriers = null;
 
+        // global delay flag for change ability input
+        this.inputDelay = false;
 
-        // // set round end time
-        // this.roundEndTime = this.config.server_time + (10 * 60);//.floor(roundEnd.getTime() / 1000);
-        // console.log('roundEndTime:', this.roundEndTime);
-        
-
-
-        // setup socket worker
-        /*this.sparkWorker = new Worker('worker.spark.js');
-        var message = {player: this.players.self};
-        this.sparkWorker.postMessage(message, [message.player]);
-        this.sparkWorker.onmessage = evt => 
-        {
-            console.log('* got message from worker!', evt);    
-        }*/
-
-        console.log("##-@@ loading tilemap data...");
-        // load tilemap data
-        this.apiNode(); // load tilemap data
-
-        // add typedarray-pool
-        //this.serverPool = pool.malloc(768, "arraybuffer");
-        //console.log('pool', this.serverPool);
-        
-
-        ///////////////////////////////////
         // orbs
-        ///////////////////////////////////
-        /*
-        console.log('##-@@ creating orbs on server', this.orbs.length);
-        var size,c,ox,oy,id;
-        var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
-        for (var k = 0; k < this.config.world.maxOrbs; k++)
-        {
-            size = Math.floor(Math.random() * 4) + 2;
-            c = colors[Math.floor(Math.random() * colors.length)];
-            // TODO: Avoid barriers
-            ox = Math.floor(Math.random() * this.config.world.width) + 1;
-            oy = Math.floor(Math.random() * this.config.world.height) + 1;
-            id = UUID();
+        this.orbs = [];
 
-            // create new orb if undefined
-            if (this.orbs[k]===undefined)
-            {
-                // console.log('new', k, this.orbs.length);
-                var neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
-                this.orbs.push( neworb );
-            }
+        // tilemap
+        this.tilemap = null;
+        this.config.tilemapData = null;
+
+        // chests
+        this.chestSpawnPoints = [];
+        // chest rewards
+        // this.passives = [
+        //     {id: 'pass1', type:1, name: "acceleration", duration: 60, modifier: 50},
+        //     {id: 'pass2', type:2, name: "bubble", duration: 45, modifier: 1}
+        //     //{id: 'pass2', type:2, name: "blinker", duration: 30, modifier: 2},
+        // ];
+
+        // flags
+        this.config.flagObjects = [];
+
+        if (game_instance) {
+            // this.getplayers
+        } else // client
+        {
+            this.clientCooldowns = [
+                { name: "redFlag", heldBy: null, timer: NaN, src: null, target: null },
+                { name: "blueFlag", heldBy: null, timer: NaN, src: null, target: null },
+                { name: "midFlag", heldBy: null, timer: NaN, src: null, target: null }
+            ];
         }
-        console.log("##-@@ orbs built", this.orbs.length);
+
+        // events (includes chests [spawn] and flags [cooldowns])
+        this.events = [];
+
+        this.gameid = null;
+        this.last_hscore = []; // last high score
+
+        this.player_abilities_enabled = false;
+
+        //this.platforms = [];
+        //this.platformsData = [];
+        /*
+        this.platformsData.push(
+            {
+                id:'plat1',
+                x:(this.config.world.width/2) + (64 * 4),
+                y:(this.config.world.height/2) - (64 * 4),
+                w:256,
+                h:64,
+                t:1,
+                s:0
+            }
+        );/*
+        this.platformsData.push(
+            {
+                id:'plat2',
+                x:(this.config.world.width/2) + (5 * 64),
+                y:15 * 64,
+                w:256,
+                h:64,
+                t:1,
+                s:0
+            }
+        );
+        this.platformsData.push(
+            {
+                id:'plat3',
+                x:(this.config.world.width/2) + (12 * 64),
+                y:8 * 64,
+                w:64*6,
+                h:64,
+                t:1,
+                s:0//4 = rotating
+            }
+        );
+        //*/
+        // this.platforms.push({x:this.config.world.width/4,y:300,w:256,h:64});
+        // this.platforms.push({x:this.config.world.width -100,y:500,w:128,h:64});
+        // this.platforms.push({x:0,y:800,w:256,h:64});*/
+
+        this.phyPlayer, this.phyRoom, this.phyAllRooms;
+        //We create a player set, passing them
+        //the game that is running them, as well
+        console.log('##-@@ is server?', this.server);
+
+        if (this.server) // only for server, not clients (browsers)
+        {
+            this.gameid = game_instance.id;
+
+            this.config.server_time = 0;
+
+
+            // // set round end time
+            // this.roundEndTime = this.config.server_time + (10 * 60);//.floor(roundEnd.getTime() / 1000);
+            // console.log('roundEndTime:', this.roundEndTime);
+
+
+
+            // setup socket worker
+            /*this.sparkWorker = new Worker('worker.spark.js');
+            var message = {player: this.players.self};
+            this.sparkWorker.postMessage(message, [message.player]);
+            this.sparkWorker.onmessage = evt => 
+            {
+                console.log('* got message from worker!', evt);    
+            }*/
+
+            console.log("##-@@ loading tilemap data...");
+            // load tilemap data
+            this.apiNode(); // load tilemap data
+
+            // add typedarray-pool
+            //this.serverPool = pool.malloc(768, "arraybuffer");
+            //console.log('pool', this.serverPool);
+
+
+            ///////////////////////////////////
+            // orbs
+            ///////////////////////////////////
+            /*
+            console.log('##-@@ creating orbs on server', this.orbs.length);
+            var size,c,ox,oy,id;
+            var colors = ['pink', 'lightblue', 'yellow', 'green', 'white', 'orange'];
+            for (var k = 0; k < this.config.world.maxOrbs; k++)
+            {
+                size = Math.floor(Math.random() * 4) + 2;
+                c = colors[Math.floor(Math.random() * colors.length)];
+                // TODO: Avoid barriers
+                ox = Math.floor(Math.random() * this.config.world.width) + 1;
+                oy = Math.floor(Math.random() * this.config.world.height) + 1;
+                id = UUID();
+
+                // create new orb if undefined
+                if (this.orbs[k]===undefined)
+                {
+                    // console.log('new', k, this.orbs.length);
+                    var neworb = {id:id, x:ox, y:oy, c:c, w:size, h:size, r:false};
+                    this.orbs.push( neworb );
+                }
+            }
+            console.log("##-@@ orbs built", this.orbs.length);
+            //*/
+
+            /*
+            var t = 0;
+            function rndInterval()
+            {
+                t = (Math.random()*5000) + 5000;
+                console.log('rndInterval', t);
+                console.log('rotate');
+                plat.doRotate();
+                setTimeout(rndInterval, t);
+            }
+            //*/
+            ///////////////////////////////////
+            // define platforms
+            ///////////////////////////////////
+            /*var plat;
+            for (var m = 0; m < this.platformsData.length; m++)
+            {
+                plat = new platformClass(this);
+                plat.id = this.platformsData[m].id,
+
+                plat.setter(
+                {
+                    //id:this.platformsData[m].id,
+                    x:this.platformsData[m].x,//(this.config.world.width/2) + (64 * 5),
+                    y:this.platformsData[m].y,//(this.config.world.height/2) - (64 * 5),
+                    w:this.platformsData[m].w,//512,
+                    h:this.platformsData[m].h//64
+                });
+                //console.log('plat',plat);
+                if (this.platformsData[m].s === 4)
+                {
+                    plat.state = 1;
+                    plat.status = 4;
+
+                    rndInterval();
+                }
+                this.platforms.push(plat);
+            }*/
+
+            ///////////////////////////////////
+            // create startup events (moved to getplayers class)
+            ///////////////////////////////////
+            /*
+            // create chest spawn event
+            var evt = new game_event_server(this.getplayers, this.config);//this);
+            evt.type = evt.TYPE_CHEST;
+            evt.id = "ec"; // event chest
+            //console.log('evt type', evt.type);
+            evt.setRandomTriggerTime(25, 45);
+            this.events.push(evt);
+            //console.log('chest event',this.events);
+
+            // create flag carried cooldown event
+            evt = new game_event_server(this.getplayers, this.config);//this);
+            evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
+            evt.state = evt.STATE_STOPPED;
+            evt.id = "fc"; // event flag carried
+            evt.repeatable = false;
+            //console.log('evt type', evt.type);
+            //evt.setRandomTriggerTime(25, 45);
+            this.events.push(evt);
+
+            // create flag slotted cooldown event
+            // create flag carried cooldown event
+            evt = new game_event_server(this.getplayers, this.config);//this);
+            evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
+            evt.state = evt.STATE_STOPPED;
+            evt.id = "fs"; // event flag slotted
+            evt.repeatable = false;
+            //console.log('evt type', evt.type);
+            //evt.setRandomTriggerTime(25, 45);
+            this.events.push(evt);
+            //console.log('startup events', this.events);
+            */
+        }
+        // else this.players.self =
+
+        //The base speed at which the clients move.
+        this.playerspeed = 275; //120;
+        this.hitBase = 15; // 15 pixels
+        this.hitDiff = 0; // y diff on pvp collision
+
+        //Set up some physics integration values
+        this._pdt = 0.0001; //The physics update delta time
+        this._pdte = new Date().getTime(); //The physics update last delta time
+        //A local timer for precision on server and client
+        this.local_time = 0.016; //The local timer
+        this._dt = new Date().getTime(); //The local timer delta
+        this._dte = new Date().getTime(); //The local timer last frame time
+
+        //Start a physics loop, this is separate to the rendering
+        //as this happens at a fixed frequency
+
+        //* TODO: Uncomment this when server_update is working!!!
+        this.create_physics_simulation();
+
+        //Start a fast paced timer for measuring time easier
+        this.create_timer();
         //*/
 
-        /*
-        var t = 0;
-        function rndInterval()
-        {
-            t = (Math.random()*5000) + 5000;
-            console.log('rndInterval', t);
-            console.log('rotate');
-            plat.doRotate();
-            setTimeout(rndInterval, t);
-        }
-        //*/
-        ///////////////////////////////////
-        // define platforms
-        ///////////////////////////////////
-        /*var plat;
-        for (var m = 0; m < this.platformsData.length; m++)
-        {
-            plat = new platformClass(this);
-            plat.id = this.platformsData[m].id,
+        //this.config.flagObjects = this.config.flagObjects;
+        //this.getplayers.allplayers = this.getplayers.allplayers;
+        //this.config.world = this.config.world;
+        this.config.server = (this.server) ? true : false;
+        this.config.keyboard = this.keyboard;
+        this.config.updateTerritory = this.updateTerritory;
+        this.config.flagToScore = this.flagToScore;
+        //this.config.tilemapData = this.config.tilemapData;
+        this.config.players = {}; //this.players;
+        this.config.events = this.events;
+        this.config.clientCooldowns = this.clientCooldowns;
+        this.config.chests = this.chests;
+        this.config.chestSpawnPoints = this.chestSpawnPoints;
+        // this.config.passives = this.passives;
+        this.config._ = _;
+        this.config.gridToPixel = this.gridToPixel;
+        this.config.hitBase = this.hitBase;
 
-            plat.setter(
-            {
-                //id:this.platformsData[m].id,
-                x:this.platformsData[m].x,//(this.config.world.width/2) + (64 * 5),
-                y:this.platformsData[m].y,//(this.config.world.height/2) - (64 * 5),
-                w:this.platformsData[m].w,//512,
-                h:this.platformsData[m].h//64
-            });
-            //console.log('plat',plat);
-            if (this.platformsData[m].s === 4)
-            {
-                plat.state = 1;
-                plat.status = 4;
+        return this;
+        //console.log('config', config);
+    }; //game_core.constructor
 
-                rndInterval();
-            }
-            this.platforms.push(plat);
-        }*/
-
-        ///////////////////////////////////
-        // create startup events (moved to getplayers class)
-        ///////////////////////////////////
-        /*
-        // create chest spawn event
-        var evt = new game_event_server(this.getplayers, this.config);//this);
-        evt.type = evt.TYPE_CHEST;
-        evt.id = "ec"; // event chest
-        //console.log('evt type', evt.type);
-        evt.setRandomTriggerTime(25, 45);
-        this.events.push(evt);
-        //console.log('chest event',this.events);
-
-        // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers, this.config);//this);
-        evt.type = evt.TYPE_FLAG_CARRIED_COOLDOWN;
-        evt.state = evt.STATE_STOPPED;
-        evt.id = "fc"; // event flag carried
-        evt.repeatable = false;
-        //console.log('evt type', evt.type);
-        //evt.setRandomTriggerTime(25, 45);
-        this.events.push(evt);
-
-        // create flag slotted cooldown event
-        // create flag carried cooldown event
-        evt = new game_event_server(this.getplayers, this.config);//this);
-        evt.type = evt.TYPE_FLAG_SLOTTED_COOLDOWN;
-        evt.state = evt.STATE_STOPPED;
-        evt.id = "fs"; // event flag slotted
-        evt.repeatable = false;
-        //console.log('evt type', evt.type);
-        //evt.setRandomTriggerTime(25, 45);
-        this.events.push(evt);
-        //console.log('startup events', this.events);
-        */
-    }
-    // else this.players.self =
-
-    //The base speed at which the clients move.
-    this.playerspeed = 275;//120;
-    this.hitBase = 15; // 15 pixels
-    this.hitDiff = 0; // y diff on pvp collision
-
-    //Set up some physics integration values
-    this._pdt = 0.0001;                 //The physics update delta time
-    this._pdte = new Date().getTime();  //The physics update last delta time
-    //A local timer for precision on server and client
-    this.local_time = 0.016;            //The local timer
-    this._dt = new Date().getTime();    //The local timer delta
-    this._dte = new Date().getTime();   //The local timer last frame time
-
-    //Start a physics loop, this is separate to the rendering
-    //as this happens at a fixed frequency
-
-    //* TODO: Uncomment this when server_update is working!!!
-    this.create_physics_simulation();
-
-    //Start a fast paced timer for measuring time easier
-    this.create_timer();
-    //*/
-
-    //this.config.flagObjects = this.config.flagObjects;
-    //this.getplayers.allplayers = this.getplayers.allplayers;
-    //this.config.world = this.config.world;
-    this.config.server = (this.server) ? true : false;
-    this.config.keyboard = this.keyboard;
-    this.config.updateTerritory = this.updateTerritory;
-    this.config.flagToScore = this.flagToScore;
-    //this.config.tilemapData = this.config.tilemapData;
-    this.config.players = {};//this.players;
-    this.config.events = this.events;
-    this.config.clientCooldowns = this.clientCooldowns;
-    this.config.chests = this.chests;
-    this.config.chestSpawnPoints = this.chestSpawnPoints;
-    // this.config.passives = this.passives;
-    this.config._ = _;
-    this.config.gridToPixel = this.gridToPixel;
-    this.config.hitBase = this.hitBase;
-
-    return this;
-    //console.log('config', config);
-}; //game_core.constructor
-
-if( 'undefined' != typeof global )
-{
+if ('undefined' != typeof global) {
     module.exports = global.game_core = game_core;
 }
 
-Date.prototype.addMinutes = function(minutes)
-{
+Date.prototype.addMinutes = function(minutes) {
     return new Date(this.getTime() + minutes * 60000);
 };
 
-Date.prototype.epochToDate = function(seconds)
-{
+Date.prototype.epochToDate = function(seconds) {
     var t = new Date(1970, 0, 1); // epoch
     return t.setSeconds(seconds);
 };
 
-Date.prototype.dateToEpoch = function(date)
-{
+Date.prototype.dateToEpoch = function(date) {
     // return Date.UTC(date);
     return Math.floor(date.getTime() / 1000);
 }
 
 game_core.prototype.getKeyboard = function() { return this.core_client.keyboard; };
 
-game_core.prototype.nameGenerator = function()
-{
+game_core.prototype.nameGenerator = function() {
     // name generator
     var egyptian_set;
     //if (this.server)
-        egyptian_set = require('./egyptian_set');
+    egyptian_set = require('./egyptian_set');
     //else egyptian_set = egyptian_set;
     var set = new egyptian_set().getSet();
     var rnd = Math.floor(Math.random() * set.length);
@@ -476,8 +466,7 @@ game_core.prototype.nameGenerator = function()
     return pname;
 };
 
-game_core.prototype.buildPlatforms = function()
-{
+game_core.prototype.buildPlatforms = function() {
     console.log('building platforms');
 
     /*var canvasPlatforms = document.createElement('canvas');
@@ -548,7 +537,7 @@ game_core.prototype.buildPlatforms = function()
 //                 document.externalControlAction("u");
 //             break;
 //         }
-        
+
 //         //*/
 
 //         //e.preventDefault();
@@ -612,18 +601,16 @@ game_core.prototype.buildPlatforms = function()
 //     });
 // }
 
-game_core.prototype.apiNodePost = function(flags)
-{
+game_core.prototype.apiNodePost = function(flags) {
     console.log('== apiNodePost ==');
     // store default flag object in getplayers for cloning into rooms
     // this.getplayers.flagsDefault = _.cloneDeep(this.config.flagObjects);
     // var flags = _.cloneDeep(this.config.flagObjects);
     // add flags to active room
     var allrooms = Object.keys(this.getplayers.fromAllRooms());
-    for (var f = allrooms.length - 1; f >= 0; f--)
-    {
+    for (var f = allrooms.length - 1; f >= 0; f--) {
         console.log('room', allrooms[f], 'adding flags', this.config.flagObjects.length);
-        
+
         this.getplayers.addToRoom(flags, allrooms[f], 3);
     }
     // add flags to roomFlags[port]
@@ -633,22 +620,19 @@ game_core.prototype.apiNodePost = function(flags)
     //     // assign home port to flag
     //     flag.port = allrooms[h];
     //     console.log('flag port:', flag.port);
-        
+
     //     roomFlags.push(flag);
     // });
     // console.log('flagsDefault', _this.getplayers.flagsDefault);
     // clone this.chestSpawnPoints to each room's ec event
-    var roomEvents, roomFlags;//, chest;
+    var roomEvents, roomFlags; //, chest;
     // var allrooms = Object.keys(_this.getplayers.fromAllRooms());
-    for (var h = allrooms.length - 1; h >= 0; h--)
-    {
+    for (var h = allrooms.length - 1; h >= 0; h--) {
         // first, ensure room total is less than maximum chests
         // if total reached, continue to next room (return false to cancel?)
         roomEvents = this.getplayers.fromRoom(allrooms[h], 1); // <-- 1 denotes object type 'events'
-        for (var j = 0; j < roomEvents.length; j++)
-        {
-            if (roomEvents[j].id == "ec")
-            {
+        for (var j = 0; j < roomEvents.length; j++) {
+            if (roomEvents[j].id == "ec") {
                 roomEvents[j].chestSpawnPoints = this.config._.clone(this.chestSpawnPoints);
                 // console.log('* chestSpawnPoints', roomEvents[j]);
             }
@@ -658,17 +642,14 @@ game_core.prototype.apiNodePost = function(flags)
     }
 };
 
-game_core.prototype.apiNode = function()
-{
+game_core.prototype.apiNode = function() {
     console.log('apiNode');
     var _this = this;
     var xml2js = require('xml2js');
     var fs = require('fs');
-    var parser = new xml2js.Parser({explicitArray:false});
-    fs.readFile( './assets/tilemaps/joust-alpha-1.tmx', function(err, data)
-    {
-        parser.parseString(data, function (err, result)
-        {
+    var parser = new xml2js.Parser({ explicitArray: false });
+    fs.readFile('./assets/tilemaps/joust-alpha-1.tmx', function(err, data) {
+        parser.parseString(data, function(err, result) {
             //console.log(result.map.layer[1].data._);
             //console.dir(result.note.to[0]);
             //NOTE: map.layers[1] is barriers layer
@@ -681,8 +662,7 @@ game_core.prototype.apiNode = function()
             // ignore first and last rows
             var split2;
             var len = split.length;
-            for (var i = 1; i < len - 1; i++)
-            {
+            for (var i = 1; i < len - 1; i++) {
                 split2 = split[i].split(",");
                 split2.pop(); // remove last item (undefined)
                 base.push(split2);
@@ -705,50 +685,42 @@ game_core.prototype.apiNode = function()
             var node;
             var flagsArray = [];
             // var spawnArray = [];
-            for (var j = 0; j < objectgroupNode.length; j++)
-            {
+            for (var j = 0; j < objectgroupNode.length; j++) {
                 console.log('--------------');
-                node = objectgroupNode[j];//JSON.stringify(objectgroupNode[j]);
+                node = objectgroupNode[j]; //JSON.stringify(objectgroupNode[j]);
                 //console.log(typeof(objectgroupNode[j]));
 
                 //console.log('::', JSON.stringify(objectgroupNode[j].$));
                 //console.log('::', JSON.stringify(objectgroupNode[j].object));
 
                 console.log(objectgroupNode[j].$.name);
-                switch(objectgroupNode[j].$.name)
-                {
+                switch (objectgroupNode[j].$.name) {
                     // chest spawn locations (global)
                     case "chestSpawn":
                         if (objectgroupNode[j].object.length === undefined)
                             _this.chestSpawnPoints.push(objectgroupNode[j].object);
-                        else
-                        {
-                            for (var k = 0; k < objectgroupNode[j].object.length; k++)
-                            {
+                        else {
+                            for (var k = 0; k < objectgroupNode[j].object.length; k++) {
                                 //console.log('->',objectgroupNode[j].object[k].$);
                                 _this.chestSpawnPoints.push(objectgroupNode[j].object[k].$);
                             }
                         }
-                    break;
+                        break;
 
-                    // flag starting positions
+                        // flag starting positions
                     case "flagObjects":
                         //console.log('flagobjs', objectgroupNode[j].object.length);
                         //var game_flag_server = require('./class.flag');
                         var flag;
-                        if (objectgroupNode[j].object.length === undefined)
-                        {
+                        if (objectgroupNode[j].object.length === undefined) {
                             flagsArray.push(objectgroupNode[j].object.$);
                             flag = new game_flag(objectgroupNode[j].object.$, null, this.getplayers, this.config);
                             //flag.setter(objectgroupNode[j].object.$);
                             //flag.id = "flg1";
                             //console.log('-flag', flag);
                             this.config.flagObjects.push(flag);
-                        }
-                        else
-                        {
-                            for (var l = 0; l < objectgroupNode[j].object.length; l++)
-                            {
+                        } else {
+                            for (var l = 0; l < objectgroupNode[j].object.length; l++) {
                                 //console.log('->',objectgroupNode[j].object[l].$);
                                 //this.config.flagObjects.push(objectgroupNode[j].object[l].$);
                                 flagsArray.push(objectgroupNode[j].object[l].$);
@@ -759,7 +731,7 @@ game_core.prototype.apiNode = function()
                                 _this.config.flagObjects.push(flag);
                             }
                         }
-                    break;
+                        break;
                 }
             }
             _this.apiNodePost(flagsArray);
@@ -777,38 +749,39 @@ game_core.prototype.apiNode = function()
 // (4.22208334636).fixed(n) will return fixed point value to n places, default n = 3
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 //copies a 2d vector like object from one to another
-game_core.prototype.pos = function(a) { return {x:a.x,y:a.y}; };
+game_core.prototype.pos = function(a) { return { x: a.x, y: a.y }; };
 //Add a 2d vector with another one and return the resulting vector
-game_core.prototype.v_add = function(a,b) { return { x:(a.x+b.x).fixed(), y:(a.y+b.y).fixed() }; };
+game_core.prototype.v_add = function(a, b) { return { x: (a.x + b.x).fixed(), y: (a.y + b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
-game_core.prototype.v_sub = function(a,b) { return { x:(a.x-b.x).fixed(),y:(a.y-b.y).fixed() }; };
+game_core.prototype.v_sub = function(a, b) { return { x: (a.x - b.x).fixed(), y: (a.y - b.y).fixed() }; };
 //Multiply a 2d vector with a scalar value and return the resulting vector
-game_core.prototype.v_mul_scalar = function(a,b) { return {x: (a.x*b).fixed() , y:(a.y*b).fixed() }; };
+game_core.prototype.v_mul_scalar = function(a, b) { return { x: (a.x * b).fixed(), y: (a.y * b).fixed() }; };
 //For the server, we need to cancel the setTimeout that the polyfill creates
-game_core.prototype.stop_update = function() {  window.cancelAnimationFrame( this.updateid );  };
+game_core.prototype.stop_update = function() { window.cancelAnimationFrame(this.updateid); };
 //Simple linear interpolation
-game_core.prototype.lerp = function(p, n, t) { var _t = Number(t); _t = (Math.max(0, Math.min(1, _t))).fixed(); return (p + _t * (n - p)).fixed(); };
+game_core.prototype.lerp = function(p, n, t) {
+    var _t = Number(t);
+    _t = (Math.max(0, Math.min(1, _t))).fixed();
+    return (p + _t * (n - p)).fixed();
+};
 //Simple linear interpolation between 2 vectors
-game_core.prototype.v_lerp = function(v,tv,t) { return { x: this.lerp(v.x, tv.x, t), y:this.lerp(v.y, tv.y, t), d:tv.d }; };
+game_core.prototype.v_lerp = function(v, tv, t) { return { x: this.lerp(v.x, tv.x, t), y: this.lerp(v.y, tv.y, t), d: tv.d }; };
 
 // Grid helpers
-game_core.prototype.gridToPixel = function(x, y)
-{
+game_core.prototype.gridToPixel = function(x, y) {
     console.log('== gridToPixel', x, y, '==');
-    
-    return {x: x * 64, y: y * 64};
+
+    return { x: x * 64, y: y * 64 };
 };
 // UID
-game_core.prototype.getUID = function()
-{
-  function s4()
-  {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
+game_core.prototype.getUID = function() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 };
 
 /*
@@ -838,24 +811,23 @@ game_core.prototype.getUID = function()
 */
 
 //Main update loop
-game_core.prototype.update = function(t)
-{
+game_core.prototype.update = function(t) {
     //console.log('##+@@update');
     //Work out the delta time
-    this.dt = this.lastframetime ? ( (t - this.lastframetime)/1000.0).fixed() : 0.016;
+    this.dt = this.lastframetime ? ((t - this.lastframetime) / 1000.0).fixed() : 0.016;
 
     //Store the last frame time
     this.lastframetime = t;
 
     //Update the game specifics
-    if(!this.server) {
+    if (!this.server) {
         this.core_client.client_update();
     } else {
         this.core_server.server_update();
     }
 
     //schedule the next update
-    this.updateid = window.requestAnimationFrame( this.update.bind(this), this.viewport );
+    this.updateid = window.requestAnimationFrame(this.update.bind(this), this.viewport);
 
 }; //game_core.update
 
@@ -901,12 +873,11 @@ game_core.prototype.playerKill = function(victim, victor)
 };
 */
 
-game_core.prototype.pk = function(victor, victim, dmg)
-{
+game_core.prototype.pk = function(victor, victim, dmg) {
     console.log('== pk', victor.id, victim.id, dmg, '==');
 
     // first, check if player has bubble...
-    
+
     // victim.active = false;
 
     // victor.instance.room(this.gameid).send("onplayerkill", victim.mp + '|' + victor.mp);
@@ -918,11 +889,10 @@ game_core.prototype.pk = function(victor, victim, dmg)
     // victim.doHit(victor, dmg);
     // victim.doKill(victor);
 }
-game_core.prototype.check_collision = function( player, i )
-{
+game_core.prototype.check_collision = function(player, i) {
     //console.log('##+@@check_collision', player.mp);
     // TODO: May need to remove hp check below (and elsewhere)
-    if (player.mp == 'hp' || !player.active)// || player.dead)
+    if (player.mp == 'hp' || !player.active) // || player.dead)
     {
         //console.log('standing', player.mp);
         return;
@@ -932,7 +902,7 @@ game_core.prototype.check_collision = function( player, i )
     var _this = this;
     // if (this.server)
     // console.log('* id', this.instance.id, 'len', this.getplayers.allplayers.length);
-    
+
     //console.log('g', this.players.self.getGrid());
 
     //Left wall. TODO:stop accel
@@ -996,33 +966,30 @@ game_core.prototype.check_collision = function( player, i )
     //player.pos.x = player.pos.x.fixed(4);
     //player.pos.y = player.pos.y.fixed(4);
 
-        // player collision (server managed)
-        //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    if (this.config.server || player.isLocal && !player.dead)
-    {
+    // player collision (server managed)
+    //for (var i = 0; i < this.getplayers.allplayers.length; i++)
+    if (this.config.server || player.isLocal && !player.dead) {
         var other, room;
         // _.forEach(_this.getplayers.allplayers, function(other)
         if (this.config.server)
             room = this.getplayers.fromRoom(player.playerPort);
         else room = this.getplayers.allplayers;
 
-        var c = 0; 
+        var c = 0;
         if (this.config.server) // collision optimization and avoids double-hits!
             c = i + 1;
 
         // for (var i = room.length - 1; i >= 0; i--)
-        for (var j = c; j < room.length; j++)
-        {
-            other = room[j];//room[i];//this.getplayers.allplayers[i];
+        for (var j = c; j < room.length; j++) {
+            other = room[j]; //room[i];//this.getplayers.allplayers[i];
             //console.log('->', other.team, player.team);
             //other.pos.x = other.pos.x.fixed(4);
             //other.pos.y = other.pos.y.fixed(4);
             //if (!other.active) return false;
 
-            if (other.mp != player.mp && other.team != player.team && other.active)
-            {
+            if (other.mp != player.mp && other.team != player.team && other.active) {
                 //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
-                if (Math.sqrt( (player.pos.x - other.pos.x) * (player.pos.x - other.pos.x) + (player.pos.y - other.pos.y) * (player.pos.y - other.pos.y) ) < 32)
+                if (Math.sqrt((player.pos.x - other.pos.x) * (player.pos.x - other.pos.x) + (player.pos.y - other.pos.y) * (player.pos.y - other.pos.y)) < 32)
                 // console.log("+", dist, '<', '128');
                 // if ( 
                 //     player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) 
@@ -1032,7 +999,7 @@ game_core.prototype.check_collision = function( player, i )
                 // )
                 {
                     console.log('HIT!', player.active, player.playerName, player.team, other.active, other.playerName, other.team);
-                    
+
                     // TODO: if vulnerable (stunned) then vuln user is victim
 
                     // set both players as 'engaged'
@@ -1049,41 +1016,35 @@ game_core.prototype.check_collision = function( player, i )
                     // player y - player attackBonus - player bonusTotal / player y - recover bonus 
                     // (pos.y - attackBonus - bonusTotal) - (pos.y - defenseBonus - bonusTotal)
                     this.hitDiff = (player.pos.y - player.attackBonus - player.bonusTotal) - (other.pos.y - other.defenseBonus - other.bonusTotal);
-                    console.log("* HIT DIFF", this.hitDiff, this.hitBase);// player.mp, player.pos.y, other.mp, other.pos.y);
+                    console.log("* HIT DIFF", this.hitDiff, this.hitBase); // player.mp, player.pos.y, other.mp, other.pos.y);
 
-                    if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true)//player.pos.y === other.pos.y)
+                    if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true) //player.pos.y === other.pos.y)
                     {
                         _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
                         // if (this.config.server)
                         player.doHitServer(other, false);
-                    }
-                    else // we (might?) have a victim
+                    } else // we (might?) have a victim
                     {
-                        console.log('determining VICTIM...');//, player.mp);
-                        
+                        console.log('determining VICTIM...'); //, player.mp);
+
                         //this.flashBang = 2;
-                        if (player.pos.y < other.pos.y || other.vuln === true)
-                        {
+                        if (player.pos.y < other.pos.y || other.vuln === true) {
                             //console.log('player', player.mp, 'killed', other.mp);
-                            if (!other.dead)
-                            {
+                            if (!other.dead) {
                                 // _this.pk(player, other, 15);
                                 // if (this.config.server)
                                 other.doHitServer(player, true);
                             }
-                        }
-                        else
-                        {
-                            if (!player.dead)
-                            {
+                        } else {
+                            if (!player.dead) {
                                 // if (this.config.server)
                                 player.doHitServer(other, true);
                             }
                         }
                     }
 
-                    break;//return false;//break;
+                    break; //return false;//break;
                 }
             }
         }
@@ -1195,14 +1156,12 @@ game_core.prototype.check_collision = function( player, i )
 
     //console.log('chests', this.chests.length, player.mp);
     // _.forEach(this.chests, function(chest)
-    if (this.config.server && !player.dead && !player.vuln)
-    {
+    if (this.config.server && !player.dead && !player.vuln) {
         var consumable;
         room = this.getplayers.fromRoom(player.playerPort, 2);
         // console.log('@ chests len', room.length);//, player.userid);
-        
-        for (i = room.length - 1; i >= 0; i--)
-        {
+
+        for (i = room.length - 1; i >= 0; i--) {
             consumable = room[i];
             // console.log('collision().chests', chest.taken);
             // Note: hy + 10 below accounts for birds unseen legs.
@@ -1212,19 +1171,16 @@ game_core.prototype.check_collision = function( player, i )
             //     player.pos.y < (consumable.y + consumable.height) &&
             //     (player.pos.y + player.size.hy) > consumable.y
             // )
-            if (Math.sqrt( (player.pos.x - consumable.x) * (player.pos.x - consumable.x) + (player.pos.y - consumable.y) * (player.pos.y - consumable.y) ) < 32)
-            
+            if (Math.sqrt((player.pos.x - consumable.x) * (player.pos.x - consumable.x) + (player.pos.y - consumable.y) * (player.pos.y - consumable.y)) < 32)
+
             {
                 // console.log('consumable hit');
-                if (!consumable.taken)
-                {
+                if (!consumable.taken) {
                     // TODO: if consumable is health pot and player's health is max, don't take!
-                    console.log('*', consumable.type, player.health, player.healthMax);
-                    if (consumable.type === 2 && player.health === player.healthMax)
-                    {
+                    console.log('*', consumable.category, player.health, player.healthMax);
+                    if (consumable.category === 2 && player.health === player.healthMax) {
                         console.log("healthy player cannot take health pot!");
-                    }
-                    else consumable.doTake(player);
+                    } else consumable.doTake(player);
                     // only 1 consumable is available at once, so vamos!
                     break;
                 }
@@ -1233,18 +1189,16 @@ game_core.prototype.check_collision = function( player, i )
     }
 
     // flagObjects (flags and slots)
-    if (this.config.server && !player.dead)
-    {
+    if (this.config.server && !player.dead) {
         // _.forEach(this.config.flagObjects, function(fo)
         // var fo;
         room = this.getplayers.fromRoom(player.playerPort, 3);
         // for (var k = this.config.flagObjects.length - 1; k >= 0; k--)
         // console.log('flags! len', roomFlags.length);
-        for (i = room.length - 1; i >= 0; i--)
-        {
+        for (i = room.length - 1; i >= 0; i--) {
             // fo = room[i];//this.config.flagObjects[k];
             // console.log('======= flag ======\n', room[i].id, room[i].name, room[i].x, room[i].y, '\n=======');
-            if (Math.sqrt( (player.pos.x - room[i].x) * (player.pos.x - room[i].x) + (player.pos.y - room[i].y) * (player.pos.y - room[i].y) ) < 32)
+            if (Math.sqrt((player.pos.x - room[i].x) * (player.pos.x - room[i].x) + (player.pos.y - room[i].y) * (player.pos.y - room[i].y)) < 32)
             // if (
             //     //room[i].isHeld === false && room[i].isActive && player.hasFlag === 0 &&
             //     player.pos.x < (room[i].x + (room[i].width/2)) &&
@@ -1257,13 +1211,11 @@ game_core.prototype.check_collision = function( player, i )
 
                 // player takes flag?
                 //console.log('room[i].doTake', room[i].type, room[i].name, room[i].isHeld, room[i].isActive, player.hasFlag);
-                if (room[i].type == "flag" && room[i].isHeld === false && room[i].isActive && player.hasFlag === 0)
-                {
+                if (room[i].type == "flag" && room[i].isHeld === false && room[i].isActive && player.hasFlag === 0) {
                     room[i].doTake(player);
                 }
                 // player with flag slots it?
-                else if (player.hasFlag > 0)
-                {
+                else if (player.hasFlag > 0) {
                     room[i].slotFlag(player);
                 }
             }
@@ -1279,11 +1231,10 @@ game_core.prototype.check_collision = function( player, i )
     // else console.log("***", this.core_client.config.round.stage);
     //console.log(c);
     // console.log('::', h);
-    if (h !== undefined)
-    {
+    if (h !== undefined) {
         //if (player.landed === 1) return;
         // console.log('tiles', h.nw.t, h.sw.t, h.ne.t, h.se.t, h.n.t, h.s.t, h.e.t, h.w.t);
-        
+
 
         //////////////////////////////
         // collide from below (full)
@@ -1292,20 +1243,17 @@ game_core.prototype.check_collision = function( player, i )
         {
             console.log('stop ne,nw', player.mp, h.ne.t, h.nw.t, player.team);
             // blue gate across
-            if (h.ne.t === 122 && h.nw.t === 122 && player.team === 2) 
-            {
+            if (h.ne.t === 122 && h.nw.t === 122 && player.team === 2) {
                 // only if round is active
-                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
+                    player.exitBase(); // disable afk timer
                     player.pos.y -= gatepush;
-                else
-                {
+                } else {
                     player.pos.y += b;
                     player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
-            }
-            else
-            {
+            } else {
                 //player.pos.x -= b;
                 player.pos.y += b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
@@ -1320,21 +1268,18 @@ game_core.prototype.check_collision = function( player, i )
         else if (h.sw.t > 0 && h.se.t > 0) // land
         {
             //console.log(h.sw.t,h.se.t);
-            
+
             // red gate across (tile id is 121)
-            if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) 
-            {
+            if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) {
                 // only if round is active
-                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
+                    player.exitBase(); // disable afk timer
                     player.pos.y += gatepush;
-                else
-                {
+                } else {
                     player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
                     player.doLand();
                 }
-            }
-            else
-            {
+            } else {
                 //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
                 //player.pos.x += b;
                 //player.pos.y -= b;
@@ -1356,20 +1301,17 @@ game_core.prototype.check_collision = function( player, i )
         {
             console.log('=+=+=+=+=+ HIT w wall', player.pos.x, player.pos.y);
             // blue gate down
-            if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2)
-            {
+            if (h.nw.t === 74 && h.sw.t === 74 && player.team === 2) {
                 // only if round is active
-                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
+                    player.exitBase(); // disable afk timer
                     player.pos.x -= gatepush;
-                else
-                {
+                } else {
                     player.pos.x += b; // bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
-            }
-            else
-            {
+            } else {
                 player.pos.x += b; // bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
@@ -1380,24 +1322,20 @@ game_core.prototype.check_collision = function( player, i )
         //////////////////////////////
         // side collision (full, right)
         //////////////////////////////
-        else if (h.ne.t > 0 && h.se.t > 0)
-        {
-            console.log('=+=+=+=+=+ HIT e wall', player.pos.x, player.pos.y);//h.nw.t, h.sw.t, player.team);
+        else if (h.ne.t > 0 && h.se.t > 0) {
+            console.log('=+=+=+=+=+ HIT e wall', player.pos.x, player.pos.y); //h.nw.t, h.sw.t, player.team);
             // red gate down
-            if (h.ne.t === 73 && h.se.t === 73 && player.team === 1) 
-            {
+            if (h.ne.t === 73 && h.se.t === 73 && player.team === 1) {
                 // only if round is active
-                if ( (this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage===1) || (!this.config.server && this.config.round.stage===1) )
+                if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
+                    player.exitBase(); // disable afk timer
                     player.pos.x += gatepush;
-                else
-                {
+                } else {
                     player.pos.x -= b; //bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
-            }
-            else
-            {
+            } else {
                 player.pos.x -= b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
@@ -1417,8 +1355,7 @@ game_core.prototype.check_collision = function( player, i )
         //////////////////////////////
         // slid off platform
         //////////////////////////////
-        else if (player.standing === 2)
-        {
+        else if (player.standing === 2) {
             console.log('player slid off barrier...');
         }
         //////////////////////////////
@@ -1432,14 +1369,12 @@ game_core.prototype.check_collision = function( player, i )
                 player.pos.x -= b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            }
-            else if (h.n.t > 0) // north (from below)
+            } else if (h.n.t > 0) // north (from below)
             {
                 player.pos.y += b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            }
-            else // south (landing), determine direction
+            } else // south (landing), determine direction
             {
                 // set y
                 player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
@@ -1448,8 +1383,7 @@ game_core.prototype.check_collision = function( player, i )
                 player.doLand();
             }
             //console.log(player.n, player.s, player.e, player.w);
-        }
-        else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
+        } else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
         {
             //console.log('* edge right', h.n.t, h.s.t, h.w.t);
             if (h.w.t > 0) // east (side collision)
@@ -1457,14 +1391,12 @@ game_core.prototype.check_collision = function( player, i )
                 player.pos.x += b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            }
-            else if (h.n.t > 0) // north (from below)
+            } else if (h.n.t > 0) // north (from below)
             {
                 player.pos.y += b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            }
-            else // south (landing), determine direction
+            } else // south (landing), determine direction
             {
                 // set y
                 player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
@@ -1479,11 +1411,10 @@ game_core.prototype.check_collision = function( player, i )
     // player.pos.y = player.pos.y.fixed(4);
 }; //game_core.check_collision
 
-game_core.prototype.process_input = function( player )
-{
+game_core.prototype.process_input = function(player) {
     // console.log('##+@@process_input', player.mp);
     //if (!this.config.server) console.log('client input', player.mp);
-    
+
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
@@ -1493,26 +1424,22 @@ game_core.prototype.process_input = function( player )
     //var delay = false;
     var ic = player.inputs.length;
     //console.log('ic:', ic);
-    if(ic)
-    {
+    if (ic) {
         // this.server_control = false;
-        for(var j = (ic - 1); j >= 0; --j)
-        {
+        for (var j = (ic - 1); j >= 0; --j) {
             //don't process ones we already have simulated locally
-            if(player.inputs[j].seq <= player.last_input_seq) continue;
+            if (player.inputs[j].seq <= player.last_input_seq) continue;
 
             var input = player.inputs[j].inputs;
             var c = input.length;
-            for(var i = c - 1; i >= 0; --i)
-            {
+            for (var i = c - 1; i >= 0; --i) {
                 var key = input[i];
                 // console.log('key', key, ic);
 
                 /////////////////////////
                 // move left
                 /////////////////////////
-                if(key == 'l')
-                {
+                if (key == 'l') {
                     player.dir = 1;
 
                     if (player.landed === 1)
@@ -1524,8 +1451,7 @@ game_core.prototype.process_input = function( player )
                 /////////////////////////
                 // move right
                 /////////////////////////
-                else if(key == 'r')
-                {
+                else if (key == 'r') {
                     //x_dir += 1;
                     player.dir = 0;
 
@@ -1533,12 +1459,9 @@ game_core.prototype.process_input = function( player )
                         player.doWalk(player.dir);
                     else player.setAngle(0);
                     //player.pos.d = 0;
-                }
-                else if(key == 'd')
-                {
+                } else if (key == 'd') {
                     // delay kepresses by 200 ms
-                    if (this.inputDelay === false)
-                    {
+                    if (this.inputDelay === false) {
                         /*this.inputDelay = true;
                         player.doCycleAbility();
                         setTimeout(this.timeoutInputDelay, 200);*/
@@ -1554,8 +1477,7 @@ game_core.prototype.process_input = function( player )
                 // else
                 // {
                 // }
-                if(key == 'u') 
-                { // flap
+                if (key == 'u') { // flap
                     //TODO: up should take player direction into account
                     // console.log('flap!', player.mp, player.pos);
 
@@ -1571,7 +1493,7 @@ game_core.prototype.process_input = function( player )
                     // player.vy = -1;
                     //
                     // set y_dir for vector movement
-                    y_dir = player.vy;//0.5;//1;
+                    y_dir = player.vy; //0.5;//1;
                     x_dir = player.vx;
 
                     // apply horizontal velocity based on direction facing
@@ -1598,16 +1520,14 @@ game_core.prototype.process_input = function( player )
                 }
                 // else player.flap = false;
                 //if (key !== 'u') player.flap = false;
-                if(key == 'x') 
-                {
+                if (key == 'x') {
                     // console.log('x: flap=false');
-                    
+
                     player.flap = false;
                 }
-                if (key == '1')
-                    {
-                        console.log("* key 1 pressed");
-                    }
+                if (key == '1') {
+                    console.log("* key 1 pressed");
+                }
                 //     y_dir -= 10;
                 // }
             } //for all input values
@@ -1618,7 +1538,7 @@ game_core.prototype.process_input = function( player )
     {
         // if (!this.server)console.log('* no input...');
         // this.server_control = true;
-        
+
         //player.inputs.push({seq:"0",time:this.config.server_time);
         //player.last_input_time = this.config.server_time;
         // if (player.landed === 1)
@@ -1637,12 +1557,12 @@ game_core.prototype.process_input = function( player )
         }
         //*/
         //this.client_update();
-        
+
         //this.players.self.cur_state.pos = this.pos(this.players.self.pos);
         //var input = player.inputs[j].inputs;
         //var c = input.length;
         //console.log('len', player.inputs.length);
-            
+
         //if (player.mp == "cp1")// && !this.server)
         //{
         //console.log('difX', player.active, player.mp, player.pos.x - player.lpos.x,'difY', player.active, player.mp, player.pos.y - player.lpos.y);
@@ -1672,7 +1592,7 @@ game_core.prototype.process_input = function( player )
         // {
         //     console.log(':', player.lpos.x - player.pos.x, player.lpos.y - player.pos.y);
         // }
-        
+
         //console.log(x_dir, y_dir, this._pdt);
     }
     if (!this.server)
@@ -1685,20 +1605,19 @@ game_core.prototype.process_input = function( player )
 
         //console.log(':', x_dir, y_dir, player.vx, player.vy, tmp_vx);
     }*/
-    
+
     //we have a direction vector now, so apply the same physics as the client
-    var resulting_vector = this.physics_movement_vector_from_direction(x_dir,y_dir);
+    var resulting_vector = this.physics_movement_vector_from_direction(x_dir, y_dir);
 
     // if (resulting_vector.x !== 0 || resulting_vector.y !== 0)
     // console.log('resulting_vector', resulting_vector);
     // if (resulting_vector.x > 0 || resulting_vector.y > 0)
     //     console.log('vector', resulting_vector);
-    if (player.inputs.length) 
-    {
+    if (player.inputs.length) {
         //we can now clear the array since these have been processed
 
-        player.last_input_time = player.inputs[ic-1].time;
-        player.last_input_seq = player.inputs[ic-1].seq;
+        player.last_input_time = player.inputs[ic - 1].time;
+        player.last_input_seq = player.inputs[ic - 1].seq;
     }
 
     player.lpos = player.pos;
@@ -1708,26 +1627,23 @@ game_core.prototype.process_input = function( player )
 
 }; //game_core.process_input
 
-game_core.prototype.timeoutInputDelay = function()
-{
+game_core.prototype.timeoutInputDelay = function() {
     this.inputDelay = false;
 };
-game_core.prototype.physics_movement_vector_from_direction = function(x,y) 
-{
+game_core.prototype.physics_movement_vector_from_direction = function(x, y) {
     //console.log('##+@@ physics_movement_vector_from_direction');
     //Must be fixed step, at physics sync speed.
     //console.log(':', x, y);
     return {
-        x : (x * (this.playerspeed * 0.015)).fixed(3),
-        y : (y * (this.playerspeed * 0.015)).fixed(3)
+        x: (x * (this.playerspeed * 0.015)).fixed(3),
+        y: (y * (this.playerspeed * 0.015)).fixed(3)
     };
 
 }; //game_core.physics_movement_vector_from_direction
 
-game_core.prototype.update_physics = function()
-{
+game_core.prototype.update_physics = function() {
     if (glog)
-    console.log('##+@@ update_physics');
+        console.log('##+@@ update_physics');
     //if (!this.config.server) return;
 
     // var _this = this;
@@ -1737,31 +1653,26 @@ game_core.prototype.update_physics = function()
     ////////////////////////////////////////////////////////
     // _.forEach(this.getplayers.allplayers, function(player)
     // var player, room;
-    if (this.server)
-    {
+    if (this.server) {
         this.phyAllRooms = Object.keys(this.getplayers.fromAllRooms());
-        for (var h = this.phyAllRooms.length - 1; h >= 0; h--)
-        {
+        for (var h = this.phyAllRooms.length - 1; h >= 0; h--) {
             this.phyRoom = this.getplayers.fromRoom(this.phyAllRooms[h]);
-            for (var i = this.phyRoom.length - 1; i >= 0; i--)
-            {
+            for (var i = this.phyRoom.length - 1; i >= 0; i--) {
                 this.phyPlayer = this.phyRoom[i];
                 if (this.phyPlayer.active)
                     this.phyPlayer.update();
 
                 // degrade player angle
                 if (this.phyPlayer.a > 0)
-                    this.phyPlayer.a-=0.5;
+                    this.phyPlayer.a -= 0.5;
                 else if (this.phyPlayer.a < 0)
-                    this.phyPlayer.a+=0.5;
+                    this.phyPlayer.a += 0.5;
             }
         }
-    }
-    else // client
+    } else // client
     {
         // console.log('client_xport:', this.core_client.xport);
-        if (this.core_client.players.self.active)
-        {
+        if (this.core_client.players.self.active) {
             this.core_client.players.self.update();
             if (this.core_client.players.self.a > 0)
                 this.core_client.players.self.a -= 0.5;
@@ -1800,7 +1711,7 @@ game_core.prototype.update_physics = function()
         }
     }*/
 
-    if(this.server) this.core_server.server_update_physics();
+    if (this.server) this.core_server.server_update_physics();
     else this.core_client.client_update_physics();
 
 }; //game_core.prototype.update_physics
@@ -1865,7 +1776,7 @@ game_core.prototype.update_physics = function()
 
 //             //Keep the physics position in the world            
 //             this.check_collision( this.phyPlayer, i );
-            
+
 
 //             //this.players.self.inputs = []; //we have cleared the input buffer, so remove this
 //             this.phyPlayer.inputs = []; //we have cleared the input buffer, so remove this
@@ -1906,26 +1817,24 @@ game_core.prototype.update_physics = function()
 //this.bufArr = new ArrayBuffer(768);
 //this.bufView = new Int16Array
 
-game_core.prototype.roundComplete = function(port, round)
-{
+game_core.prototype.roundComplete = function(port, round) {
     console.log('== roundComplete ==', port, round);
 
     if (round.stage === 1) // game round complete
     {
         console.log('Game Round Complete');
-        
+
         // set round for bonus stage
         round.stage = 2;
-        round.endtime = ~~(this.config.server_time + round.bonusDuration);//(round.duration * 60);
+        round.endtime = ~~(this.config.server_time + round.bonusDuration); //(round.duration * 60);
 
         // clear flag events
         //*
         var evts = this.getplayers.fromRoom(port, 1);
-        for (var e = evts.length - 1; e >= 0; e--)
-        {
+        for (var e = evts.length - 1; e >= 0; e--) {
             // if flag carried events, clear cooldown event (evt.state = 5)
             // console.log("* events", evts[e].type);
-            if (evts[e].type === evts[e].TYPE_FLAG_CARRIED_COOLDOWN)// || evts[e].type === evts[e].TYPE_FLAG_SLOTTED_COOLDOWN)
+            if (evts[e].type === evts[e].TYPE_FLAG_CARRIED_COOLDOWN) // || evts[e].type === evts[e].TYPE_FLAG_SLOTTED_COOLDOWN)
             {
                 // console.log("* stopping event", evts[e]);
                 // set triggered on to one second from now to auto clear the carrier
@@ -1935,11 +1844,10 @@ game_core.prototype.roundComplete = function(port, round)
             }
         }
         //*/
- 
+
         // pick winners (player.score - player.lastscore = round score)
         var p = this.getplayers.fromRoom(port, 0);
-        for (var z = p.length - 1; z >= 0; z--)
-        {
+        for (var z = p.length - 1; z >= 0; z--) {
             // reset roundscore of inactive players
             if (p[z].active === false)
                 p[z].roundscore = 0;
@@ -1975,83 +1883,74 @@ game_core.prototype.roundComplete = function(port, round)
         // reduce to top 10
         ordered.splice(9, ordered.length - 10);
         console.log('ordered:', ordered.length);
-        
+
         // remove 3 users from 4 - 10
         var rng;
-        for (var x = 0; x < 4; x++)
-        {
+        for (var x = 0; x < 4; x++) {
             rng = ~~((Math.random() * ordered.length) + 4);
             console.log('splicing', rng - 1);
-            
+
             ordered.splice(rng - 1, 1);
         }
         console.log("top10:", ordered.length);
-        var buffs = ["bubble","alacrity","precision","recover","blink","reveal","bruise","plate"];
+        var buffs = ["bubble", "alacrity", "precision", "recover", "blink", "reveal", "bruise", "plate"];
         var top10 = [];
-        for (var y = ordered.length - 1; y >= 0; y--)
-        {
+        for (var y = ordered.length - 1; y >= 0; y--) {
             // index, userid, buff
             // console.log('ordered', Math.floor(Math.random() * (buffs.length - 1)));// ordered[y]);
             if (!Boolean(ordered[y].userid))
                 ordered[y].userid = 0;
-            top10.push([y+1, ordered[y].userid, Math.floor(Math.random() * (buffs.length))]);
+            top10.push([y + 1, ordered[y].userid, Math.floor(Math.random() * (buffs.length))]);
         }
         console.log('* top10:', top10.length, top10);
 
         // add bonusSlot to players (with real userid numbers)
         var player;
-        for (var a = 0; a < top10.length; a++)
-        {
+        for (var a = 0; a < top10.length; a++) {
             console.log('top10 userid', top10[a][1]);
-            
-            if (top10[a][1])
-            {
+
+            if (top10[a][1]) {
                 // get player by userid
-                player = this.config._.find(p, {userid:top10[a][1]});
+                player = this.config._.find(p, { userid: top10[a][1] });
                 // send bonusSlot
                 player.bonusSlot = top10[a][2] + 1;
                 player.activateBuff(player.bonusSlot);
                 console.log('* assigned bonusSlot', player.bonusSlot, 'to player', player.playerName);
-                
+
             }
         }
-        
+
         // top 3
 
         // rng top 4 - 10
 
         // deactivate players
-        for (var i = 0; i < p.length; i++)
-        {
+        for (var i = 0; i < p.length; i++) {
             p[i].active = false;
-            if (p[i].instance && p[i].dead !== true)
-            {
+            if (p[i].instance && p[i].dead !== true) {
                 // notify client
                 //p[i].instance.room(port).write([30, top10]);
                 p[i].instance.write([30, top10]);
             }
         }
-    }
-    else if (round.stage === 2) // Bonus Round complete
+    } else if (round.stage === 2) // Bonus Round complete
     {
         console.log('@@ Bonus Round Complete', round);
-        
+
         // set round for game
         round.stage = 1;
-        round.endtime = Math.floor(this.config.server_time + round.duration);//(round.duration * 60);
+        round.endtime = Math.floor(this.config.server_time + round.duration); //(round.duration * 60);
         round.total++;
 
         // deactivate players
         p = this.getplayers.fromRoom(port, 0);
-        for (i = 0; i < p.length; i++)
-        {
-            if (p[i].instance)
-            {
+        for (i = 0; i < p.length; i++) {
+            if (p[i].instance) {
                 // notify client
                 p[i].active = true; // reactivate player
                 p[i].instance.write([31, round]);
             }
-        }        
+        }
     }
 
     // lastly, reactivate round
@@ -2072,7 +1971,7 @@ game_core.prototype.roundComplete = function(port, round)
 //         for (var h = room.length - 1; h >= 0; h--)
 //         {
 //             player = room[h];
-            
+
 //             if (player.instance && player.instance.userid == client.userid)
 //             {
 //                 //Store the input on the player instance for processing in the physics loop
@@ -2206,17 +2105,14 @@ document.externalControlAction = function(data)
 
     return time_point;
 };*/
-game_core.prototype.wipe = function(obj)
-{
-    for (var p in obj)
-    {
+game_core.prototype.wipe = function(obj) {
+    for (var p in obj) {
         if (obj.hasOwnProperty(p))
             delete obj[p];
     }
 };
 
-game_core.prototype.addChest = function(chest, room)
-{
+game_core.prototype.addChest = function(chest, room) {
     console.log('== addChest', chest.i, room, '==');
 
     //     i:id,
@@ -2227,11 +2123,10 @@ game_core.prototype.addChest = function(chest, room)
     //     d:evt.passive.discipline,
     //     h:evt.passive.health
 
-    if (this.server)
-    {
+    if (this.server) {
         // var room = this.getplayers.fromRoom(room, 2);
         // add data from chest.consumableData to consumable
-        
+
         // this.getplayers.addToRoom(new game_consumable(chest, false, this.getplayers, this.config), room, 2);
 
         // this.chests.push(new game_chest(chest, false, this.getplayers, this.config));
@@ -2245,37 +2140,33 @@ game_core.prototype.addChest = function(chest, room)
         //     }
         // });
 
-    }
-    else
-    { 
+    } else {
         console.log('# total chests:', this.chests.length + 1);
         console.log('adding chest to client', chest.i);
-        
-        
+
+
         // this.getplayers.addToRoom(new game_chest(chest, true, this.getplayers, this.config), room, 2);
         this.chests.push(new game_consumable(chest, true, this.getplayers, this.config));
     }
 };
-game_core.prototype.timerFnc = function()
-{
+game_core.prototype.timerFnc = function() {
     this._dt = new Date().getTime() - this._dte;
     this._dte = new Date().getTime();
-    this.local_time += this._dt/1000.0;
+    this.local_time += this._dt / 1000.0;
 };
-game_core.prototype.create_timer = function(){
+game_core.prototype.create_timer = function() {
     setInterval(
-    //     function(){
-    //     this._dt = new Date().getTime() - this._dte;
-    //     this._dte = new Date().getTime();
-    //     this.local_time += this._dt/1000.0;
-    // }
-    this.timerFnc
-    .bind(this), 4);
+        //     function(){
+        //     this._dt = new Date().getTime() - this._dte;
+        //     this._dte = new Date().getTime();
+        //     this.local_time += this._dt/1000.0;
+        // }
+        this.timerFnc
+        .bind(this), 4);
 };
 
-game_core.prototype.phySimFunc = function()
-{
-    this._pdt = (new Date().getTime() - this._pdte)/1000.0;
+game_core.prototype.phySimFunc = function() {
+    this._pdt = (new Date().getTime() - this._pdte) / 1000.0;
     this._pdte = new Date().getTime();
     // TODO: *** By default this fnc is run by both server AND client
     //if (this.server)
@@ -2284,15 +2175,14 @@ game_core.prototype.phySimFunc = function()
 game_core.prototype.create_physics_simulation = function() {
 
     setInterval(
-    //     function(){
-    //     this._pdt = (new Date().getTime() - this._pdte)/1000.0;
-    //     this._pdte = new Date().getTime();
-    //     // TODO: *** By default this fnc is run by both server AND client
-    //     //if (this.server)
-    //     this.update_physics();
-    // }
-    this.phySimFunc
-    .bind(this), 15);
+        //     function(){
+        //     this._pdt = (new Date().getTime() - this._pdte)/1000.0;
+        //     this._pdte = new Date().getTime();
+        //     // TODO: *** By default this fnc is run by both server AND client
+        //     //if (this.server)
+        //     this.update_physics();
+        // }
+        this.phySimFunc
+        .bind(this), 15);
 
 }; //game_core.client_create_physics_simulation
-

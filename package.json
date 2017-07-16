@@ -1,62 +1,63 @@
 {
-  "name": "wingdom.io",
-  "author": "Derek Feddon",
-  "description": "Multiplayer Joust-like game.",
-  "license": "UNLICENSED",
-  "version": "0.8.0",
-  "main": "app.js",
-  "scripts": {
-    "start": "node app.js",
-    "start_gc": "node app.js --expose-gc",
-    "start_forever": "forever start app.js -c 'node –-nouse-idle-notification --expose-gc'",
-    "local": "nodemon --watch app.js"
-  },
-  "dependencies": {
-    "binary-pack": "^1.0.2",
-    "bufferutil": "^3.0.2",
-    "debug": "^2.6.8",
-    "domready": "^1.0.8",
-    "ejs": "^2.5.6",
-    "ent": "^2.2.0",
-    "express": "4.15.3",
-    "forever": "^0.15.3",
-    "get-uid": "^1.0.1",
-    "http-proxy": "^1.16.2",
-    "ioredis": "^3.1.1",
-    "lodash": "^4.17.4",
-    "memwatch-next": "^0.3.0",
-    "metroplex": "^1.0.0",
-    "node-uuid": "^1.4.8",
-    "pmx": "^1.2.0",
-    "primus": "^7.0.2",
-    "primus-emitter": "^3.1.1",
-    "primus-rooms": "^3.4.1",
-    "primus-rooms-redis-adapter": "^2.1.1",
-    "throng": "^4.0.0",
-    "typedarray-pool": "^1.1.0",
-    "utf-8-validate": "^3.0.3",
-    "uws": "^8.14.0",
-    "vhost": "^3.0.2",
-    "winston": "^2.3.0",
-    "ws": "^3.0.0",
-    "xml2js": "^0.4.17"
-  },
-  "optionalDependencies": {
-    "fsevents": "*"
-  },
-  "engine": {
-    "node": "7.5.0"
-  },
-  "devDependencies": {
-    "grunt": "^1.0.1",
-    "grunt-aws-s3": "^1.0.0",
-    "grunt-browserify": "^5.0.0",
-    "grunt-contrib-clean": "^1.1.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-uglify": "^3.0.1",
-    "grunt-contrib-watch": "^1.0.0",
-    "grunt-git": "^1.0.4",
-    "gulp-concat-util": "^0.5.5",
-    "gulp-uglify": "^3.0.0"
-  }
+    "name": "wingdom.io",
+    "author": "Derek Feddon",
+    "description": "Multiplayer Joust-like game.",
+    "license": "UNLICENSED",
+    "version": "0.8.0",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "start_gc": "node app.js --expose-gc",
+        "start_forever": "forever start app.js -c 'node –-nouse-idle-notification --expose-gc'",
+        "local": "nodemon --watch app.js",
+        "gogrunt": "grunt"
+    },
+    "dependencies": {
+        "binary-pack": "^1.0.2",
+        "bufferutil": "^3.0.2",
+        "debug": "^2.6.8",
+        "domready": "^1.0.8",
+        "ejs": "^2.5.6",
+        "ent": "^2.2.0",
+        "express": "4.15.3",
+        "forever": "^0.15.3",
+        "get-uid": "^1.0.1",
+        "http-proxy": "^1.16.2",
+        "ioredis": "^3.1.1",
+        "lodash": "^4.17.4",
+        "memwatch-next": "^0.3.0",
+        "metroplex": "^1.0.0",
+        "node-uuid": "^1.4.8",
+        "pmx": "^1.2.0",
+        "primus": "^7.0.2",
+        "primus-emitter": "^3.1.1",
+        "primus-rooms": "^3.4.1",
+        "primus-rooms-redis-adapter": "^2.2.0",
+        "throng": "^4.0.0",
+        "typedarray-pool": "^1.1.0",
+        "utf-8-validate": "^3.0.3",
+        "uws": "^8.14.0",
+        "vhost": "^3.0.2",
+        "winston": "^2.3.0",
+        "ws": "^3.0.0",
+        "xml2js": "^0.4.17"
+    },
+    "optionalDependencies": {
+        "fsevents": "*"
+    },
+    "engine": {
+        "node": "7.5.0"
+    },
+    "devDependencies": {
+        "grunt": "^1.0.1",
+        "grunt-aws-s3": "^1.0.0",
+        "grunt-browserify": "^5.0.0",
+        "grunt-contrib-clean": "^1.1.0",
+        "grunt-contrib-copy": "^1.0.0",
+        "grunt-contrib-uglify": "^3.0.1",
+        "grunt-contrib-watch": "^1.0.0",
+        "grunt-git": "^1.0.4",
+        "gulp-concat-util": "^0.5.5",
+        "gulp-uglify": "^3.0.0"
+    }
 }
