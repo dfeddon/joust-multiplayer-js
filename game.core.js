@@ -1930,6 +1930,7 @@ game_core.prototype.roundComplete = function(port, round)
                 // console.log("* stopping event", evts[e]);
                 // set triggered on to one second from now to auto clear the carrier
                 evts[e].triggerOn = this.config.server_time + 1;
+                evts[e].timer = 0;
                 // evts[e].suppressToast = true;
             }
         }

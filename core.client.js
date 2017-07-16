@@ -174,17 +174,31 @@ core_client.prototype.getChildOfParent = function(parent, childId)
 
 core_client.prototype.renameDescendantsOfNode = function(node, suffix) 
 {
+    // var oldid;
     for (var i = 0; i < node.childNodes.length; i++) 
     {
         var child = node.childNodes[i];
         if (child.id) // require id?
         {
+            // strip extant id extensions
+            // oldid = child.id.toString();
+            // oldid = oldid.replace("_1", "");
+            // oldid = oldid.replace("_2", "");
+            // oldid = oldid.replace("_3", "");
+            // console.log("* oldid", oldid);
             this.renameDescendantsOfNode(child, suffix);
-            child.id = child.id + "_" + suffix;
+            child.setAttribute("id", child.id + "_" + suffix);
             console.log("* child", child);
             // doSomethingToNode(child);
         }
     }
+    // oldid = node.id.toString();
+    // oldid = oldid.replace("_1", "");
+    // oldid = oldid.replace("_2", "");
+    // oldid = oldid.replace("_3", "");
+    // node.setAttribute(node.id, "donation_item_" + suffix);
+    // console.log("* node", node);
+    // return node;
 }
 
 // core_client.prototype.getNodeChildById = function(node, id) 
@@ -658,7 +672,7 @@ core_client.prototype.client_onjoingame = function(data)
     //this.client_reset_positions();
 }; //client_onjoingame
 
-core_client.prototype.client_onhostgame = function(data, callback)
+core_client.prototype.client_onhostgame = function(data)//, callback)
 {
     console.log('## client_onhostgame', data);// (player joined is not host: self.host=false)');
     var _this = this;
@@ -1305,7 +1319,7 @@ core_client.prototype.client_connect_to_server = function(data)
         {
             _this.client_draw_info();
             // store this tick to avoid redundancy
-            _this.lastInfoUpdate = _this.config.server_time.toFixed(1);
+            // _this.lastInfoUpdate = ~~_this.config.server_time);
         }
     });
 
@@ -1371,8 +1385,11 @@ core_client.prototype.client_connect_to_server = function(data)
             // protection ended
             case 35: _this.client_onprotectioncomplete(); break;
 
+            // update player bonuses
+            case 40: _this.client_onbonusupdate(data[1], data[2], data[3]); break;
+
             // bonus penalty expired
-            case 40: _this.client_onbonuspenaltyexpired(data); break;
+            case 41: _this.client_onbonuspenaltyexpired(data); break;
 
             // game is full
             case 50: _this.client_ongamefull(); break;
@@ -1883,6 +1900,20 @@ core_client.prototype.client_onflagremove = function(player_id, flagName, flagTa
         console.log("* show FlagCarrier Donation UI");
 
         this.addDonation(playerSource, flagTaken);
+        // stub data
+        // if (this.donations.length < 2)
+        // {
+        // var playerSource2 = {};
+        // playerSource2.userid = "2222222";
+        // playerSource2.health = 52;
+        // playerSource2.playerName = "Player 2";
+        // this.addDonation(playerSource2, flagTaken);
+        // var playerSource3 = {};
+        // playerSource3.userid = "33333333";
+        // playerSource3.health = 53;
+        // playerSource3.playerName = "Player 3";
+        // this.addDonation(playerSource3, flagTaken);
+        // }
         // // add carrier to global donations array (userid, index)
         // var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1 });
         // console.log("* len", len, this.donations);
@@ -2116,90 +2147,149 @@ core_client.prototype.client_onflagchange = function(flagName, flagVisible, toas
 
 core_client.prototype.addDonation = function(playerSource, flagTaken)
 {
-    var _this = this;
+    console.log("== addDonation ==", playerSource.playerName, flagTaken.name);
 
-    // add carrier to global donations array (userid, index)
-    var len = this.donations.push({ user:playerSource.userid, index:this.donations.length + 1, health:playerSource.health });
-    console.log("* len", len, this.donations);
-
-    // clone donations UI
-    var src = document.getElementById('donations');
-    var donation = src.cloneNode(true);
-    document.body.appendChild(donation);
-
-    // rename node and its children
-    donation.id = "donation_item_" + len;
-    this.renameDescendantsOfNode(donation, len);
-
-    // update nodes player name, skin, health, flag carried, flag target
-    console.log("!!!!!!", document.getElementById("donation_item_" + len));
-
-    // apply css classes
-    document.getElementById("donation_item_" + len).className = "donations";
-    document.getElementById("donation_item_" + len).style.position = "absolute";
-    document.getElementById("donation_item_" + len).style.bottom = (150 + (85 * (len - 1))).toString() + "px";
-    document.getElementById("donation-container_" + len).className = "donation-container";
-    document.getElementById("donation-player-container_" + len).className = "donation-player-container";
-    document.getElementById("donation-player-name_" + len).className = "donation-player-name";
-    document.getElementById("donation-player-image-container_" + len).className = "donation-player-image-container";
-    document.getElementById("donation-player-flag_" + len).className = "donation-player-flag";
-    document.getElementById("donation-player-skin_" + len).className = "donation-player-skin";
-    document.getElementById("donation-player-plaque_" + len).className = "donation-player-plaque";
-    document.getElementById("donation-player-health_" + len).className = "donation-player-health";
-    // document.getElementById("donations-ui_" + len).className = "donation-ui";
-    // document.getElementById("donations-button-container_" + len).className = "donations-button-container";
-
-    // touch/click handler this.submitDonationByNum(1);
-    document.getElementById("donation_item_" + len).addEventListener('click', function()
-    {
-        console.log("* donation submit", len);
-        // webkit.messageHandlers.callbackHandler.postMessage("donation");
-        _this.submitDonationByNum(len);
-    });
-
-    // document.getElementById("donations-ui-label_" + len).className = "donation-ui-label";
-
-    // player name
-    document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
-    // flag taken
-    var flagName;
-    switch(flagTaken.name)
-    {
-        case "midFlag": flagName = "flag-mid-r"; break;
-        case "redFlag": flagName = "flag-red-r"; break;
-        case "blueFlag": flagName = "flag-blue-r"; break;
-        // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
-    }
-    document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
-    // player skin
-    document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
-    // plaque
-    var slotName
-    switch(flagTaken.targetSlot)
-    {
-        case "midSlot": slotName = "flag-slot-mid"; break;
-        case "slotRed": slotName = "flag-slot-red"; break;
-        case "slotBlue": slotName = "flag-slot-blue"; break;
-        default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
-    }
-    document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
-    // player health
-    document.getElementById("donation-player-health_" + len).innerHTML = playerSource.health;
-
-    console.log("* clone", donation);
+    this.donations.push({ user:playerSource.userid, index:this.donations.length + 1, health:playerSource.health, p:playerSource, f:flagTaken });
+    this.updateDonations();
 }
 core_client.prototype.removeDonation = function(userid)
 {
     console.log("=== removeDonation ==", userid);
+
+    var indexRemoved = 0;
+    var newNode, newContainer;
 
     for (var i = 0; i < this.donations.length; i++)
     {
         if (this.donations[i].user === userid)
         {
             console.log("* found donation!", userid);
-            document.getElementById('donation_item_' + this.donations[i].index).style.display = "none";
-        }        
+            
+            indexRemoved = this.donations[i].index;
+            this.donations.splice(i, 1);
+            this.updateDonations();
+            return;
+        }
     }
+    // remove index
+    // this.donations.splice(indexRemoved - 1, 1);
+}
+
+core_client.prototype.updateDonations = function()
+{
+    console.log("== updateDonations ==");
+
+    // first, let's sort the array by donation.index
+    this.donations.sort(function(a, b)
+    {
+        return a.index - b.index;
+    });
+    console.log("* donations array", this.donations);
+
+    var node;
+    // remove nodes
+    for (var i = 1; i <= 3; i++)
+    {
+        // first, remove donation buttons
+        node = document.getElementById('donation_item_' + i);
+        if (node)
+        {
+            // delete children
+            while(node.firstChild)
+            {
+                // console.log('* removing child', node, node.firstChild);                
+                node.removeChild(node.firstChild);
+            }
+            // delete node
+            node.parentNode.removeChild(node);
+        }
+        console.log(i, node);
+    }
+    // add nodes
+    var playerSource, flagTaken, len;
+    for (i = 0; i < this.donations.length; i++)
+    {
+        // set vars
+        len = i + 1;
+        playerSource = this.donations[i].p;
+        flagTaken = this.donations[i].f;
+        var _this = this;
+
+        // clone donations UI
+        var src = document.getElementById('donations');
+        var donation = src.cloneNode(true);
+        document.body.appendChild(donation);
+        
+        // rename node and its children
+        donation.id = "donation_item_" + len;
+        this.renameDescendantsOfNode(donation, len);
+
+        // determine donation UI location based on device
+        var bottom = 20; // browser
+        if (assets.device.isMobile)
+        {
+            if (assets.device.isPhone)
+                bottom = 100; // phone
+            else bottom = 150; // tablet
+        }
+
+        // apply css classes
+        var item = document.getElementById("donation_item_" + len);
+        console.log("* item", item);
+        item.className = "donations";
+        item.style.position = "absolute";
+        item.style.bottom = (bottom + (95 * (len - 1))).toString() + "px";
+        console.log("item style bottom", item.style.bottom);
+        document.getElementById("donation-container_" + len).className = "donation-container";
+        document.getElementById("donation-player-container_" + len).className = "donation-player-container";
+        document.getElementById("donation-player-name_" + len).className = "donation-player-name";
+        document.getElementById("donation-player-image-container_" + len).className = "donation-player-image-container";
+        document.getElementById("donation-player-flag_" + len).className = "donation-player-flag";
+        document.getElementById("donation-player-skin_" + len).className = "donation-player-skin";
+        document.getElementById("donation-player-plaque_" + len).className = "donation-player-plaque";
+        document.getElementById("donation-player-health_" + len).className = "donation-player-health";
+        document.getElementById("donations-ui_" + len).className = "donation-ui";
+        document.getElementById("donations-button-container_" + len).className = "donations-button-container";
+
+        // touch/click handler this.submitDonationByNum(1);
+        item.addEventListener('click', function(e)
+        {
+            console.log("* donation submit", e.srcElement.id, e.srcElement.id.charAt(e.srcElement.id.length - 1));
+            // webkit.messageHandlers.callbackHandler.postMessage("donation");
+            _this.submitDonationByNum(parseInt(e.srcElement.id.charAt(e.srcElement.id.length - 1)));
+        });
+
+        // document.getElementById("donations-ui-label_" + len).className = "donation-ui-label";
+
+        // player name
+        document.getElementById("donation-player-name_" + len).innerHTML = playerSource.playerName;
+        // flag taken
+        var flagName;
+        switch(flagTaken.name)
+        {
+            case "midFlag": flagName = "flag-mid-r"; break;
+            case "redFlag": flagName = "flag-red-r"; break;
+            case "blueFlag": flagName = "flag-blue-r"; break;
+            // default: slotName = "flag-slot-" + flagTaken.targetName.split("slot")[1];
+        }
+        document.getElementById("donation-player-flag_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + flagName + ".png";
+        // player skin
+        document.getElementById("donation-player-skin_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + playerSource.skin + ".png";
+        // plaque
+        var slotName
+        switch(flagTaken.targetSlot)
+        {
+            case "midSlot": slotName = "flag-slot-mid"; break;
+            case "slotRed": slotName = "flag-slot-red"; break;
+            case "slotBlue": slotName = "flag-slot-blue"; break;
+            default: slotName = "flag-slot-" + flagTaken.targetSlot.split("slot")[1];
+        }
+        document.getElementById("donation-player-plaque_" + len).src = "https://s3.amazonaws.com/com.dfeddon.wingdom/" + slotName + ".png";
+        // player health
+        document.getElementById("donation-player-health_" + len).innerHTML = playerSource.health;
+
+    }
+
 }
 
 core_client.prototype.client_onprotectioncomplete = function()
@@ -2207,6 +2297,15 @@ core_client.prototype.client_onprotectioncomplete = function()
     console.log('== client_onprotectioncomplete ==');
     this.players.self.protection = false;
     document.getElementById('protection-badge').style.display = "none";
+}
+
+core_client.prototype.client_onbonusupdate = function(team, player, potions)
+{
+    console.log("== client_onbonusupdate ==", team, player, potions);
+    // this.players.self.playerBonus += this.dazed;
+    // if (data.length === 3)
+        this.players.self.updateBonusesClient([team, player, potions]);
+    // else console.warn("* client_onbonusupdate: data length mismatch!", data.length);
 }
 
 core_client.prototype.client_onbonuspenaltyexpired = function(data)
@@ -2446,6 +2545,7 @@ core_client.prototype.submitDonationByNum = function(num)
     console.log("#### donation submitted to", num);
         for (var i = 0; i < this.donations.length; i++)
         {
+            console.log("* index", typeof(this.donations[i].index), typeof(num));
             if (this.donations[i].index === num)
             {
                 console.log("* found donation", this.donations[i]);
@@ -2464,16 +2564,23 @@ core_client.prototype.submitDonationByNum = function(num)
 core_client.prototype.handleKeyEvent = function(e)
 {
     // console.log("client handling key events!", e);
-    if (e.keyCode === 49)
+    var key = 0;
+    switch(e.keyCode)
     {
-        console.log("key 1");
+        case 49: key = 1; break;
+        case 50: key = 2; break;
+        case 51: key = 3; break;
+    }
+    if (key > 0)
+    {
+        console.log("key", key);
         for (var i = 0; i < this.donations.length; i++)
         {
             console.log(this.donations[i]);
-            if (this.donations[i].index === 1)
+            if (this.donations[i].index === key)
             {
-                console.log("DONATION 1!");
-                this.submitDonationByNum(1);
+                console.log("DONATION", key);
+                this.submitDonationByNum(key);
             }
         }
     }
@@ -3787,12 +3894,20 @@ core_client.prototype.client_update = function()
                 // ply is visible right of local player
                 (this.core.getplayers.allplayers[j].pos.x + this.cam.x + this.core.getplayers.allplayers[j].size.hx > 0)
             )
+            this.core.getplayers.allplayers[j].draw();
             //*/
-            if (Math.sqrt( (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) ) < (window.innerWidth + 64) / 2)
+            // console.log(window.innerWidth, this.viewport.width);
+            //*
+            if (Math.sqrt(  (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * 
+                            (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + 
+                            (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * 
+                            (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) 
+                        ) < (window.innerWidth))// + 64) / 2)
             {
                 // console.log('draw', this.core.getplayers.allplayers[j].playerName, window.innerWidth, window.innerHeight, screen.width, screen.height);
                 this.core.getplayers.allplayers[j].draw();
             }
+            //*/
             //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
         }
     }
@@ -3870,7 +3985,7 @@ core_client.prototype.client_update = function()
         this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
         // console.log('lpos', this.cam.pos, this.players.self.pos);
         this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);//this.this.config.world.width);
-        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height*0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height * 0.5, -(this.config.world.height - this.viewport.height) - 0, 0);//this.game.world.height);
         //this.cam.x = parseInt(camX);
         //this.cam.y = parseInt(camY);
 
@@ -4188,11 +4303,11 @@ core_client.prototype.tilemapper = function()
                 var tile, t;
                 var count = 0;
                 var colMax = (imageWidth / tileWidth);
-                var rowMax = (imageHeight / tileHeight);
+                //var rowMax = (imageHeight / tileHeight);
                 //console.log(rowMax,colMax);
                 //console.log('layerData H', layerData[y].length);
                 //console.log('layerData W', layerData[y][0].length);
-                var col, row;
+                var col;//, row;
                 for (var j = 0; j < layerData[y].length; j++)
                 {
                     //console.log(layerData[y][j].length);
@@ -4205,8 +4320,7 @@ core_client.prototype.tilemapper = function()
                             //console.log(((t % colMax)) * tileWidth, (Math.floor(t / rowMax)) * tileHeight);
                             //console.log(j, k, t, ':', t%colMax, '/', Math.floor(t/rowMax));
                             col = (t % colMax) | 0;
-                            tile = tmContext.getImageData
-                            (
+                            tile = tmContext.getImageData(
                                 col * tileWidth,// tileHeight, // x
                                 (~~(t / colMax)) * tileWidth, // y
                                 tileWidth, // w
@@ -4248,7 +4362,8 @@ core_client.prototype.tilemapper = function()
             var pre = {midFlag: undefined, redFlag: undefined, blueFlag: undefined};
             if (_this.config.preflags)
             {
-                for (var x = 0; x < _this.config.preflags.length; x++)
+                console.log("* running preflags! check onhostgame...");
+                for (x = 0; x < _this.config.preflags.length; x++)
                 {
                     pre[_this.config.preflags[x].name] = _this.config.preflags[x];//.visible;
                 }
@@ -4268,6 +4383,8 @@ core_client.prototype.tilemapper = function()
                         flag.visible = pre[fo.name].visible; // set default visibility
                         flag.x = pre[fo.name].x;
                         flag.y = pre[fo.name].y;
+                        flag.sourceSlot = pre[fo.name].sourceSlot;
+                        flag.isActive = pre[fo.name].isActive
                     }
                     _this.core.config.flagObjects.push(flag);//new game_flag(fo, _this.viewport.getContext('2d')));
                 }
@@ -4307,7 +4424,7 @@ core_client.prototype.tilemapper = function()
     {
         console.log('* removing flag objects...');
         
-        for (var k in flagObjectsObj)
+        for (k in flagObjectsObj)
             delete flagObjectsObj[k];
     }
 };
@@ -4522,7 +4639,7 @@ function clamp(value, min, max)
 
 core_client.prototype.updateTerritory = function()
 {
-    console.log('== game_core.updateTerrotiroy', this.bg, this.core.config.flagObjects.length, "==");
+    console.log('== game_core.updateTerritroy', this.bg, this.core.config.flagObjects.length, "==");
 
     if (this.config.bg == null)
     //if (this.bg == null)

@@ -709,22 +709,28 @@ domready(function()
 
 				// listen for controls switch
 				var flip = document.getElementById('flip-image');
-				flip.addEventListener("touchstart", function(e)
+				if (flip)
 				{
-					console.log('flip controls!');
+					flip.addEventListener("touchstart", function(e)
+					{
+						console.log('flip controls!');
 
-					cr.style.display = "none";
-					//var cl = document.getElementById('mobile-controls-l');
-					cl.style.display = "flex";
-				});
+						cr.style.display = "none";
+						//var cl = document.getElementById('mobile-controls-l');
+						cl.style.display = "flex";
+					});
+				}
 
 				var flipl = document.getElementById('flip-image-l');
-				flipl.addEventListener('touchstart', function(e)
+				if (flipl)
 				{
-					cl.style.display = "none";
-					// var cl = document.getElementById('mobile-controls-l');
-					cr.style.display = "flex";
-				})
+					flipl.addEventListener('touchstart', function(e)
+					{
+						cl.style.display = "none";
+						// var cl = document.getElementById('mobile-controls-l');
+						cr.style.display = "flex";
+					});
+				}
 			}
 			
 			// force flap (to reveal player)

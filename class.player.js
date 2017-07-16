@@ -292,17 +292,17 @@ game_player.prototype.setFromBuffer = function(data)
         this.addToScore();
     }
     // bonus update
-    if (data[13])
-        this.updateBonusesClient(data[13]);//this.addHealthConsumable(data[9]);
+    // if (data[13])
+    //     this.updateBonusesClient(data[13]);
     // this.active = (data[8] === 1) ? true : false;
-    if (data[14])
-        this.drawAbility = data[14];
+    if (data[13])
+        this.drawAbility = data[13];
     else this.drawAbility = 0;
 
-    if (data[15])// !== this.lastdata[11])
+    if (data[14])// !== this.lastdata[11])
     {
-        console.log("health updated!", data[15]);
-        this.health = data[15];
+        console.log("health updated!", data[14]);
+        this.health = data[14];
         this.healthAdjustments();
     }
 
@@ -999,7 +999,7 @@ game_player.prototype.updateBonusesClient = function(array)
     var bgGreen = '#417505';
     var borderGreen = "#B8E986";
 
-    console.log('* bonusTotal', this.bonusTotal);
+    console.log('* updateclient bonusTotal', this.bonusTotal);
     
     if (!this.isLocal && !this.config.server) return;
     
@@ -1076,7 +1076,7 @@ game_player.prototype.updateBonuses = function(teamBonus)
     
     // total it
     this.bonusTotal = this.teamBonus + this.playerBonus + this.potionBonus;
-    console.log('* bonusTotal', this.bonusTotal);
+    console.log('* update bonusTotal', this.bonusTotal);
     
     // update client? via write or livesocket
     if (this.instance && this.isLocal)
@@ -1877,7 +1877,7 @@ game_player.prototype.update = function()
                 this.updateBonuses();
                 // notify client
                 if (this.isLocal)
-                    this.instance.write([40, this.teamBonus, this.playerBonus, this.potionBonus]);
+                    this.instance.write([41, this.teamBonus, this.playerBonus, this.potionBonus]);
             }
         //}
     } // end this.server
@@ -2053,8 +2053,7 @@ game_player.prototype.update = function()
                 /*if (this.pos.x > this.target.pos.x)
                     this.pos.x += this.size.hx/2;
                 else this.pos.x -= this.size.hx/2;*/
-                break;
-                
+            break;    
         }
         // reset vars
         this.collision = false;

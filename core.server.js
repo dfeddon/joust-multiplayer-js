@@ -253,19 +253,19 @@ core_server.prototype.server_update = function()
                 this.bufView[h][i][12] = this.suPlayer.score;//(player.dead) ? 1 : 0;//player.team;
                 this.suPlayer.oldscore = this.suPlayer.score;
             }
-            if (this.suPlayer.bonusDispatch)
-            {
-                console.log("* bonusDispatch", this.suPlayer.playerName, this.suPlayer.bonusDispatch);
-                this.bufView[h][i][13] = this.suPlayer.bonusDispatch;
-                this.suPlayer.bonusDispatch = null;
-            }
+            // if (this.suPlayer.bonusDispatch)
+            // {
+            //     console.log("* bonusDispatch", this.suPlayer.playerName, this.suPlayer.bonusDispatch);
+            //     this.bufView[h][i][13] = this.suPlayer.bonusDispatch;
+            //     this.suPlayer.bonusDispatch = null;
+            // }
             if (this.suPlayer.drawAbility > 0)
-                this.bufView[h][i][14] = this.suPlayer.drawAbility;
+                this.bufView[h][i][13] = this.suPlayer.drawAbility;
             
             if (this.suPlayer.healthChanged)
             {
                 this.suPlayer.healthChanged = false;
-                this.bufView[h][i][15] = this.suPlayer.health;
+                this.bufView[h][i][14] = this.suPlayer.health;
             }
             // if (this.suPlayer.hadCollision > 0)
             // {

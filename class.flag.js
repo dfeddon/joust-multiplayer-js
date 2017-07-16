@@ -757,8 +757,10 @@ game_flag.prototype.reset = function(success)//, game)//, server_time)
       msg.action = "carrierDied";
     else if (playerSource.dying)
       msg.action = "carrierSuicide";
-    else if (this.timer == '' || this.timer <= 0)
+    else //if (this.timer == '' || this.timer <= 0)
       msg.action = "flagTimeout";
+
+    console.log("@ msg.action", msg.action, this.timer);
 
     msg.playerTeam = playerSource.team;
     msg.sourceSlot = this.sourceSlot;
