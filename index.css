@@ -2862,6 +2862,20 @@ h5 {
     padding-top: 0px;
 }
 
+#jackpotGif {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+#jackpotResult {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
 #winnerBottom {
     height: 20%;
     order: 3;

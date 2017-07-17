@@ -36,6 +36,8 @@ function core_client(core, config) {
     this.particles = [];
     this.donations = [];
 
+    this.isJackpotWinner = false;
+
     // client net_updates vars
     this.nu_current_time, this.nu_target, this.nu_previous, this.nu_point, this.nu_next_point, this.nu_difference, this.nu_max_difference, this.nu_time_point, this.nu_ghostStub, this.nu_vt, this.nu_vp, this.nu_lerp_t, this.nu_lerp_p, this.nu_self_pp, this.nu_self_tp, this.nu_self_vt, this.nu_self_vp;
 
@@ -2268,18 +2270,21 @@ core_client.prototype.client_onbonusroundcomplete = function(round) {
     // if (this.players.self.hasFlag > 0) this.players.self.hasFlag = 0;
     // this.players.vy = -2;
 
-    // remove callout (if present)
-    var go = document.getElementById('roundCompleteCallout');
-    go.innerHTML = "Wave " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
-    go.style.display = "block";
-    go.style.animationPlayState = 'running';
+    // remove callout (if present and player is not a jackpot winner)
+    if (!this.isJackpotWinner) {
+        var go = document.getElementById('roundCompleteCallout');
+        go.innerHTML = "Wave " + this.totalRounds.toString() + "<br/><i>Ready</i> - <b>GO!</b>";
+        go.style.display = "block";
+        go.style.animationPlayState = 'running';
+    }
 
     // update wave number
     document.getElementById("lblRoundTimer").innerHTML = "Wave " + this.totalRounds.toString();
 
     //*
     setTimeout(function() {
-        go.style.display = "none";
+        if (go) // if jackpotwinner, go is not available
+            go.style.display = "none";
         if (_this.players.self.active && _this.players.self.landed > 0 && !_this.config.respawning) {
             _this.players.self.startInBase(); // start afk timer
             _this.players.self.landed = 0; // flying
@@ -4934,8 +4939,11 @@ core_client.prototype.flagToScore = function(flag, slot) {
     return { red: red, blue: blue };
 };
 
-core_client.prototype.roundWinnersView = function(winners) {
-    console.log('== roundWinnersView ==', winners);
+core_client.prototype.roundWinnersView = function(winners, losers) {
+    console.log('== roundWinnersView ==', winners, losers);
+
+    // handle undefined
+    if (!losers) losers = [];
 
     var _this = this;
 
@@ -4987,6 +4995,8 @@ core_client.prototype.roundWinnersView = function(winners) {
 
     // assign bonusSlots to winners
     var p;
+    var userIsWinner = false;
+    var userWinsJackpot = false;
     console.log('* winners', ply);
     for (var w = 0; w < winners.length; w++) {
         if (winners[w][1]) {
@@ -4996,12 +5006,30 @@ core_client.prototype.roundWinnersView = function(winners) {
             else // player found on client!
             {
                 console.log(winners[w][2]);
-                p.bonusSlot = winners[w][2] + 1;
+                p.bonusSlot = winners[w][2]; // + 1;
                 p.activateBuff(p.bonusSlot);
                 console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
+                if (p.userid && p.userid == this.players.self.userid) {
+                    console.log("* user is a winner!");
+                    userIsWinner = true;
+                }
             }
         }
     }
+    // if user is not a winner, check jackpot
+    if (!userIsWinner) {
+        for (w = 0; w < losers.length; w++) {
+            if (losers[w].userid == this.players.self.userid) {
+                console.log("* player won the JACKPOT");
+                userWinsJackpot = true;
+                this.isJackpotWinner = true; // global setting to suppress UI
+            }
+        }
+    }
+    // stub jackpot winner
+    userWinsJackpot = true;
+    this.isJackpotWinner = true;
+    // userIsWinner = false;
 
     // assign card face to winners cards
     var cardsArray = ["bubble", "alacrity", "precision", "recover", "blink", "reveal", "bruise", "plate"]; // ordered abilities
@@ -5039,7 +5067,9 @@ core_client.prototype.roundWinnersView = function(winners) {
             console.log('winner', winner);
 
             ele = "front" + (i + 1).toString();
-            url = 'https://s3.amazonaws.com/com.dfeddon.wingdom/cards/card_' + cardsArray[winner[2]] + '.png';
+            console.log("* getting card", cardsArray[winner[2]]);
+            // url = 'https://s3.amazonaws.com/com.dfeddon.wingdom/cards/card_' + cardsArray[winner[2]] + '.png';
+            url = _this.game_buffs.getCardImageById(winner[2]);
             pname = "winner" + (i + 1).toString() + "label";
             pskin = "winner" + (i + 1).toString() + "image";
             player = _this.core.config._.find(_this.core.getplayers.allplayers, { userid: winner[1] });
@@ -5080,6 +5110,10 @@ core_client.prototype.roundWinnersView = function(winners) {
     var card1 = document.getElementById('card1');
     var card2 = document.getElementById('card2');
     var card3 = document.getElementById('card3');
+    // restore opacity
+    card1.style.opacity = 1;
+    card2.style.opacity = 1;
+    card3.style.opacity = 1;
 
     // card drop
     var dropper = function() {
@@ -5117,13 +5151,23 @@ core_client.prototype.roundWinnersView = function(winners) {
         var cardflipper = setInterval(function() {
             console.log('flipping card', count);
             if (count === 2) card = card2;
-            else if (count === 3) card = card3;
-            else if (count > 3) // we're done
+            else if (count === 3) {
+                card = card3;
+                if (isTop10 && !userIsWinner) {
+                    // first, remove spinning slot
+                    document.getElementById('jackpotGif').style.display = "none";
+                    if (userWinsJackpot)
+                        document.getElementById('jackpotResult').src = "https://s3.amazonaws.com/com.dfeddon.wingdom/jackpot-winner.png";
+                    else document.getElementById('jackpotResult').src = "https://s3.amazonaws.com/com.dfeddon.wingdom/jackpot-fail.png";
+                    document.getElementById('jackpotResult').style.display = "block";
+                }
+            } else if (count > 3) // we're done
             {
                 if (isTop10) {
-                    if (isWinner)
+                    if (userIsWinner || !userWinsJackpot) // (isWinner)
                         back2game();
-                    else back2game(); //bonusOptional();
+                    else if (userWinsJackpot)
+                        bonusOptional();
                 } else cardsReset();
                 clearInterval(cardflipper);
             }
@@ -5158,29 +5202,43 @@ core_client.prototype.roundWinnersView = function(winners) {
             setTimeout(function() {
                 callout.style.display = "none";
                 showWinners(true);
+                // if user is not winner, show jackpot animation
+                if (!userIsWinner)
+                    document.getElementById('jackpotGif').style.display = "block";
             }, 3000);
         }, 2000);
     };
 
     var bonusOptional = function() {
+        console.log("* user won jackpot!");
         // rng for last chance boon?
-        document.getElementById('winner1').style.display = "none";
-        document.getElementById('winner3').style.display = "none";
+        document.getElementById('winner1').style.opacity = 0;
+        document.getElementById('winner3').style.opacity = 0;
 
-        card1.style.display = "none";
-        card3.style.display = "none";
+        card1.style.opacity = 0; //display = "none";
+        card3.style.opacity = 0; //display = "none";
         card2.classList.add('flippedBack');
         card2.classList.remove('flipped');
 
-        var callout = document.getElementById('roundCompleteCallout');
-        callout.innerHTML = "<b>LAST CHANCE BONUS!</b><br>You've been awarded the chance to receive a boon. To accept, simply watch a short video ad.";
-        callout.style.display = "block";
+        // var callout = document.getElementById('roundCompleteCallout');
+        // callout.innerHTML = "<b>LAST CHANCE BONUS!</b><br>You've been awarded the chance to receive a boon. To accept, simply watch a short video ad.";
+        // callout.style.display = "block";
 
         // two buttons, and a countdown timer
+        var buttonPressed = false;
+        setTimeout(function() {
+            if (buttonPressed)
+                console.log("* button pressed");
+            else back2game();
+        }, 5000);
     };
 
     var back2game = function() {
         console.log('== back2game ==');
+
+        // hide jackpot image?
+        // if ()
+        // document.getElementById('jackpotGif').style.display = "none";
 
         var backer = setTimeout(function() {
             // reset cards ui
@@ -5214,7 +5272,7 @@ core_client.prototype.roundWinnersView = function(winners) {
 
             // if player awarded bonus, show it
             if (_this.players.self.bonusSlot) {
-                console.log('* local player has buff!');
+                console.log('* local player has buff!', _this.players.self.bonusSlot);
                 // var game_buffs = _this.game_buffs();
                 var buffImage = _this.game_buffs.getImageById(_this.players.self.bonusSlot);
                 var bonus = document.getElementById('bonusslot-container');
@@ -5225,6 +5283,7 @@ core_client.prototype.roundWinnersView = function(winners) {
                 document.getElementById('bonusslot-container').style.backgroundImage = "none";
                 document.getElementById('bonusslot-container').style.display = "none";
             }
+            document.getElementById('jackpotResult').style.display = "none";
 
             // show game ui
             document.getElementById('viewport').style.display = "block";

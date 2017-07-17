@@ -173,7 +173,7 @@ getplayers.prototype.addRoom = function(port) {
 
         // set round end time
         round = this.game_instance.inRoomRound[port] = {}; //new game_round();//{};
-        round.duration = 10; //7 * 60;
+        round.duration = 20; //7 * 60;
         round.bonusDuration = 30;
         round.endtime = Math.floor(this.config.server_time + round.duration); //(round.duration * 60);
         round.total = 1;
@@ -195,7 +195,7 @@ getplayers.prototype.addRoom = function(port) {
 
     var count = 0;
     if (this.game_instance) {
-        // create players
+        // create players on server
         var other;
         for (var i = this.totalPlayersPerGame - 1; i >= 0; i--) {
             other = new game_player(null, false, count++, this.config);

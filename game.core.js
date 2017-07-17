@@ -36,6 +36,7 @@ var
     egyptian_set = require('./egyptian_set'),
     // game_player         = require('./class.player'),
     game_flag = require('./class.flag'),
+    game_buffs = require('./class.buffs'),
     // platformClass       = require('./class.platform'),
     //transformClass      = require('./class.transform'),
     // game_event_server   = require('./class.event'),
@@ -1916,31 +1917,56 @@ game_core.prototype.roundComplete = function(port, round) {
         // select 4 losers
         losersRed = losersRed.splice(0, 4);
         losersBlue = losersBlue.splice(0, 4);
-        console.log("* losers final", losersRed.length, losersBlue.length);
+        console.log("* losers done", losersRed.length, losersBlue.length);
 
-        var buffs = ["bubble", "alacrity", "precision", "recover", "blink", "reveal", "bruise", "plate"];
-        var top10 = [];
-        for (var y = ordered.length - 1; y >= 0; y--) {
+        // extract loser id's
+        var losersRedFinal = [];
+        var losersBlueFinal = [];
+        for (i = 0; i < losersRed.length; i++) {
+            console.log(losersRed[i].userid, losersRed[i].mp);
+            if (losersRed[i].userid)
+                losersRedFinal.push(losersRed[i].userid);
+            if (losersBlue[i].userid)
+                losersBlueFinal.push(losersBlue[i].userid);
+        }
+        console.log("* losers final", losersRedFinal, losersBlueFinal);
+
+        // var buffs = ["bubble", "alacrity", "precision", "recover", "blink", "reveal", "bruise", "plate"];
+        var top10Red = [];
+        var top10Blue = [];
+        var buffs = new game_buffs();
+        for (var y = orderedRed.length - 1; y >= 0; y--) {
             // index, userid, buff
             // console.log('ordered', Math.floor(Math.random() * (buffs.length - 1)));// ordered[y]);
-            if (!Boolean(ordered[y].userid))
-                ordered[y].userid = 0;
-            top10.push([y + 1, ordered[y].userid, Math.floor(Math.random() * (buffs.length))]);
+            if (!orderedRed[y].userid)
+                orderedRed[y].userid = 0;
+            if (!orderedBlue[y].userid)
+                orderedBlue[y].userid = 0;
+            top10Red.push([y + 1, orderedRed[y].userid, buffs.getRngBuff()]); //Math.floor(Math.random() * (buffs.length))]);
+            top10Blue.push([y + 1, orderedBlue[y].userid, buffs.getRngBuff()]); //Math.floor(Math.random() * (buffs.length))]);
         }
-        console.log('* top10:', top10.length, top10);
+        console.log('* top10:', top10Red, top10Blue); //.length, top10);
 
         // add bonusSlot to players (with real userid numbers)
-        var player;
-        for (var a = 0; a < top10.length; a++) {
-            console.log('top10 userid', top10[a][1]);
+        var playerRed, playerBlue;
+        for (var a = 0; a < top10Red.length; a++) {
+            console.log('top10 userid', top10Red[a][1]);
 
-            if (top10[a][1]) {
+            if (top10Red[a][1]) {
                 // get player by userid
-                player = this.config._.find(p, { userid: top10[a][1] });
+                playerRed = this.config._.find(p, { userid: top10Red[a][1] });
                 // send bonusSlot
-                player.bonusSlot = top10[a][2] + 1;
-                player.activateBuff(player.bonusSlot);
-                console.log('* assigned bonusSlot', player.bonusSlot, 'to player', player.playerName);
+                playerRed.bonusSlot = top10Red[a][2] + 1;
+                playerRed.activateBuff(playerRed.bonusSlot);
+                console.log('* assigned bonusSlot', playerRed.bonusSlot, 'to player', playerRed.playerName);
+            }
+            if (top10Blue[a][1]) {
+                // get player by userid
+                playerBlue = this.config._.find(p, { userid: top10Blue[a][1] });
+                // send bonusSlot
+                playerBlue.bonusSlot = top10Blue[a][2] + 1;
+                playerBlue.activateBuff(playerBlue.bonusSlot);
+                console.log('* assigned bonusSlot', playerBlue.bonusSlot, 'to player', playerBlue.playerName);
 
             }
         }
@@ -1949,13 +1975,15 @@ game_core.prototype.roundComplete = function(port, round) {
 
         // rng top 4 - 10
 
-        // deactivate players
+        // deactivate players and send winners
         for (var i = 0; i < p.length; i++) {
             p[i].active = false;
             if (p[i].instance && p[i].dead !== true) {
                 // notify client
-                //p[i].instance.room(port).write([30, top10]);
-                p[i].instance.write([30, top10]);
+                if (p[i].team === 1)
+                    p[i].instance.write([30, top10Red, losersRedFinal]);
+                else if (p[i].team === 2)
+                    p[i].instance.write([30, top10Blue, losersBlueFinal]);
             }
         }
     } else if (round.stage === 2) // Bonus Round complete

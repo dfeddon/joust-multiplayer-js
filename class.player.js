@@ -1010,7 +1010,7 @@ game_player.prototype.updateBonuses = function(teamBonus) {
     console.log('* update bonusTotal', this.bonusTotal);
 
     // update client? via write or livesocket
-    if (this.instance && this.isLocal)
+    if (this.instance) // && this.isLocal)
         this.instance.write([40, this.teamBonus, this.playerBonus, this.potionBonus]);
 };
 
