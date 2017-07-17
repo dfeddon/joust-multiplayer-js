@@ -802,7 +802,8 @@ core_client.prototype.client_onhostgame = function(data) {
         }
     });
 
-    this.updateTerritory();
+    if (cflag) // only update territory if flags are loaded
+        this.updateTerritory();
     this.updateLeaderboard();
 
     // if round complete (stage === 2) show callout
