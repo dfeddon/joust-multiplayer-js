@@ -882,6 +882,8 @@ core_client.prototype.client_onhostgame_orig = function(data) {
 core_client.prototype.client_onconnected = function(userid, playerName, skinNumber, playerPort) {
     console.log('== client_onconnected ==', userid, playerName, skinNumber, playerPort);
 
+    if (this.xport) return; // avoid redundancy
+
     // userid
     this.players.self.id = userid; //data[0];
     this.players.self.userid = userid; //data[0];
@@ -5111,9 +5113,9 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
     var card2 = document.getElementById('card2');
     var card3 = document.getElementById('card3');
     // restore opacity
-    card1.style.opacity = 1;
-    card2.style.opacity = 1;
-    card3.style.opacity = 1;
+    card1.style.display = "block";
+    card2.style.display = "block";
+    card3.style.display = "block";
 
     // card drop
     var dropper = function() {
@@ -5209,28 +5211,122 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
         }, 2000);
     };
 
+    // var adPressed = false;
+    var clickedFlag = false;
     var bonusOptional = function() {
         console.log("* user won jackpot!");
+
+        document.getElementById("jackpotWinnerContainer").style.display = "flex";
+
         // rng for last chance boon?
         document.getElementById('winner1').style.opacity = 0;
         document.getElementById('winner3').style.opacity = 0;
 
-        card1.style.opacity = 0; //display = "none";
-        card3.style.opacity = 0; //display = "none";
-        card2.classList.add('flippedBack');
+        // add skin and name
+        var skinUrl = "https://s3.amazonaws.com/com.dfeddon.wingdom/splash-slides-" + _this.players.self.skin + ".png";
+        document.getElementById("winner2image").src = skinUrl;
+        document.getElementById("winner2label").innerHTML = _this.players.self.playerName;
+
+        card1.style.display = "none";
+        card3.style.display = "none";
+        // cardsReset();
+        // card2.style.backgroundImage = "none"; // clear extant image
         card2.classList.remove('flipped');
+        card2.classList.add('flippedBack');
 
-        // var callout = document.getElementById('roundCompleteCallout');
-        // callout.innerHTML = "<b>LAST CHANCE BONUS!</b><br>You've been awarded the chance to receive a boon. To accept, simply watch a short video ad.";
-        // callout.style.display = "block";
+        var jackpotBuff, jackpotBuffId;
 
-        // two buttons, and a countdown timer
-        var buttonPressed = false;
-        setTimeout(function() {
-            if (buttonPressed)
-                console.log("* button pressed");
-            else back2game();
-        }, 5000);
+        // card2.classList.remove("cardContainer");
+        // card2.classList.add("flipped");
+
+        // var buff = _this.game_buffs.getCardImageById(_this.game_buffs.getRngBuff());
+        // card2.style.backgroundImage = "url('" + buff + "')";
+
+        // view add clicked
+        document.getElementById("jackpotWinnerButtonAd").addEventListener("click", function() {
+            console.log("* Ad button pressed", clickedFlag);
+            // avoid multiple hits (don't want to modify css here)
+            if (clickedFlag === true) return;
+            else clickedFlag = true;
+            console.log("* clickedFlag", clickedFlag);
+            // clear timer
+            clearTimeout(countDownTimer);
+            // change jackpotWinner UI
+            document.getElementById("jackpotWinnerContainer").style.display = "none";
+            // watch ad
+            viewAd();
+        });
+        // back to game
+        document.getElementById("jackpotWinnerButtonGame").addEventListener("click", function() {
+            console.log("* Game button pressed");
+            if (clickedFlag === true) return;
+            else clickedFlag = true;
+            back2game();
+        })
+
+        // view ad
+        function viewAd() {
+            // video add logic goes here...
+            console.log("* video add playing...");
+
+            // assign rng buff to card
+            jackpotBuffId = _this.game_buffs.getRngBuff();
+            jackpotBuff = _this.game_buffs.getCardImageById(jackpotBuffId);
+            for (var i = 0; i < card2.childNodes.length; i++) {
+                if (card2.childNodes[i].id == "front2")
+                    card2.childNodes[i].style.backgroundImage = "url('" + jackpotBuff + "')";
+            }
+            // ... video finished
+            adComplete();
+        }
+        // ad complete
+        function adComplete() {
+            console.log("* video add complete...");
+            setTimeout(
+                function() {
+                    console.log("* flip bonus card...");
+                    // flip card
+                    document.getElementById("card2").classList.add("flipped");
+
+                    // set bonus buff to local player
+                    _this.players.self.bonusSlot = jackpotBuffId;
+                    // send buff id to server via socket
+                    _this.socket.write({ bf: [_this.players.self.userid, jackpotBuffId] });
+                    setTimeout(
+                        function() {
+                            // back to game
+                            back2game();
+                            // reset card
+                            card2.classList.add(
+                                "flippedBack"
+                            );
+                            card2.classList.remove(
+                                "flipped"
+                            );
+                        },
+                        2000
+                    );
+                },
+                2000
+            );
+        }
+        // countdown
+        var counter = 10;
+        var countDownTimer;
+
+        function countingDown() {
+            countDownTimer = setTimeout(function() {
+                document.getElementById("jackpotWinnerCounter").innerHTML = "Returning to Game in " + counter.toString();
+                counter--;
+                // if (adPressed)
+                //     console.log("* button pressed");
+                if (counter < -1) {
+                    document.getElementById("jackpotWinnerCounter").innerHTML = " ";
+                    back2game();
+                } else countingDown();
+            }, 1000);
+        }
+        countingDown();
     };
 
     var back2game = function() {
@@ -5269,6 +5365,7 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
 
             // hide winners ui
             document.getElementById('roundWinnersView').style.display = "none";
+            document.getElementById("jackpotWinnerContainer").style.display = "none";
 
             // if player awarded bonus, show it
             if (_this.players.self.bonusSlot) {

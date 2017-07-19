@@ -508,6 +508,9 @@ domready(function() {
             console.log('* start game clicked', assets.loaded, game, e);
             if (!assets.loaded) return;
 
+            // disallow multiple presses
+            btnStart.disabled = true;
+
             //var skin = "skin" + assets.skinIndex.toString();
             // get selected skin
             console.log('* assets.playerSkin', assets.playerSkin);
@@ -1045,10 +1048,12 @@ domready(function() {
     loader.addCompletionListener(function() {
         console.log('* all assets loaded...');
 
-        // update button text from loading to join game
-        document.getElementById("btnStart").innerText = "Join Game";
-
-        assets.loaded = true;
+        // add a 3 second delay
+        setTimeout(function() {
+            // update button text from loading to join game
+            document.getElementById("btnStart").innerText = "Join Game";
+            assets.loaded = true;
+        }, 3000);
 
         // auto-join simulated user
         /*console.log("*", window.location.href);
@@ -1068,7 +1073,8 @@ domready(function() {
 
         // // hide default doorbell.io button
         var doorbellButton = document.getElementById('doorbell-button');
-        doorbellButton.style.display = "none";
+        if (doorbellButton)
+            doorbellButton.style.display = "none";
 
         // // remove bg
         // document.body.style.backgroundImage = "none";

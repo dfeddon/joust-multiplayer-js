@@ -219,10 +219,23 @@ game_server.prototype._onMessage = function(spark, message) {
         this.onInput(spark, message_parts); //message.is);//_parts);
     }
     //return;
-    else if (message.pp) // 'p')
-    {
+    else if (message.pp) {
         this.log("@ ping");
         spark.send('s.p.' + message_parts[1]);
+    } else if (message.bf) {
+        // client added buff
+        console.log("@ got client wave buff", message.bf, spark.playerPort);
+        var p = spark.game.gamecore.getplayers.fromRoom(spark.playerPort);
+        for (var i = 0; i < spark.game.player_clients.length; i++) {
+            console.log("@", p[i].playerName);
+            if (p[i].userid == message.bf[0]) {
+                console.log("@ adding bonusslot to player", p[i].playerName);
+                // set buff
+                p[i].bonusSlot = message.bf[1];
+                // activate it
+                p[i].activateBuff(message.bf[1]);
+            }
+        }
     } else if (message_type == 'c') { //Client changed their color!
         //if(other_client)
         var other_clients = [];
