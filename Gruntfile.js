@@ -59,7 +59,10 @@ module.exports = function(grunt) {
                         drop_console: true
                     },
                     mangle: true,
-                    beautify: false
+                    beautify: false,
+                    output: {
+                        comments: false
+                    }
                 },
                 files: {
                     'bundle.client.min.js': ['bundle.client.min.js'],

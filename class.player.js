@@ -40,7 +40,11 @@ function game_player(player_instance, isHost, pindex, config) {
     this.pos = { x: 0, y: 0 };
 
     this.lpos = this.pos;
-    this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2 }
+    this.size;
+    // if (!this.config.server)
+    this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2
+    // else this.size = { x: 36, y: 36, hx: 36, hy: 36, offset: 8 };
+    // this.offset = 0;
 
     this.campos = this.pos;
     //this.hitbox = {w:64/2,h:64/2};
@@ -328,6 +332,9 @@ game_player.prototype.exitBase = function() {
         this.inBaseWarning = false;
         document.getElementById('roundCompleteCallout').style.display = "none";
     }
+    // if server, send to client (via slot dispatch)
+    if (this.config.server)
+        this.slotDispatch = 310;
 }
 
 game_player.prototype.buffIdsToSlots = function(ids) {
@@ -922,6 +929,9 @@ game_player.prototype.miscBuff = function(id) {
         case 301: // respawn bubble
             // this.bubble = true;
             this.setBubble(true);
+            break;
+        case 310: // afk remove
+            this.exitBase();
             break;
     }
 };
@@ -1757,7 +1767,7 @@ game_player.prototype.update = function() {
     } // end this.server
 
     // check afk
-    if (this.inBase) {
+    if (this.inBase && !this.config.server) {
         if (this.config.server_time > this.baseDisconnect) {
             console.log("AFK expired!");
             this.inBase = false;
@@ -2953,6 +2963,7 @@ game_player.prototype.getGrid = function() {
 
 game_player.prototype.getCoord = function() {
     // direction-dependent, account for
+    // console.log("$$", this.config.server);
     this.nw = {
         x: ~~((this.pos.x + this.size.offset) / 64),
         y: ~~(this.pos.y / 64)
