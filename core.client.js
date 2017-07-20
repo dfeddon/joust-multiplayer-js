@@ -5261,6 +5261,7 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
             console.log("* Game button pressed");
             if (clickedFlag === true) return;
             else clickedFlag = true;
+            document.getElementById("jackpotWinnerContainer").style.display = "none";
             back2game();
         })
 
@@ -5297,12 +5298,12 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
                             // back to game
                             back2game();
                             // reset card
-                            card2.classList.add(
-                                "flippedBack"
-                            );
-                            card2.classList.remove(
-                                "flipped"
-                            );
+                            // card2.classList.add(
+                            //     "flippedBack"
+                            // );
+                            // card2.classList.remove(
+                            //     "flipped"
+                            // );
                         },
                         2000
                     );
@@ -5311,19 +5312,23 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
             );
         }
         // countdown
-        var counter = 10;
+        var counter = 11;
         var countDownTimer;
+        document.getElementById("jackpotWinnerCounter").innerHTML = "Returning to Game in " + counter.toString();
 
         function countingDown() {
             countDownTimer = setTimeout(function() {
-                document.getElementById("jackpotWinnerCounter").innerHTML = "Returning to Game in " + counter.toString();
                 counter--;
+                document.getElementById("jackpotWinnerCounter").innerHTML = "Returning to Game in " + counter.toString();
                 // if (adPressed)
                 //     console.log("* button pressed");
-                if (counter < -1) {
-                    document.getElementById("jackpotWinnerCounter").innerHTML = " ";
+                if (counter == 1) {
+                    // document.getElementById("jackpotWinnerCounter").innerHTML = "*";
                     back2game();
-                } else countingDown();
+                    countingDown();
+                } else if (counter > -1) countingDown();
+                else if (counter === 0)
+                    document.getElementById("jackpotWinnerCounter").innerHTML = "*";
             }, 1000);
         }
         countingDown();
@@ -5366,6 +5371,7 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
             // hide winners ui
             document.getElementById('roundWinnersView').style.display = "none";
             document.getElementById("jackpotWinnerContainer").style.display = "none";
+            document.getElementById("jackpotWinnerCounter").innerHTML = "";
 
             // if player awarded bonus, show it
             if (_this.players.self.bonusSlot) {

@@ -2946,6 +2946,52 @@ h5 {
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none; */
+    animation: fadein 2s;
+    -moz-animation: fadein 2s;
+    /* Firefox */
+    -webkit-animation: fadein 2s;
+    /* Safari and Chrome */
+    -o-animation: fadein 2s;
+    /* Opera */
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes fadein {
+    /* Firefox */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadein {
+    /* Safari and Chrome */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@-o-keyframes fadein {
+    /* Opera */
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 #claimBuffButton {}
@@ -2960,6 +3006,7 @@ h5 {
     font-family: 'Mirza';
     font-size: 1em;
     color: white;
+    /* height: 30px; */
 }
 
 #jackpotWinnerButtonContainer {}
@@ -3152,6 +3199,7 @@ h5 {
     padding-top: 8vh;
     display: flex;
     flex-direction: column;
+    /* width: 200px; */
 }
 
 .winnerLabel {
@@ -3166,6 +3214,13 @@ h5 {
     margin: 0 auto;
     width: 5vw;
     max-width: 64px;
+    animation: fadein 2s;
+    -moz-animation: fadein 2s;
+    /* Firefox */
+    -webkit-animation: fadein 2s;
+    /* Safari and Chrome */
+    -o-animation: fadein 2s;
+    /* Opera */
 }
 
 #winner1 {
@@ -3179,6 +3234,8 @@ h5 {
 #winner3 {
     opacity: 0.0;
 }
+
+#winner1image {}
 
 #cardsContainer {
     flex-direction: row;
