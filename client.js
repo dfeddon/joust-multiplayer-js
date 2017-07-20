@@ -534,7 +534,7 @@ domready(function() {
             console.log('* final player name', assets.playerName);
 
             // if (!game.players) // first game
-            if (e.target.textContent != "Play Again?") {
+            if (e.target.textContent == "Join Game") {
                 console.log('* this is the first player, start game!', game);
 
                 // if mobile, scale to 75% (account for orientation)
@@ -545,15 +545,24 @@ domready(function() {
                     var canvas = document.getElementById("viewport");
                     meta.setAttribute('content', 'width=device-width, initial-scale=0.75, maximum-scale=1.0, minimum-scale=0.5, user-scalable=0');
                 }
-
+                // start game
                 startGame();
-            } else // respawning
+            } else if (e.target.textContent == "Play Again?") { // restarting a new game
+                console.log("* restarting a new game...");
+
+                // reconnect to server
+                game.core_client.totalRound = 1; // reset rounds
+                game.core_client.client_connect_to_server();
+                game.core_client.updateLeaderboard();
+            } else // respawning into current game
             {
                 // activate player
                 console.log("* respawing existing player...", assets.playerName, assets.playerSkin); //skin);
                 console.log('* window', window);
 
                 // var game = e.target.game;
+                game.core_client.updateLeaderboard();
+                game.core_client.totalRound = 1; // reset rounds
                 game.core_client.players.self.active = true;
                 game.core_client.players.self.visible = true;
                 game.core_client.players.self.vuln = false;
@@ -584,8 +593,11 @@ domready(function() {
                     callout.style.animationPlayState = 'running';
                 }
 
+                // kill respawn timer
+                clearInterval(timeinterval);
+
                 // start the game loop
-                // game.update( new Date().getTime() );		
+                // game.update( new Date().getTime() );
             }
 
             // notify iOS that we're starting/respawning the game (turn on controls)
@@ -638,7 +650,7 @@ domready(function() {
                 // listen for controls switch
                 var flip = document.getElementById('flip-image');
                 if (flip) {
-                    flip.addEventListener("touchstart", function(e) {
+                    flip.addEventListener("touchstart", function() {
                         console.log('flip controls!');
 
                         cr.style.display = "none";
@@ -822,9 +834,13 @@ domready(function() {
         var txtYourscore = (assets.device.isPhone) ? document.getElementById('txtYourscore-phone') : document.getElementById('txtYourscore');
         var txtScore = document.getElementById('txtScore');
         var txtHighscore = (assets.device.isPhone) ? document.getElementById('txtHighscore-phone') : document.getElementById('txtHighscore');
-        start.innerText = "One Sec...";
-        start.style.backgroundColor = "darkred";
-        start.disabled = true;
+
+        // disable start button
+        start.innerText = "Rejoin Game?";
+        // start.innerText = "One Sec...";
+        // start.style.backgroundColor = "darkred";
+        start.disabled = false;
+
         // start.game = e.game; // binding game ref to start button!
         console.log('scoring?');
 
@@ -914,20 +930,29 @@ domready(function() {
             timerSeconds.innerHTML = ('0' + t.seconds).slice(-2);
 
             if (t.total <= 0) {
+                console.log("* timer complete");
+
                 clearInterval(timeinterval);
-                var respawnTimer = document.getElementById('respawnWrapper');
+                // var respawnTimer = document.getElementById('respawnWrapper');
                 respawnTimer.style.display = "none";
-                var start = (assets.device.isPhone) ? document.getElementById('btnStart-phone') : document.getElementById('btnStart');
+                var start = assets.device.isPhone ? document.getElementById("btnStart-phone") : document.getElementById("btnStart");
                 start.disabled = false;
                 start.innerText = "Play Again?";
                 start.style.backgroundColor = "green";
 
+                // disconnect
+                player.dead = true; // set to dead so disconnect doesn't re-kill player
+                console.log("* disconnecting player", player);
+                game.core_client.client_ondisconnect(player.userid);
+                game.core_client.socket.end();
+                player.reset(); // reset player
             }
         }
 
         updateClock();
-        var timeinterval = setInterval(updateClock, 1000);
+        timeinterval = setInterval(updateClock, 1000);
     }
+    var timeinterval;
 
     // asset loader
     var loader = new PxLoader();

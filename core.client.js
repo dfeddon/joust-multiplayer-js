@@ -1154,9 +1154,10 @@ core_client.prototype.client_ondisconnect = function(userid) {
     for (var i = room.length - 1; i >= 0; i--) {
         // console.log(room[i]);
         if (room[i].userid == userid) {
-            console.log('* removing player', room[i].mp); //, data);
+            console.log('* removing player', room[i]); //, data);
             room[i].disconnected = true;
-            room[i].doKill(); //active = false;
+            if (!room[i].dead)
+                room[i].doKill(); //active = false;
             if (room[i].hasFlag > 0)
                 room[i].dropFlag();
             //room[i].visible = false;
