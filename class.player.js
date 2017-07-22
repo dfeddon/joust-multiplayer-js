@@ -31,7 +31,7 @@ function game_player(player_instance, isHost, pindex, config) {
     // if (this.instance)
     //     this.game = this.instance.game;
     this.isBot = false;
-    this.inBase = true; // in base setting to support AFK timer
+    this.inBase = false; // in base setting to support AFK timer
     this.inBaseWarning = false; // warning UI up
 
     this.player_abilities_enabled = false;
@@ -41,9 +41,9 @@ function game_player(player_instance, isHost, pindex, config) {
 
     this.lpos = this.pos;
     this.size;
-    // if (!this.config.server)
-    this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2
-    // else this.size = { x: 36, y: 36, hx: 36, hy: 36, offset: 8 };
+    if (!this.config.server)
+        this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2
+    else this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 12 };
     // this.offset = 0;
 
     this.campos = this.pos;
@@ -316,11 +316,22 @@ game_player.prototype.setFromBuffer = function(data) {
 };
 
 game_player.prototype.startInBase = function() {
-    console.log("== startInBase ==");
+    console.log("== startInBase ==", this.config.server_time);
+    var _this = this;
 
-    this.inBase = true;
-    this.baseWarning = this.config.server_time + 30;
-    this.baseDisconnect = this.config.server_time + 60;
+    this.inBase = false;
+
+    // if (this.config.server_time < 5) // first player, wait a moment for server_time to arrive
+    setTimeout(function() {
+        _this.baseWarning = _this.config.server_time + 30;
+        _this.baseDisconnect = _this.config.server_time + 60;
+        _this.inBase = true;
+    }, 1000);
+    // else {
+    //     this.baseWarning = this.config.server_time + 30;
+    //     this.baseDisconnect = this.config.server_time + 60;
+    //     this.inBase = true;
+    // }
 }
 game_player.prototype.exitBase = function() {
     console.log("== exitBase ==");
@@ -1051,6 +1062,8 @@ game_player.prototype.reset = function() {
     this.potionBonus = 0;
     // clear buffs
     this.purgeBuffsAndBonuses();
+    // clear baseDisonnect
+    this.baseDisconnect = null;
 
     console.log('disconnected', this.playerName, this.disconnected);
 
@@ -1768,8 +1781,8 @@ game_player.prototype.update = function() {
 
     // check afk
     if (this.inBase && !this.config.server) {
-        if (this.config.server_time > this.baseDisconnect) {
-            console.log("AFK expired!");
+        if (this.baseDisconnect && this.config.server_time > this.baseDisconnect) {
+            console.log("AFK expired!", this.config.server_time, this.baseDisconnect);
             this.inBase = false;
             this.inBaseWarning = false;
             document.getElementById('roundCompleteCallout').style.display = "none";

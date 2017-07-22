@@ -824,11 +824,14 @@ core_client.prototype.client_onhostgame = function(data) {
         //     // showWinners(false);
         // }, 3000);
     }
+
+    // start afk timer
+    _this.players.self.startInBase();
+
     // nudge player
     //*
     setTimeout(function() {
         if (_this.players.self.active) {
-            _this.players.self.startInBase(); // start afk timer
             _this.players.self.landed = 0; // flying
             _this.players.self.doFlap();
             console.log("nudging", _this.players.self.playerName);
@@ -5030,8 +5033,8 @@ core_client.prototype.roundWinnersView = function(winners, losers) {
         }
     }
     // stub jackpot winner
-    userWinsJackpot = true;
-    this.isJackpotWinner = true;
+    // userWinsJackpot = true;
+    // this.isJackpotWinner = true;
     // userIsWinner = false;
 
     // assign card face to winners cards

@@ -611,7 +611,7 @@ game_server.prototype.endGame = function(gameid, userid) {
             }
         } else // last player has disconnected
         {
-            this.log("last player in game has disconnected...", thegame.player_clients[0].playerPort);
+            this.log("@ last player in game has disconnected...", thegame.player_clients[0].playerPort);
 
             // thegame.player_clients[0].send('s.e');
 
@@ -640,7 +640,10 @@ game_server.prototype.endGame = function(gameid, userid) {
                 this.game_count--;
                 //
                 this.log('@@ game removed. there are now ' + this.game_count + ' games');
-            } else this.log("@@ player left only remaining game (game remains active)");
+            } else {
+                this.log("@@ player left only remaining game (game remains active)");
+                // stop/reset round.endtime timer
+            }
         }
     } else {
         this.log('@@ that game was not found!');
@@ -651,6 +654,12 @@ game_server.prototype.endGame = function(gameid, userid) {
 game_server.prototype.startGame = function(game, newplayer) {
     this.log('@@ startGame', game.id, newplayer.mp, newplayer.userid);
     this.log('* total clients', game.player_clients.length);
+
+    if (game.player_clients.length === 1) {
+        console.log("@ first player to joing game, resetting round.endtime value");
+        var round = game.gamecore.getplayers.fromRoom(newplayer.playerPort, 5);
+        round.endtime = Math.floor(this.local_time + round.duration);
+    }
 
     var teamObj = this.getTeams(newplayer.playerPort, game); //game);
     this.log('* team obj', teamObj);
