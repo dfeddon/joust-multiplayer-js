@@ -1852,10 +1852,14 @@ game_core.prototype.roundComplete = function(port, round) {
         var teamBlue = [];
         for (var z = p.length - 1; z >= 0; z--) {
             // reset roundscore of inactive players
-            if (p[z].active === false)
+            if (p[z].active === false) {
                 p[z].roundscore = 0;
-            else p[z].roundscore = p[z].score - p[z].lastscore;
-            console.log('* roundScore', p[z].roundscore);
+                p[z].score = 0;
+            } else {
+                p[z].roundscore = p[z].score - p[z].lastscore;
+                p[z].lastscore = p[z].score;
+            }
+            console.log('* roundScore', p[z].roundscore, p[z].score, p[z].lastscore);
 
             // clear all server buffs and bonuses
             p[z].purgeBuffsAndBonuses();
@@ -1892,16 +1896,29 @@ game_core.prototype.roundComplete = function(port, round) {
         var orderedRed = _.orderBy(teamRed, ['roundscore'], ['desc']);
         var orderedBlue = _.orderBy(teamBlue, ['roundscore'], ['desc']);
 
+        // for (var b = 0; b < orderedRed.length; b++) {
+        //     if (orderedRed[b])
+        //         console.log("+ red:", b, orderedRed[b].roundscore);
+        //     if (orderedBlue[b])
+        //         console.log("+ blue:", b, orderedBlue[b].roundscore);
+        // }
         // reduce to top 10
         var losersRed = orderedRed.splice(9, orderedRed.length - 10);
         var losersBlue = orderedBlue.splice(9, orderedBlue.length - 10);
         console.log('ordered:', orderedRed.length, orderedBlue.length);
 
+        // for (var b = 0; b < orderedRed.length; b++) {
+        //     if (orderedRed[b])
+        //         console.log("+ red:", b, orderedRed[b].roundscore);
+        //     if (orderedBlue[b])
+        //         console.log("+ blue:", b, orderedBlue[b].roundscore);
+        // }
+
         // remove 3 users from 4 - 10
         var rngRed, rngBlue;
         for (var x = 0; x < 4; x++) {
-            rngRed = ~~((Math.random() * orderedRed.length)); // + 4);
-            rngBlue = ~~((Math.random() * orderedBlue.length)); // + 4);
+            rngRed = ~~((Math.random() * (orderedRed.length - 4)) + 4);
+            rngBlue = ~~((Math.random() * (orderedBlue.length - 4)) + 4);
             // console.log('splicing', rng - 1);
 
             // add spliced users to losers array

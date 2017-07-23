@@ -167,6 +167,7 @@ core_server.prototype.server_update = function() {
             // console.log('================\n' + player.playerName);//player.playerName);
             if (!this.suRoom[i].instance) continue; //return;
             else this.suPlayer = this.suRoom[i];
+            // console.log("**", this.suPlayer.userid, this.suPlayer.playerName);
             // this.bufView = [];
             // clear bufView array
             // console.log(h, i);
@@ -449,11 +450,11 @@ core_server.prototype.server_update = function() {
     // ensure room tags are removed
     if (this.suPlayer) {
         for (var x in this.laststate) {
-            // console.log(x, this.laststate[x]);
             this.laststate[x].t = this.config.server_time;
+            // console.log(x, this.laststate[x]);
             // if (Boolean(this.suPlayer.instance))
             if (this.suPlayer.instance) {
-                // console.log("***", this.suPlayer.instance.userid, this.suPlayer.playerPort);
+                // console.log("***", this.suPlayer.instance.userid, this.suPlayer.playerPort, this.suPlayer.playerName);
                 this.suPlayer.instance.room(x).write(this.laststate[x]);
             }
             // else console.log("*** instance failed");//, this.suPlayer.userid);

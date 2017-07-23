@@ -945,7 +945,7 @@ domready(function() {
                 console.log("* disconnecting player", player);
                 // game.core_client.client_ondisconnect(player.userid);
                 // notify all clients about disconnect
-                game.core_client.socket.room(player.playerPort).write([25, player.userid]);
+                // game.core_client.socket.room(player.playerPort).write([25, player.userid]);
                 // ... and server
                 // game.core_client.socket.write({ disconnect: [player.userid, player.playerPort] });
                 // close socket
@@ -954,7 +954,6 @@ domready(function() {
                 // player.reset();
             }
         }
-
         updateClock();
         timeinterval = setInterval(updateClock, 1000);
     }

@@ -1159,6 +1159,7 @@ core_client.prototype.client_ondisconnect = function(userid) {
         if (room[i].userid == userid) {
             console.log('* removing player', room[i]); //, data);
             room[i].disconnected = true;
+            room[i].userid = null; // <- important!
             if (!room[i].dead)
                 room[i].doKill(); //active = false;
             if (room[i].hasFlag > 0)
@@ -2373,7 +2374,7 @@ core_client.prototype.client_onroundcomplete = function(winners) {
                     else // player found on client!
                     {
                         console.log(winners[w][2]);
-                        p.bonusSlot = winners[w][2] + 1;
+                        p.bonusSlot = winners[w][2]; // + 1;
                         p.activateBuff(p.bonusSlot);
                         console.log('* winning player', p.playerName, 'assigned bonusSlot', p.bonusSlot);
                     }
@@ -2833,7 +2834,7 @@ core_client.prototype.client_process_net_updates = function() {
         this.nu_previous = this.server_updates[0];
     }
     //console.log('target', target, 'previous', previous);
-    console.log(this.nu_target);
+    // console.log(this.nu_target);
 
     //console.log('target', typeof(target), target);
     //console.log('previous', previous);
@@ -2928,9 +2929,9 @@ core_client.prototype.client_process_net_updates = function() {
             if (!player.isLocal) //player.userid != _this.players.self.userid)
             {
                 // console.log('**');//, target[player.mp]);
-                // check for bad objects
+                // check for bad objects TODO: should text against player.disconnected instead of id?
                 if (this.nu_target[player.userid] === undefined) {
-                    console.log('** bad target', player.userid, this.nu_previous[player.mp]);
+                    console.log('** bad target', player.userid, this.nu_target); //this.nu_previous[player.mp]);
                     if (this.nu_previous[player.userid]) // || previous[player.mp] === undefined) 
                         this.nu_target[player.userid] = this.nu_previous[player.userid];
                     else break; //return;
