@@ -943,9 +943,15 @@ domready(function() {
                 // disconnect
                 player.dead = true; // set to dead so disconnect doesn't re-kill player
                 console.log("* disconnecting player", player);
-                game.core_client.client_ondisconnect(player.userid);
+                // game.core_client.client_ondisconnect(player.userid);
+                // notify all clients about disconnect
+                game.core_client.socket.room(player.playerPort).write([25, player.userid]);
+                // ... and server
+                // game.core_client.socket.write({ disconnect: [player.userid, player.playerPort] });
+                // close socket
                 game.core_client.socket.end();
-                player.reset(); // reset player
+                // reset player obj
+                // player.reset();
             }
         }
 

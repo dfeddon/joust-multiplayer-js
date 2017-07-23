@@ -1150,7 +1150,7 @@ core_client.prototype.client_onplayerreturned = function(userid) {
 
 core_client.prototype.client_ondisconnect = function(userid) {
     //if (glog)
-    console.log('client_ondisconnect', userid);
+    console.log('* client_ondisconnect', userid);
 
     // remove player from client (data is disconnected player.mp)
     var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
@@ -2833,6 +2833,7 @@ core_client.prototype.client_process_net_updates = function() {
         this.nu_previous = this.server_updates[0];
     }
     //console.log('target', target, 'previous', previous);
+    console.log(this.nu_target);
 
     //console.log('target', typeof(target), target);
     //console.log('previous', previous);
@@ -2929,7 +2930,7 @@ core_client.prototype.client_process_net_updates = function() {
                 // console.log('**');//, target[player.mp]);
                 // check for bad objects
                 if (this.nu_target[player.userid] === undefined) {
-                    console.log('** bad target', this.nu_previous[player.mp]);
+                    console.log('** bad target', player.userid, this.nu_previous[player.mp]);
                     if (this.nu_previous[player.userid]) // || previous[player.mp] === undefined) 
                         this.nu_target[player.userid] = this.nu_previous[player.userid];
                     else break; //return;

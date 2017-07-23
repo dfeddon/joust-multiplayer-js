@@ -611,7 +611,7 @@ core_server.prototype.ticker = function(spark) {
             for (m = this.allrooms.length - 1; m >= 0; m--) {
                 // fromRoom: get round objects
                 roomRound = this.core.getplayers.fromRoom(this.allrooms[m], 5);
-                console.log(this.config.server_time, roomRound.endtime);
+                // console.log(this.config.server_time, roomRound.endtime);
                 if (roomRound.active && this.config.server_time >= roomRound.endtime) {
                     roomRound.active = false;
                     console.log('ROUND HAS COMPLETED', roomRound);

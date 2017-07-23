@@ -435,6 +435,9 @@ game_server.prototype._onMessage = function(spark, message) {
         // // send donation to all players in room
         // spark.room(message.donate[2]).write([55, message.donate[0], message.donate[1]]);
     }
+    // else if (message.disconnect) {
+    //     console.log("disconnecting player", message.disconnect[0], message.disconnect[1]);
+    // }
 
 }; //game_server.onMessage
 
@@ -656,9 +659,14 @@ game_server.prototype.startGame = function(game, newplayer) {
     this.log('* total clients', game.player_clients.length);
 
     if (game.player_clients.length === 1) {
-        console.log("@ first player to joing game, resetting round.endtime value");
+        console.log("@ first player to joing game, checking round.endtime value...");
         var round = game.gamecore.getplayers.fromRoom(newplayer.playerPort, 5);
-        round.endtime = Math.floor(this.local_time + round.duration);
+        // reset round end time *only* if it's already expired!
+        if (round.endtime <= game.gamecore.config.server_time) { //this.local_time) 
+            console.log("@ round.endtime", round.endtime, game.gamecore.config.server_time);
+            round.endtime = Math.floor(game.gamecore.config.server_time + round.duration); //(this.local_time + round.duration);
+            console.log("@ resetting round.endtime...", round.endtime);
+        } else console.log("@ round.endtime is valid...");
     }
 
     var teamObj = this.getTeams(newplayer.playerPort, game); //game);
