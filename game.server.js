@@ -665,6 +665,7 @@ game_server.prototype.startGame = function(game, newplayer) {
         if (round.endtime <= game.gamecore.config.server_time) { //this.local_time) 
             console.log("@ round.endtime", round.endtime, game.gamecore.config.server_time);
             round.endtime = Math.floor(game.gamecore.config.server_time + round.duration); //(this.local_time + round.duration);
+            round.stage = 1; // ensure we're in game and not wave bonus
             console.log("@ resetting round.endtime...", round.endtime);
         } else console.log("@ round.endtime is valid...");
     }

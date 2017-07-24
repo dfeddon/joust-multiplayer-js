@@ -16,10 +16,14 @@ function core_client(core, config) {
     // window.onkeydown = function(e)
     window.addEventListener('keydown', this.handleKeyEvent.bind(this), false);
 
+    this.reconnecting = false;
+
     this.game_buffs = new game_buffs();
 
     this.viewport = document.getElementById("viewport");
     this.ctx = this.viewport.getContext('2d');
+    // this.ctx.mozImageSmoothingEnabled = false;
+
     this.cam = { x: 0, y: 0 };
 
     this.core = core;
@@ -800,6 +804,7 @@ core_client.prototype.client_onhostgame = function(data) {
             cflag.sourceSlot = flag.sourceSlot;
             cflag.isActive = flag.isActive;
         } else {
+            console.log("* pushing flag to cflag...");
             _this.config.preflags.push(flag);
         }
     });
@@ -1148,6 +1153,10 @@ core_client.prototype.client_onplayerreturned = function(userid) {
     //*/
 }
 
+core_client.prototype.client_onerror = function(spark) {
+    console.log("== client_onerror ==", spark);
+}
+
 core_client.prototype.client_ondisconnect = function(userid) {
     //if (glog)
     console.log('* client_ondisconnect', userid);
@@ -1231,10 +1240,15 @@ core_client.prototype.client_connect_to_server = function(data) {
     this.socket.on('open', function open() {
         console.log('* socket open');
 
-        this.players.self.state = 'connecting';
+        _this.players.self.state = 'connecting';
         // console.log(this.socket.primus.latency);
+        if (_this.reconnecting === true) {
+            console.log("* reconnecting...");
+            _this.reconnecting = false;
+            _this.client_connect_to_server();
+        }
 
-    }.bind(this));
+    }); //.bind(this));
 
     this.socket.on('incoming::ping', function(date) {
         // console.log("* client ping", date);//, Date.now());//Math.floor(new Date().getTime() / 1000));
@@ -1399,6 +1413,7 @@ core_client.prototype.client_connect_to_server = function(data) {
 
     this.socket.on('reconnect', function error(opts) {
         console.log('* primus attempting reconnect...', opts);
+        _this.reconnecting = true;
     });
 
     this.socket.on('end', function end() {
@@ -1428,7 +1443,7 @@ core_client.prototype.client_connect_to_server = function(data) {
     //Handle when we connect to the server, showing state and storing id's.
     this.socket.on('onconnected', this.client_onconnected.bind(this));
     //On error we just show that we are not connected for now. Can print the data.
-    this.socket.on('error', this.client_ondisconnect.bind(this));
+    this.socket.on('error', this.client_onerror.bind(this));
     //On message from the server, we parse the commands and send it to the handlers
     this.socket.on('message', this.client_onnetmessage.bind(this));
 
@@ -3727,6 +3742,7 @@ core_client.prototype.client_update = function() {
 
     // draw prerenders
     //console.log(this.canvas2, this.bg, this.barriers, this.fg);
+    // console.log("* this.bg", this.bg);
     // if (this.bg)
     // {
     this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
@@ -4168,6 +4184,7 @@ core_client.prototype.tilemapper = function() {
             c.height = height * tileHeight; //v.height;
             //console.log('tilemap w h', tilemap.width, tilemap.height);//, this.config.world.width, this.config.world.height);
             cContext = c.getContext('2d');
+            // cContext.mozImageSmoothingEnabled = false;
 
             // add tilemap to tile canvas context
             //tmContext.drawImage(e.target, 0, 0);
@@ -4232,6 +4249,7 @@ core_client.prototype.tilemapper = function() {
         var pre = { midFlag: undefined, redFlag: undefined, blueFlag: undefined };
 
         // if player started game before this fnc has completed
+        console.log("* preflags?", _this.config.preflags);
         if (_this.config.preflags) {
             console.log("* running preflags! check onhostgame...");
             for (x = 0; x < _this.config.preflags.length; x++) {
@@ -4274,14 +4292,14 @@ core_client.prototype.tilemapper = function() {
 
         // path: ../tilesets/skin1-tileset.png
         /*
-        console.log('* tileset image source', source);
+                console.log('* tileset image source', source);
         
-        var split = source.split("/");
-        var filename = split[2];
-        //image.src = source.replace("..", "/assets");
-        image.src = "http://s3.amazonaws.com/com.dfeddon.wingdom/" + filename;
-        console.log('* imgsrc', image.src);
-        */
+                var split = source.split("/");
+                var filename = split[2];
+                //image.src = source.replace("..", "/assets");
+                image.src = "http://s3.amazonaws.com/com.dfeddon.wingdom/" + filename;
+                console.log('* imgsrc', image.src);
+                */
 
     }
     // TODO: housecleaning
@@ -4716,28 +4734,28 @@ core_client.prototype.updateTerritory = function() {
     console.log('raw score', redRaw, blueRaw);
 
     /*
-    var redTotal = Math.abs(score2.red) + Math.abs(score3.red) + Math.abs(score4.red);
-    var blueTotal = Math.abs(score2.blue) + Math.abs(score3.blue) + Math.abs(score4.blue);
+            var redTotal = Math.abs(score2.red) + Math.abs(score3.red) + Math.abs(score4.red);
+            var blueTotal = Math.abs(score2.blue) + Math.abs(score3.blue) + Math.abs(score4.blue);
     
-    var pointsAllocated = 10;//12;//redTotal + blueTotal;
-    console.log('redTotal', redTotal);
-    console.log('blueTotal', blueTotal);
-    console.log('pointsAllocated', pointsAllocated);
+            var pointsAllocated = 10;//12;//redTotal + blueTotal;
+            console.log('redTotal', redTotal);
+            console.log('blueTotal', blueTotal);
+            console.log('pointsAllocated', pointsAllocated);
     
-    var redScore = parseInt(redTotal / pointsAllocated * 100);
-    var blueScore = parseInt(blueTotal / pointsAllocated * 100);
+            var redScore = parseInt(redTotal / pointsAllocated * 100);
+            var blueScore = parseInt(blueTotal / pointsAllocated * 100);
 
-    if (redRaw < 0)
-        redScore = -redScore;
-    else if (blueRaw < 0)
-        blueScore = -blueScore;
+            if (redRaw < 0)
+                redScore = -redScore;
+            else if (blueRaw < 0)
+                blueScore = -blueScore;
 
-    blueScore = blueScore + 50;
-    redScore = redScore + 50;
+            blueScore = blueScore + 50;
+            redScore = redScore + 50;
 
-    console.log('red score', redScore);
-    console.log('blue score', blueScore);
-    */
+            console.log('red score', redScore);
+            console.log('blue score', blueScore);
+            */
     var modPerPoint = 5;
     var redScore = (redRaw * modPerPoint);
     var blueScore = (blueRaw * modPerPoint);

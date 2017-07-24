@@ -253,8 +253,10 @@ domready(function() {
                 // if (screen.orientation.type != "landscape")
                 // 	screen.orientation.lock("landscape");
                 // browser, suggest app
-                //*
+                /*
                 // splash = false;
+
+                // recommend native mobile app
                 var apprec = document.getElementById('apprec');
                 apprec.style.display = "block";
                 apprec.addEventListener("click", function(e) {

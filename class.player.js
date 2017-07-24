@@ -2027,8 +2027,11 @@ game_player.prototype.doHitClientVictim = function(victor, dmg, health) {
         dmgText = 0 - dmg;
     }
 
-    // add floating text with damage (id: 100 = damage text)
-    this.setTextFloater(100, dmgText, 1);
+    // add floating text with damage (id: 100 = damage text with victor, 101 with NO victor)
+    if (victor) {
+        // victor.setTextFloater(101, dmgText, 1);
+        this.setTextFloater(100, dmgText, 1);
+    } else this.setTextFloater(101, dmgText, 1);
 
     var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
     this.config.client.particles.push(particles);
@@ -2610,13 +2613,18 @@ game_player.prototype.setTextFloater = function(c, v, bool, type) {
             text = v; // value is donor's name
         }
         localOnly = true;
-    } else if (c == 100) // damage
+    } else if (c == 100) // damage with victor
     {
         text += " HEALTH";
         color = "red";
         // show to both victim and victor
         localOnly = false;
+    } else if (c == 101) { // damage without victor
+        text += " HEALTH";
+        color = "red";
+        localOnly = true;
     }
+
     // else if (c == 101) // badge
     // {
 
@@ -2675,8 +2683,8 @@ game_player.prototype.setTextFloater = function(c, v, bool, type) {
     // console.log(this.config.server_time, this.config.server_time + 1.5, localOnly);
     var len = 1.5; // one and one half second
     len += this.textFloaters.length * 0.5; // add half second for every extant floater
-    console.log("* img", img);
     this.textFloaters.push([text, color, bool, this.config.server_time + len, localOnly, img]);
+    console.log("* floater", this.textFloaters.length);
     // console.log(JSON.stringify(this.textFloaters));
 };
 
@@ -3101,8 +3109,9 @@ game_player.prototype.draw = function() {
         this.nameplateOffset += 10;
     if (this.vuln) this.nameplateOffset = 10;
     //var abil;
-
-    if (this.isLocal && this.textFloaters.length > 0) {
+    // console.log(this.isLocal, this.textFloaters.length);
+    if (this.textFloaters.length > 0) {
+        // console.log("* textfloater!");
         var y_padding;
         for (var i = 0; i < this.textFloaters.length; i++) {
             // console.log('* floats', this.textFloaters[i]);
