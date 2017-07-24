@@ -1973,7 +1973,7 @@ game_core.prototype.roundComplete = function(port, round) {
                 // get player by userid
                 playerRed = this.config._.find(p, { userid: top10Red[a][1] });
                 // send bonusSlot
-                playerRed.bonusSlot = top10Red[a][2] + 1;
+                playerRed.bonusSlot = top10Red[a][2]; // + 1;
                 playerRed.activateBuff(playerRed.bonusSlot);
                 console.log('* assigned bonusSlot', playerRed.bonusSlot, 'to player', playerRed.playerName);
             }
@@ -1981,7 +1981,7 @@ game_core.prototype.roundComplete = function(port, round) {
                 // get player by userid
                 playerBlue = this.config._.find(p, { userid: top10Blue[a][1] });
                 // send bonusSlot
-                playerBlue.bonusSlot = top10Blue[a][2] + 1;
+                playerBlue.bonusSlot = top10Blue[a][2]; // + 1;
                 playerBlue.activateBuff(playerBlue.bonusSlot);
                 console.log('* assigned bonusSlot', playerBlue.bonusSlot, 'to player', playerBlue.playerName);
 
