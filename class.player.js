@@ -2028,10 +2028,8 @@ game_player.prototype.doHitClientVictim = function(victor, dmg, health) {
     }
 
     // add floating text with damage (id: 100 = damage text with victor, 101 with NO victor)
-    if (victor) {
-        // victor.setTextFloater(101, dmgText, 1);
-        this.setTextFloater(100, dmgText, 1);
-    } else this.setTextFloater(101, dmgText, 1);
+    if (victor) this.setTextFloater(100, dmgText, 1);
+    else this.setTextFloater(101, dmgText, 1);
 
     var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
     this.config.client.particles.push(particles);

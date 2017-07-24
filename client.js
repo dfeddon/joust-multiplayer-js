@@ -232,6 +232,9 @@ domready(function() {
         device.ios = /iphone|ipod|ipad/.test(userAgent);
         device.android = /android/.test(userAgent);
 
+        // hide more io games button (browser only)
+        document.getElementById('iogames').style.display = "none";
+
         console.log('standalone', device.standalone);
 
 

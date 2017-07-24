@@ -5,6 +5,7 @@ var _ = require('lodash'),
     game_chest = require('./class.consumable'),
     game_toast = require('./class.toast'),
     game_round = require('./class.round'),
+    game_spritesheet = require('./class.spritesheet'),
     game_buffs = require('./class.buffs');
 // getplayers          = require('./class.getplayers'),
 // pool                = require('typedarray-pool');
@@ -234,6 +235,7 @@ core_client.prototype.api = function() {
     xmlhttp.send(''); //{gameId:this.players.self.});
 
     xmlhttp.onreadystatechange = function() { //Call a function when the state changes.
+        console.log("onreadystatechange", xmlhttp);
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //alert(xmlhttp.responseText);
             //console.log('data', xmlhttp.responseText);
@@ -3930,7 +3932,7 @@ core_client.prototype.tilemapper = function() {
     canvas3.y = 0;
     canvas3.width = this.config.world.width; //v.width;
     canvas3.height = this.config.world.height; //v.height;
-    var context3 = canvas3.getContext('2d');
+    // var context3 = canvas3.getContext('2d');
     /////////////////////////////////////////
     // Tilemap
     /////////////////////////////////////////
@@ -3946,23 +3948,22 @@ core_client.prototype.tilemapper = function() {
         // map
         ///////////////////////////////////
         var mapNode = xmlDoc.getElementsByTagName('map');
-        var tileWidth, tileHeight, tileCount, columns, renderOrder, width, height, nextObjectId;
-        renderOrder = mapNode[0].getAttribute('renderorder');
-        width = mapNode[0].getAttribute('width');
-        height = mapNode[0].getAttribute('height');
-        tileWidth = mapNode[0].getAttribute('tilewidth');
-        tileHeight = mapNode[0].getAttribute('tileheight');
-        nextObjectId = mapNode[0].getAttribute('nextobjectid');
+        // var renderOrder = mapNode[0].getAttribute('renderorder');
+        var width = mapNode[0].getAttribute('width');
+        var height = mapNode[0].getAttribute('height');
+        var tileWidth = mapNode[0].getAttribute('tilewidth');
+        var tileHeight = mapNode[0].getAttribute('tileheight');
+        // var nextObjectId = mapNode[0].getAttribute('nextobjectid');
         //console.log(tileWidth,tileHeight,width,height,nextObjectId,renderOrder);
 
         ///////////////////////////////////
         // tileset
         ///////////////////////////////////
-        var tilesetNode = xmlDoc.getElementsByTagName('tileset');
+        // var tilesetNode = xmlDoc.getElementsByTagName('tileset');
         //console.log('tileset', tilesetNode.length);
-        tileCount = tilesetNode[0].getAttribute('tilecount');
-        columns = tilesetNode[0].getAttribute('columns');
-        name = tilesetNode[0].getAttribute('name');
+        // var tileCount = tilesetNode[0].getAttribute('tilecount');
+        // var columns = tilesetNode[0].getAttribute('columns');
+        // var name = tilesetNode[0].getAttribute('name');
         //console.log(tileCount, columns, name);
 
         ///////////////////////////////////
@@ -3982,7 +3983,7 @@ core_client.prototype.tilemapper = function() {
             ogRows.pop();
             //console.log(ogRows);
             var parser = new DOMParser();
-            var xml, atts, s;
+            var xml, atts; //, s;
             var nodes = [];
             //for (var d = 0; d < ogRows.length; d++)
             _.forEach(ogRows, function(ogr) {
@@ -4010,7 +4011,7 @@ core_client.prototype.tilemapper = function() {
 
                 case "flagObjects":
                     // assign attribues to chest obj
-                    var flg;
+                    // var flg;
                     //for (var e = 0; e < nodes.length; e++)
                     //var flagObjectsObj;
                     //var objsArray = [];
@@ -4064,7 +4065,7 @@ core_client.prototype.tilemapper = function() {
 
         var layerData = [];
         var base = [];
-        var layerName, data, encoding, dataNode, layerWidth, layerHeight;
+        var layerName, data; //, encoding, dataNode, layerWidth, layerHeight;
 
         ///////////////////////////////////
         // iterate layers
@@ -4084,9 +4085,9 @@ core_client.prototype.tilemapper = function() {
             console.log(layerNode[x].getElementsByTagName('data')[0].innerHTML);*/
 
             layerName = layerNode[x].getAttribute('name');
-            layerWidth = layerNode[x].getAttribute('width');
-            layerHeight = layerNode[x].getAttribute('height');
-            dataNode = layerNode[x].getElementsByTagName('data')[0];
+            // layerWidth = layerNode[x].getAttribute('width');
+            // layerHeight = layerNode[x].getAttribute('height');
+            // dataNode = layerNode[x].getElementsByTagName('data')[0];
             data = layerNode[x].getElementsByTagName('data')[0].innerHTML;
 
             layersStored.push(layerName);
@@ -4129,21 +4130,21 @@ core_client.prototype.tilemapper = function() {
         ///////////////////////////////////
         // build bitmap from tilelist image
         ///////////////////////////////////
-        var source, trans, imageWidth, imageHeight;
+        // var source, trans, imageWidth, imageHeight;
         var imageNode = xmlDoc.getElementsByTagName('image');
-        source = imageNode[0].getAttribute('source');
-        trans = imageNode[0].getAttribute('trans');
-        imageWidth = imageNode[0].getAttribute('width');
-        imageHeight = imageNode[0].getAttribute('height');
+        // var source = imageNode[0].getAttribute('source');
+        // var trans = imageNode[0].getAttribute('trans');
+        var imageWidth = imageNode[0].getAttribute('width');
+        // var imageHeight = imageNode[0].getAttribute('height');
         //console.log(source, trans, imageWidth, imageHeight);
 
-        var layers = [];
+        // var layers = [];
         var image = assets.skin1_tileset;
         //var image = new Image();
         //image.onload = function(e)
         //{
         // image loaded
-        var sheet = image; //e.target;
+        // var sheet = image; //e.target;
         //context2.drawImage(e.target, 0, 0);
 
         // first, create canvas the exact size of the tilemap
