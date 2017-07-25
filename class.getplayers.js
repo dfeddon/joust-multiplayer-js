@@ -364,6 +364,8 @@ getplayers.prototype.fromRoomByUserId = function(userid) {
             }
         }
     }
+    // in the event user has disconnected
+    return [];
 }
 
 getplayers.prototype.getRoomNameByUserId = function(userid) {
