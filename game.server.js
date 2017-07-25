@@ -722,6 +722,9 @@ game_server.prototype.startGame = function(game, newplayer) {
         if (p[x].mp == newplayer.mp) {
             this.log("found HOST", p[x].skin);
             this.log("* found server newplayer instance", p[x].instance.userid); //.mp);//.playerName);
+            // clear extant properties
+            p[x].reset();
+
             p[x].instance.gameid = game.id;
             p[x].active = true;
             p[x].visible = true;
@@ -743,7 +746,7 @@ game_server.prototype.startGame = function(game, newplayer) {
             p[x].pos = startPos;
             //}
             nonhosts.push(p[x].instance);
-            console.log('* player', newplayerInstance.mp, 'assigned to team', team);
+            console.log("* player", newplayerInstance.mp, "assigned to team", team);
         }
         /*else if (p[x].instance && p[x].instance.hosting)//this.log(x, p[x].mp, p[x].playerName, p[x].instance);
         {
