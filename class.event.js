@@ -114,7 +114,8 @@ game_event.prototype.update = function(port) {
                 }
                 // var player = this.config._.filter(room, ["instance.userid", userid]);
                 // console.log('player', player.instance.userid);
-                player.hasFlag = 0;
+                if (player)
+                    player.hasFlag = 0;
                 this.flag.reset(false);
 
                 // change state to complete

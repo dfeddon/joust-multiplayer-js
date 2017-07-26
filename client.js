@@ -756,12 +756,18 @@ domready(function() {
         console.log('close!');
         modal.style.display = "none";
     });
-    window.onclick = function(event) {
-        console.log("* window click", event.target);
-        if (event.target == modal) {
-            modal.style.display = "none";
+    window.onclick = function(e) {
+            console.log("* window click", e.target, e.button);
+            if (e.target == modal) {
+                modal.style.display = "none";
+            }
         }
-    }
+        // window.addEventListener("mousedown", function(e) {
+        //     console.log("mousedown handler", e);
+        // });
+        // window.addEventListener("mouseup", function(e) {
+        //     console.log("mouseup handler", e);
+        // });
     window.twttr.events.bind(
         'click',
         function(ev) {
