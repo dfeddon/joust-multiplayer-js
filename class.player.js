@@ -1261,8 +1261,8 @@ game_player.prototype.addToScore = function(val) {
 game_player.prototype.respawn = function() {
     console.log("== respawn =="); //, this.instance);
 
-    if (!this.instance) {
-        console.warn("ERROR: player.respawn failed due to undefined value of this.instance");
+    if (!this.instance.game) {
+        console.warn("ERROR: player.respawn failed due to undefined value of this.instance.game");
         return;
     }
 

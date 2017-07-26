@@ -630,6 +630,8 @@ game_server.prototype.endGame = function(gameid, userid) {
                     room[j].active = false;
                 }
             }
+            console.log("@ last player has left but keep game active");
+            return;
             // leaving game
             thegame.player_clients[0].leave(thegame.player_clients[0].playerPort);
             // remove client

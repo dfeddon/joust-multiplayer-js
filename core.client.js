@@ -2938,7 +2938,8 @@ core_client.prototype.client_process_net_updates = function() {
             //console.log('=', player.mp, _this.players.self.mp);
             // console.log('i', player.name, player.userid, player.isLocal);
 
-            if (!player.userid) continue; //return;
+            // if (!player.userid) continue; //return;
+            if (!player.active) continue; //return;
             // else console.log('#', player.userid, _this.players.self.userid);
 
             // "other" player, not local player "self"
