@@ -104,12 +104,14 @@ game_event.prototype.update = function(port) {
                 // console.log('getplayers', this.config.getplayers);
                 var room = this.getplayers.fromRoomByUserId(userid);
                 var player;
-                for (var i = 0; i < room.length; i++) {
-                    // console.log('**', room[i]);
-                    if (room[i].userid == userid) {
-                        console.log("* found player", room[i].instance.userid);
-                        player = room[i];
-                        break;
+                if (room) {
+                    for (var i = 0; i < room.length; i++) {
+                        // console.log('**', room[i]);
+                        if (room[i].userid == userid) {
+                            console.log("* found player", room[i].instance.userid);
+                            player = room[i];
+                            break;
+                        }
                     }
                 }
                 // var player = this.config._.filter(room, ["instance.userid", userid]);

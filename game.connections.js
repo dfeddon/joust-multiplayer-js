@@ -1,17 +1,16 @@
-var game_server     = require('./game.server.js'),
-    Primus          = require('primus'),
-    Rooms           = require('primus-rooms'),
+var game_server = require('./game.server.js'),
+    Primus = require('primus'),
+    Rooms = require('primus-rooms'),
     // PrimusCluster   = require('primus-cluster'),//require('primus-redis-rooms'),
-    Emitter         = require('primus-emitter'),
-    uws             = require('uws'),
+    Emitter = require('primus-emitter'),
+    uws = require('uws'),
 
-    ioredis         = require('ioredis'),//(),
-    metroplex       = require('metroplex'),
+    ioredis = require('ioredis'), //(),
+    metroplex = require('metroplex'),
 
-    singlePort      = 3000;
+    singlePort = 3000;
 
-function game_connections()
-{
+function game_connections() {
     console.log('game_connections constructor');
     this.SINGLE_PRIMUS_INSTANCE = 1;
     this.MULTI_PRIMUS_INSTANCES = 2;
@@ -25,8 +24,7 @@ function game_connections()
     // this.vPlayers();
 }
 
-game_connections.prototype.createConnection = function(svr, gamecore)
-{
+game_connections.prototype.createConnection = function(svr, gamecore) {
     // var parser = 
     // {
     //     encoder: function encoder(data, fn) { fn(undefined, data); },
@@ -48,22 +46,17 @@ game_connections.prototype.createConnection = function(svr, gamecore)
 
     console.log('primus.type', this.type, this.isRunning);
     // if running a single instance of primus
-    if (this.type === this.SINGLE_PRIMUS_INSTANCE)
-    {
-        if (this.isRunning) 
-        {
+    if (this.type === this.SINGLE_PRIMUS_INSTANCE) {
+        if (this.isRunning) {
             console.log("@ already running primus, returning instance...");
             return this.primus;
-        }
-        else 
-        {
+        } else {
             console.log('@ instantiating primus...');
             this.isRunning = true;
         }
 
         // var primus = new Primus(svr, 
-        primus = new Primus.createServer(
-        {
+        primus = new Primus.createServer({
             // parser: parser,
             port: singlePort,
             transformer: 'uws',
@@ -73,13 +66,10 @@ game_connections.prototype.createConnection = function(svr, gamecore)
             // middleware: omega_supreme_rooms_middleware,//require('omega-supreme-rooms-middleware'),
             namespace: 'metroplex',
             redis: ioredis.createClient()
-            // redis: new ioredis(6379, "wingdom-redis-001.t1sekd.0001.use1.cache.amazonaws.com")
+                // redis: new ioredis(6379, "wingdom-redis-001.t1sekd.0001.use1.cache.amazonaws.com")
         });
-    }
-    else
-    {
-        primus = new Primus(svr, 
-        {
+    } else {
+        primus = new Primus(svr, {
             transformer: 'uws',
             parser: 'binary',
             pong: 1000,
@@ -95,30 +85,27 @@ game_connections.prototype.createConnection = function(svr, gamecore)
     primus.plugin('rooms', Rooms);
     primus.plugin('emitter', Emitter);
     // primus.plugin('omega-supreme', omega_supreme); // * must be loaded _before_ metroplex!
-    primus.plugin('metroplex', metroplex);//require('metroplex'));
+    primus.plugin('metroplex', metroplex); //require('metroplex'));
 
     // primus.options.middleware = omega_supreme_rooms_middleware();
     // use redis
     // primus.use('cluster', PrimusCluster);
 
-    primus.metroplex.servers(function(err, servers)
-    {
+    primus.metroplex.servers(function(err, servers) {
         console.log('registered servers:', servers);
     });
 
     // generate client wrapper
-    // primus.save(__dirname + '/primus/primus.js');
+    primus.save(__dirname + '/primus/primus.js');
 
     // connection
-    primus.on('connection', function (spark)
-    {
-        console.log('@ client connected');//, spark);
+    primus.on('connection', function(spark) {
+        console.log('@ client connected'); //, spark);
         // console.log('connection has the following headers', spark.headers);
         console.log('@ connection was made from spark.address', spark.address);
         console.log('@ connection spark.id', spark.id);
-        primus.metroplex.spark(spark.id, function(err, server)
-        {
-            console.log('@spark server', server);   
+        primus.metroplex.spark(spark.id, function(err, server) {
+            console.log('@spark server', server);
         });
         // console.log('@ current port', )
         // spark.on('open', function open()
@@ -139,25 +126,21 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         console.log('spark :: player ' + spark.userid + ' connected');*/
 
         //They send messages here, and we send them to the game_server to handle.
-        spark.on('heartbeat', function()
-        {
+        spark.on('heartbeat', function() {
             // console.log("@ heartbeat");
         });
-        spark.on('outgoing::ping', function(time)
-        {
+        spark.on('outgoing::ping', function(time) {
             // console.log('@ ping', time);
         });
-        spark.on('incoming::pong', function(time)
-        {
+        spark.on('incoming::pong', function(time) {
             // console.log('@ pong', Math.abs((Date.now() - time)), time);
             // console.log("@ pong", time);
             if (gameserver.game_core.core_server)
-            gameserver.game_core.core_server.ticker(spark);
+                gameserver.game_core.core_server.ticker(spark);
         });
-        spark.on('data', function(data)
-        {
+        spark.on('data', function(data) {
             // console.log('spark.on', data);
-            
+
             // console.log('client-to-server message', spark.primus.latency);
             gameserver.onMessage(spark, data);
         }); //client.on message
@@ -166,7 +149,7 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         // {
         //     //Useful to know when soomeone disconnects
         //     console.log('\t socket.io:: client disconnected ' + spark.userid + ' ' + spark.gameid);//client.game.id);
-            
+
         //     //If the client was in a game, set by game_server.findGame,
         //     //we can tell the game server to update that game state.
         //     if(spark.game && spark.gameid)//game.id)
@@ -178,8 +161,7 @@ game_connections.prototype.createConnection = function(svr, gamecore)
         // }); 
     }); // connection
 
-    primus.on('disconnection', function(spark)
-    {
+    primus.on('disconnection', function(spark) {
         console.log('@ client has disconnected!');
         if (spark.game && spark.gameid)
             gameserver.endGame(spark.gameid, spark.userid);
@@ -189,8 +171,7 @@ game_connections.prototype.createConnection = function(svr, gamecore)
     return primus;
 }
 
-game_connections.prototype.vPlayers = function()
-{
+game_connections.prototype.vPlayers = function() {
     //*
     var vp = 0;
     var tot = 29;
@@ -199,24 +180,20 @@ game_connections.prototype.vPlayers = function()
     var socketPort = "3000";
     var _this = this;
     var Primus = require('./primus/primus');
-    var vplayer = function()
-    {
+    var vplayer = function() {
         console.log("this vp:", vp)
-        if (vp === tot)
-        {
+        if (vp === tot) {
             clearInterval(vplayer);
             return;
         }
         // var c = new clientIo.connect('http://localhost:4004');//.connect(getUid());//, {"force new connection":true});
-        console.log('new autoplayer...');//, Primus);
+        console.log('new autoplayer...'); //, Primus);
         var url = "ws://" + hostname + ":" + socketPort;
         console.log('url', url);
-        socket = new Primus.connect(url, 
-        {
+        socket = new Primus.connect(url, {
             parser: 'binary',
             //    manual: true,
-            reconnect: 
-            {
+            reconnect: {
                 max: Infinity, // Number: The max delay before we try to reconnect.
                 min: 500, // Number: The minimum delay before we try reconnect.
                 retries: 10 // Number: How many times we should try to reconnect.

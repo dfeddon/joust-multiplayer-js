@@ -1065,7 +1065,7 @@ game_player.prototype.reset = function() {
     // clear baseDisonnect
     this.baseDisconnect = null;
 
-    console.log('disconnected', this.playerName, this.disconnected);
+    console.log('has disconnected', this.playerName, this.disconnected);
 
     if (this.disconnected) {
         this.pos = this.config.gridToPixel(0, 0);
@@ -1261,7 +1261,7 @@ game_player.prototype.addToScore = function(val) {
 game_player.prototype.respawn = function() {
     console.log("== respawn =="); //, this.instance);
 
-    if (!this.instance.game) {
+    if (!this.instance) {
         console.warn("ERROR: player.respawn failed due to undefined value of this.instance.game");
         return;
     }
@@ -1291,7 +1291,7 @@ game_player.prototype.respawn = function() {
         return;
     }
     // TODO: set position based on team
-    var pos = this.instance.game.gamecore.gridToPixel(sx, sy); //3,4);
+    var pos = { x: sx * 64, y: sy * 64 }; //3,4);
     startPos.x = pos.x;
     startPos.y = pos.y;
 
