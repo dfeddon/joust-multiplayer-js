@@ -31,7 +31,7 @@ function game_player(player_instance, isHost, pindex, config) {
     // if (this.instance)
     //     this.game = this.instance.game;
     this.isBot = false;
-    this.inBase = false; // in base setting to support AFK timer
+    this.inBase = true; // in base setting to support AFK timer
     this.inBaseWarning = false; // warning UI up
 
     this.player_abilities_enabled = false;
@@ -125,7 +125,7 @@ function game_player(player_instance, isHost, pindex, config) {
     this.damageReduce = 0; // plate
     this.speedBonus = 0; // alacrity
 
-    this.health = 50; // start at half-health
+    this.health = 100; // start at half-health
     this.healthMax = 100;
     this.healthbarColor = 'lime';
     this.healthChanged = false; // server only
@@ -326,6 +326,7 @@ game_player.prototype.startInBase = function() {
         _this.baseWarning = _this.config.server_time + 30;
         _this.baseDisconnect = _this.config.server_time + 60;
         _this.inBase = true;
+        console.log("* inbase", _this.inBase);
     }, 1000);
     // else {
     //     this.baseWarning = this.config.server_time + 30;
@@ -507,6 +508,7 @@ game_player.prototype.updateHealth = function(val, hitBy) {
 };
 
 game_player.prototype.healthAdjustments = function() {
+    console.log("== player.healthAdjustments ==");
     var perc = this.health / this.healthMax;
     // take % between range (30 - 50)
     var newval = ((perc * (SPEED_VAL_MAX - SPEED_VAL_MIN) / 100) * 100) + SPEED_VAL_MIN;
@@ -1053,7 +1055,7 @@ game_player.prototype.reset = function() {
     this.nextlevel = 2000;
     this.progression = 0;
 
-    this.health = 50;
+    this.health = 100;
     this.a = 0; // -90, 0, 90
     this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
     this.thrustModifier = 40; // we start at half-health
@@ -1079,6 +1081,7 @@ game_player.prototype.reset = function() {
         }
         // go ahead (both server & client) and unhide player (now at spawn point)
         // this.active = true;
+        this.healthAdjustments();
     }
 
 };
@@ -1362,16 +1365,19 @@ game_player.prototype.doLand = function() {
         // bounce
         this.vy *= -1;
         // set vulnerability
-        this.isVuln(len);
+        if (this.inBase === false)
+            this.isVuln(len);
         //this.a *= -1;
         // inflict fall damage
         if (this.config.server) {
-            var dmg = Math.abs(this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3)));
-            console.log("* bounce damage", dmg);
-            this.updateHealth(0 - dmg);
-            // send to client
-            this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
-            // this.setTextFloater(100, Math.abs(dmg), 1);
+            if (this.inBase === false) {
+                var dmg = Math.abs(this.getRandomRange(Math.round(this.vy * 2), Math.round(this.vy * 3)));
+                console.log("* bounce damage", dmg);
+                this.updateHealth(0 - dmg);
+                // send to client
+                this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
+                // this.setTextFloater(100, Math.abs(dmg), 1);
+            }
         } else {
             var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
             this.config.client.particles.push(particles);
@@ -1850,16 +1856,19 @@ game_player.prototype.update = function() {
                 //this.a *= -1;
                 this.vy *= -1;
                 this.isVuln(750);
-                // dmg 1 - 5
-                if (this.config.server) // && this.isLocal)
-                {
-                    var dmg = this.getRandomRange(1, 5);
-                    // console.log("* from below dmg", dmg);
-                    this.updateHealth(0 - dmg);
-                    this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
-                } else {
-                    var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
-                    this.config.client.particles.push(particles);
+                // console.log("* inbase", this.inBase);
+                if (!this.inBase) {
+                    // dmg 1 - 5
+                    if (this.config.server) // && this.isLocal)
+                    {
+                        var dmg = this.getRandomRange(1, 5);
+                        // console.log("* from below dmg", dmg);
+                        this.updateHealth(0 - dmg);
+                        this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
+                    } else {
+                        var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+                        this.config.client.particles.push(particles);
+                    }
                 }
                 // dmgText = 0 - 2;
                 // add floating text with damage (id: 100 = damage text)

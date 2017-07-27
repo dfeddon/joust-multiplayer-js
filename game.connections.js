@@ -96,7 +96,7 @@ game_connections.prototype.createConnection = function(svr, gamecore) {
     });
 
     // generate client wrapper
-    primus.save(__dirname + '/primus/primus.js');
+    // primus.save(__dirname + '/primus/primus.js');
 
     // connection
     primus.on('connection', function(spark) {

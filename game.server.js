@@ -746,6 +746,7 @@ game_server.prototype.startGame = function(game, newplayer) {
             newplayerInstance.team = team;
             p[x].team = team;
             p[x].pos = startPos;
+            p[x].healthAdjustments(); // update health and thrustModifier
             //}
             nonhosts.push(p[x].instance);
             console.log("* player", newplayerInstance.mp, "assigned to team", team);

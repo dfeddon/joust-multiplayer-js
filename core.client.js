@@ -834,6 +834,7 @@ core_client.prototype.client_onhostgame = function(data) {
 
     // start afk timer
     _this.players.self.startInBase();
+    _this.players.self.healthAdjustments();
 
     // nudge player
     //*
@@ -1168,17 +1169,15 @@ core_client.prototype.client_ondisconnect = function(userid) {
     for (var i = room.length - 1; i >= 0; i--) {
         // console.log(room[i]);
         if (room[i].userid == userid) {
-            console.log('* removing player', room[i]); //, data);
+            console.log("* removing player", room[i]); //, data);
             room[i].disconnected = true;
-            room[i].userid = null; // <- important!
-            if (!room[i].dead)
-                room[i].doKill(); //active = false;
-            if (room[i].hasFlag > 0)
-                room[i].dropFlag();
+            if (!room[i].dead) room[i].doKill(); //active = false;
+            if (room[i].hasFlag > 0) room[i].dropFlag();
             //room[i].visible = false;
             //room[i].pos = {x:0, y:0};
             //this.core.getplayers.allplayers.splice(i, 1);
             //break;
+            room[i].userid = null; // <- important!
         }
     }
 

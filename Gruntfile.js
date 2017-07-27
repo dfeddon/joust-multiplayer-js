@@ -120,7 +120,7 @@ module.exports = function(grunt) {
                     { src: ['./index.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./index.css'], dest: '../wingdom-server-dist/' },
                     { src: ['./primus.js'], dest: '../wingdom-server-dist/' },
-                    { src: ['./primus.js'], dest: '../wingdom-server-dist/primus/' },
+                    { src: ['./primus/primus.js'], dest: '../wingdom-server-dist/' },
                     { src: ['./privacy.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./terms.html'], dest: '../wingdom-server-dist/' },
                     { src: ['./headlines.html'], dest: '../wingdom-server-dist/' },

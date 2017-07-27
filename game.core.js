@@ -1250,13 +1250,13 @@ game_core.prototype.check_collision = function(player, i) {
                     player.exitBase(); // disable afk timer
                     player.pos.y -= gatepush;
                 } else {
-                    player.pos.y += b;
+                    player.pos.y += b + 10;
                     player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             } else {
                 //player.pos.x -= b;
-                player.pos.y += b;
+                player.pos.y += b + 10;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
                 /*if (player.vuln===false)
