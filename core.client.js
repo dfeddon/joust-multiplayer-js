@@ -3337,6 +3337,9 @@ core_client.prototype.client_process_net_updates = function() {
                     this.core._pdt * this.client_smooth
                 );
         }
+        this.players.self.pos.x = ~~this.players.self.pos.x;
+        this.players.self.pos.y = ~~this.players.self.pos.y;
+        // console.log("* interp", this.players.self.pos);
         //*/
 
 

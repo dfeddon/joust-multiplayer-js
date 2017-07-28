@@ -750,7 +750,7 @@ game_core.prototype.apiNode = function() {
 // (4.22208334636).fixed(n) will return fixed point value to n places, default n = 3
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 //copies a 2d vector like object from one to another
-game_core.prototype.pos = function(a) { return { x: a.x, y: a.y }; };
+game_core.prototype.pos = function(a) { return { x: ~~a.x, y: ~~a.y }; };
 //Add a 2d vector with another one and return the resulting vector
 game_core.prototype.v_add = function(a, b) { return { x: (a.x + b.x).fixed(), y: (a.y + b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
@@ -1277,7 +1277,7 @@ game_core.prototype.check_collision = function(player, i) {
                     player.exitBase(); // disable afk timer
                     player.pos.y += gatepush;
                 } else {
-                    player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                    player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
                     player.doLand();
                 }
             } else {
@@ -1286,7 +1286,7 @@ game_core.prototype.check_collision = function(player, i) {
                 //player.pos.y -= b;
 
                 // set y
-                player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
                 //player.hitFrom = 2;
 
                 // process landing
@@ -1378,7 +1378,7 @@ game_core.prototype.check_collision = function(player, i) {
             } else // south (landing), determine direction
             {
                 // set y
-                player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
                 // process landing
                 //if (this.server)
                 player.doLand();
@@ -1400,7 +1400,7 @@ game_core.prototype.check_collision = function(player, i) {
             } else // south (landing), determine direction
             {
                 // set y
-                player.pos.y = parseInt((h.sw.y * 64) - player.size.hy);
+                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
                 // process landing
                 //if (this.server)
                 player.doLand();
@@ -1596,8 +1596,10 @@ game_core.prototype.process_input = function(player) {
 
         //console.log(x_dir, y_dir, this._pdt);
     }
-    if (!this.server)
+    if (!this.server) {
         this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
+        // console.log("*", this.core_client.players.self.cur_state.pos);
+    }
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     /*if (player.mp == "cp1")
