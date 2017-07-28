@@ -1830,10 +1830,10 @@ game_player.prototype.update = function() {
     // thrustModifier
     this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust)); // + this.thrustModifier));//.fixed(2);
 
-    this.pos.y += this.vy.fixed(2);
+    this.pos.y = (this.pos.y + this.vy).fixed(0);
 
     // /10 = slower /25 = faster /50 = fast
-    this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
+    this.pos.x = (this.pos.x + this.vx).fixed(0); //((this.a/25) * Math.cos(this.vx));
     //console.log('vs', this.vx, this.vy);
 
     //if (this.pos.x < 165) this.vx *=-1;
