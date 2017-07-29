@@ -770,7 +770,7 @@ game_core.prototype.v_lerp = function(v, tv, t) { return { x: this.lerp(v.x, tv.
 
 // Grid helpers
 game_core.prototype.gridToPixel = function(x, y) {
-    console.log('== gridToPixel', x, y, '==');
+    // console.log('== gridToPixel', x, y, '==');
 
     return { x: x * 64, y: y * 64 };
 };

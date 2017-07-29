@@ -11,7 +11,7 @@ var _ = require('lodash');
 var assets = require('./singleton.assets');
 
 function game_flag(data, context, getplayers, config) {
-    console.log('== game_flag constructor', data, '=='); //, getplayers.game_instance.inRoomFlags);
+    // console.log('== game_flag constructor', data, '=='); //, getplayers.game_instance.inRoomFlags);
 
     //this._ = {};
 

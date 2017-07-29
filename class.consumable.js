@@ -21,7 +21,7 @@ var CONSUMABLE_CATEGORY_CHEST = 1,
 // CONSUMABLE_CATEGORY_POTION_DURATION = 3,
 
 function game_consumable(data, client, getplayers) {
-    console.log('== game_consumable constructor ==', data, client);
+    // console.log('== game_consumable constructor ==', data, client);
 
     // hold refs  
     this.getplayers = getplayers;
@@ -130,7 +130,7 @@ game_consumable.prototype.addData = function(data) {
 }
 
 game_consumable.prototype.reset = function() {
-    console.log('== consumable.reset ==');
+    // console.log('== consumable.reset ==');
 
     // defaults
     // this.id = getUid();

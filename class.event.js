@@ -221,7 +221,7 @@ game_event.prototype.update = function(port) {
                 this.consumableData.x = this.spawn.x;
                 this.consumableData.y = this.spawn.y;
 
-                console.log("* evt.consumableData ready!", this.consumableData, "on port", port);
+                // console.log("* evt.consumableData ready!", this.consumableData, "on port", port);
 
                 // update consumable reference (stored in getplayers)
                 this.consumable = this.consumable.addData(this.consumableData);

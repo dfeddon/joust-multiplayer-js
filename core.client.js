@@ -2258,8 +2258,8 @@ core_client.prototype.client_onbonusupdate = function(team, player, potions) {
     console.log("== client_onbonusupdate ==", team, player, potions);
     // this.players.self.playerBonus += this.dazed;
     // if (data.length === 3)
-    if (this.players.self.instance)
-        this.players.self.updateBonusesClient([team, player, potions]);
+    // if (this.players.self.instance)
+    this.players.self.updateBonusesClient([team, player, potions]);
     // else console.warn("* client_onbonusupdate: data length mismatch!", data.length);
 }
 

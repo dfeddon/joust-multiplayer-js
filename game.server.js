@@ -781,7 +781,7 @@ game_server.prototype.startGame = function(game, newplayer) {
             pd = other.playerdata.split['|'];
             for (var a = 0; a < players.length; a++) {
                 // get data from player
-                this.log('@ mps', players[a].mp, other.mp);
+                // this.log('@ mps', players[a].mp, other.mp);
                 if (players[a].mp == other.mp) {
                     this.log('@ adding "other" player', other.playerName, other.userid);
                     others.push({
@@ -820,11 +820,11 @@ game_server.prototype.startGame = function(game, newplayer) {
         // p = game_instance.gamecore.getplayers.allplayers;
         p = game_instance.gamecore.getplayers.fromRoom(playerPort);
         for (x = 0; x < p.length; x++) {
-            this.log("**", p[x].userid, nonhosts[j].userid, newplayer.userid);
+            // this.log("**", p[x].userid, nonhosts[j].userid, newplayer.userid);
             if (p[x].mp == nonhosts[j].mp) // && nonhosts[j].mp == newplayer.mp)
             {
                 //this.log("found HOST");//this.log("p:", p[x].mp);
-                this.log("* found server player instance", p[x].playerName);
+                this.log("@ found server player instance", p[x].playerName);
                 //playerName = p[x].playerName;
                 //playerMP = p[x].mp;
                 //game_instance.gamecore.players.self =

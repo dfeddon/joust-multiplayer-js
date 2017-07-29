@@ -233,7 +233,7 @@ getplayers.prototype.addRoom = function(port) {
         //console.log('evt type', evt.type);
         evt_ec.setRandomTriggerTime(25, 45);
         this.game_instance.inRoomEvents[port].push(evt_ec);
-        console.log('@ consumable events', this.game_instance.inRoomEvents[port]);
+        // console.log('@ consumable events', this.game_instance.inRoomEvents[port]);
 
         // create flag carried cooldown event
         evt_fc = new game_event_server(this, this.config); //this);
@@ -310,7 +310,7 @@ getplayers.prototype.addRoom = function(port) {
 };
 
 getplayers.prototype.fromRoomNextActiveConsumable = function(port) {
-    console.log('fromRoomNextActiveConsumable', port);
+    // console.log('fromRoomNextActiveConsumable', port);
 
     for (var i = this.game_instance.inRoomConsumables[port].length - 1; i >= 0; i--) {
         // console.log('* isactive',this.game_instance.inRoomConsumables[port][i].active);
