@@ -2258,8 +2258,8 @@ core_client.prototype.client_onbonusupdate = function(team, player, potions) {
     console.log("== client_onbonusupdate ==", team, player, potions);
     // this.players.self.playerBonus += this.dazed;
     // if (data.length === 3)
-    // if (this.players.self.instance)
-    this.players.self.updateBonusesClient([team, player, potions]);
+    if (this.players.self.updateBonusesClient)
+        this.players.self.updateBonusesClient([team, player, potions]);
     // else console.warn("* client_onbonusupdate: data length mismatch!", data.length);
 }
 
@@ -2557,22 +2557,15 @@ core_client.prototype.handleKeyEvent = function(e) {
     //     }
     // }
 core_client.prototype.client_handle_input = function(key) {
-    //if (glog)
-    // console.log('## client_handle_input', this.players.self.active);//this.keyboard);//this.keyboard.pressed('up'));
-
-    if (this.players.self.active === false) {
-        // console.log('input disabled', key);
+    // process input only if player is active
+    if (this.players.self.active === false)
         return;
-    }
-    //if(this.lit > this.core.local_time) return;
-    //this.lit = this.core.local_time+0.5; //one second delay
 
     //This takes input from the client and keeps a record,
     //It also sends the input information to the server immediately
     //as it is pressed. It also tags each input with a sequence number.
-
-    var x_dir = 0;
-    var y_dir = 0;
+    // var x_dir = 0;
+    // var y_dir = 0;
     var input = [];
 
     this.client_has_input = false;
@@ -2584,6 +2577,10 @@ core_client.prototype.client_handle_input = function(key) {
     if (this.keyboard.pressed('A') ||
         this.keyboard.pressed('left') || key == 'A') {
 
+        this.players.self.dir = 1;
+        if (this.players.self.landed === 1)
+            this.players.self.doWalk(this.players.self.dir);
+        else this.players.self.setAngle(1);
         //x_dir = -1;
         // y_dir = this.players.self.vy;//0.5;//1;
         // x_dir = this.players.self.vx;
@@ -2595,26 +2592,31 @@ core_client.prototype.client_handle_input = function(key) {
     if (this.keyboard.pressed('D') ||
         this.keyboard.pressed('right') || key == 'D') {
 
+        this.players.self.dir = 0;
+        if (this.players.self.landed === 1)
+            this.players.self.doWalk(this.players.self.dir);
+        else this.players.self.setAngle(0);
         //x_dir = 1;
         // y_dir = this.players.self.vy;//0.5;//1;
         // x_dir = this.players.self.vx;
-        input.push('r');
+        input.push("r");
 
     } //right
 
-    if (this.keyboard.pressed('S') ||
+    /*if (this.keyboard.pressed('S') ||
         this.keyboard.pressed('down')) {
 
         //y_dir = 1;
         input.push('d');
 
-    } //down
+    } //down*/
 
     if (this.keyboard.pressed('W') ||
         this.keyboard.pressed('up') || key == 'u') {
 
         //y_dir = -1;
         // console.log('pressed u');
+        this.players.self.doFlap();
         // y_dir = this.players.self.vy;//0.5;//1;
         // x_dir = this.players.self.vx;
         input.push('u');
@@ -2630,17 +2632,26 @@ core_client.prototype.client_handle_input = function(key) {
     //     // this.flapUp = false;
     // }
 
-    if (this.keyboard.pressed('space')) {
+    // if (this.keyboard.pressed('space')) {
 
-        //y_dir = -1;
-        input.push('sp');
+    //     //y_dir = -1;
+    //     input.push('sp');
 
-    } //up
+    // } //up
 
     // TODO: we are 'faking' input to ensure player is *always* updated
     // if (input.length === 0 && this.players.self.landed !== 1) input.push('0');
     if (this.players.self.vuln) input.length = 0;
     if (input.length === 0) input.push('0');
+
+    // update player
+    this.players.self.update();
+
+    // degrade angle
+    if (this.players.self.a > 0)
+        this.players.self.a -= 0.5;
+    else if (this.players.self.a < 0)
+        this.players.self.a += 0.5;
 
     if (input.length) {
         // this.core.server_control = false;
@@ -2662,26 +2673,26 @@ core_client.prototype.client_handle_input = function(key) {
         server_packet += input.join('-') + '.';
         server_packet += this.core.local_time.toFixed(3).replace('.', '-') + '.';
         server_packet += this.input_seq;
-
+        // console.log("server_packet", server_packet);
         //Go
-        // console.log('socket.server_packet', server_packet);
-
         this.socket.write({ is: server_packet });
 
         // release
         server_packet = null;
-
-        //Return the direction if needed
-        y_dir = this.players.self.vy; //0.5;//1;
-        x_dir = this.players.self.vx;
-        return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
-
-    } else {
-        // this.core.server_control = true;
-        //return {x:0,y:0};
-        return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
-
     }
+    return this.core.physics_movement_vector_from_direction(this.players.self.vx, this.players.self.vy);
+    //     //Return the direction if needed
+    //     y_dir = this.players.self.vy; //0.5;//1;
+    //     x_dir = this.players.self.vx;
+    //     // console.log("* x_dir", x_dir, "y_dir", y_dir);
+    //     return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
+
+    // } else {
+    //     // this.core.server_control = true;
+    //     //return {x:0,y:0};
+    //     return this.core.physics_movement_vector_from_direction(x_dir, y_dir);
+
+    // }
 
 }; //game_core.client_handle_input
 
@@ -2756,12 +2767,13 @@ core_client.prototype.client_process_net_prediction_correction = function() {
             //Now we reapply all the inputs that we have locally that
             //the server hasn't yet confirmed. This will 'keep' our position the same,
             //but also confirm the server position at the same time.
-            this.client_update_physics();
+            if (this.config.round.stage === 1)
+                this.client_update_physics();
             this.client_update_local_position();
 
         } // if(lastinputseq_index != -1)
 
-        //*
+        /*
         else {
             if (_.isEqual(this.players.self.old_state.pos, this.players.self.cur_state.pos) !== true) {
                 // console.log('kkkk');
@@ -3337,8 +3349,8 @@ core_client.prototype.client_process_net_updates = function() {
                     this.core._pdt * this.client_smooth
                 );
         }
-        this.players.self.pos.x = ~~this.players.self.pos.x;
-        this.players.self.pos.y = ~~this.players.self.pos.y;
+        // this.players.self.pos.x = ~~this.players.self.pos.x;
+        // this.players.self.pos.y = ~~this.players.self.pos.y;
         // console.log("* interp", this.players.self.pos);
         //*/
 
@@ -3633,192 +3645,56 @@ core_client.prototype.client_update_local_position = function() {
 }; //core_client.prototype.client_update_local_position
 
 core_client.prototype.client_update_physics = function() {
-    //if (glog)
-    // console.log('## client_update_physics');
-    //Fetch the new direction from the input buffer,
-    //and apply it to the state so we can smooth it in the visual state
+    // Fetch the new direction from the input buffer,
+    // and apply it to the state so we can smooth it in the visual state
 
-    //if(this.client_predict)
-    //{
-    //if (!this.players.self.old_state) return;
+    // client prediction
     this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
-    //if (this.players.self.mp != "hp")
-    //{
-    // var nd = this.core.process_input(this.players.self);
-    // if (nd.x==0&&nd.y==0) this.core.server_control=true;
-    // else this.core.server_control = false;
-    // console.log('nd:', nd);
-
-    //if (nd.x === 0 && nd.y == 0)
-    // this.players.self.update();
-    //else 
     this.players.self.cur_state.pos = this.v_add(this.players.self.old_state.pos, this.core.process_input(this.players.self));
     this.players.self.state_time = this.core.local_time;
-    //}
-
-    //console.log('nd', nd);
-
-    //this.players.self.update();
-
-    //}
-
-    // platform collisions (minus player)
-    //for (var j = 0; j < this.platforms.length; j++)
-    /*_.forEach(this.platforms, function(plat)
-    {
-        //if (this.platforms[j].state !== this.platforms[j].STATE_INTACT)
-        //{
-            plat.check_collision();
-        //}
-    });*/
 }; //game_core.client_update_physics
 
 core_client.prototype.client_update = function() {
-    //if (glog)
-    //console.log('## client_update');
-    //console.log(this.viewport);
-    // console.log('1', this.players);
-    // console.log('2', this.players.self);
-    // console.log('self::', this.players.self.mp, this.viewport.width);
-    // console.log('**', this.players.self.active, this.players.self.landed, this.players.self.pos);
-
-
-
     if (this.players.self.mp == "hp" || !this.config.round.active) return;
 
     // var _this = this;
 
-    /*if (this.barriers)
-    {
-        var bctx = this.barriers.getContext('2d');
-        bctx.save();
-        bctx.translate(-this.cam.x, -this.cam.y);
-        bctx.restore();
-    }*/
-    //console.log(this.cam.x,this.cam.y);
-    // +100 accounts for -50 padding offset along the edge of world
-    //console.log(this.players.self.pos.x, (this.viewport.width/2));
-
     // uncomment to clear bricks with brickPadding > 0
     // this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);
 
-    // flash bang
-    /*if (this.flashBang > 0)
-    {
-        // TODO: break this up into smaller rects
-        console.log('flashbang');
-        this.ctx.beginPath();
-        if (this.flashBang === 1)
-        this.ctx.fillStyle = 'white';
-        else this.ctx.fillStyle = 'red';
-        this.ctx.rect(-this.cam.x,-this.cam.y,this.viewport.width+128,this.viewport.height+128);
-        this.ctx.fill();
-        this.ctx.closePath();
-        this.flashBang = 0;
-    }*/
-
-    //draw help/information if required
-    // console.log(this.config.server_time);
-    //*
-    // console.log('**', this.config.server_time, this.config);
-
-
-    /*if (this.config.server_time && this.config.server_time.toFixed(1) % 1 === 0)
-    {
-        // console.log('* round timer');
-        
-        // this.client_draw_info();
-        this.rt = this.config.round.endtime - ~~(this.config.server_time);
-        var roundTimerTxt = document.getElementById('txtRoundTimer');
-        if (this.rt > 0)
-            roundTimerTxt.innerHTML = (this.rt-(this.rt%=60))/60+(9<this.rt?':':':0')+this.rt;
-        else roundTimerTxt.innerHTML = "--:--";
-
-        // update leaderboard every 10 sec
-        if (this.config.server_time.toFixed(1) % 10 === 0 && this.config.server_time.toFixed(1) !== this.lastInfoUpdate)
-        {
-            this.client_draw_info();
-            // store this tick to avoid redundancy
-            this.lastInfoUpdate = this.config.server_time.toFixed(1);
-        }
-    }*/
-
-
-    //*/
-
-    // draw prerenders
-    //console.log(this.canvas2, this.bg, this.barriers, this.fg);
-    // console.log("* this.bg", this.bg);
-    // if (this.bg)
-    // {
-    this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
-    // }
-    // if (this.fg)
-    // {
-    //this.ctx.drawImage(this.canvas2, 0,0); // orbs
-    // this.ctx.drawImage(this.barriers, 0, 0);
-    //console.log('this.cam', this.cam);
-    // tiled barriers layer
-    this.ctx.drawImage(this.barriers, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
-    // tiled fg layer
-    this.ctx.drawImage(this.fg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
-    //this.ctx.drawImage(this.fg, 0, 0); // tiled fg layer
-    //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
-    // }
-
-    //Capture inputs from the player
+    // capture inputs from the player
     this.client_handle_input();
 
     //Network player just gets drawn normally, with interpolation from
     //the server updates, smoothing out the positions from the past.
     //Note that if we don't have prediction enabled - this will also
     //update the actual local client position on screen as well.
-    //if( !this.naive_approach )
-    //{
     this.client_process_net_updates();
-    //}
+
+    //draw help/information if required
+    // this.client_draw_info();
+
+    // draw map
+
+    // territory color
+    this.ctx.drawImage(this.bg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height); // tiled bg layer
+    // tiled barriers layer
+    this.ctx.drawImage(this.barriers, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
+    // tiled fg layer
+    this.ctx.drawImage(this.fg, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height, Math.abs(this.cam.x), Math.abs(this.cam.y), this.viewport.width, this.viewport.height);
+    //this.ctx.drawImage(this.canvasPlatforms, 0, 0); // platforms
 
     //////////////////////////////////////////
-    // Draw Players
+    // Draw OTHER Players
     //////////////////////////////////////////
     // Only draw 'onscreen' players
     for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--) {
-        // console.log('ply', ply);
-        // ply = this.core.getplayers.allplayers[j];
-        if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal) //ply != _this.players.self)// && room[i].active===true)
-        {
-            // console.log('#p', ply.pos);
-            //ply.draw();
-            /*
-            if 
-            (
-                // ply is *above* local player
-                (this.core.getplayers.allplayers[j].pos.y + this.cam.y + this.core.getplayers.allplayers[j].size.hy > 0)
-                &&
-                // ply is *below* local player
-                (this.core.getplayers.allplayers[j].pos.y + this.cam.y - this.core.getplayers.allplayers[j].size.hy) <= this.viewport.height
-                &&
-                // ply is visible left of local player
-                (this.core.getplayers.allplayers[j].pos.x + this.cam.x - this.core.getplayers.allplayers[j].size.hx) <= this.viewport.width
-                &&
-                // ply is visible right of local player
-                (this.core.getplayers.allplayers[j].pos.x + this.cam.x + this.core.getplayers.allplayers[j].size.hx > 0)
-            )
-            this.core.getplayers.allplayers[j].draw();
-            //*/
-            // console.log(window.innerWidth, this.viewport.width);
-            //*
-            if (Math.sqrt((this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) *
-                    (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) +
-                    (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) *
-                    (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y)
-                ) < (window.innerWidth)) // + 64) / 2)
-            {
-                // console.log('draw', this.core.getplayers.allplayers[j].playerName, window.innerWidth, window.innerHeight, screen.width, screen.height);
+        // exclude local player
+        if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal) {
+            // only draw players "onscreen"
+            if (Math.sqrt((this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y)) < window.innerWidth) {
                 this.core.getplayers.allplayers[j].draw();
             }
-            //*/
-            //else if (ply.mp == "cp1")console.log('not drawing', ply.pos.x, _this.cam.x, _this.players.self.pos.x);//, _this.cam.y, _this.players.self.pos.y);
         }
     }
 
@@ -3838,34 +3714,24 @@ core_client.prototype.client_update = function() {
     });*/
 
     // spritesheets
-    //for (var k = 0; k < this.spritesheets.length; k++)
-    // _.forEach(this.spritesheets, function(ss)
     for (j = this.spritesheets.length - 1; j >= 0; j--) {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
         this.spritesheets[j].update();
     }
 
     // chests
-    // _.forEach(this.core.getplayers.fromRoom(this.xport, 2), function(chest)
-    // _.forEach(_this.core.chests, function(chest)
     for (j = this.core.chests.length - 1; j >= 0; j--) {
-        // console.log("chest.draw()", chest);
         this.core.chests[j].draw();
     }
 
     // flags
-    // _.forEach(this.core.config.flagObjects, function(flagObj)
     for (j = this.core.config.flagObjects.length - 1; j >= 0; j--) {
-        //console.log('fobj', flagObj.type, flagObj.name, flagObj.x, flagObj.y);
-        if (this.core.config.flagObjects[j].type == "flag")
-            this.core.config.flagObjects[j].draw();
+        if (this.core.config.flagObjects[j].type == "flag") this.core.config.flagObjects[j].draw();
     }
 
     // particles
     for (j = this.particles.length - 1; j >= 0; j--) {
-        // console.log('* particles', this.particles[j].f);
-        if (this.particles[j].f < 90)
-            this.particles[j].draw();
+        if (this.particles[j].f < 90) this.particles[j].draw();
         else {
             // console.log("** removing particle!");
             // TODO: cleanup particles release
@@ -3880,34 +3746,20 @@ core_client.prototype.client_update = function() {
     // Clear the screen area (just client's viewport, not world)
     // if player stopped, use last camera pos
     // TODO: lerp camera movement for extra smoothness
-    if (this.players.self.landed !== 1) // && this.players.self.pos.x > 0)
-    {
-        // var pad = 0;
+    if (this.players.self.landed !== 1) {
         // clamp(value, min, max)
-        // return Math.max(min, Math.min(value, max));
-        // console.log('lpos', this.players.self.campos, this.players.self.pos);
-        // console.log(this.core._pdt, this.client_smooth);
         this.cam.pos = this.v_lerp(this.players.self.pos, this.players.self.campos, this.core._pdt * this.client_smooth);
-        // console.log('lpos', this.cam.pos, this.players.self.pos);
-        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0); //this.this.config.world.width);
-        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height * 0.5, -(this.config.world.height - this.viewport.height) - 0, 0); //this.game.world.height);
-        //this.cam.x = parseInt(camX);
-        //this.cam.y = parseInt(camY);
-
+        this.cam.x = clamp(-this.cam.pos.x + this.viewport.width * 0.5, -(this.config.world.width - this.viewport.width) - 0, 0);
+        this.cam.y = clamp(-this.cam.pos.y + this.viewport.height * 0.5, -(this.config.world.height - this.viewport.height) - 0, 0);
+        // store position
         this.players.self.campos = this.players.self.pos;
     }
-
 
     //this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0); //reset the transform matrix as it is cumulative
     //this.ctx.clearRect(0, 0, this.this.viewport.width, this.this.viewport.height);//clear the viewport AFTER the matrix is reset
-
     //Clamp the camera position to the world bounds while centering the camera around the player
-    //var camX = clamp(-this.players.self.pos.x + this.viewport.width/2, -(this.config.world.width - this.viewport.width) - 50, 50);//this.this.config.world.width);
-    //var camY = clamp(-this.players.self.pos.y + this.viewport.height/2, -(this.config.world.height - this.viewport.height) - 50, 50);//this.game.world.height);
-    //console.log(camX, camY, -this.game.players.self.pos.x + this.game.viewport.width/2);
     this.ctx.translate(this.cam.x, this.cam.y);
-    //console.log(camX,camY);
     //this.ctx.restore();
 
     //and these
@@ -3925,7 +3777,6 @@ core_client.prototype.client_update = function() {
 
     //Work out the fps average
     this.client_refresh_fps();
-
 }; //game_core.update_client
 
 core_client.prototype.tilemapper = function() {

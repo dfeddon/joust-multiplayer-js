@@ -23,36 +23,12 @@ core_server.prototype.server_update_physics = function() {
 
     // var _this = this;
 
-    /*
-    //Handle player one
-    this.players.self.old_state.pos = this.pos( this.players.self.pos );
-    var new_dir = this.process_input(this.players.self);
-    this.players.self.pos = this.v_add( this.players.self.old_state.pos, new_dir );
-
-    //Handle player two (other players)
-    this.players.other.old_state.pos = this.pos( this.players.other.pos );
-    var other_new_dir = this.process_input(this.players.other);
-    this.players.other.pos = this.v_add( this.players.other.old_state.pos, other_new_dir);
-
-    //Keep the physics position in the world
-    this.check_collision( this.players.self );
-    this.check_collision( this.players.other );
-
-    this.players.self.inputs = []; //we have cleared the input buffer, so remove this
-    this.players.other.inputs = []; //we have cleared the input buffer, so remove this
-    */
-
     // player collisions
-    //for (var i = 0; i < this.getplayers.allplayers.length; i++)
-    // var new_dir;
-    // _.forEach(this.getplayers.allplayers, function(ply)
-    // var ply, room;
-    // var room = this.getplayers.fromRoom(player.playerPort);
-    // for (var i = room.length - 1; i >= 0; i--)
     this.core.phyAllRooms = Object.keys(this.core.getplayers.fromAllRooms());
     for (var h = this.core.phyAllRooms.length - 1; h >= 0; h--) {
         this.core.phyRoom = this.core.getplayers.fromRoom(this.core.phyAllRooms[h]);
         for (var i = this.core.phyRoom.length - 1; i >= 0; i--) {
+            if (!this.core.phyRoom[i].active) continue;
             this.core.phyPlayer = this.core.phyRoom[i];
             //if (ply.mp != "hp")//_this.core.players.self.mp)
             //{
@@ -65,10 +41,8 @@ core_server.prototype.server_update_physics = function() {
             //Keep the physics position in the world            
             this.core.check_collision(this.core.phyPlayer, i);
 
-
             //this.core.players.self.inputs = []; //we have cleared the input buffer, so remove this
             this.core.phyPlayer.inputs = []; //we have cleared the input buffer, so remove this
-            //}//else console.log("HIHIHIHIHIHIH", ply.mp);
         }
     }
 
@@ -101,29 +75,23 @@ core_server.prototype.server_update_physics = function() {
 }; //game_core.server_update_physics
 
 core_server.prototype.handle_server_input = function(client, input, input_time, input_seq) {
-    //if (glog)
-    //console.log('##-@@ handle_server_input');
-    // if (this.server)
-    // {
-    var player, room;
-    room = this.core.getplayers.fromRoom(client.playerPort, 0);
+    // fetch which client this refers to
+    // var player, room;
+    var room = this.core.getplayers.fromRoom(client.playerPort, 0);
     if (!room) return;
     for (var h = room.length - 1; h >= 0; h--) {
-        player = room[h];
-
-        if (player.instance && player.instance.userid == client.userid) {
+        // player = room[h];
+        if (room[h].instance && room[h].instance.userid == client.userid) {
             //Store the input on the player instance for processing in the physics loop
-            player.inputs.push({ inputs: input, time: input_time, seq: input_seq });
+            room[h].inputs.push({
+                inputs: input,
+                time: input_time,
+                seq: input_seq
+            });
             break;
         }
     }
-    // }
-    // if (!this.server && client.userid == this.players.self.instance.userid)
-    // {
-    // player_client = this.players.self;//.instance.userid);
-    // console.log('self', this.players.self.instance);
-    // }
-}; //game_core.handle_server_input
+};
 
 
 core_server.prototype.server_update = function() {

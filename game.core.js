@@ -138,7 +138,7 @@ game_core.prototype.init = function(game_instance) //, io)
             height: worldHeight //480
         };
 
-        this.config.world.gravity = 0.05; //.25;//2;//3.5;
+        this.config.world.gravity = 0.02; //.25;//2;//3.5;
 
         this.config.world.totalplayers = MAX_PLAYERS_PER_GAME; //30;
 
@@ -389,7 +389,7 @@ game_core.prototype.init = function(game_instance) //, io)
         // else this.players.self =
 
         //The base speed at which the clients move.
-        this.playerspeed = 275; //120;
+        this.playerspeed = 60; //120; //275; //120;
         this.hitBase = 15; // 15 pixels
         this.hitDiff = 0; // y diff on pvp collision
 
@@ -1414,14 +1414,14 @@ game_core.prototype.check_collision = function(player, i) {
 
 game_core.prototype.process_input = function(player) {
     // console.log('##+@@process_input', player.mp);
+    if (!player.active) return;
     //if (!this.config.server) console.log('client input', player.mp);
-
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
     //console.log('player', player);
     // var _this = this;
-    var x_dir = 0;
-    var y_dir = 0;
+    // var x_dir = 0;
+    // var y_dir = 0;
     //var delay = false;
     var ic = player.inputs.length;
     //console.log('ic:', ic);
@@ -1494,8 +1494,8 @@ game_core.prototype.process_input = function(player) {
                     // player.vy = -1;
                     //
                     // set y_dir for vector movement
-                    y_dir = player.vy; //0.5;//1;
-                    x_dir = player.vx;
+                    // y_dir = player.vy; //0.5;//1;
+                    // x_dir = player.vx;
 
                     // apply horizontal velocity based on direction facing
                     if (player.dir === 0) // right
@@ -1532,11 +1532,13 @@ game_core.prototype.process_input = function(player) {
                 //     y_dir -= 10;
                 // }
             } //for all input values
-
+            player.update();
         } //for each input commandd
     } //if we have inputs
     else // we have NO INPUT
     {
+        if (player.flap)
+            player.flap = false;
         // if (!this.server)console.log('* no input...');
         // this.server_control = true;
 
@@ -1596,10 +1598,18 @@ game_core.prototype.process_input = function(player) {
 
         //console.log(x_dir, y_dir, this._pdt);
     }
-    if (!this.server) {
-        this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
-        // console.log("*", this.core_client.players.self.cur_state.pos);
-    }
+
+    // update player
+    player.update();
+
+    // degrade angle
+    if (player.a > 0) player.a -= 0.5;
+    else if (player.a < 0) player.a += 0.5;
+
+    // if (!this.server) {
+    //     this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
+    //     // console.log("*", this.core_client.players.self.cur_state.pos);
+    // }
     //x_dir = (player.vx > 0) ? 1 : -1;//ax;
     //y_dir = (player.vy < 0) ? -1 : 1;
     /*if (player.mp == "cp1")
@@ -1610,7 +1620,7 @@ game_core.prototype.process_input = function(player) {
     }*/
 
     //we have a direction vector now, so apply the same physics as the client
-    var resulting_vector = this.physics_movement_vector_from_direction(x_dir, y_dir);
+    // var resulting_vector = this.physics_movement_vector_from_direction(player.vx, player.vy);
 
     // if (resulting_vector.x !== 0 || resulting_vector.y !== 0)
     // console.log('resulting_vector', resulting_vector);
@@ -1623,10 +1633,10 @@ game_core.prototype.process_input = function(player) {
         player.last_input_seq = player.inputs[ic - 1].seq;
     }
 
-    player.lpos = player.pos;
+    // player.lpos = player.pos;
 
     //give it back
-    return resulting_vector;
+    return this.physics_movement_vector_from_direction(player.vx, player.vy);
 
 }; //game_core.process_input
 
@@ -1634,7 +1644,7 @@ game_core.prototype.timeoutInputDelay = function() {
     this.inputDelay = false;
 };
 game_core.prototype.physics_movement_vector_from_direction = function(x, y) {
-    //console.log('##+@@ physics_movement_vector_from_direction');
+    // if (x || y) console.log('##+@@ phys_move_vec_from_dir', x, y);
     //Must be fixed step, at physics sync speed.
     //console.log(':', x, y);
     return {
@@ -1656,6 +1666,8 @@ game_core.prototype.update_physics = function() {
     ////////////////////////////////////////////////////////
     // _.forEach(this.getplayers.allplayers, function(player)
     // var player, room;
+
+    /*
     if (this.server) {
         this.phyAllRooms = Object.keys(this.getplayers.fromAllRooms());
         for (var h = this.phyAllRooms.length - 1; h >= 0; h--) {
@@ -1674,7 +1686,6 @@ game_core.prototype.update_physics = function() {
         }
     } else // client
     {
-        // console.log('client_xport:', this.core_client.xport);
         if (this.core_client.players.self.active) {
             this.core_client.players.self.update();
             if (this.core_client.players.self.a > 0)
@@ -1682,24 +1693,9 @@ game_core.prototype.update_physics = function() {
             else if (this.core_client.players.self.a < 0)
                 this.core_client.players.self.a += 0.5;
         }
-        /*this.phyRoom = this.getplayers.allplayers;//fromRoom(this.core_client.xport.toString());
-        if (this.phyRoom === undefined) this.phyRoom = []; // <-- TODO: stub
-        for (var j = this.phyRoom.length - 1; j >= 0; j--)
-        {
-            this.phyPlayer = this.phyRoom[j];
-            //if (_this.players.self)
-            //console.log('p:', player.mp, player.active);
-            
-            if (this.phyPlayer.active)
-                this.phyPlayer.update();
-
-            // degrade player angle
-            if (this.phyPlayer.a > 0)
-                this.phyPlayer.a-=0.5;
-            else if (this.phyPlayer.a < 0)
-                this.phyPlayer.a+=0.5;
-        }*/
     }
+    //*/
+
 
     ////////////////////////////////////////////////////////
     // iterate platforms

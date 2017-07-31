@@ -7,7 +7,7 @@ var game_buffs = require('./class.buffs');
 var Particles = require('./class.particles');
 
 var SPEED_VAL_MAX = 50; // this is the slowest value
-var SPEED_VAL_MIN = 30; // this is the fastest value
+var SPEED_VAL_MIN = 40; // this is the fastest value
 
 Number.prototype.fixed = function(n) { n = n || 0; return parseFloat(this.toFixed(n)); };
 
@@ -41,9 +41,9 @@ function game_player(player_instance, isHost, pindex, config) {
 
     this.lpos = this.pos;
     this.size;
-    if (!this.config.server)
-        this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2
-    else this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 12 };
+    // if (!this.config.server)
+    this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 16 }; //{ x:64/2, y:64/2, hx:64/2, hy:64/2
+    // else this.size = { x: 48, y: 48, hx: 48, hy: 48, offset: 12 };
     // this.offset = 0;
 
     this.campos = this.pos;
@@ -63,7 +63,7 @@ function game_player(player_instance, isHost, pindex, config) {
     // angle
     this.a = 0; // -90, 0, 90
     this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
-    this.thrustModifier = 40; // we start at half-health
+    this.thrustModifier = 40; // we start at full/half-health
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -1328,10 +1328,11 @@ game_player.prototype.doFlap = function() {
     // clear landed flag
     this.landed = 0;
 
-    this.vy = -(this.thrust) * 5;
+    this.vy = -((this.thrust) * 5).fixed(2);
 
     if (this.a !== 0)
         this.vx = (this.thrust); ///10;
+    // console.log("*thr", this.thrust, this.vx);
 };
 
 game_player.prototype.doRecoil = function(x, y, a) {
@@ -1822,19 +1823,19 @@ game_player.prototype.update = function() {
         } else this.landed = 2;
     }
 
+    // apply gravity
     if (this.landed !== 1)
-        this.vy += this.config.world.gravity; //.fixed(2);///5;
+        this.vy = (this.vy + this.config.world.gravity).fixed(2); ///5;
     // 40 = slow, 30 = medium, 25 = fast
     // range 50s - 30f (range of 20)
     // console.log(':::', this.thrust, this.thrustModifier);
     // thrustModifier
-    this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust)); // + this.thrustModifier));//.fixed(2);
+    this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust)).fixed(2); // + this.thrustModifier));//.fixed(2);
 
-    this.pos.y = ~~(this.pos.y + this.vy); //.fixed(0);
-
+    this.pos.y += this.vy.fixed(2);
+    this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
     // /10 = slower /25 = faster /50 = fast
-    this.pos.x = ~~(this.pos.x + this.vx); //.fixed(0); //((this.a/25) * Math.cos(this.vx));
-    //console.log('vs', this.vx, this.vy);
+    // console.log('vx', this.vx, 'vy', this.vy);
 
     //if (this.pos.x < 165) this.vx *=-1;
     //else
@@ -1981,6 +1982,7 @@ game_player.prototype.update = function() {
     // this.pos.x = ~~(this.pos.x);//.fixed(0);
     // this.pos.y = ~~(this.pos.y);//.fixed(0);
     // this.vx = this.vx.fixed(2);
+    // console.log(this.vx, this.a);
 };
 
 game_player.prototype.setAngle = function(a) {
