@@ -428,6 +428,7 @@ game_core.prototype.init = function(game_instance) //, io)
         this.config._ = _;
         this.config.gridToPixel = this.gridToPixel;
         this.config.hitBase = this.hitBase;
+        // this.config.playerspeed = this.playerspeed;
 
         return this;
         //console.log('config', config);
@@ -750,7 +751,7 @@ game_core.prototype.apiNode = function() {
 // (4.22208334636).fixed(n) will return fixed point value to n places, default n = 3
 Number.prototype.fixed = function(n) { n = n || 3; return parseFloat(this.toFixed(n)); };
 //copies a 2d vector like object from one to another
-game_core.prototype.pos = function(a) { return { x: ~~a.x, y: ~~a.y }; };
+game_core.prototype.pos = function(a) { return { x: a.x, y: a.y }; };
 //Add a 2d vector with another one and return the resulting vector
 game_core.prototype.v_add = function(a, b) { return { x: (a.x + b.x).fixed(), y: (a.y + b.y).fixed() }; };
 //Subtract a 2d vector with another one and return the resulting vector
@@ -1242,7 +1243,7 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         if (h.ne.t > 0 && h.nw.t > 0) // collide from below
         {
-            console.log('stop ne,nw', player.mp, h.ne.t, h.nw.t, player.team);
+            console.log('hit from below ne,nw', player.mp, h.ne.t, h.nw.t, player.team);
             // blue gate across
             if (h.ne.t === 122 && h.nw.t === 122 && player.team === 2) {
                 // only if round is active
@@ -1250,13 +1251,14 @@ game_core.prototype.check_collision = function(player, i) {
                     player.exitBase(); // disable afk timer
                     player.pos.y -= gatepush;
                 } else {
-                    player.pos.y += b + 10;
+                    player.ay = b + 10;
                     player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             } else {
                 //player.pos.x -= b;
-                player.pos.y += b + 10;
+                // player.thrust = 0;
+                player.ay = b + 10;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
                 /*if (player.vuln===false)
@@ -1268,7 +1270,7 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         else if (h.sw.t > 0 && h.se.t > 0) // land
         {
-            //console.log(h.sw.t,h.se.t);
+            // console.log('* land full sw se', h.sw.t, h.se.t);
 
             // red gate across (tile id is 121)
             if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) {
@@ -1277,8 +1279,9 @@ game_core.prototype.check_collision = function(player, i) {
                     player.exitBase(); // disable afk timer
                     player.pos.y += gatepush;
                 } else {
-                    player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
-                    player.doLand();
+                    player.ay = 0; //~~((h.sw.y * 64) - player.size.hy);
+                    if (player.landed === 0) // if flying
+                        player.doLand();
                 }
             } else {
                 //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
@@ -1286,12 +1289,13 @@ game_core.prototype.check_collision = function(player, i) {
                 //player.pos.y -= b;
 
                 // set y
-                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
+                player.ay = 0; //~~((h.sw.y * 64) - player.size.hy);
                 //player.hitFrom = 2;
 
                 // process landing
                 //if (this.server)
-                player.doLand();
+                if (player.landed === 0)
+                    player.doLand(); // if flying
                 //if (!this.server) this.client_process_net_prediction_correction2();
             }
         }
@@ -1306,14 +1310,14 @@ game_core.prototype.check_collision = function(player, i) {
                 // only if round is active
                 if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
                     player.exitBase(); // disable afk timer
-                    player.pos.x -= gatepush;
+                    player.pos.x += 0 - gatepush;
                 } else {
-                    player.pos.x += b; // bounce
+                    player.ax = b; // bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             } else {
-                player.pos.x += b; // bounce
+                player.ax = b; // bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             }
@@ -1331,17 +1335,19 @@ game_core.prototype.check_collision = function(player, i) {
                 if ((this.config.server && this.getplayers.fromRoom(player.playerPort, 5).stage === 1) || (!this.config.server && this.config.round.stage === 1)) {
                     player.exitBase(); // disable afk timer
                     player.pos.x += gatepush;
+                    // player.update();
                 } else {
-                    player.pos.x -= b; //bounce
+                    player.ax = 0 - b; //bounce
                     player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             } else {
-                player.pos.x -= b; //bounce
+                player.ax = 0 - b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
                 //player.vx = 0; // stop accel
             }
+            player.update();
         }
         //////////////////////////////
         // side collision (full, right)
@@ -1356,54 +1362,57 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         // slid off platform
         //////////////////////////////
-        else if (player.standing === 2) {
-            console.log('player slid off barrier...');
+        else if (player.landed === 2) {
+            console.log('* player slid off barrier...');
+            player.landed = 0; // now flying
         }
         //////////////////////////////
         // edge cases
         //////////////////////////////
         else if (h.ne.t > 0 || h.se.t > 0) // hit from left
         {
-            //console.log('* edge left', h.n.t, h.s.t, h.e.t);
-            if (h.e.t > 0) // east (side collision)
-            {
-                player.pos.x -= b; //bounce
+            console.log('* edge left', h.n.t, h.s.t, h.e.t);
+            if (h.e.t > 0) {
+                // east (side collision)
+                player.ax = 0 - b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else if (h.n.t > 0) // north (from below)
-            {
-                player.pos.y += b;
+            } else if (h.n.t > 0) {
+                // north (from below)
+                player.ay = b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else // south (landing), determine direction
-            {
+            } else {
+                // south (landing), determine direction
                 // set y
-                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
+                player.pos.ay = 0; // ~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
-                player.doLand();
+                if (player.landed === 0)
+                    player.doLand(); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         } else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
         {
-            //console.log('* edge right', h.n.t, h.s.t, h.w.t);
-            if (h.w.t > 0) // east (side collision)
-            {
-                player.pos.x += b; //bounce
+            console.log('* edge right', h.n.t, h.s.t, h.w.t);
+            if (h.w.t > 0) {
+                // east (side collision)
+                player.ax = b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else if (h.n.t > 0) // north (from below)
-            {
-                player.pos.y += b;
+            } else if (h.n.t > 0) {
+                // north (from below)
+                player.ay = b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else // south (landing), determine direction
-            {
+            } else {
+                // south (landing), determine direction
                 // set y
-                player.pos.y = ~~((h.sw.y * 64) - player.size.hy);
+                player.ay = 0; //~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
-                player.doLand();
+                if (player.landed === 0)
+                    player.doLand(); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         }
@@ -1414,7 +1423,10 @@ game_core.prototype.check_collision = function(player, i) {
 
 game_core.prototype.process_input = function(player) {
     // console.log('##+@@process_input', player.mp);
-    if (!player.active) return;
+    if (!player.active) {
+        console.log("* player", player.playerName, "not active");
+        return;
+    }
     //if (!this.config.server) console.log('client input', player.mp);
     //It's possible to have recieved multiple inputs by now,
     //so we process each one
@@ -1443,9 +1455,10 @@ game_core.prototype.process_input = function(player) {
                 if (key == 'l') {
                     player.dir = 1;
 
-                    if (player.landed === 1)
+                    if (player.landed !== 0) {
+                        player.setAngle(1);
                         player.doWalk(player.dir);
-                    else player.setAngle(1);
+                    } else player.setAngle(1);
                     //player.pos.d = 1;
                 }
 
@@ -1455,19 +1468,21 @@ game_core.prototype.process_input = function(player) {
                 else if (key == 'r') {
                     //x_dir += 1;
                     player.dir = 0;
-
-                    if (player.landed === 1)
+                    // console.log("*", key, player.dir, player.landed);
+                    if (player.landed !== 0) {
+                        player.setAngle(0);
                         player.doWalk(player.dir);
-                    else player.setAngle(0);
+                    } else player.setAngle(0);
                     //player.pos.d = 0;
-                } else if (key == 'd') {
-                    // delay kepresses by 200 ms
-                    if (this.inputDelay === false) {
-                        /*this.inputDelay = true;
-                        player.doCycleAbility();
-                        setTimeout(this.timeoutInputDelay, 200);*/
-                    }
                 }
+                // else if (key == 'd') {
+                //     // delay kepresses by 200 ms
+                //     if (this.inputDelay === false) {
+                //         /*this.inputDelay = true;
+                //         player.doCycleAbility();
+                //         setTimeout(this.timeoutInputDelay, 200);*/
+                //     }
+                // }
                 //else player.cycle = false;
                 /*else if (key == "sp")
                 {
@@ -1500,6 +1515,7 @@ game_core.prototype.process_input = function(player) {
                     // apply horizontal velocity based on direction facing
                     if (player.dir === 0) // right
                     {
+                        // player.setAngle(0);
                         // set x_dir for vector movement
                         //x_dir += 0;
 
@@ -1510,6 +1526,7 @@ game_core.prototype.process_input = function(player) {
                     }
                     if (player.dir === 1) // left
                     {
+                        // player.setAngle(1);
                         // set x_dir for vector movement
                         //x_dir -= 0;
 
@@ -1532,7 +1549,7 @@ game_core.prototype.process_input = function(player) {
                 //     y_dir -= 10;
                 // }
             } //for all input values
-            player.update();
+            // player.update();
         } //for each input commandd
     } //if we have inputs
     else // we have NO INPUT
@@ -1634,7 +1651,7 @@ game_core.prototype.process_input = function(player) {
     }
 
     // player.lpos = player.pos;
-
+    console.log('=', player.vx, player.vy);
     //give it back
     return this.physics_movement_vector_from_direction(player.vx, player.vy);
 
@@ -1646,7 +1663,8 @@ game_core.prototype.timeoutInputDelay = function() {
 game_core.prototype.physics_movement_vector_from_direction = function(x, y) {
     // if (x || y) console.log('##+@@ phys_move_vec_from_dir', x, y);
     //Must be fixed step, at physics sync speed.
-    //console.log(':', x, y);
+    // if (x || y)
+    //     console.log(this.config.server_time, ':', x, y);
     return {
         x: (x * (this.playerspeed * 0.015)).fixed(3),
         y: (y * (this.playerspeed * 0.015)).fixed(3)
@@ -1710,7 +1728,8 @@ game_core.prototype.update_physics = function() {
         }
     }*/
 
-    if (this.server) this.core_server.server_update_physics();
+    if (this.server)
+        this.core_server.server_update_physics();
     else this.core_client.client_update_physics();
 
 }; //game_core.prototype.update_physics

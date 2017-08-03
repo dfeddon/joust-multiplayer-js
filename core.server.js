@@ -33,16 +33,21 @@ core_server.prototype.server_update_physics = function() {
             //if (ply.mp != "hp")//_this.core.players.self.mp)
             //{
             this.core.phyPlayer.old_state.pos = this.core.pos(this.core.phyPlayer.pos);
-            // new_dir = this.core.process_input(ply);
+            // var new_dir = this.core.process_input(this.core.phyPlayer);
+            // console.log('newdir', new_dir);
             this.core.phyPlayer.pos = this.core.v_add(this.core.phyPlayer.old_state.pos, this.core.process_input(this.core.phyPlayer)); //new_dir);
+            // console.log(this.core.phyPlayer.pos);
+            //   this.core.phyPlayer.pos = this.core.v_add(this.core.phyPlayer.old_state.pos, this.core.process_input(this.core.phyPlayer)); //new_dir);
 
             //ply.update();
 
-            //Keep the physics position in the world            
+            //Keep the physics position in the world
             this.core.check_collision(this.core.phyPlayer, i);
 
             //this.core.players.self.inputs = []; //we have cleared the input buffer, so remove this
             this.core.phyPlayer.inputs = []; //we have cleared the input buffer, so remove this
+
+            // console.log(this.core.phyPlayer.pos);
         }
     }
 

@@ -2645,7 +2645,7 @@ core_client.prototype.client_handle_input = function(key) {
     if (input.length === 0) input.push('0');
 
     // update player
-    this.players.self.update();
+    // this.players.self.update();
 
     // degrade angle
     if (this.players.self.a > 0)
@@ -2680,6 +2680,7 @@ core_client.prototype.client_handle_input = function(key) {
         // release
         server_packet = null;
     }
+    // console.log(this.players.self.vx, this.players.self.vy);
     return this.core.physics_movement_vector_from_direction(this.players.self.vx, this.players.self.vy);
     //     //Return the direction if needed
     //     y_dir = this.players.self.vy; //0.5;//1;
@@ -2738,11 +2739,10 @@ core_client.prototype.client_process_net_prediction_correction = function() {
         //The last input sequence index in my local input list
         var lastinputseq_index = -1;
         //Find this input in the list, and store the index
-        for (var i = this.players.self.inputs.length - 1; i >= 0; --i) {
+        for (var i = 0; i < this.players.self.inputs.length; ++i) {
             if (this.players.self.inputs[i].seq == my_last_input_on_server) {
                 lastinputseq_index = i;
                 //console.log('lastinputseq_index', lastinputseq_index);
-
                 break;
             }
         }
@@ -2760,15 +2760,15 @@ core_client.prototype.client_process_net_prediction_correction = function() {
             // this.players.self.cur_state.pos = this.pos(my_server_pos);
             //*
             // interpolate local player (smooth!)
-            this.players.self.cur_state.pos =
-                this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
+            this.players.self.cur_state.pos = this.pos(my_server_pos);
+            // this.v_lerp(this.players.self.pos, this.pos(my_server_pos), this.core._pdt * this.client_smooth);
             //*/
             this.players.self.last_input_seq = lastinputseq_index;
             //Now we reapply all the inputs that we have locally that
             //the server hasn't yet confirmed. This will 'keep' our position the same,
             //but also confirm the server position at the same time.
-            if (this.config.round.stage === 1)
-                this.client_update_physics();
+            // if (this.config.round.stage === 1)
+            this.client_update_physics();
             this.client_update_local_position();
 
         } // if(lastinputseq_index != -1)
@@ -3034,7 +3034,10 @@ core_client.prototype.client_process_net_updates = function() {
                 // console.log("**", p.pos, this.nu_ghostStub);
                 // if (this.fps_avg > 50)
                 // player.pos = _this.v_lerp(p.pos, this.nu_ghostStub, _this.core._pdt * _this.client_smooth);
+
+                // "other" player interpolation
                 player.pos = _this.v_lerp(p.pos, this.pos({ x: this.nu_lerp_t.x, y: this.nu_lerp_t.y }), _this.core._pdt * _this.client_smooth);
+
                 // console.log('==', player.pos);
                 //else
                 //{ 
@@ -3117,6 +3120,11 @@ core_client.prototype.client_process_net_updates = function() {
                 // local player interpolation
                 this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), this.core._pdt * this.client_smooth);
                 // console.log("=", this.players.self.pos);
+
+                // player.pos = _this.v_lerp(p.pos, this.pos({
+                //     x: this.nu_lerp_t.x,
+                //     y: this.nu_lerp_t.y
+                // }), this.core._pdt * this.client_smooth);
 
                 this.players.self.setFromBuffer(this.nu_target[player.userid]);
                 // console.log('svrtime', this.config.server_time);
@@ -3607,13 +3615,14 @@ core_client.prototype.client_update_local_position = function() {
     //Work out the time we have since we updated the state
     // var t = (this.core.local_time - this.players.self.state_time) / this.core._pdt;
 
-    //Then store the states for clarity,
+    // //Then store the states for clarity,
     // var old_state = this.players.self.old_state.pos;
-    //if ()
+    // //if ()
     // var current_state = this.players.self.cur_state.pos;
     //console.log("old", old_state, "current", current_state);
     //Make sure the visual position matches the states we have stored
-    //this.players.self.pos = this.v_add( old_state, this.v_mul_scalar( this.v_sub(current_state,old_state), t )  );
+    // this.players.self.pos = this.v_add(old_state, this.v_mul_scalar(this.v_sub(current_state, old_state), t));
+    this.players.self.pos = this.players.self.cur_state.pos; //current_state;
     //console.log(current_state.d);
 
     // TODO: !!! Uncomment below if client pos mismatch !!!
@@ -3621,12 +3630,12 @@ core_client.prototype.client_update_local_position = function() {
     // console.log(this.core.server_control);
 
     // if (!this.core.server_control)
-    this.players.self.pos = this.players.self.cur_state.pos; //current_state;
+    // this.players.self.pos = this.players.self.cur_state.pos; //current_state;
     //*/
 
     //We handle collision on client if predicting.
     //if (this.players.self.landed === 1)
-    //this.check_collision( this.players.self );
+    this.core.check_collision(this.players.self);
     /*
     if (this.clientWorker_tileCollision)
     {
@@ -3638,7 +3647,7 @@ core_client.prototype.client_update_local_position = function() {
         }
     }
     else//*/
-    this.core.check_collision(this.players.self);
+    // this.core.check_collision(this.players.self);
 
     //}  //if(this.client_predict)
 
@@ -3648,10 +3657,15 @@ core_client.prototype.client_update_physics = function() {
     // Fetch the new direction from the input buffer,
     // and apply it to the state so we can smooth it in the visual state
 
-    // client prediction
-    this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
-    this.players.self.cur_state.pos = this.v_add(this.players.self.old_state.pos, this.core.process_input(this.players.self));
-    this.players.self.state_time = this.core.local_time;
+    // this.players.self.update();
+
+    // client-side prediction (only if game stage is active)
+    if (this.config.round.stage === 1) {
+        this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
+        // this.players.self.update();
+        this.players.self.cur_state.pos = this.v_add(this.players.self.old_state.pos, this.core.process_input(this.players.self));
+        this.players.self.state_time = this.core.local_time;
+    }
 }; //game_core.client_update_physics
 
 core_client.prototype.client_update = function() {

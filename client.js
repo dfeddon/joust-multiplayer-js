@@ -219,8 +219,7 @@ domready(function() {
     // is mobile device?
     //this.isMobile = 'ontouchstart' in window;
     var splash = true;
-    var userAgent = window.navigator.userAgent.toLowerCase();
-    var ui = document.getElementById('uiTopBar');
+    // var ui = document.getElementById('uiTopBar');
     console.log('isMobile', device.isMobile, userAgent);
 
     // show DOM controls for mobile devices

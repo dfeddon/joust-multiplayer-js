@@ -62,7 +62,8 @@ function game_player(player_instance, isHost, pindex, config) {
     this.m = 0.1; // kg
     // angle
     this.a = 0; // -90, 0, 90
-    this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
+    this.axis = 0;
+    this.thrust = 0.5; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
     this.thrustModifier = 40; // we start at full/half-health
 
     this.flap = false; // flapped bool (derek added)
@@ -319,13 +320,13 @@ game_player.prototype.startInBase = function() {
     console.log("== startInBase ==", this.config.server_time);
     var _this = this;
 
-    this.inBase = false;
+    this.inBase = true;
 
     // if (this.config.server_time < 5) // first player, wait a moment for server_time to arrive
     setTimeout(function() {
         _this.baseWarning = _this.config.server_time + 30;
         _this.baseDisconnect = _this.config.server_time + 60;
-        _this.inBase = true;
+        _this.inBase = false; // <- stub, reset to true
         console.log("* inbase", _this.inBase);
     }, 1000);
     // else {
@@ -479,7 +480,7 @@ game_player.prototype.updateHealth = function(val, hitBy) {
             this.doKill(hitBy);
             if (!hitBy) hitBy = 0;
             this.instance.room(this.playerPort).write([6, this.id, hitBy.userid]); //, Math.abs(val), this.health]);
-            console.log("******", this.playerPort, this.id, hitBy.userid, this.instance);
+            // console.log("******", this.playerPort, this.id, hitBy.userid, this.instance);
             // this.doKill();
         }
         return;
@@ -1057,7 +1058,7 @@ game_player.prototype.reset = function() {
 
     this.health = 100;
     this.a = 0; // -90, 0, 90
-    this.thrust = 0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
+    this.thrust = 0.5; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
     this.thrustModifier = 40; // we start at half-health
     this.teamBonus = 0;
     this.playerBonus = 0;
@@ -1320,7 +1321,10 @@ game_player.prototype.botAction = function() {
 };
 
 game_player.prototype.doFlap = function() {
-    // console.log('doFlap', this.dir, this.vx, this.vy);
+    // console.log('doFlap'); //, this.dir, this.vx, this.vy);
+
+    // can't flap when vulnerable
+    if (this.vuln) return;
 
     // set flap flag
     this.flap = true;
@@ -1328,11 +1332,23 @@ game_player.prototype.doFlap = function() {
     // clear landed flag
     this.landed = 0;
 
-    this.vy = -((this.thrust) * 5).fixed(2);
+    // apply acceleration
+    this.thrust = 1.75;
+    // this.ax = Math.cos(this.a) * (this.thrust) * 25;
+    // allow 0 degree flight
+    // if (this.a === 0)
+    // this.ay = Math.sin(25) * this.thrust * 25;
+    // else this.ay = Math.sin(this.a) * this.thrust * 25;
 
-    if (this.a !== 0)
-        this.vx = (this.thrust); ///10;
-    // console.log("*thr", this.thrust, this.vx);
+    // this.vx = this.ax;
+    // this.vy = this.ay;
+
+    // console.log(this.vx, this.vy, this.a);
+
+    //this.vy = -((this.thrust) * 5).fixed(2);
+
+    // if (this.a !== 0)
+    //     this.vx = (this.thrust);
 };
 
 game_player.prototype.doRecoil = function(x, y, a) {
@@ -1344,13 +1360,13 @@ game_player.prototype.doRecoil = function(x, y, a) {
     // clear landed flag to walking
     // this.landed = 2;
 
-    this.vy = -(this.thrust) * y;
-    this.vx = x;
+    this.ay = -(this.thrust) * y;
+    this.ax = x;
     this.a = a;
 };
 
 game_player.prototype.doLand = function() {
-    // console.log('=== player.doLand', this.mp, '===', this.vx);//, this.vy);
+    console.log('=== player.doLand', this.vx, this.vy); //, this.vy);
 
     // ...survivably fast
     if (this.vy > 5) // && this.config.server)
@@ -1389,7 +1405,7 @@ game_player.prototype.doLand = function() {
 
     // decelerate
     if (this.vx > 0) {
-        // console.log('* slowing +', this.vx);
+        console.log('* slowing +', this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
@@ -1441,13 +1457,18 @@ game_player.prototype.doLand = function() {
 };
 
 game_player.prototype.doWalk = function(dir) {
-    //console.log('walking...', dir, this.ax, this.vx, this.a, this.vy);
+    console.log('walking...', dir, this.ax, this.vx, this.a, this.vy);
     this.landed = 2; // walking
 
     /*if (dir === 0)
         this.a = 90;
     else this.a = -90;*/
-    this.vx = this.thrust;
+
+    // this.ax = Math.sin(this.a); // * (this.thrust * 25)
+
+    // this.vx = this.ax; //this.thrust;
+
+    // console.log('* walking', this.ax, this.a);
 };
 
 game_player.prototype.takeFlag = function(flag, flagType) {
@@ -1727,27 +1748,22 @@ game_player.prototype.update = function() {
                     break;
             }
             // console.log('* blink rate stack', rate);
-            if (~~(this.config.server_time) % rate === 0)
-                this.drawAbility = 1;
+            if (~~this.config.server_time % rate === 0) this.drawAbility = 1;
             else this.drawAbility = 0;
-        } else if (this.drawAbility === 1)
-            this.drawAbility = 0;
+        } else if (this.drawAbility === 1) this.drawAbility = 0;
         // console.log("* ", this.drawAbility);
         // check buff slots (local player only)
         //if (this.isLocal)
         //{
-        if (this.slots[0].b && this.slots[0].c <= this.config.server_time)
-            this.buffExpired(this.slots[0]);
-        if (this.slots[1].b && this.slots[1].c <= this.config.server_time)
-            this.buffExpired(this.slots[1]);
-        if (this.slots[2].b && this.slots[2].c <= this.config.server_time)
-            this.buffExpired(this.slots[2]);
+        if (this.slots[0].b && this.slots[0].c <= this.config.server_time) this.buffExpired(this.slots[0]);
+        if (this.slots[1].b && this.slots[1].c <= this.config.server_time) this.buffExpired(this.slots[1]);
+        if (this.slots[2].b && this.slots[2].c <= this.config.server_time) this.buffExpired(this.slots[2]);
 
         // check potions (3 max)
         if (this.potionBonuses.length > 0) {
             for (var i = this.potionBonuses.length - 1; i >= 0; i--) {
                 if (this.potionBonuses[i].c <= this.config.server_time) {
-                    console.log('* potion expired, removed...');
+                    console.log("* potion expired, removed...");
                     this.potionBonuses.splice(i, 1);
                     // update totals
                     this.updateBonuses();
@@ -1765,11 +1781,15 @@ game_player.prototype.update = function() {
 
         // and protection cooldown
         if (this.protection && this.config.server_time >= this.protectionCooldown) {
-            console.log('* protection ended');
+            console.log("* protection ended");
             this.protection = false;
             this.protectionCooldown = null;
             // notify client via socket.write
-            this.instance.write([35]);
+            this.instance.write(
+                [
+                    35
+                ]
+            );
         }
 
         // bonus penalty cooldown
@@ -1780,8 +1800,17 @@ game_player.prototype.update = function() {
             this.dazed = 0;
             this.updateBonuses();
             // notify client
-            if (this.isLocal)
-                this.instance.write([41, this.teamBonus, this.playerBonus, this.potionBonus]);
+            if (this.isLocal) this.instance.write(
+                [
+                    41,
+                    this
+                    .teamBonus,
+                    this
+                    .playerBonus,
+                    this
+                    .potionBonus
+                ]
+            );
         }
         //}
     } // end this.server
@@ -1792,17 +1821,17 @@ game_player.prototype.update = function() {
             console.log("AFK expired!", this.config.server_time, this.baseDisconnect);
             this.inBase = false;
             this.inBaseWarning = false;
-            document.getElementById('roundCompleteCallout').style.display = "none";
+            document.getElementById("roundCompleteCallout").style.display = "none";
             this.doKill();
         } else if (this.config.server_time > this.baseWarning) {
             console.log("AFK warn!");
             if (!this.inBaseWarning) {
                 this.inBaseWarning = true;
-                var callout = document.getElementById('roundCompleteCallout');
+                var callout = document.getElementById("roundCompleteCallout");
                 callout.innerHTML = "AFK WARNING<br/>You have 30 seconds to exit base!";
                 callout.style.display = "block";
-                callout.style.animationPlayState = 'running';
-            } else document.getElementById('roundCompleteCallout').innerHTML = "AFK WARNING<br/>You have " + ~~(this.baseDisconnect - this.config.server_time) + " seconds to exit base!";
+                callout.style.animationPlayState = "running";
+            } else document.getElementById("roundCompleteCallout").innerHTML = "AFK WARNING<br/>You have " + ~~(this.baseDisconnect - this.config.server_time) + " seconds to exit base!";
         }
     } // else console.log("* AFK avoided...");
 
@@ -1823,49 +1852,92 @@ game_player.prototype.update = function() {
         } else this.landed = 2;
     }
 
-    // apply gravity
-    if (this.landed !== 1)
-        this.vy = (this.vy + this.config.world.gravity).fixed(2); ///5;
     // 40 = slow, 30 = medium, 25 = fast
     // range 50s - 30f (range of 20)
     // console.log(':::', this.thrust, this.thrustModifier);
-    // thrustModifier
-    this.vx = ((this.a / this.thrustModifier) * Math.cos(this.thrust)).fixed(2); // + this.thrustModifier));//.fixed(2);
 
-    this.pos.y += this.vy.fixed(2);
-    this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
+    // thrustModifier
+    // this.ax = ((this.a / this.thrustModifier) * Math.sin(this.thrust)).fixed(2);
+
+    // convert angle to radians
+    this.axis = this.a;
+    if (this.axis <= 0) this.axis = 360 + this.a;
+
+    if (this.thrust >= 1) this.ax = (this.thrust * Math.sin(this.axis * Math.PI / 180)).fixed(2);
+    else this.ax = Math.sin(this.axis * Math.PI / 180).fixed(2);
+
+    if (this.thrust > 1) {
+        if (this.a >= 0) this.ay = -(this.thrust * Math.sin(this.a * Math.PI / 180)).fixed(2);
+        else this.ay = (this.thrust * Math.sin(this.axis * Math.PI / 180)).fixed(2);
+    } else this.ay = this.vy;
+    // console.log(this.ax, this.a, this.thrust, this.collision);
+
+    // force/thrust decay
+    if (this.thrust >= 1.05) this.thrust -= 0.05;
+    else this.thrust = 1;
+
+    // apply gravity
+    if (this.landed === 0)
+        this.ay += this.config.world.gravity.fixed(2); ///5;
+
+    // set x/y
+    this.vx = this.ax.fixed(2);
+    this.vy = this.ay.fixed(2);
+
+    // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
+    // if (this.a !== 0)
+    // console.log("*", this.vx, this.vy, this.a);
+
+    // this.pos.y += this.vy.fixed(2);
+    // this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
     // /10 = slower /25 = faster /50 = fast
     // console.log('vx', this.vx, 'vy', this.vy);
 
     //if (this.pos.x < 165) this.vx *=-1;
     //else
     if (this.collision === true) {
-        console.log('* collision', this.hitFrom);
+        console.log("* collision", this.hitFrom);
 
         switch (this.hitFrom) {
             case 0: // from the side
-                console.log('side collision', this.pos.x, this.pos.y, this.vx, this.a);
+                console.log("side collision", this.pos.x, this.pos.y, this.vx, this.a);
                 this.vx *= -1;
                 this.a *= -1;
                 //this.collision = false;
                 //if (!this.vuln)
                 //this.isVuln();
-                console.log('vx', this.vx, this.a);
+                console.log("vx", this.vx, this.a);
                 break;
             case 1: // from below
                 //this.vx *= -1;
                 //this.a *= -1;
+                this.thrust = 0;
                 this.vy *= -1;
                 this.isVuln(750);
                 // console.log("* inbase", this.inBase);
                 if (!this.inBase) {
                     // dmg 1 - 5
-                    if (this.config.server) // && this.isLocal)
-                    {
+                    if (this.config.server) {
+                        // && this.isLocal)
                         var dmg = this.getRandomRange(1, 5);
                         // console.log("* from below dmg", dmg);
                         this.updateHealth(0 - dmg);
-                        this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
+                        this.instance
+                            .room(
+                                this
+                                .playerPort
+                            )
+                            .write(
+                                [
+                                    5,
+                                    this
+                                    .id,
+                                    null,
+                                    dmg,
+                                    this
+                                    .health
+                                ]
+                            );
                     } else {
                         var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
                         this.config.client.particles.push(particles);
@@ -1879,7 +1951,7 @@ game_player.prototype.update = function() {
                 break;
             case 2: // from above
                 //this.vx *= -1;
-                console.log('hit speed', this.vy);
+                console.log("hit speed", this.vy);
                 this.vy = 0;
                 //this.vx *= -1;
                 this.a = 0; //*= -1;
@@ -1888,9 +1960,9 @@ game_player.prototype.update = function() {
                 break;
             case 3: // opponent hit
             case 6: // opponent nohit (tie)
-                if (!this.config.server && this.hitFrom === 3) // && this.config.client.particles.length < 3)
-                {
-                    console.log('* collision HIT!');
+                if (!this.config.server && this.hitFrom === 3) {
+                    // && this.config.client.particles.length < 3)
+                    console.log("* collision HIT!");
                     var particles = new Particles({ x: this.target.pos.x + 32, y: this.target.pos.y + 32 }, 1, this.config.ctx);
                     this.config.client.particles.push(particles);
                 }
@@ -1930,26 +2002,22 @@ game_player.prototype.update = function() {
 
                 // if opponent is stationary, move him
                 // console.log("* target landed", this.target.landed);
-                if (this.target && this.target.landed > 0) // target landed
-                {
+                if (this.target && this.target.landed > 0) {
+                    // target landed
                     this.target.landed = 2; // walking //this.target.update();
                     this.target.doRecoil(this.vx, this.vy, this.a);
-                } else if (this.target && this.landed === 0) // both players in flight
-                {
+                } else if (this.target && this.landed === 0) {
+                    // both players in flight
                     console.log("* target", this.target.playerName, "NOT landed, is flying! Both in the air!", this.hitFrom);
                     // this.target.doRecoil(this.vx, this.vy, this.a);//this.a);
                     // this.doRecoil(this.target.vx, this.target.vy, this.target.a);
 
                     // if horiz collision (not hit, tie)
-                    if (this.target.hitFrom === 6)
-                        this.target.vx *= -1;
-                    // this.target.vx = (this.vx/2);// * -1;
-                    // else vert collision (hit)
+                    if (this.target.hitFrom === 6) this.target.vx *= -1; // this.target.vx = (this.vx/2);// * -1; // else vert collision (hit)
                     else this.target.vy *= -1;
                     // else this.target.vy = (this.vy/2);// * -1;
 
-                    if (Math.abs(this.a) > Math.abs(this.target.a))
-                        this.target.a = this.a;
+                    if (Math.abs(this.a) > Math.abs(this.target.a)) this.target.a = this.a;
                     else this.target.a *= -1;
                     this.target.doFlap();
 
@@ -1957,10 +2025,7 @@ game_player.prototype.update = function() {
                 }
                 // else{
                 // if horiz collision (not hit, tie)
-                if (this.hitFrom === 6)
-                    this.vx *= -1;
-                // this.vx = (this.target.vx/2) * -1;
-                // else vert collision (hit)
+                if (this.hitFrom === 6) this.vx *= -1; // this.vx = (this.target.vx/2) * -1; // else vert collision (hit)
                 else this.vy *= -1;
                 // else this.vy = (this.target.vy/2) * -1;
                 this.a *= -1;
@@ -1977,28 +2042,52 @@ game_player.prototype.update = function() {
         // this.hadCollision = true;
         this.hitfrom = -1;
         this.target = null;
-    } else this.vx *= 1;
-
+    } // else this.vx *= 1;
+    // console.log("=", this.vy);
     // this.pos.x = ~~(this.pos.x);//.fixed(0);
     // this.pos.y = ~~(this.pos.y);//.fixed(0);
     // this.vx = this.vx.fixed(2);
-    // console.log(this.vx, this.a);
+    // console.log('=', this.vx, this.vy, this.a);
 };
 
 game_player.prototype.setAngle = function(a) {
-    if (a === 0) // right
-    {
-        if (this.a > 90)
+    // var threshold = 60;
+    // var offset = 2;
+
+    // // convert angle to axis
+    // if (this.a > threshold)
+    //     this.axis = 360 - this.axis;
+    // else this.axis = this.a;
+
+    if (a === 0) { // right
+        if (this.a > 88)
             this.a = 90;
-        //else if (this.a < 0)
         else this.a += 2;
-    } else // left
-    {
-        if (this.a < -90)
+        // if (this.axis > (threshold - offset))
+        //     this.axis = threshold;
+        // else this.axis += 2;
+    } else if (a === 1) { // left
+        if (this.a < -88)
             this.a = -90;
         else this.a -= 2;
+        // if (this.axis < (0 - threshold + offset))
+        //     this.axis = (0 - threshold);
+        // else this.axis -= 2;
     }
-    //console.log('a', this.a);
+    // else if (a === 2) { // decay -0.5
+    //     if (this.axis < 0 - threshold + offset) 
+    //         this.axis = 0 - threshold;
+    //     this.axis -= 0.5;
+    // }
+    // else if (a === 3) { // decay +0.5
+    //     this.axis += 0.5;
+    // }
+    // console.log(this.axis);
+    // // convert axis to angle
+    // if (this.axis <= 0)
+    //     this.a = 360 + this.axis;
+    // else this.a = this.axis;
+    // console.log(this.a);
 };
 
 game_player.prototype.doStand = function(id) {
