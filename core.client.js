@@ -2653,35 +2653,39 @@ core_client.prototype.client_handle_input = function(key) {
     else if (this.players.self.a < 0)
         this.players.self.a += 0.5;
 
-    if (input.length) {
-        // this.core.server_control = false;
+    // if (input.length) {
+    // this.core.server_control = false;
 
-        //Update what sequence we are on now
-        this.input_seq += 1;
+    //Update what sequence we are on now
+    this.input_seq += 1;
 
-        //Store the input state as a snapshot of what happened.
-        this.players.self.inputs.push({
-            inputs: input,
-            time: this.core.local_time.fixed(3),
-            seq: this.input_seq
-        });
+    //Store the input state as a snapshot of what happened.
+    this.players.self.inputs.push({
+        inputs: input,
+        time: this.core.local_time.fixed(3),
+        seq: this.input_seq
+    });
 
-        //Send the packet of information to the server.
-        //The input packets are labelled with an 'i' in front.
-        var server_packet = 'i.';
-        // var server_packet = '';
-        server_packet += input.join('-') + '.';
-        server_packet += this.core.local_time.toFixed(3).replace('.', '-') + '.';
-        server_packet += this.input_seq;
-        // console.log("server_packet", server_packet);
-        //Go
-        this.socket.write({ is: server_packet });
+    //Send the packet of information to the server.
+    //The input packets are labelled with an 'i' in front.
+    var server_packet = 'i.';
+    // var server_packet = '';
+    server_packet += input.join('-') + '.';
+    server_packet += this.core.local_time.toFixed(3).replace('.', '-') + '.';
+    server_packet += this.input_seq;
+    // console.log("server_packet", server_packet);
+    //Go
+    this.socket.write({ is: server_packet });
 
-        // release
-        server_packet = null;
-    }
+    // release
+    server_packet = null;
+    // }
+    // this.players.self.update();
+    // console.log("*", this.players.self.vx, this.players.self.vy);
     // console.log(this.players.self.vx, this.players.self.vy);
-    return this.core.physics_movement_vector_from_direction(this.players.self.vx, this.players.self.vy);
+    // return this.core.physics_movement_vector_from_direction(this.players.self.vx, this.players.self.vy);
+
+
     //     //Return the direction if needed
     //     y_dir = this.players.self.vy; //0.5;//1;
     //     x_dir = this.players.self.vx;
@@ -2808,7 +2812,7 @@ core_client.prototype.client_process_net_prediction_correction = function() {
 
 }; //game_core.client_process_net_prediction_correction
 
-core_client.prototype.client_process_net_updates = function() {
+core_client.prototype.client_process_net_updates = function() { //client_pos) {
     //if (glog)
     //console.log('## client_process_net_updates');//, this.client_predict);
     // for (var i = 0; i < this.core.getplayers.allplayers.length; i++)
@@ -3116,7 +3120,7 @@ core_client.prototype.client_process_net_updates = function() {
                 // console.log("*");
                 // console.log(this.nu_self_pp, this.nu_self_tp);
                 // console.log("*", this.players.self.pos);
-
+                // var g = {x:client_pos.x + this.players.self.pos.x, y:client_pos.y + this.players.self.pos.y};
                 // local player interpolation
                 this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), this.core._pdt * this.client_smooth);
                 // console.log("=", this.players.self.pos);
@@ -3349,14 +3353,17 @@ core_client.prototype.client_process_net_updates = function() {
         //{
         // TODO: bug below - "self_pp" is undefined
         //* player interpolation
+        /*
         if (this.nu_self_pp && this.nu_self_tp) // && self_tp.x > 0 && self_tp.y > 0 && self_pp.x > 0 && self_pp.y > 0)
         {
             this.players.self.pos =
                 this.v_lerp(this.players.self.pos,
-                    this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), //this.core._pdt*this.client_smooth),
+                    this.v_lerp(this.nu_self_pp,
+                        this.nu_self_tp, this.nu_time_point),
                     this.core._pdt * this.client_smooth
                 );
         }
+        //*/
         // this.players.self.pos.x = ~~this.players.self.pos.x;
         // this.players.self.pos.y = ~~this.players.self.pos.y;
         // console.log("* interp", this.players.self.pos);
@@ -3617,9 +3624,7 @@ core_client.prototype.client_update_local_position = function() {
 
     // //Then store the states for clarity,
     // var old_state = this.players.self.old_state.pos;
-    // //if ()
     // var current_state = this.players.self.cur_state.pos;
-    //console.log("old", old_state, "current", current_state);
     //Make sure the visual position matches the states we have stored
     // this.players.self.pos = this.v_add(old_state, this.v_mul_scalar(this.v_sub(current_state, old_state), t));
     this.players.self.pos = this.players.self.cur_state.pos; //current_state;
@@ -3660,7 +3665,7 @@ core_client.prototype.client_update_physics = function() {
     // this.players.self.update();
 
     // client-side prediction (only if game stage is active)
-    if (this.config.round.stage === 1) {
+    if (this.config.round.active) {
         this.players.self.old_state.pos = this.pos(this.players.self.cur_state.pos);
         // this.players.self.update();
         this.players.self.cur_state.pos = this.v_add(this.players.self.old_state.pos, this.core.process_input(this.players.self));
@@ -3677,7 +3682,11 @@ core_client.prototype.client_update = function() {
     // this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);
 
     // capture inputs from the player
+    // var client_pos = 
     this.client_handle_input();
+    // console.log(client_pos, this.players.self.vx, this.players.self.vy);
+    // this.players.self.vx = player_pos.x;
+    // this.players.self.vy = player_pos.y;
 
     //Network player just gets drawn normally, with interpolation from
     //the server updates, smoothing out the positions from the past.

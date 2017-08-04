@@ -138,7 +138,7 @@ game_core.prototype.init = function(game_instance) //, io)
             height: worldHeight //480
         };
 
-        this.config.world.gravity = 0.02; //.25;//2;//3.5;
+        this.config.world.gravity = 0.05; //.25;//2;//3.5;
 
         this.config.world.totalplayers = MAX_PLAYERS_PER_GAME; //30;
 
@@ -1347,7 +1347,7 @@ game_core.prototype.check_collision = function(player, i) {
                 player.collision = true;
                 //player.vx = 0; // stop accel
             }
-            player.update();
+            // player.update();
         }
         //////////////////////////////
         // side collision (full, right)
@@ -1385,7 +1385,7 @@ game_core.prototype.check_collision = function(player, i) {
             } else {
                 // south (landing), determine direction
                 // set y
-                player.pos.ay = 0; // ~~(h.sw.y * 64 - player.size.hy);
+                player.ay = 0; // ~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
                 if (player.landed === 0)
@@ -1617,7 +1617,7 @@ game_core.prototype.process_input = function(player) {
     }
 
     // update player
-    player.update();
+    // player.update();
 
     // degrade angle
     if (player.a > 0) player.a -= 0.5;
@@ -1651,7 +1651,7 @@ game_core.prototype.process_input = function(player) {
     }
 
     // player.lpos = player.pos;
-    console.log('=', player.vx, player.vy);
+    // console.log('=', player.vx, player.vy);
     //give it back
     return this.physics_movement_vector_from_direction(player.vx, player.vy);
 
@@ -1685,7 +1685,7 @@ game_core.prototype.update_physics = function() {
     // _.forEach(this.getplayers.allplayers, function(player)
     // var player, room;
 
-    /*
+    //*
     if (this.server) {
         this.phyAllRooms = Object.keys(this.getplayers.fromAllRooms());
         for (var h = this.phyAllRooms.length - 1; h >= 0; h--) {

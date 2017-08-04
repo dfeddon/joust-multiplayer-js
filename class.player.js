@@ -326,7 +326,7 @@ game_player.prototype.startInBase = function() {
     setTimeout(function() {
         _this.baseWarning = _this.config.server_time + 30;
         _this.baseDisconnect = _this.config.server_time + 60;
-        _this.inBase = false; // <- stub, reset to true
+        _this.inBase = true; // <- stub, reset to true
         console.log("* inbase", _this.inBase);
     }, 1000);
     // else {
@@ -1330,7 +1330,8 @@ game_player.prototype.doFlap = function() {
     this.flap = true;
 
     // clear landed flag
-    this.landed = 0;
+    if (this.landed !== 0)
+        this.landed = 0;
 
     // apply acceleration
     this.thrust = 1.75;
@@ -1843,12 +1844,16 @@ game_player.prototype.update = function() {
             this.a = 0;
 
             // force stoppage
+            this.ax = 0;
+            this.ay = 0;
             this.vx = 0;
             this.vy = 0;
 
+            this.thrust = 0;
+
             // get out
-            //if (this.hitFrom==-1)
-            return;
+            // console.log("* landed = 1");
+            // return;
         } else this.landed = 2;
     }
 
@@ -1862,9 +1867,10 @@ game_player.prototype.update = function() {
     // convert angle to radians
     this.axis = this.a;
     if (this.axis <= 0) this.axis = 360 + this.a;
-
+    // console.log(this.axis);
     if (this.thrust >= 1) this.ax = (this.thrust * Math.sin(this.axis * Math.PI / 180)).fixed(2);
     else this.ax = Math.sin(this.axis * Math.PI / 180).fixed(2);
+    // console.log("++", this.thrust, this.ax, this.thrustModifier);
 
     if (this.thrust > 1) {
         if (this.a >= 0) this.ay = -(this.thrust * Math.sin(this.a * Math.PI / 180)).fixed(2);
@@ -1877,12 +1883,17 @@ game_player.prototype.update = function() {
     else this.thrust = 1;
 
     // apply gravity
-    if (this.landed === 0)
-        this.ay += this.config.world.gravity.fixed(2); ///5;
+    // if (this.landed === 0)
+    //     this.ay += this.config.world.gravity.fixed(2); ///5;
+    // else this.ay = 0;
 
     // set x/y
     this.vx = this.ax.fixed(2);
     this.vy = this.ay.fixed(2);
+
+    if (this.landed === 0)
+        this.vy += this.config.world.gravity.fixed(2); ///5;
+    else this.vy = 0;
 
     // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
     // if (this.a !== 0)
