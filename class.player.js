@@ -1367,7 +1367,9 @@ game_player.prototype.doRecoil = function(x, y, a) {
 };
 
 game_player.prototype.doLand = function() {
-    console.log('=== player.doLand', this.vx, this.vy); //, this.vy);
+    console.log('=== player.doLand', this.vx, this.vy, this.thrust); //, this.vy);
+
+    if (this.thrust > 1) return;
 
     // ...survivably fast
     if (this.vy > 5) // && this.config.server)
@@ -1412,34 +1414,35 @@ game_player.prototype.doLand = function() {
         //this.vx -= 200;
 
         // set landing flag (moving)
-        this.landed = 2; // walking
-        this.vy = -0.25; // prevents jolting falloff
-        this.vx -= 0.025.toFixed(2); // friction
+        if (this.landed !== 2)
+            this.landed = 2; // walking
+        this.ay = -0.25; // prevents jolting falloff
+        this.ax -= 0.025.toFixed(2); // friction
 
-        if (this.vx < 0) {
-            this.vx = 0;
+        if (this.ax < 0) {
+            this.ax = 0;
             //this.vy = 25;
             this.landed = 1;
             this.a = 0;
         }
-    } else if (this.vx < 0) {
+    } else if (this.ax < 0) {
         // console.log('* slowing -', this.vx);
 
         //this.vx += 200;
         this.landed = 2; // walking
-        this.vy = -0.25; // prevents jolting falloff
-        this.vx += 0.025.toFixed(2); // friction
+        this.ay = -0.25; // prevents jolting falloff
+        this.ax += 0.025.toFixed(2); // friction
 
-        if (this.vx > 0) {
-            this.vx = 0;
+        if (this.ax > 0) {
+            this.ax = 0;
             this.landed = 1;
             this.a = 0;
         }
     }
-    if (this.vx === 0) {
+    if (this.ax === 0) {
         // console.log("* stuck it!");
         // stuck landing (no velocity)
-        this.vx = 0;
+        this.ax = 0;
         //this.vy = 25;
         // set landing flag (stationary)
         this.landed = 1;
@@ -1872,10 +1875,17 @@ game_player.prototype.update = function() {
     else this.ax = Math.sin(this.axis * Math.PI / 180).fixed(2);
     // console.log("++", this.thrust, this.ax, this.thrustModifier);
 
+    // thrust modifier (booster)
+    // this.ax += this.a / this.thrustModifier;
+    // thrust modifier (booster)
+    this.ax += this.a / this.thrustModifier;
+    this.ay += this.a / (this.thrustModifier * 1.25);
+    // console.log(this.ax, this.ay);
+
     if (this.thrust > 1) {
-        if (this.a >= 0) this.ay = -(this.thrust * Math.sin(this.a * Math.PI / 180)).fixed(2);
-        else this.ay = (this.thrust * Math.sin(this.axis * Math.PI / 180)).fixed(2);
+        this.ay = -(this.thrust * Math.cos(this.axis * Math.PI / 180)).fixed(2);
     } else this.ay = this.vy;
+    // console.log("*", this.a / this.thrustModifier);
     // console.log(this.ax, this.a, this.thrust, this.collision);
 
     // force/thrust decay
@@ -1891,8 +1901,7 @@ game_player.prototype.update = function() {
     this.vx = this.ax.fixed(2);
     this.vy = this.ay.fixed(2);
 
-    if (this.landed === 0)
-        this.vy += this.config.world.gravity.fixed(2); ///5;
+    if (this.landed === 0) this.vy += this.config.world.gravity.fixed(2); ///5;
     else this.vy = 0;
 
     // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
@@ -2062,8 +2071,8 @@ game_player.prototype.update = function() {
 };
 
 game_player.prototype.setAngle = function(a) {
-    // var threshold = 60;
-    // var offset = 2;
+    var threshold = 45;
+    var offset = 2;
 
     // // convert angle to axis
     // if (this.a > threshold)
@@ -2071,16 +2080,16 @@ game_player.prototype.setAngle = function(a) {
     // else this.axis = this.a;
 
     if (a === 0) { // right
-        if (this.a > 88)
-            this.a = 90;
-        else this.a += 2;
+        if (this.a > threshold - offset)
+            this.a = threshold;
+        else this.a += offset;
         // if (this.axis > (threshold - offset))
         //     this.axis = threshold;
         // else this.axis += 2;
     } else if (a === 1) { // left
-        if (this.a < -88)
-            this.a = -90;
-        else this.a -= 2;
+        if (this.a < -(threshold - offset))
+            this.a = -threshold;
+        else this.a -= offset;
         // if (this.axis < (0 - threshold + offset))
         //     this.axis = (0 - threshold);
         // else this.axis -= 2;

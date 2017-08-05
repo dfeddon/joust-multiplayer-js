@@ -3627,6 +3627,7 @@ core_client.prototype.client_update_local_position = function() {
     // var current_state = this.players.self.cur_state.pos;
     //Make sure the visual position matches the states we have stored
     // this.players.self.pos = this.v_add(old_state, this.v_mul_scalar(this.v_sub(current_state, old_state), t));
+    // this.players.self.update();
     this.players.self.pos = this.players.self.cur_state.pos; //current_state;
     //console.log(current_state.d);
 

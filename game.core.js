@@ -138,7 +138,7 @@ game_core.prototype.init = function(game_instance) //, io)
             height: worldHeight //480
         };
 
-        this.config.world.gravity = 0.05; //.25;//2;//3.5;
+        this.config.world.gravity = 0.06; //.25;//2;//3.5;
 
         this.config.world.totalplayers = MAX_PLAYERS_PER_GAME; //30;
 
@@ -1364,7 +1364,8 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         else if (player.landed === 2) {
             console.log('* player slid off barrier...');
-            player.landed = 0; // now flying
+            player.landed = 0; // slide off... now flying
+            // return;
         }
         //////////////////////////////
         // edge cases
@@ -1372,47 +1373,47 @@ game_core.prototype.check_collision = function(player, i) {
         else if (h.ne.t > 0 || h.se.t > 0) // hit from left
         {
             console.log('* edge left', h.n.t, h.s.t, h.e.t);
-            if (h.e.t > 0) {
+            if (h.e.t > 0) { // || (h.n.t + h.s.t + h.e.t === 0 && player.landed !== 10)) {
                 // east (side collision)
-                player.ax = 0 - b; //bounce
+                player.vx = 0 - b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.n.t > 0) {
                 // north (from below)
-                player.ay = b;
+                player.vy = b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else {
+            } else if (h.s.t > 0) { // && player.landed === 10) {
                 // south (landing), determine direction
                 // set y
-                player.ay = 0; // ~~(h.sw.y * 64 - player.size.hy);
+                player.vy = 0; // ~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
-                if (player.landed === 0)
-                    player.doLand(); // if flying
+                // if (player.landed === 0 || player.landed === 10)
+                player.doLand(); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         } else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
         {
             console.log('* edge right', h.n.t, h.s.t, h.w.t);
-            if (h.w.t > 0) {
+            if (h.w.t > 0) { // || (h.n.t + h.s.t + h.w.t === 0 && player.landed !== 10)) {
                 // east (side collision)
-                player.ax = b; //bounce
+                player.vx = b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.n.t > 0) {
                 // north (from below)
-                player.ay = b;
+                player.vy = b;
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
-            } else {
+            } else if (h.s.t > 0) { // && player.landed === 10) {
                 // south (landing), determine direction
                 // set y
-                player.ay = 0; //~~(h.sw.y * 64 - player.size.hy);
+                player.vy = 0; //~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
-                if (player.landed === 0)
-                    player.doLand(); // if flying
+                // if (player.landed === 0 || player.landed === 10)
+                player.doLand(); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         }
@@ -1620,8 +1621,8 @@ game_core.prototype.process_input = function(player) {
     // player.update();
 
     // degrade angle
-    if (player.a > 0) player.a -= 0.5;
-    else if (player.a < 0) player.a += 0.5;
+    // if (player.a > 0) player.a -= 0.5;
+    // else if (player.a < 0) player.a += 0.5;
 
     // if (!this.server) {
     //     this.core_client.players.self.cur_state.pos = this.pos(this.core_client.players.self.pos);
