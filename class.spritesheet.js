@@ -77,11 +77,13 @@ function game_spritesheet(img) {
   //this.draw();
 };*/
 
-game_spritesheet.prototype.draw = function(label, pos, abil) {
+game_spritesheet.prototype.draw = function(label, pos, abil, radius) {
     // var _this = this;
-    //console.log('== spritesheet.draw()', label, this.cellData, '==');
+    // console.log('== spritesheet.draw()', label, this.cellData, radius, '==');
     var data = _.find(this.cellData, { 'label': label });
-    //console.log('data', data);
+    // console.log('data', data);
+
+    // if (!radius) radius = 32;
 
     if (abil === 1) {
         this.ctx.save();
@@ -93,8 +95,8 @@ game_spritesheet.prototype.draw = function(label, pos, abil) {
         data.y,
         this.cellWidth,
         this.cellHeight,
-        pos.x, //this.x,// + (64 * (i + 1)),
-        pos.y,
+        pos.x - radius, //this.x,// + (64 * (i + 1)),
+        pos.y - radius,
         this.cellWidth,
         this.cellHeight
     );

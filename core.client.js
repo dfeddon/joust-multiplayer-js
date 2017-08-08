@@ -2648,10 +2648,10 @@ core_client.prototype.client_handle_input = function(key) {
     // this.players.self.update();
 
     // degrade angle
-    if (this.players.self.a > 0)
-        this.players.self.a -= 0.5;
-    else if (this.players.self.a < 0)
-        this.players.self.a += 0.5;
+    // if (this.players.self.a > 0)
+    //     this.players.self.a -= 0.5;
+    // else if (this.players.self.a < 0)
+    //     this.players.self.a += 0.5;
 
     // if (input.length) {
     // this.core.server_control = false;
@@ -3738,11 +3738,11 @@ core_client.prototype.client_update = function() {
             plat.draw();
     });*/
 
-    // spritesheets
-    for (j = this.spritesheets.length - 1; j >= 0; j--) {
+    // spritesheets (eg: animated torches)
+    /*for (j = this.spritesheets.length - 1; j >= 0; j--) {
         //if (this.spritesheets[k].state !== this.spritesheets[k].STATE_INTACT)
         this.spritesheets[j].update();
-    }
+    }*/
 
     // chests
     for (j = this.core.chests.length - 1; j >= 0; j--) {

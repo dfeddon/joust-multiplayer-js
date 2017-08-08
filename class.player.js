@@ -66,8 +66,10 @@ function game_player(player_instance, isHost, pindex, config) {
     this.thrust = 0.5; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
     this.thrustMax = 0.15;
     this.thrustModifier = 40; // we start at full/half-health
-    this.radius = 32; // player "hit" radius
+    this.radius = 32; // <- can be dynamically set based on skin size
+    this.hitRadius = 16; // fixed player "hit" radius
     this.mass = this.radius;
+    this.hitMass = this.hitRadius; // fixed player mass
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -1906,8 +1908,9 @@ game_player.prototype.update = function() {
     // convert angle to radians
     this.angleInDegrees = this.a;
     if (this.angleInDegrees <= 0) this.angleInDegrees = 360 + this.a;
-    // console.log(this.angleInDegrees);
-    if (this.thrust >= 0) this.ax = (this.thrust * Math.sin(this.angleInDegrees * (Math.PI / 180))).fixed(2);
+
+    // apply thrust to horizontal acceleration
+    if (this.thrust > 0) this.ax = (this.thrust * Math.sin(this.angleInDegrees * (Math.PI / 180))).fixed(2);
     else this.ax = Math.sin(this.angleInDegrees * Math.PI / 180).fixed(2);
     // console.log("++", this.ax, this.thrust); //Modifier);
 
@@ -1918,8 +1921,7 @@ game_player.prototype.update = function() {
     /*this.ax += this.a / this.thrustModifier;
     this.ay += this.a / (this.thrustModifier); // * 1.25);*/
 
-    // console.log(this.ax, this.ay);
-
+    // apply thrust to vertical acceleration
     if (this.thrust > 0) {
         this.ay = -(this.thrust * Math.cos(this.angleInDegrees * (Math.PI / 180))).fixed(2);
     } else this.ay = 0;
@@ -1927,15 +1929,14 @@ game_player.prototype.update = function() {
     // console.log("*", this.a / this.thrustModifier);
     // console.log(this.ax, this.a, this.thrust, this.collision);
 
-    // force/thrust decay
-    if (this.thrust >= 0.5)
-        this.thrust -= 0.5;
-    else this.thrust = 0;
-
     // apply gravity
     // if (this.landed === 0)
     //     this.ay += this.config.world.gravity.fixed(2); ///5;
     // else this.ay = 0;
+
+    // gravity / velocity y
+    if (this.landed === 0) this.vy += this.config.world.gravity.fixed(3); ///5;
+    else this.vy = 0;
 
     // set x/y
     // console.log(this.ax, this.ay);
@@ -1944,22 +1945,32 @@ game_player.prototype.update = function() {
     // if (this.ay > 0)
     this.vy += this.ay.fixed(3);
 
-    if (this.landed === 0) this.vy += this.config.world.gravity.fixed(3); ///5;
-    else this.vy = 0;
-
     // governor (top speed threshold)
     var gov = 2.5; // 2 - 3
-    if (this.vx > gov) this.vx = gov;
-    else if (this.vx < -gov) this.vx = -gov;
-    if (this.vy < -gov) this.vy = -gov;
-    // if (this.vx > 0) this.vx -= 0.025;
-    // else if (this.vx < 0) this.vx += 0.025;
+    if (this.vx > gov)
+        this.vx = gov;
+    else if (this.vx < -gov)
+        this.vx = -gov;
+    if (this.vy < -gov)
+        this.vy = -gov;
+
+    // velocity degrade
+    if (this.vx > 0) this.vx -= 0.025;
+    else if (this.vx < 0) this.vx += 0.025;
+
+    // force/thrust decay
+    if (this.thrust >= 0.5) this.thrust -= 0.5;
+    else this.thrust = 0;
+
+    // degrade angle
+    if (this.a > 0) this.a -= 0.5;
+    else if (this.a < 0) this.a += 0.5;
 
     // console.log('vx', this.vx, 'vy', this.vy, 'ax', this.ax, 'ay', this.ay, 'thr', this.thrust); //, this.landed);
 
     // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
     // if (this.a !== 0)
-    console.log("*", this.vx, this.vy, this.a);
+    // console.log("*", this.vx, this.vy, this.a, this.thrust);
 
     // this.pos.y += this.vy.fixed(2);
     // this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
@@ -3157,36 +3168,52 @@ game_player.prototype.getCoord = function() {
     // direction-dependent, account for
     // console.log("$$", this.config.server);
     this.nw = {
-        x: ~~((this.pos.x + this.size.offset) / 64),
-        y: ~~(this.pos.y / 64)
+        // x: ~~((this.pos.x + this.size.offset) / 64),
+        // y: ~~(this.pos.y / 64)
+        x: ~~((this.pos.x - this.hitRadius) / 64), // this.size.offset) / 64),
+        y: ~~((this.pos.y - this.hitRadius) / 64)
     };
     this.ne = {
-        x: ~~((this.pos.x + this.size.hx) / 64),
-        y: ~~(this.pos.y / 64)
+        // x: ~~((this.pos.x + this.size.hx) / 64),
+        // y: ~~(this.pos.y / 64)
+        x: ~~((this.pos.x + this.hitRadius) / 64),
+        y: ~~((this.pos.y + this.hitRadius) / 64)
     };
     this.sw = {
-        x: ~~((this.pos.x + this.size.offset) / 64),
-        y: ~~((this.pos.y + this.size.hy) / 64)
+        // x: ~~((this.pos.x + this.size.offset) / 64),
+        // y: ~~((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x - this.hitRadius) / 64),
+        y: ~~((this.pos.y + this.hitRadius) / 64)
     };
     this.se = {
-        x: ~~((this.pos.x + this.size.hx) / 64),
-        y: ~~((this.pos.y + this.size.hy) / 64)
+        // x: ~~((this.pos.x + this.size.hx) / 64),
+        // y: ~~((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x + this.hitRadius) / 64),
+        y: ~~((this.pos.y + this.hitRadius) / 64)
     };
     this.n = {
-        x: ~~((this.pos.x + (this.size.hx / 2)) / 64),
-        y: ~~((this.pos.y - (this.size.offset)) / 64)
+        // x: ~~((this.pos.x + (this.size.hx / 2)) / 64),
+        // y: ~~((this.pos.y - (this.size.offset)) / 64)
+        x: ~~((this.pos.x) / 64),
+        y: ~~((this.pos.y - (this.hitRadius)) / 64)
     };
     this.s = {
-        x: ~~((this.pos.x + (this.size.hx / 2)) / 64),
-        y: ~~((this.pos.y + this.size.hy) / 64)
+        // x: ~~((this.pos.x + (this.size.hx / 2)) / 64),
+        // y: ~~((this.pos.y + this.size.hy) / 64)
+        x: ~~((this.pos.x) / 64),
+        y: ~~((this.pos.y + this.hitRadius) / 64)
     };
     this.e = {
-        x: ~~((this.pos.x + this.size.hx - this.size.offset) / 64),
-        y: ~~((this.pos.y + (this.size.hy / 2)) / 64)
+        // x: ~~((this.pos.x + this.size.hx - this.size.offset) / 64),
+        // y: ~~((this.pos.y + (this.size.hy / 2)) / 64)
+        x: ~~((this.pos.x + this.hitRadius) / 64),
+        y: ~~((this.pos.y) / 64)
     };
     this.w = {
-        x: ~~((this.pos.x + this.size.offset) / 64),
-        y: ~~((this.pos.y + (this.size.hy / 2)) / 64)
+        // x: ~~((this.pos.x + this.size.offset) / 64),
+        // y: ~~((this.pos.y + (this.size.hy / 2)) / 64)
+        x: ~~((this.pos.x - this.hitRadius) / 64),
+        y: ~~((this.pos.y) / 64)
     };
     return { nw: this.nw, ne: this.ne, sw: this.sw, se: this.se, n: this.n, s: this.s, e: this.e, w: this.w };
     //return { x: Math.floor(this.pos.x / 64), y: Math.floor(this.pos.y / 64) };
@@ -3222,8 +3249,8 @@ game_player.prototype.drawAbilities = function() {
     if (this.engaged === false) {
         this.config.ctx.beginPath();
         this.config.ctx.strokeStyle = 'gray';
-        this.config.ctx.moveTo(this.pos.x, this.pos.y - 10);
-        this.config.ctx.lineTo(this.pos.x + 64, this.pos.y - 10);
+        this.config.ctx.moveTo(this.pos.x - this.radius, this.pos.y - this.radius - 10);
+        this.config.ctx.lineTo(this.pos.x - this.radius + 64, this.pos.y - this.radius - 10);
         this.config.ctx.lineWidth = 3;
         this.config.ctx.stroke();
         this.config.ctx.closePath();
@@ -3240,8 +3267,8 @@ game_player.prototype.drawAbilities = function() {
         this.config.ctx.strokeStyle = this.healthbarColor; //(this.health < 20) ? '#f93822' : 'lime';// 'yellow';
         // game.ctx.moveTo(this.pos.x + 14 + (val), this.pos.y-10);
         // game.ctx.lineTo(this.pos.x + 14 + this.size.hx - 28, this.pos.y-10);
-        this.config.ctx.moveTo(this.pos.x, this.pos.y - 10);
-        this.config.ctx.lineTo(this.pos.x + progressVal, this.pos.y - 10);
+        this.config.ctx.moveTo(this.pos.x - this.radius, this.pos.y - this.radius - 10);
+        this.config.ctx.lineTo(this.pos.x - this.radius + progressVal, this.pos.y - this.radius - 10);
         this.config.ctx.lineWidth = 3;
         this.config.ctx.stroke();
         this.config.ctx.closePath();
@@ -3371,12 +3398,13 @@ game_player.prototype.draw = function() {
     // if (!this.vuln)
 
     // nameplate
-    this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
+    // this.config.ctx.drawImage(this.playerNameImage, this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2), this.pos.y - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
+    this.config.ctx.drawImage(this.playerNameImage, this.pos.x - (this.playerNameImage.width / 2), this.pos.y - this.radius - this.nameplateOffset, this.playerNameImage.width, this.playerNameImage.height);
 
     // rank icon
     // if (!this.isLocal)
     // {
-    this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x + (this.size.hx / 2) - (this.playerNameImage.width / 2) - 15, this.pos.y - this.nameplateOffset - 5, 20, 20);
+    this.config.ctx.drawImage(assets['rank_' + this.level.toString() + '_' + this.teamName], this.pos.x - (this.playerNameImage.width / 2) - 15, this.pos.y - this.radius - this.nameplateOffset - 5, 20, 20);
     // }
     // draw rank circle
     /*
@@ -3462,9 +3490,9 @@ game_player.prototype.draw = function() {
         this.config.ctx.drawImage(this.drwImg, this.pos.x, this.pos.y, this.drwImgW, this.drwImgH);
     } else if (this.vuln === true) {
         if (this.dir === 1)
-            this.sprite.draw('vuln-l', this.pos, this.drawAbility); //img = assets.p1stun_l;//document.getElementById("p1stun-l");
+            this.sprite.draw('vuln-l', this.pos, this.drawAbility, this.radius); //img = assets.p1stun_l;//document.getElementById("p1stun-l");
         //this.vulnLeft;//document.getElementById("p1stun-l");
-        else this.drwImg = this.sprite.draw('vuln-r', this.pos, this.drawAbility); //assets.p1stun_r;//document.getElementById("p1stun-r");
+        else this.drwImg = this.sprite.draw("vuln-r", this.pos, this.drawAbility, this.radius); //assets.p1stun_r;//document.getElementById("p1stun-r");
 
         this.drwImgW = 64;
         this.drwImgH = 64;
@@ -3475,11 +3503,11 @@ game_player.prototype.draw = function() {
         // reset flap on client
         // this.flap = false;
         if (this.dir === 1) {
-            this.sprite.draw('flap-l', this.pos, this.drawAbility);
+            this.sprite.draw("flap-l", this.pos, this.drawAbility, this.radius);
             //img = assets.p1l;//document.getElementById("p1l");
         }
         //img = this.flapLeft;//document.getElementById("p1l");
-        else this.sprite.draw('flap-r', this.pos, this.drawAbility); //img = assets.p1r;//document.getElementById("p1r");
+        else this.sprite.draw("flap-r", this.pos, this.drawAbility, this.radius); //img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
         this.drwImgW = 64; //40;
@@ -3487,9 +3515,9 @@ game_player.prototype.draw = function() {
     } else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1) this.sprite.draw('land-l', this.pos, this.drawAbility); //img = assets.p1stand_l;//document.getElementById("p1stand-l");
+        if (this.dir === 1) this.sprite.draw("land-l", this.pos, this.drawAbility, this.radius); //img = assets.p1stand_l;//document.getElementById("p1stand-l");
         //img = this.standLeft;// document.getElementById("p1stand-l");
-        else this.drwImg = this.sprite.draw('land-r', this.pos, this.drawAbility); //assets.p1stand_r;//document.getElementById("p1stand-r");
+        else this.drwImg = this.sprite.draw("land-r", this.pos, this.drawAbility, this.radius); //assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
         this.drwImgW = 64; //33;
@@ -3497,19 +3525,19 @@ game_player.prototype.draw = function() {
     } else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            this.drwImg = this.sprite.draw('land-l', this.pos, this.drawAbility); //assets.p1skid_l;//document.getElementById("p1skid-l");
-        else this.drwImg = this.sprite.draw('land-r', this.pos, this.drawAbility); //assets.p1skid_r;//document.getElementById("p1skid-r");
+            this.drwImg = this.sprite.draw("land-l", this.pos, this.drawAbility, this.radius); //assets.p1skid_l;//document.getElementById("p1skid-l");
+        else this.drwImg = this.sprite.draw("land-r", this.pos, this.drawAbility, this.radius); //assets.p1skid_r;//document.getElementById("p1skid-r");
 
         this.drwImgW = 64; //33;
         this.drwImgH = 64; //44;
     } else // gliding
     {
         if (this.dir === 1)
-            this.drwImg = this.sprite.draw('fly-l', this.pos, this.drawAbility); //assets.p2l;//document.getElementById("p2l");
+            this.drwImg = this.sprite.draw("fly-l", this.pos, this.drawAbility, this.radius); //assets.p2l;//document.getElementById("p2l");
         //img = ctx.putImageData(imgData,10,70);
         //img = this.glideLeft;
         else //img = this.glideRight;//
-            this.sprite.draw('fly-r', this.pos, this.drawAbility); //img = assets.p2r;//document.getElementById("p2r");
+            this.sprite.draw("fly-r", this.pos, this.drawAbility, this.radius); //img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         this.drwImgW = 64; //40;

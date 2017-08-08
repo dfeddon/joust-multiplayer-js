@@ -1718,20 +1718,20 @@ game_core.prototype.update_physics = function() {
                     this.phyPlayer.update();
 
                 // degrade player angle
-                if (this.phyPlayer.a > 0)
-                    this.phyPlayer.a -= 0.5;
-                else if (this.phyPlayer.a < 0)
-                    this.phyPlayer.a += 0.5;
+                // if (this.phyPlayer.a > 0)
+                //     this.phyPlayer.a -= 0.5;
+                // else if (this.phyPlayer.a < 0)
+                //     this.phyPlayer.a += 0.5;
             }
         }
     } else // client
     {
         if (this.core_client.players.self.active) {
             this.core_client.players.self.update();
-            if (this.core_client.players.self.a > 0)
-                this.core_client.players.self.a -= 0.5;
-            else if (this.core_client.players.self.a < 0)
-                this.core_client.players.self.a += 0.5;
+            // if (this.core_client.players.self.a > 0)
+            //     this.core_client.players.self.a -= 0.5;
+            // else if (this.core_client.players.self.a < 0)
+            //     this.core_client.players.self.a += 0.5;
         }
     }
     //*/
