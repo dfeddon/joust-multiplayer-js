@@ -62,9 +62,12 @@ function game_player(player_instance, isHost, pindex, config) {
     this.m = 0.1; // kg
     // angle
     this.a = 0; // -90, 0, 90
-    this.axis = 0;
+    this.angleInDegrees = 0;
     this.thrust = 0.5; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
+    this.thrustMax = 0.15;
     this.thrustModifier = 40; // we start at full/half-health
+    this.radius = 32; // player "hit" radius
+    this.mass = this.radius;
 
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
@@ -109,6 +112,7 @@ function game_player(player_instance, isHost, pindex, config) {
     this.stunned = false;
     this.dazed = false;
     this.bonusPenaltyCooldown = null; // cooldown after dazed crits!
+    this.isBouncing = false; // bounce flag
     // this.roundSlotImage = null;
     // this.slot1Image = null;
     // this.slot2Image = null;
@@ -1058,7 +1062,7 @@ game_player.prototype.reset = function() {
 
     this.health = 100;
     this.a = 0; // -90, 0, 90
-    this.thrust = 0.5; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
+    this.thrust = 0; //0.0625; // 0 = 0.0625, 250 = 0.125, 500 = 0.25
     this.thrustModifier = 40; // we start at half-health
     this.teamBonus = 0;
     this.playerBonus = 0;
@@ -1334,7 +1338,7 @@ game_player.prototype.doFlap = function() {
         this.landed = 0;
 
     // apply acceleration
-    this.thrust = 1.75;
+    this.thrust = this.thrustMax; //1.75;
     // this.ax = Math.cos(this.a) * (this.thrust) * 25;
     // allow 0 degree flight
     // if (this.a === 0)
@@ -1366,27 +1370,45 @@ game_player.prototype.doRecoil = function(x, y, a) {
     this.a = a;
 };
 
-game_player.prototype.doLand = function() {
-    console.log('=== player.doLand', this.vx, this.vy, this.thrust); //, this.vy);
+game_player.prototype.doLand = function(surfaceY) {
+    console.log("=== player.doLand", this.vx, this.vy, this.thrust, this.landed, ~~(this.pos.y / 64) * 64);
+    this.vy = 0;
+    this.ay = 0;
+    // avoid bounce redundancies (single-check)
+    if (this.isBouncing) {
+        this.isBouncing = false;
+        return;
+    }
 
-    if (this.thrust > 1) return;
+    // really landed? or taking flight
+    if (this.thrust === this.thrustMax) return; // allow flap to rise
+    else this.thrust = 0; // clear thrust
+
+    // surface y provided?
+    if (surfaceY) {
+        var diff = (surfaceY * 64) - (this.pos.y + this.size.hy);
+        // if player position beneath surface and next update doesn't avoid a second collision, add isBouncing flag
+        if (diff < ((this.vy / 2) * -1)) {
+            console.log("* isBouncing flag set!");
+            this.isBouncing = true;
+        }
+    }
 
     // ...survivably fast
-    if (this.vy > 5) // && this.config.server)
-    {
-        console.log('* bounce up!', this.vy);
+    if (this.vy > 5) {
+        // && this.config.server)
+        console.log("* bounce up!", this.vy);
         // account for .5 discrepancy between server and client
-        if (this.config.server)
-            this.vy += 0.5;
+        if (this.config.server) this.vy += 0.5;
         // set length of vulnerability based on how hard player hits
-        var len = 1500 + ((this.vy - 5) * 1000);
+        var len = 1500 + (this.vy - 5) * 1000;
         // impact drag
         this.vy = this.vy / 2;
         // bounce
-        this.vy *= -1;
+        this.vy *= 0 - 1;
+        // if (this.vy < diff) this.vy = 0 - diff;
         // set vulnerability
-        if (this.inBase === false)
-            this.isVuln(len);
+        if (this.inBase === false) this.isVuln(len);
         //this.a *= -1;
         // inflict fall damage
         if (this.config.server) {
@@ -1395,7 +1417,23 @@ game_player.prototype.doLand = function() {
                 console.log("* bounce damage", dmg);
                 this.updateHealth(0 - dmg);
                 // send to client
-                this.instance.room(this.playerPort).write([5, this.id, null, 0 - dmg], this.health);
+                this.instance
+                    .room(
+                        this
+                        .playerPort
+                    )
+                    .write(
+                        [
+                            5,
+                            this
+                            .id,
+                            null,
+                            0 -
+                            dmg
+                        ],
+                        this
+                        .health
+                    );
                 // this.setTextFloater(100, Math.abs(dmg), 1);
             }
         } else {
@@ -1408,16 +1446,15 @@ game_player.prototype.doLand = function() {
 
     // decelerate
     if (this.vx > 0) {
-        console.log('* slowing +', this.vx);
+        console.log("* slowing +", this.vx);
 
         // slow horizontal velocity
         //this.vx -= 200;
 
         // set landing flag (moving)
-        if (this.landed !== 2)
-            this.landed = 2; // walking
+        if (this.landed !== 2) this.landed = 2; // walking
         this.ay = -0.25; // prevents jolting falloff
-        this.ax -= 0.025.toFixed(2); // friction
+        this.ax -= (0.025).toFixed(2); // friction
 
         if (this.ax < 0) {
             this.ax = 0;
@@ -1431,7 +1468,7 @@ game_player.prototype.doLand = function() {
         //this.vx += 200;
         this.landed = 2; // walking
         this.ay = -0.25; // prevents jolting falloff
-        this.ax += 0.025.toFixed(2); // friction
+        this.ax += (0.025).toFixed(2); // friction
 
         if (this.ax > 0) {
             this.ax = 0;
@@ -1457,7 +1494,6 @@ game_player.prototype.doLand = function() {
     //if (this.landed === 2)
     //console.log('* data', this.vx, 'vy', this.vy, 'a', this.a);
     //else if (this.landed === 1 && this.mp == "cp1") console.log('landed', this.pos.x, this.pos.y);
-
 };
 
 game_player.prototype.doWalk = function(dir) {
@@ -1868,29 +1904,33 @@ game_player.prototype.update = function() {
     // this.ax = ((this.a / this.thrustModifier) * Math.sin(this.thrust)).fixed(2);
 
     // convert angle to radians
-    this.axis = this.a;
-    if (this.axis <= 0) this.axis = 360 + this.a;
-    // console.log(this.axis);
-    if (this.thrust >= 1) this.ax = (this.thrust * Math.sin(this.axis * Math.PI / 180)).fixed(2);
-    else this.ax = Math.sin(this.axis * Math.PI / 180).fixed(2);
-    // console.log("++", this.thrust, this.ax, this.thrustModifier);
+    this.angleInDegrees = this.a;
+    if (this.angleInDegrees <= 0) this.angleInDegrees = 360 + this.a;
+    // console.log(this.angleInDegrees);
+    if (this.thrust >= 0) this.ax = (this.thrust * Math.sin(this.angleInDegrees * (Math.PI / 180))).fixed(2);
+    else this.ax = Math.sin(this.angleInDegrees * Math.PI / 180).fixed(2);
+    // console.log("++", this.ax, this.thrust); //Modifier);
 
     // thrust modifier (booster)
     // this.ax += this.a / this.thrustModifier;
     // thrust modifier (booster)
-    this.ax += this.a / this.thrustModifier;
-    this.ay += this.a / (this.thrustModifier * 1.25);
+
+    /*this.ax += this.a / this.thrustModifier;
+    this.ay += this.a / (this.thrustModifier); // * 1.25);*/
+
     // console.log(this.ax, this.ay);
 
-    if (this.thrust > 1) {
-        this.ay = -(this.thrust * Math.cos(this.axis * Math.PI / 180)).fixed(2);
-    } else this.ay = this.vy;
+    if (this.thrust > 0) {
+        this.ay = -(this.thrust * Math.cos(this.angleInDegrees * (Math.PI / 180))).fixed(2);
+    } else this.ay = 0;
+    // } else this.ay = this.vy;
     // console.log("*", this.a / this.thrustModifier);
     // console.log(this.ax, this.a, this.thrust, this.collision);
 
     // force/thrust decay
-    if (this.thrust >= 1.05) this.thrust -= 0.05;
-    else this.thrust = 1;
+    if (this.thrust >= 0.5)
+        this.thrust -= 0.5;
+    else this.thrust = 0;
 
     // apply gravity
     // if (this.landed === 0)
@@ -1898,15 +1938,28 @@ game_player.prototype.update = function() {
     // else this.ay = 0;
 
     // set x/y
-    this.vx = this.ax.fixed(2);
-    this.vy = this.ay.fixed(2);
+    // console.log(this.ax, this.ay);
+    // if (this.ax < 3)
+    this.vx += this.ax.fixed(3);
+    // if (this.ay > 0)
+    this.vy += this.ay.fixed(3);
 
-    if (this.landed === 0) this.vy += this.config.world.gravity.fixed(2); ///5;
+    if (this.landed === 0) this.vy += this.config.world.gravity.fixed(3); ///5;
     else this.vy = 0;
+
+    // governor (top speed threshold)
+    var gov = 2.5; // 2 - 3
+    if (this.vx > gov) this.vx = gov;
+    else if (this.vx < -gov) this.vx = -gov;
+    if (this.vy < -gov) this.vy = -gov;
+    // if (this.vx > 0) this.vx -= 0.025;
+    // else if (this.vx < 0) this.vx += 0.025;
+
+    // console.log('vx', this.vx, 'vy', this.vy, 'ax', this.ax, 'ay', this.ay, 'thr', this.thrust); //, this.landed);
 
     // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
     // if (this.a !== 0)
-    // console.log("*", this.vx, this.vy, this.a);
+    console.log("*", this.vx, this.vy, this.a);
 
     // this.pos.y += this.vy.fixed(2);
     // this.pos.x += this.vx.fixed(2); //((this.a/25) * Math.cos(this.vx));
@@ -2071,42 +2124,42 @@ game_player.prototype.update = function() {
 };
 
 game_player.prototype.setAngle = function(a) {
-    var threshold = 45;
+    var threshold = 55;
     var offset = 2;
 
     // // convert angle to axis
     // if (this.a > threshold)
-    //     this.axis = 360 - this.axis;
-    // else this.axis = this.a;
+    //     this.angleInDegrees = 360 - this.angleInDegrees;
+    // else this.angleInDegrees = this.a;
 
     if (a === 0) { // right
         if (this.a > threshold - offset)
             this.a = threshold;
         else this.a += offset;
-        // if (this.axis > (threshold - offset))
-        //     this.axis = threshold;
-        // else this.axis += 2;
+        // if (this.angleInDegrees > (threshold - offset))
+        //     this.angleInDegrees = threshold;
+        // else this.angleInDegrees += 2;
     } else if (a === 1) { // left
         if (this.a < -(threshold - offset))
             this.a = -threshold;
         else this.a -= offset;
-        // if (this.axis < (0 - threshold + offset))
-        //     this.axis = (0 - threshold);
-        // else this.axis -= 2;
+        // if (this.angleInDegrees < (0 - threshold + offset))
+        //     this.angleInDegrees = (0 - threshold);
+        // else this.angleInDegrees -= 2;
     }
     // else if (a === 2) { // decay -0.5
-    //     if (this.axis < 0 - threshold + offset) 
-    //         this.axis = 0 - threshold;
-    //     this.axis -= 0.5;
+    //     if (this.angleInDegrees < 0 - threshold + offset) 
+    //         this.angleInDegrees = 0 - threshold;
+    //     this.angleInDegrees -= 0.5;
     // }
     // else if (a === 3) { // decay +0.5
-    //     this.axis += 0.5;
+    //     this.angleInDegrees += 0.5;
     // }
-    // console.log(this.axis);
+    // console.log(this.angleInDegrees);
     // // convert axis to angle
-    // if (this.axis <= 0)
-    //     this.a = 360 + this.axis;
-    // else this.a = this.axis;
+    // if (this.angleInDegrees <= 0)
+    //     this.a = 360 + this.angleInDegrees;
+    // else this.a = this.angleInDegrees;
     // console.log(this.a);
 };
 
@@ -3462,6 +3515,8 @@ game_player.prototype.draw = function() {
         this.drwImgW = 64; //40;
         this.drwImgH = 64; //40;
     }
+
+    // rotate player to radian
 
     // draw flag?
     // console.log('* this.hasFlag', this.hasFlag, this.playerName);

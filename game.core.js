@@ -138,7 +138,7 @@ game_core.prototype.init = function(game_instance) //, io)
             height: worldHeight //480
         };
 
-        this.config.world.gravity = 0.06; //.25;//2;//3.5;
+        this.config.world.gravity = 0.04; //.25;//2;//3.5;
 
         this.config.world.totalplayers = MAX_PLAYERS_PER_GAME; //30;
 
@@ -875,7 +875,7 @@ game_core.prototype.playerKill = function(victim, victor)
 };
 */
 
-game_core.prototype.pk = function(victor, victim, dmg) {
+/*game_core.prototype.pk = function(victor, victim, dmg) {
     console.log('== pk', victor.id, victim.id, dmg, '==');
 
     // first, check if player has bubble...
@@ -890,6 +890,52 @@ game_core.prototype.pk = function(victor, victim, dmg) {
 
     // victim.doHit(victor, dmg);
     // victim.doKill(victor);
+}*/
+game_core.prototype.rotate = function(x, y, sin, cos, reverse) {
+    return {
+        x: reverse ? x * cos + y * sin : x * cos - y * sin,
+        y: reverse ? y * cos - x * sin : y * cos + x * sin
+    };
+}
+game_core.prototype.doCollide = function(p1, p2) {
+    var dx = p2.pos.x - p1.pos.x,
+        dy = p2.pos.y - p1.pos.y;
+    //calculate angle, sine, and cosine
+    var angle = Math.atan2(dy, dx),
+        sin = Math.sin(angle),
+        cos = Math.cos(angle),
+        //rotate p1's position
+        pos0 = { x: 0, y: 0 }, //point
+        //rotate p2's position
+        pos1 = this.rotate(dx, dy, sin, cos, true),
+        //rotate p1's velocity
+        vel0 = this.rotate(p1.vx, p1.vy, sin, cos, true),
+        //rotate p2's velocity
+        vel1 = this.rotate(p2.vx, p2.vy, sin, cos, true),
+        //collision reaction
+        vxTotal = vel0.x - vel1.x;
+    vel0.x = ((p1.mass - p2.mass) * vel0.x + 2 * p2.mass * vel1.x) / (p1.mass + p2.mass);
+    vel1.x = vxTotal + vel0.x;
+    //update position - to avoid objects becoming stuck together
+    var absV = Math.abs(vel0.x) + Math.abs(vel1.x),
+        overlap = p1.radius + p2.radius - Math.abs(pos0.x - pos1.x);
+    pos0.x += vel0.x / absV * overlap;
+    pos1.x += vel1.x / absV * overlap;
+    //rotate positions back
+    var pos0F = this.rotate(pos0.x, pos0.y, sin, cos, false),
+        pos1F = this.rotate(pos1.x, pos1.y, sin, cos, false);
+    //adjust positions to actual screen positions
+    p2.pos.x = p1.pos.x + pos1F.x;
+    p2.pos.y = p1.pos.y + pos1F.y;
+    p1.pos.x = p1.pos.x + pos0F.x;
+    p1.pos.y = p1.pos.y + pos0F.y;
+    //rotate velocities back
+    var vel0F = this.rotate(vel0.x, vel0.y, sin, cos, false),
+        vel1F = this.rotate(vel1.x, vel1.y, sin, cos, false);
+    p1.vx = vel0F.x;
+    p1.vy = vel0F.y;
+    p2.vx = vel1F.x;
+    p2.vy = vel1F.y;
 }
 game_core.prototype.check_collision = function(player, i) {
     //console.log('##+@@check_collision', player.mp);
@@ -901,7 +947,7 @@ game_core.prototype.check_collision = function(player, i) {
     }
     //console.log('*',player.mp);
 
-    var _this = this;
+    // var _this = this;
     // if (this.server)
     // console.log('* id', this.instance.id, 'len', this.getplayers.allplayers.length);
 
@@ -983,49 +1029,25 @@ game_core.prototype.check_collision = function(player, i) {
 
         // for (var i = room.length - 1; i >= 0; i--)
         for (var j = c; j < room.length; j++) {
-            other = room[j]; //room[i];//this.getplayers.allplayers[i];
-            //console.log('->', other.team, player.team);
-            //other.pos.x = other.pos.x.fixed(4);
-            //other.pos.y = other.pos.y.fixed(4);
-            //if (!other.active) return false;
-
+            other = room[j];
             if (other.mp != player.mp && other.team != player.team && other.active) {
                 //console.log( (player.pos.x + (player.size.hx / 2)), (other.pos.x + (other.size.hx / 2)) );
-                if (Math.sqrt((player.pos.x - other.pos.x) * (player.pos.x - other.pos.x) + (player.pos.y - other.pos.y) * (player.pos.y - other.pos.y)) < 32)
-                // console.log("+", dist, '<', '128');
-                // if ( 
-                //     player.pos.x + (player.size.hx/4) < other.pos.x + (other.size.hx - other.size.hx/4) 
-                //     && player.pos.x + (player.size.hx - player.size.hx/4) > other.pos.x + (other.size.hx/4) 
-                //     && player.pos.y + (player.size.hy/4) < other.pos.y + (other.size.hy - other.size.hy/4) 
-                //     && player.pos.y + (player.size.hy - player.size.hy/4) > other.pos.y + (other.size.hy/4)
-                // )
-                {
+                if (Math.sqrt((player.pos.x - other.pos.x) * (player.pos.x - other.pos.x) + (player.pos.y - other.pos.y) * (player.pos.y - other.pos.y)) < (player.radius + other.radius)) {
                     console.log('HIT!', player.active, player.playerName, player.team, other.active, other.playerName, other.team);
 
+                    this.doCollide(player, other);
+
                     // TODO: if vulnerable (stunned) then vuln user is victim
-
-                    // set both players as 'engaged'
-                    /*if (!this.server)
-                    {
-                        if (player.isLocal)
-                            player.isEngaged(10000);
-                        else if (other.isLocal)
-                            other.isEngaged(10000);
-                    }*/
-
-                    // otherwise, positioning counts
                     // TODO: adjust for precision/recover/bubble buffs
-                    // player y - player attackBonus - player bonusTotal / player y - recover bonus 
-                    // (pos.y - attackBonus - bonusTotal) - (pos.y - defenseBonus - bonusTotal)
                     this.hitDiff = (player.pos.y - player.attackBonus - player.bonusTotal) - (other.pos.y - other.defenseBonus - other.bonusTotal);
                     console.log("* HIT DIFF", this.hitDiff, this.hitBase); // player.mp, player.pos.y, other.mp, other.pos.y);
 
-                    if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true) //player.pos.y === other.pos.y)
-                    {
-                        _this.flashBang = 1;
+                    if ((this.hitDiff >= -this.hitBase && this.hitDiff <= this.hitBase && player.vuln === false && other.vuln === false) || player.vuln === true && other.vuln === true) {
+                        // _this.flashBang = 1;
                         console.log("TIE!", player.mp, player.pos, other.mp, other.pos);
                         // if (this.config.server)
-                        player.doHitServer(other, false);
+                        // player.doHitServer(other, false);
+
                     } else // we (might?) have a victim
                     {
                         console.log('determining VICTIM...'); //, player.mp);
@@ -1034,14 +1056,13 @@ game_core.prototype.check_collision = function(player, i) {
                         if (player.pos.y < other.pos.y || other.vuln === true) {
                             //console.log('player', player.mp, 'killed', other.mp);
                             if (!other.dead) {
-                                // _this.pk(player, other, 15);
                                 // if (this.config.server)
-                                other.doHitServer(player, true);
+                                // other.doHitServer(player, true);
                             }
                         } else {
                             if (!player.dead) {
                                 // if (this.config.server)
-                                player.doHitServer(other, true);
+                                // player.doHitServer(other, true);
                             }
                         }
                     }
@@ -1270,7 +1291,7 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         else if (h.sw.t > 0 && h.se.t > 0) // land
         {
-            // console.log('* land full sw se', h.sw.t, h.se.t);
+            // console.log('* land full sw se', h.sw.t, h.sw.y);
 
             // red gate across (tile id is 121)
             if (h.sw.t === 121 && h.se.t === 121 && player.team === 1) {
@@ -1281,7 +1302,7 @@ game_core.prototype.check_collision = function(player, i) {
                 } else {
                     player.ay = 0; //~~((h.sw.y * 64) - player.size.hy);
                     if (player.landed === 0) // if flying
-                        player.doLand();
+                        player.doLand(h.sw.y);
                 }
             } else {
                 //console.log('stop sw', player.mp);//, h.sw.y * 64, player.pos.y + player.size.hy);
@@ -1295,7 +1316,7 @@ game_core.prototype.check_collision = function(player, i) {
                 // process landing
                 //if (this.server)
                 if (player.landed === 0)
-                    player.doLand(); // if flying
+                    player.doLand(h.sw.y); // if flying
                 //if (!this.server) this.client_process_net_prediction_correction2();
             }
         }
@@ -1386,11 +1407,11 @@ game_core.prototype.check_collision = function(player, i) {
             } else if (h.s.t > 0) { // && player.landed === 10) {
                 // south (landing), determine direction
                 // set y
-                player.vy = 0; // ~~(h.sw.y * 64 - player.size.hy);
+                player.ay = 0; // ~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
                 // if (player.landed === 0 || player.landed === 10)
-                player.doLand(); // if flying
+                player.doLand(h.se.y); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         } else if (h.nw.t > 0 || h.sw.t > 0) // hit from left
@@ -1409,11 +1430,11 @@ game_core.prototype.check_collision = function(player, i) {
             } else if (h.s.t > 0) { // && player.landed === 10) {
                 // south (landing), determine direction
                 // set y
-                player.vy = 0; //~~(h.sw.y * 64 - player.size.hy);
+                player.ay = 0; //~~(h.sw.y * 64 - player.size.hy);
                 // process landing
                 //if (this.server)
                 // if (player.landed === 0 || player.landed === 10)
-                player.doLand(); // if flying
+                player.doLand(h.sw.y); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
         }

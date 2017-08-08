@@ -3714,6 +3714,7 @@ core_client.prototype.client_update = function() {
     // Only draw 'onscreen' players
     for (var j = this.core.getplayers.allplayers.length - 1; j >= 0; j--) {
         // exclude local player
+        // console.log(this.core.getplayers.allplayers[j].isLocal);
         if (this.core.getplayers.allplayers[j].active && !this.core.getplayers.allplayers[j].isLocal) {
             // only draw players "onscreen"
             if (Math.sqrt((this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) * (this.players.self.pos.x - this.core.getplayers.allplayers[j].pos.x) + (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y) * (this.players.self.pos.y - this.core.getplayers.allplayers[j].pos.y)) < window.innerWidth) {
