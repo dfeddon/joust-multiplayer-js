@@ -1221,7 +1221,7 @@ game_core.prototype.check_collision = function(player, i) {
         for (i = room.length - 1; i >= 0; i--) {
             // fo = room[i];//this.config.flagObjects[k];
             // console.log('======= flag ======\n', room[i].id, room[i].name, room[i].x, room[i].y, '\n=======');
-            if (Math.sqrt((player.pos.x - room[i].x) * (player.pos.x - room[i].x) + (player.pos.y - room[i].y) * (player.pos.y - room[i].y)) < 32)
+            if (Math.sqrt((player.pos.x - player.hitRadius - room[i].x) * (player.pos.x - player.hitRadius - room[i].x) + (player.pos.y - player.hitRadius - room[i].y) * (player.pos.y - player.hitRadius - room[i].y)) < 32)
             // if (
             //     //room[i].isHeld === false && room[i].isActive && player.hasFlag === 0 &&
             //     player.pos.x < (room[i].x + (room[i].width/2)) &&
@@ -1272,14 +1272,18 @@ game_core.prototype.check_collision = function(player, i) {
                     player.exitBase(); // disable afk timer
                     player.pos.y -= gatepush;
                 } else {
-                    player.ay = b + 10;
+                    // player.ay = b + 10;
+                    player.pos.y = (h.nw.y * 64) + 64 + (player.pos.y - ((h.nw.y * 64) + 64));
                     player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                     player.collision = true;
                 }
             } else {
                 //player.pos.x -= b;
                 // player.thrust = 0;
-                player.ay = b + 10;
+                // player.ay = b + 10;
+                player.pos.y = (h.nw.y * 64) + 64 + (player.pos.y - ((h.nw.y * 64) + 64));
+                // player.snapY = 0 - (player.pos.y - (h.nw.y * 64)) - b;
+                // console.log("* snapY", player.snapY, (h.nw.y * 64), player.pos.y);
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
                 /*if (player.vuln===false)
@@ -1383,8 +1387,8 @@ game_core.prototype.check_collision = function(player, i) {
         //////////////////////////////
         // slid off platform
         //////////////////////////////
-        else if (player.landed === 2) {
-            console.log('* player slid off barrier...');
+        else if (player.landed === 2 && h.e.t === 0 && h.w.t === 0) {
+            console.log('* player slid off barrier...', h.e.t, h.w.t);
             player.landed = 0; // slide off... now flying
             // return;
         }
@@ -1396,12 +1400,13 @@ game_core.prototype.check_collision = function(player, i) {
             console.log('* edge left', h.n.t, h.s.t, h.e.t);
             if (h.e.t > 0) { // || (h.n.t + h.s.t + h.e.t === 0 && player.landed !== 10)) {
                 // east (side collision)
-                player.vx = 0 - b; //bounce
+                player.ax = 0 - b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.n.t > 0) {
                 // north (from below)
-                player.vy = b;
+                // player.vy = b;
+                player.pos.y = h.n.y * 64 + 64 + (player.pos.y - (h.n.y * 64 + 64));
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.s.t > 0) { // && player.landed === 10) {
@@ -1419,12 +1424,15 @@ game_core.prototype.check_collision = function(player, i) {
             console.log('* edge right', h.n.t, h.s.t, h.w.t);
             if (h.w.t > 0) { // || (h.n.t + h.s.t + h.w.t === 0 && player.landed !== 10)) {
                 // east (side collision)
-                player.vx = b; //bounce
+                player.ax = b; //bounce
                 player.hitFrom = 0; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.n.t > 0) {
                 // north (from below)
-                player.vy = b;
+                // player.vy = b;
+                // player.ay = 0; //b + 10;
+                // player.snapY = 0 - (player.pos.y - h.nw.y * 64);
+                player.pos.y = h.n.y * 64 + 64 + (player.pos.y - (h.n.y * 64 + 64));
                 player.hitFrom = 1; // 0 = side, 1 = below, 2 = above;
                 player.collision = true;
             } else if (h.s.t > 0) { // && player.landed === 10) {
@@ -1437,8 +1445,9 @@ game_core.prototype.check_collision = function(player, i) {
                 player.doLand(h.sw.y); // if flying
             }
             //console.log(player.n, player.s, player.e, player.w);
-        }
+        } // else console.log("nohit!")
     }
+    // player.update();
     // player.pos.x = player.pos.x.fixed(4);
     // player.pos.y = player.pos.y.fixed(4);
 }; //game_core.check_collision
@@ -1679,9 +1688,9 @@ game_core.prototype.process_input = function(player) {
 
 }; //game_core.process_input
 
-game_core.prototype.timeoutInputDelay = function() {
-    this.inputDelay = false;
-};
+// game_core.prototype.timeoutInputDelay = function() {
+//     this.inputDelay = false;
+// };
 game_core.prototype.physics_movement_vector_from_direction = function(x, y) {
     // if (x || y) console.log('##+@@ phys_move_vec_from_dir', x, y);
     //Must be fixed step, at physics sync speed.
@@ -1695,8 +1704,7 @@ game_core.prototype.physics_movement_vector_from_direction = function(x, y) {
 }; //game_core.physics_movement_vector_from_direction
 
 game_core.prototype.update_physics = function() {
-    if (glog)
-        console.log('##+@@ update_physics');
+    // console.log('##+@@ update_physics');
     //if (!this.config.server) return;
 
     // var _this = this;

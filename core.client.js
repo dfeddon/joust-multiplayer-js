@@ -372,7 +372,7 @@ core_client.prototype.client_reset_positions = function() {
 
     // console.log('Am I Host?', this.players.self.mp, this.players.self.host, this.core.getplayers.allplayers.length);
     //if (this.players.self.host === true) this.players.self.pos.y = -1000;
-    //*
+    /*
     var room = this.core.getplayers.allplayers; //fromRoom(this.xport);
     for (var i = room.length - 1; i >= 0; i--) {
         //console.log('pos:', room[i].pos, room[i].instance);
@@ -411,6 +411,7 @@ core_client.prototype.client_reset_positions = function() {
     }
     else
     {*/
+    /*
     console.log('pre', this.players.self.pos);
     //Make sure the local player physics is updated
     this.players.self.old_state.pos = this.pos(this.players.self.pos);
@@ -419,7 +420,7 @@ core_client.prototype.client_reset_positions = function() {
     this.players.self.draw();
     /*}
     console.log(this.players.self.pos);*/
-    console.log('post', this.players.self.pos);
+    // console.log('post', this.players.self.pos);
 
 
     //Position all debug view items to their owners position
@@ -3121,8 +3122,11 @@ core_client.prototype.client_process_net_updates = function() { //client_pos) {
                 // console.log(this.nu_self_pp, this.nu_self_tp);
                 // console.log("*", this.players.self.pos);
                 // var g = {x:client_pos.x + this.players.self.pos.x, y:client_pos.y + this.players.self.pos.y};
+
                 // local player interpolation
                 this.players.self.pos = this.v_lerp(this.players.self.pos, this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point), this.core._pdt * this.client_smooth);
+                // this.players.self.pos = this.core.pos(this.v_lerp(this.nu_self_pp, this.nu_self_tp, this.nu_time_point));
+
                 // console.log("=", this.players.self.pos);
 
                 // player.pos = _this.v_lerp(p.pos, this.pos({
@@ -3626,9 +3630,9 @@ core_client.prototype.client_update_local_position = function() {
     // var old_state = this.players.self.old_state.pos;
     // var current_state = this.players.self.cur_state.pos;
     //Make sure the visual position matches the states we have stored
-    // this.players.self.pos = this.v_add(old_state, this.v_mul_scalar(this.v_sub(current_state, old_state), t));
+    // this.players.self.pos = this.v_add(this.players.self.old_state.pos, this.v_mul_scalar(this.v_sub(this.players.self.cur_state.pos, this.players.self.old_state.pos), (this.core.local_time - this.players.self.state_time) / this.core._pdt));
     // this.players.self.update();
-    this.players.self.pos = this.players.self.cur_state.pos; //current_state;
+    // this.players.self.pos = this.players.self.cur_state.pos; //current_state;
     //console.log(current_state.d);
 
     // TODO: !!! Uncomment below if client pos mismatch !!!
@@ -3636,7 +3640,7 @@ core_client.prototype.client_update_local_position = function() {
     // console.log(this.core.server_control);
 
     // if (!this.core.server_control)
-    // this.players.self.pos = this.players.self.cur_state.pos; //current_state;
+    this.players.self.pos = this.players.self.cur_state.pos; //current_state;
     //*/
 
     //We handle collision on client if predicting.
@@ -3680,7 +3684,7 @@ core_client.prototype.client_update = function() {
     // var _this = this;
 
     // uncomment to clear bricks with brickPadding > 0
-    // this.ctx.clearRect(-this.cam.x,-this.cam.y,this.viewport.width+128, this.viewport.height+128);
+    // this.ctx.clearRect(-this.cam.x, -this.cam.y, this.viewport.width + 128, this.viewport.height + 128);
 
     // capture inputs from the player
     // var client_pos = 

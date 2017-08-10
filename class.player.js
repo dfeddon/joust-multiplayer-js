@@ -71,6 +71,9 @@ function game_player(player_instance, isHost, pindex, config) {
     this.mass = this.radius;
     this.hitMass = this.hitRadius; // fixed player mass
 
+    // this.snapX = 0; // for "snapping" player to pos.x (overriding accel, velocity, thrust, et al.)
+    // this.snapY = 0; // for "snapping" player to pos.y (overriding accel, velocity, thrust, et al.)
+
     this.flap = false; // flapped bool (derek added)
     this.landed = 1; // 0=flying, 1=stationary, 2=walking
     this.supportingPlatformId = "none"; // id of platform on which player is standing
@@ -86,15 +89,15 @@ function game_player(player_instance, isHost, pindex, config) {
     this.c = 0;
     this.visible = false;
     this.active = false;
-    this.state = 'not-connected';
+    this.state = "not-connected";
     this.isHit = 0;
     //this.color = 'rgba(255,255,255,0.1)';
-    this.info_color = 'rgba(255,255,255,0.1)';
+    this.info_color = "rgba(255,255,255,0.1)";
     //this.id = '';
     // i = index / a: active / b: buff id (0 = none) / d: cooldown (end time)
 
     this.slotDispatch = null; // server only
-    this.consumeDispatch = null // server only
+    this.consumeDispatch = null; // server only
     this.bonusDispatch = null;
 
     // i = index, a = active, b = buff, c = cooldown
@@ -134,13 +137,13 @@ function game_player(player_instance, isHost, pindex, config) {
 
     this.health = 100; // start at half-health
     this.healthMax = 100;
-    this.healthbarColor = 'lime';
+    this.healthbarColor = "lime";
     this.healthChanged = false; // server only
     this.engaged = false;
     this.vuln = false;
     this.dying = false;
     this.score = 0; //Math.floor(Math.random() * 101);
-    this.oldscore = 0
+    this.oldscore = 0;
     this.lastscore = 0;
     this.roundscore = 0;
     this.level = 1;
@@ -203,20 +206,15 @@ function game_player(player_instance, isHost, pindex, config) {
     this.isLocal = false;
     this.bufferIndex = undefined; //0;
 
-    this.mp = 'cp' + pindex; //(getplayers.allplayers.length + 1);
-    this.mis = 'cis' + pindex; //(getplayers.allplayers.length + 1);
+    this.mp = "cp" + pindex; //(getplayers.allplayers.length + 1);
+    this.mis = "cis" + pindex; //(getplayers.allplayers.length + 1);
 
     // assign pos and input seq properties
     //Our local history of inputs
     this.inputs = [];
 
     //The world bounds we are confined to
-    this.pos_limits = {
-        x_min: 0, //this.size.hx,
-        x_max: this.config.world.width - this.size.hx,
-        y_min: 0, //this.size.hy,
-        y_max: this.config.world.height - this.size.hy
-    };
+    this.pos_limits = { x_min: 0, x_max: this.config.world.width - this.size.hx, y_min: 0, y_max: this.config.world.height - this.size.hy }; //this.size.hx, //this.size.hy,
 
     //These are used in moving us around later
     this.old_state = { pos: this.pos };
@@ -942,7 +940,7 @@ game_player.prototype.miscBuff = function(id) {
         case 300: // bubble broken
             // this.bubble = false;
             this.setBubble(false);
-            var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+            var particles = new Particles({ x: this.pos.x, y: this.pos.y }, 1, this.config.ctx);
             this.config.client.particles.push(particles);
             break;
 
@@ -1439,7 +1437,7 @@ game_player.prototype.doLand = function(surfaceY) {
                 // this.setTextFloater(100, Math.abs(dmg), 1);
             }
         } else {
-            var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+            var particles = new Particles({ x: this.pos.x, y: this.pos.y }, 1, this.config.ctx);
             this.config.client.particles.push(particles);
         }
 
@@ -1966,6 +1964,18 @@ game_player.prototype.update = function() {
     if (this.a > 0) this.a -= 0.5;
     else if (this.a < 0) this.a += 0.5;
 
+    // lastly vx and vy override, "snaps" to pos
+    // if (this.snapX !== 0) {
+    //     this.vx = this.snapX;
+    //     this.snapX = 0; // reset
+    // }
+    // if (this.snapY !== 0) {
+    //     this.vy = this.snapY;
+    //     this.thrust = 0;
+    //     this.ay = 0;
+    //     this.snapY = 0; // reset
+    //     console.log("* snapping Y", this.vy);
+    // }
     // console.log('vx', this.vx, 'vy', this.vy, 'ax', this.ax, 'ay', this.ay, 'thr', this.thrust); //, this.landed);
 
     // console.log('vx', this.vx, 'vy', this.vy, 'a', this.a, 'thr', this.thrust, 'land', this.landed);
@@ -1986,17 +1996,18 @@ game_player.prototype.update = function() {
             case 0: // from the side
                 console.log("side collision", this.pos.x, this.pos.y, this.vx, this.a);
                 this.vx *= -1;
-                this.a *= -1;
+                this.a = 0; //*= -1;
                 //this.collision = false;
                 //if (!this.vuln)
                 //this.isVuln();
                 console.log("vx", this.vx, this.a);
                 break;
             case 1: // from below
+                console.log("* from below", this.vy);
                 //this.vx *= -1;
-                //this.a *= -1;
+                // this.a *= -1;
                 this.thrust = 0;
-                this.vy *= -1;
+                this.vy *= -1.0;
                 this.isVuln(750);
                 // console.log("* inbase", this.inBase);
                 if (!this.inBase) {
@@ -2006,24 +2017,9 @@ game_player.prototype.update = function() {
                         var dmg = this.getRandomRange(1, 5);
                         // console.log("* from below dmg", dmg);
                         this.updateHealth(0 - dmg);
-                        this.instance
-                            .room(
-                                this
-                                .playerPort
-                            )
-                            .write(
-                                [
-                                    5,
-                                    this
-                                    .id,
-                                    null,
-                                    dmg,
-                                    this
-                                    .health
-                                ]
-                            );
+                        this.instance.room(this.playerPort).write([5, this.id, null, dmg, this.health]);
                     } else {
-                        var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+                        var particles = new Particles({ x: this.pos.x, y: this.pos.y - this.hitRadius }, 1, this.config.ctx);
                         this.config.client.particles.push(particles);
                     }
                 }
@@ -2047,7 +2043,7 @@ game_player.prototype.update = function() {
                 if (!this.config.server && this.hitFrom === 3) {
                     // && this.config.client.particles.length < 3)
                     console.log("* collision HIT!");
-                    var particles = new Particles({ x: this.target.pos.x + 32, y: this.target.pos.y + 32 }, 1, this.config.ctx);
+                    var particles = new Particles({ x: this.target.pos.x, y: this.target.pos.y }, 1, this.config.ctx);
                     this.config.client.particles.push(particles);
                 }
                 // if dif >= 15 && dif <= 15 no victim
@@ -2215,7 +2211,7 @@ game_player.prototype.doHitClientVictim = function(victor, dmg, health) {
     if (victor) this.setTextFloater(100, dmgText, 1);
     else this.setTextFloater(101, dmgText, 1);
 
-    var particles = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+    var particles = new Particles({ x: this.pos.x, y: this.pos.y }, 1, this.config.ctx);
     this.config.client.particles.push(particles);
 };
 
@@ -2522,7 +2518,7 @@ game_player.prototype.doKill = function(victor) {
         this.a = 0;
         // this.dead = true;
         // this.vuln = true;
-        var particles1 = new Particles({ x: this.pos.x + 32, y: this.pos.y + 32 }, 1, this.config.ctx);
+        var particles1 = new Particles({ x: this.pos.x, y: this.pos.y }, 1, this.config.ctx);
         // var particles2 = new Particles({x:this.pos.x + 32,y:this.pos.y+32}, 1, this.config.ctx);
         this.config.client.particles.push(particles1);
         // this.config.client.particles.push(particles2);
@@ -3177,7 +3173,7 @@ game_player.prototype.getCoord = function() {
         // x: ~~((this.pos.x + this.size.hx) / 64),
         // y: ~~(this.pos.y / 64)
         x: ~~((this.pos.x + this.hitRadius) / 64),
-        y: ~~((this.pos.y + this.hitRadius) / 64)
+        y: ~~((this.pos.y - this.hitRadius) / 64)
     };
     this.sw = {
         // x: ~~((this.pos.x + this.size.offset) / 64),
@@ -3490,9 +3486,8 @@ game_player.prototype.draw = function() {
         this.config.ctx.drawImage(this.drwImg, this.pos.x, this.pos.y, this.drwImgW, this.drwImgH);
     } else if (this.vuln === true) {
         if (this.dir === 1)
-            this.sprite.draw('vuln-l', this.pos, this.drawAbility, this.radius); //img = assets.p1stun_l;//document.getElementById("p1stun-l");
-        //this.vulnLeft;//document.getElementById("p1stun-l");
-        else this.drwImg = this.sprite.draw("vuln-r", this.pos, this.drawAbility, this.radius); //assets.p1stun_r;//document.getElementById("p1stun-r");
+            this.sprite.draw('vuln-l', { x: this.pos.x - this.hitRadius, y: this.pos.y - this.hitRadius }, this.drawAbility);
+        else this.sprite.draw("vuln-r", { x: this.pos.x - this.hitRadius, y: this.pos.y - this.hitRadius }, this.drawAbility);
 
         this.drwImgW = 64;
         this.drwImgH = 64;
@@ -3503,11 +3498,11 @@ game_player.prototype.draw = function() {
         // reset flap on client
         // this.flap = false;
         if (this.dir === 1) {
-            this.sprite.draw("flap-l", this.pos, this.drawAbility, this.radius);
+            this.sprite.draw("flap-l", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility);
             //img = assets.p1l;//document.getElementById("p1l");
         }
         //img = this.flapLeft;//document.getElementById("p1l");
-        else this.sprite.draw("flap-r", this.pos, this.drawAbility, this.radius); //img = assets.p1r;//document.getElementById("p1r");
+        else this.sprite.draw("flap-r", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //img = assets.p1r;//document.getElementById("p1r");
         //this.flapRight;//document.getElementById("p1r");
 
         this.drwImgW = 64; //40;
@@ -3515,9 +3510,9 @@ game_player.prototype.draw = function() {
     } else if (this.landed === 1) // standing
     {
         //console.log('standing', this.landed, this.mp);
-        if (this.dir === 1) this.sprite.draw("land-l", this.pos, this.drawAbility, this.radius); //img = assets.p1stand_l;//document.getElementById("p1stand-l");
+        if (this.dir === 1) this.sprite.draw("land-l", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //img = assets.p1stand_l;//document.getElementById("p1stand-l");
         //img = this.standLeft;// document.getElementById("p1stand-l");
-        else this.drwImg = this.sprite.draw("land-r", this.pos, this.drawAbility, this.radius); //assets.p1stand_r;//document.getElementById("p1stand-r");
+        else this.drwImg = this.sprite.draw("land-r", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //assets.p1stand_r;//document.getElementById("p1stand-r");
         //img = this.standRight;//document.getElementById("p1stand-r");
 
         this.drwImgW = 64; //33;
@@ -3525,19 +3520,19 @@ game_player.prototype.draw = function() {
     } else if (this.landed === 2) // walking/skidding
     {
         if (this.dir === 1)
-            this.drwImg = this.sprite.draw("land-l", this.pos, this.drawAbility, this.radius); //assets.p1skid_l;//document.getElementById("p1skid-l");
-        else this.drwImg = this.sprite.draw("land-r", this.pos, this.drawAbility, this.radius); //assets.p1skid_r;//document.getElementById("p1skid-r");
+            this.drwImg = this.sprite.draw("land-l", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //assets.p1skid_l;//document.getElementById("p1skid-l");
+        else this.drwImg = this.sprite.draw("land-r", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //assets.p1skid_r;//document.getElementById("p1skid-r");
 
         this.drwImgW = 64; //33;
         this.drwImgH = 64; //44;
     } else // gliding
     {
         if (this.dir === 1)
-            this.drwImg = this.sprite.draw("fly-l", this.pos, this.drawAbility, this.radius); //assets.p2l;//document.getElementById("p2l");
+            this.drwImg = this.sprite.draw("fly-l", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //assets.p2l;//document.getElementById("p2l");
         //img = ctx.putImageData(imgData,10,70);
         //img = this.glideLeft;
         else //img = this.glideRight;//
-            this.sprite.draw("fly-r", this.pos, this.drawAbility, this.radius); //img = assets.p2r;//document.getElementById("p2r");
+            this.sprite.draw("fly-r", { x: this.pos.x - this.radius, y: this.pos.y - this.radius }, this.drawAbility); //img = assets.p2r;//document.getElementById("p2r");
         //else img = ctx.putImageData(imgData,10,70);
 
         this.drwImgW = 64; //40;
@@ -3614,7 +3609,7 @@ game_player.prototype.draw = function() {
         //console.log('flagImg', flagImg, this.dir);
         // if flag is undefined, it's been removed
         if (this.drwFlagImg && flag && !this.dead) {
-            this.config.ctx.drawImage(this.drwFlagImg, (this.dir === 0) ? this.pos.x - ((this.size.hx + this.size.offset) / 2) : this.pos.x + ((this.size.hx + this.size.offset) / 2), this.pos.y - ((this.size.hx + this.size.offset) / 2), 64, 64);
+            this.config.ctx.drawImage(this.drwFlagImg, (this.dir === 0) ? this.pos.x - this.radius - ((this.size.hx + this.size.offset) / 2) : this.pos.x + ((this.size.offset) / 2), this.pos.y - this.radius - ((this.size.hx + this.size.offset) / 2), 64, 64);
             // draw timer
             //*
             this.config.ctx.font = "18px Mirza";
@@ -3624,8 +3619,8 @@ game_player.prototype.draw = function() {
             if (flag)
                 this.config.ctx.fillText(
                     flag.timer, // + " (" + this.level + ") " + this.mana.toString(),// + this.config.fps.fixed(1),
-                    (this.dir === 0) ? this.pos.x - 5 : this.pos.x + (this.size.hx + this.size.offset) + 5, //.fixed(1),
-                    this.pos.y - 5 //this.nameplateOffset
+                    (this.dir === 0) ? this.pos.x - this.radius - 5 : this.pos.x + this.radius + (this.size.offset), // + 5, //.fixed(1),
+                    this.pos.y - this.radius - 5 //this.nameplateOffset
                     //100
                 );
         } else {
@@ -3722,21 +3717,21 @@ game_player.prototype.draw = function() {
 
     if (this.bubble === true && this.drawAbility === 0)
         this.config.ctx.drawImage(assets.ability_bubble, this.pos.x - 8, this.pos.y - 8, 76, 76);
-    if (this.isHit > 0 && !this.dead) {
-        this.config.ctx.drawImage(assets.animate_hit, this.pos.x - 8, this.pos.y - 8, 76, 76);
-        // if (this.isLocal && this.isHit === 1)
-        //     document.getElementById('screen-splatter').style.display = "block";
-        // only display for 10 frames
-        if (this.isHit >= 30) {
-            this.isHit = 0;
-            // if (this.isLocal)
-            //     document.getElementById('screen-splatter').style.display = "none";
-        } else this.isHit++;
+    /*    if (this.isHit > 0 && !this.dead) {
+            this.config.ctx.drawImage(assets.animate_hit, this.pos.x - 38, this.pos.y - this.radius - 8, 76, 76);
+            // if (this.isLocal && this.isHit === 1)
+            //     document.getElementById('screen-splatter').style.display = "block";
+            // only display for 10 frames
+            if (this.isHit >= 30) {
+                this.isHit = 0;
+                // if (this.isLocal)
+                //     document.getElementById('screen-splatter').style.display = "none";
+            } else this.isHit++;
 
-        // if (this.isLocal)
-        // {
-        // }
-    }
+            // if (this.isLocal)
+            // {
+            // }
+        }*/
 
 
 

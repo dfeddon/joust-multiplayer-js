@@ -77,11 +77,26 @@ function game_spritesheet(img) {
   //this.draw();
 };*/
 
-game_spritesheet.prototype.draw = function(label, pos, abil, radius) {
+game_spritesheet.prototype.draw = function(label, pos, abil) { //, radius) {
     // var _this = this;
     // console.log('== spritesheet.draw()', label, this.cellData, radius, '==');
     var data = _.find(this.cellData, { 'label': label });
-    // console.log('data', data);
+    // console.log('* spriteDraw', data);
+
+    // adjust pos based on label
+    /*
+    switch (label) {
+        case "vuln-l":
+            pos.y -= radius;
+            break;
+        case "vuln-r":
+            pos.y -= radius;
+            break;
+        default:
+            pos.x -= radius;
+            pos.y -= radius;
+    }
+    //*/
 
     // if (!radius) radius = 32;
 
@@ -89,14 +104,15 @@ game_spritesheet.prototype.draw = function(label, pos, abil, radius) {
         this.ctx.save();
         this.ctx.globalAlpha = 0.25;
     }
+    // console.log(~~(pos.x), ~~(pos.y));
     this.ctx.drawImage(
         this.img, //document.getElementById("animate-torches"),
         data.x, //this.x,// + (64 * (i + 1)),
         data.y,
         this.cellWidth,
         this.cellHeight,
-        pos.x - radius, //this.x,// + (64 * (i + 1)),
-        pos.y - radius,
+        pos.x,
+        pos.y,
         this.cellWidth,
         this.cellHeight
     );
